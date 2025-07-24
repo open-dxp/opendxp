@@ -72,7 +72,7 @@ class Embed extends Model\Document\Editable
                 $embera = new \Embera\Embera($config);
                 $html = $embera->autoEmbed($this->url);
 
-               \OpenDxp\Cache::save($html, $cacheKey, ['embed'], 86400, 1, true);
+                \OpenDxp\Cache::save($html, $cacheKey, ['embed'], 86400, 1, true);
             }
 
             return $html;

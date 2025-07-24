@@ -56,7 +56,7 @@ class Task extends Model\AbstractModel
             try {
                 $task = new self();
                 $task->getDao()->getById($id);
-               \OpenDxp\Cache\RuntimeCache::set($cacheKey, $task);
+                \OpenDxp\Cache\RuntimeCache::set($cacheKey, $task);
             } catch (Model\Exception\NotFoundException $e) {
                 return null;
             }

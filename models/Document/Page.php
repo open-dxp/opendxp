@@ -120,7 +120,7 @@ class Page extends PageSnippet
         $documentsConfig = \OpenDxp\Config::getSystemConfiguration('documents');
         if ($documentsConfig['generate_preview'] ?? false) {
             OpenDxp::getContainer()->get('messenger.bus.opendxp-core')->dispatch(
-                new GeneratePagePreviewMessage($this->getId(),\OpenDxp\Tool::getHostUrl())
+                new GeneratePagePreviewMessage($this->getId(), \OpenDxp\Tool::getHostUrl())
             );
         }
 

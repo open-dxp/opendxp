@@ -18,10 +18,10 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\HttpKernel\Response;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_MockObject_MockObject;
 use OpenDxp\Http\Response\CodeInjector;
 use OpenDxp\Http\ResponseHelper;
 use OpenDxp\Tests\Support\Test\TestCase;
+use PHPUnit_Framework_MockObject_MockObject;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\Response;
 

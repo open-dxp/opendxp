@@ -106,7 +106,7 @@ final class Staticroute extends AbstractModel
                 $route = new self();
                 $route->setId($id);
                 $route->getDao()->getById();
-               \OpenDxp\Cache\RuntimeCache::set($cacheKey, $route);
+                \OpenDxp\Cache\RuntimeCache::set($cacheKey, $route);
             } catch (NotFoundException $e) {
                 return null;
             }

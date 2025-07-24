@@ -16,10 +16,10 @@
 namespace OpenDxp\Bundle\CoreBundle\Controller;
 
 use Exception;
-use PDO;
 use OpenDxp\Controller\Controller;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
+use PDO;
 
 /**
  * @internal

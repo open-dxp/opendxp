@@ -77,7 +77,7 @@ final class Predefined extends Model\AbstractModel
             try {
                 $property = new self();
                 $property->getDao()->getByKey($key);
-               \OpenDxp\Cache\RuntimeCache::set($cacheKey, $property);
+                \OpenDxp\Cache\RuntimeCache::set($cacheKey, $property);
             } catch (Model\Exception\NotFoundException $e) {
                 return null;
             }

@@ -21,6 +21,7 @@ use OpenDxp\Model;
 
 /**
  * @method\OpenDxp\Bundle\SeoBundle\Model\Redirect\Listing\Dao getDao()
+ *
  * @method Redirect[] load()
  * @method Redirect|false current()
  * @method int getTotalCount()
