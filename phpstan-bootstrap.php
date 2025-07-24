@@ -1,7 +1,5 @@
 <?php
 
-use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
-
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     define('OPENDXP_PROJECT_ROOT', __DIR__);
 } elseif (file_exists(__DIR__ . '/../../../vendor/autoload.php')) {

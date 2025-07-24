@@ -18,15 +18,15 @@ parameters:
         container_xml_path: var/cache/test/App_KernelTestDebugContainer.xml
 
     ignoreErrors:
-        - '~^Unsafe usage of new static\(\)~'
+        - identifier: new.static
+        - identifier: missingType.iterableValue
+        - identifier: missingType.generics
 
     # see https://phpstan.org/config-reference#universal-object-crates
     universalObjectCratesClasses:
         - OpenDxp\Config\Config
         - OpenDxp\Templating\Model\ViewModel
 
-    checkGenericClassInNonGenericObjectType: false
-    checkMissingIterableValueType: false
     checkAlwaysTrueCheckTypeFunctionCall: true
 
     ergebnis:
