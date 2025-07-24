@@ -161,7 +161,7 @@
         "chrome-php/chrome": "Optional for Documents Page Previews when requiring gotenberg-php v2, but required if you opt for gotenberg-php v1",
         "webmozarts/console-parallelization": "Required for parallelization of console commands",
         "symfony/dotenv": "Required for loading environment vars from .env files",
-        "open-dxp/admin-ui-classic-bundle": "^1.5.0",
+        "open-dxp/admin-ui-classic-bundle": "^1.0.0",
         "phpdocumentor/reflection-docblock": "^5.2 - Required for OpenDXP Generic Execution Engine Bundle",
         "symfony/property-info": "^6.3 - Required for OpenDXP Generic Execution Engine Bundle"
     },
