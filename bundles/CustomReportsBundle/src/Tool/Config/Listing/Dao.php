@@ -21,7 +21,7 @@ use OpenDxp\Model;
 /**
  * @internal
  *
- * @property\OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Listing $model
+ * @property \OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Listing $model
  */
 class Dao extends \OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Dao
 {

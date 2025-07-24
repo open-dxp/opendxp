@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * @internal
  *
- * @property\OpenDxp\Bundle\SeoBundle\Model\Redirect $model
+ * @property \OpenDxp\Bundle\SeoBundle\Model\Redirect $model
  */
 class Dao extends Model\Dao\AbstractDao
 {

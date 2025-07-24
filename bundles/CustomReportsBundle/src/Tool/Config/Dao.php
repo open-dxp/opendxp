@@ -22,7 +22,7 @@ use OpenDxp\Model;
 /**
  * @internal
  *
- * @property\OpenDxp\Bundle\CustomReportsBundle\Tool\Config $model
+ * @property \OpenDxp\Bundle\CustomReportsBundle\Tool\Config $model
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
