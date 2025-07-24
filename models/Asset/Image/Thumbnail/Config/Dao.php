@@ -149,9 +149,9 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 
     private function clearDatabaseCache(): void
     {
-       \OpenDxp\Db::get()->delete('assets_image_thumbnail_cache', [
-            'name' => $this->model->getName(),
-        ]);
+        \OpenDxp\Db::get()->delete('assets_image_thumbnail_cache', [
+             'name' => $this->model->getName(),
+         ]);
 
         Model\Asset\Dao::$thumbnailStatusCache = [];
     }

@@ -228,7 +228,7 @@ class EditmodeListener implements EventSubscriberInterface
                 $scriptContents .= file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl) . "\n\n\n";
             }
 
-            $headHtml .= '<script src="' . $this->router->generate('opendxp_admin_misc_scriptproxy',\OpenDxp\Tool\Admin::getMinimizedScriptPath($scriptContents)) . '"></script>' . "\n";
+            $headHtml .= '<script src="' . $this->router->generate('opendxp_admin_misc_scriptproxy', \OpenDxp\Tool\Admin::getMinimizedScriptPath($scriptContents)) . '"></script>' . "\n";
         }
         $path = $this->router->generate('opendxp_admin_misc_jsontranslationssystem', [
             'language' => $language,

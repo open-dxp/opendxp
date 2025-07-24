@@ -444,7 +444,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
             $data .= 'return '.$exportedClass.";\n";
 
-           \OpenDxp\File::putPhpFile($definitionFile, $data);
+            \OpenDxp\File::putPhpFile($definitionFile, $data);
         }
     }
 

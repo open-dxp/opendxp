@@ -54,7 +54,7 @@ class LocalizedFieldTest extends ModelTestCase
         if (Version::getMajorVersion() >= 11) {
             $this->config->testSave($this->originalConfig);
         } else {
-           \OpenDxp\Config::setSystemConfiguration($this->originalConfig);
+            \OpenDxp\Config::setSystemConfiguration($this->originalConfig);
         }
 
         parent::tearDown();
@@ -68,7 +68,7 @@ class LocalizedFieldTest extends ModelTestCase
         if (Version::getMajorVersion() >= 11) {
             $this->config->testSave($configuration);
         } else {
-           \OpenDxp\Config::setSystemConfiguration($configuration);
+            \OpenDxp\Config::setSystemConfiguration($configuration);
         }
         // create root -> one -> two -> three
         $one = new Inheritance();

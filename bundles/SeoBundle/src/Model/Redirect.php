@@ -250,7 +250,7 @@ final class Redirect extends AbstractModel
     {
         // this is mostly called in Redirect\Dao not here
         try {
-           \OpenDxp\Cache::clearTag('redirect');
+            \OpenDxp\Cache::clearTag('redirect');
         } catch (Exception $e) {
             Logger::crit((string) $e);
         }

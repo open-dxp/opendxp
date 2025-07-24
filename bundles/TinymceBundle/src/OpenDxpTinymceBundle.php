@@ -40,8 +40,8 @@ class OpenDxpTinymceBundle extends AbstractOpenDxpBundle implements OpenDxpBundl
 
     public function getCssPaths(): array
     {
-         return [
-            '/bundles/opendxptinymce/css/editor.css',
+        return [
+           '/bundles/opendxptinymce/css/editor.css',
         ];
     }
 

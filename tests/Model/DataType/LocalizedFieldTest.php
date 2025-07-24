@@ -51,7 +51,7 @@ class LocalizedFieldTest extends ModelTestCase
         if (Version::getMajorVersion() >= 11) {
             $this->config->testSave($this->originalConfig);
         } else {
-           \OpenDxp\Config::setSystemConfiguration($this->originalConfig);
+            \OpenDxp\Config::setSystemConfiguration($this->originalConfig);
         }
 
         Localizedfield::setStrictMode((bool)Localizedfield::STRICT_DISABLED);
@@ -130,7 +130,7 @@ class LocalizedFieldTest extends ModelTestCase
         if (Version::getMajorVersion() >= 11) {
             $this->config->testSave($configuration);
         } else {
-           \OpenDxp\Config::setSystemConfiguration($configuration);
+            \OpenDxp\Config::setSystemConfiguration($configuration);
         }
 
         $object = TestHelper::createEmptyObject();
