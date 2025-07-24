@@ -1,27 +1,29 @@
 name: Feature Request
 description: Request or propose a new feature
 title: "[Feature]: "
-labels: ["New Feature"]
+labels: [ "New Feature" ]
 body:
-    - type: markdown
-      attributes:
-          value: |
-              ## Important notice
-              As an open source project we love to work together with our community to improve and develop our products.
-              It's also important for us to make clear that **we're not working for you or your company**,
-              but we enjoy to work together to improve or add new features to the product.
-              So we are always ready to discuss features and improvements with our community.
-              Especially for bigger topics, please [start a discussion](https://github.com/open-dxp/opendxp/discussions) first to aviod unnecessary efforts.
-
-              As soon as a topic is more specific, feel free to create issues for it or even better provide a corresponding PR as we love to
-              review and merge contributions.
-
-              Feature requests that do not meet the conditions listed below will be closed/deleted without comment.
-              - There's no existing ticket for the same topic
-              - This is already a specific ready-to-work-on feature request
-
-    - type: textarea
-      attributes:
-          label: Feature description
-      validations:
-          required: true
+    -   type: markdown
+        attributes:
+            value: |
+                ## Before Requesting a Feature
+                We're building this project openly and collaboratively — community input is a big part of how we improve and grow.
+                That said, we're not here to build features on demand for you or your company.
+                We do enjoy working together on new ideas, and we welcome thoughtful suggestions to make the product better.
+                
+                For larger or more complex ideas, please [start a discussion](https://github.com/open-dxp/opendxp/discussions) first.
+                This helps align expectations and avoids unnecessary work for everyone involved.
+                
+                Once the idea is clearly defined, you're welcome to open an issue — or even better, submit a pull request (PR).
+                We're always happy to review and merge solid contributions.
+                
+                Please note: feature requests that don’t meet the following criteria may be closed or deleted without notice:
+                - No existing issue already covers the same topic
+                - The request is clear, specific, and actionable (ready to be worked on)
+                
+                Thanks for helping us move the project forward!
+    -   type: textarea
+        attributes:
+            label: Feature description
+        validations:
+            required: true

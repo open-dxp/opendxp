@@ -1,41 +1,45 @@
 name: Bug Report
 description: File a bug report
 title: "[Bug]: "
-labels: [Bug]
+labels: [ Bug ]
 body:
-    - type: markdown
-      attributes:
-          value: |
-              ## Important notice
-              As an open source project we love to work together with our community to improve and develop our products.
-              It's also important for us to make clear that **we're not working for you or your company**,
-              but we enjoy to work together to solve existing bugs.
-              So we would love to see PRs with bugfixes, discuss them and we are happy to merge them when they are ready.
-              For details see also our [cla guidelines](https://github.com/open-dxp/opendxp/blob/1.x/CLA.md).
-
-              Bug reports that do not meet the conditions listed below will be closed/deleted without comment.
-
-              - Bug was verified on the latest supported version.
-              - This is not a security issue -> see [our security policy](https://github.com/open-dxp/opendxp/security/policy) instead.
-              - You are not able to provide a pull request that fixes the issue.
-              - There's no existing ticket for the same issue.
-    - type: input
-      attributes:
-          label: OpenDXP version
-      validations:
-          required: true
-    - type: textarea
-      attributes:
-          label: Steps to reproduce
-      validations:
-          required: true
-    - type: textarea
-      attributes:
-          label: Actual Behavior
-      validations:
-          required: true
-    - type: textarea
-      attributes:
-          label: Expected Behavior
-      validations:
-          required: true
+    -   type: markdown
+        attributes:
+            value: |
+                ## Please Read Before Reporting a Bug
+                We're proud to build open source software in collaboration with our community. 
+                Your feedback, ideas, and contributions help us move forward.
+                That said, we're not a service provider working for you or your company — we're collaborators, not contractors.
+                
+                If you discover a bug, we’d love your help! Submitting a pull request (PR) with a fix is the best way to contribute. 
+                We’re happy to review and merge well-prepared fixes.
+                To contribute, please make sure you’ve read our [CLA guidelines](https://github.com/open-dxp/opendxp/blob/1.x/CLA.md).
+                
+                To keep things manageable, we will remove or close bug reports without comment if they don’t meet the following conditions:
+                
+                - The issue is reproducible on the latest supported version.
+                - It is not related to security — for that, please see our security policy.
+                - You’re unable to create a PR that resolves the issue.
+                - There is no duplicate or existing issue already filed.
+                
+                Thanks for helping make this project better!
+    -   type: input
+        attributes:
+            label: OpenDXP version
+        validations:
+            required: true
+    -   type: textarea
+        attributes:
+            label: Steps to reproduce
+        validations:
+            required: true
+    -   type: textarea
+        attributes:
+            label: Actual Behavior
+        validations:
+            required: true
+    -   type: textarea
+        attributes:
+            label: Expected Behavior
+        validations:
+            required: true
