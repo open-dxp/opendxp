@@ -15,7 +15,7 @@ security:
             http_basic: ~
 
     access_control:
-        # OpenDXP admin ACl  // DO NOT CHANGE!
+        # OpenDXP admin ACl // DO NOT CHANGE!
         - { path: ^/admin/settings/display-custom-logo, roles: PUBLIC_ACCESS }
         - { path: ^/admin/login/2fa-verify, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
         - { path: ^/admin/login/2fa-setup, roles: ROLE_OPENDXP_USER }
@@ -25,5 +25,5 @@ security:
         - { path: ^/admin, roles: ROLE_OPENDXP_USER }
 
     role_hierarchy:
-        # OpenDXP admin  // DO NOT CHANGE!
+        # OpenDXP admin // DO NOT CHANGE!
         ROLE_OPENDXP_ADMIN: [ROLE_OPENDXP_USER]

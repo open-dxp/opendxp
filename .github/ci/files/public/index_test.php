@@ -16,31 +16,23 @@ declare(strict_types=1);
 
 use OpenDxp\Bootstrap;
 use OpenDxp\Tool;
-use Symfony\Component\Debug\Debug;
 use Symfony\Component\HttpFoundation\Request;
 
-include __DIR__ . "/../vendor/autoload.php";
-
-define('OPENDXP_PROJECT_ROOT', __DIR__ . '/..');
-define('APP_ENV', 'test');
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
 Bootstrap::setProjectRoot();
-Bootstrap::bootstrap();
 
-$request = Request::createFromGlobals();
+return function (Request $request, array $context) {
 
-// set current request as property on tool as there's no
-// request stack available yet
-Tool::setCurrentRequest($request);
+    // set current request as property on tool as there's no
+    // request stack available yet
+    Tool::setCurrentRequest($request);
 
-/** @var\OpenDxp\Kernel $kernel */
-$kernel = Bootstrap::kernel();
+    Bootstrap::bootstrap();
+    $kernel = Bootstrap::kernel();
 
-// reset current request - will be read from request stack from now on
-Tool::setCurrentRequest(null);
+    // reset current request - will be read from request stack from now on
+    Tool::setCurrentRequest(null);
 
-$response = $kernel->handle($request);
-$response->send();
-
-$kernel->terminate($request, $response);
-
+    return $kernel;
+};
