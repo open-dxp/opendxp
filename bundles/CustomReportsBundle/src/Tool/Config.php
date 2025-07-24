@@ -89,7 +89,7 @@ class Config extends Model\AbstractModel implements JsonSerializable
         try {
             $report = new self();
 
-            /** @var\OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Dao $dao */
+            /** @var \OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Dao $dao */
             $dao = $report->getDao();
             $dao->getByName($name);
 
@@ -140,7 +140,7 @@ class Config extends Model\AbstractModel implements JsonSerializable
             throw new RuntimeException(sprintf('Could not find Custom Report Adapter with type %s', $type));
         }
 
-        /** @var\OpenDxp\Bundle\CustomReportsBundle\Tool\Adapter\CustomReportAdapterFactoryInterface $factory */
+        /** @var \OpenDxp\Bundle\CustomReportsBundle\Tool\Adapter\CustomReportAdapterFactoryInterface $factory */
         $factory = $serviceLocator->get($type);
 
         return $factory->create($configuration, $fullConfig);

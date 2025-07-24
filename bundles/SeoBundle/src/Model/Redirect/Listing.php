@@ -20,7 +20,7 @@ use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Model;
 
 /**
- * @method\OpenDxp\Bundle\SeoBundle\Model\Redirect\Listing\Dao getDao()
+ * @method \OpenDxp\Bundle\SeoBundle\Model\Redirect\Listing\Dao getDao()
  *
  * @method Redirect[] load()
  * @method Redirect|false current()

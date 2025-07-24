@@ -30,7 +30,7 @@ use OpenDxp\Model\Site;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @method\OpenDxp\Bundle\SeoBundle\Model\Redirect\Dao getDao()
+ * @method \OpenDxp\Bundle\SeoBundle\Model\Redirect\Dao getDao()
  */
 final class Redirect extends AbstractModel
 {

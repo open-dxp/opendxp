@@ -25,7 +25,7 @@ use OpenDxp\Model\Listing\Traits\OrderListingTrait;
 /**
  * @internal
  *
- * @method\OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Listing\Dao getDao()
+ * @method \OpenDxp\Bundle\CustomReportsBundle\Tool\Config\Listing\Dao getDao()
  */
 class Listing extends AbstractModel implements CallableFilterListingInterface, CallableOrderListingInterface
 {
@@ -33,7 +33,7 @@ class Listing extends AbstractModel implements CallableFilterListingInterface, C
     use OrderListingTrait;
 
     /**
-     * @var\OpenDxp\Bundle\CustomReportsBundle\Tool\Config[]|null
+     * @var \OpenDxp\Bundle\CustomReportsBundle\Tool\Config[]|null
      */
     protected ?array $reports = null;
 

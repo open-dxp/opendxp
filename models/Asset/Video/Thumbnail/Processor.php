@@ -43,7 +43,7 @@ class Processor
     ];
 
     /**
-     * @var\OpenDxp\Video\Adapter[]
+     * @var \OpenDxp\Video\Adapter[]
      */
     protected array $queue = [];
 
