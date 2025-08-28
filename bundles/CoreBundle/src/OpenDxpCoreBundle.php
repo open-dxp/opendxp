@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\CoreBundle;
 
+use OpenDxp\Bundle\AdminBundle\OpenDxpAdminBundle;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\AreabrickPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\CacheFallbackPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\HtmlSanitizerPass;
@@ -34,6 +35,8 @@ use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\ServiceControllersPas
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\TranslationSanitizerPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\WorkflowPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\OpenDxpCoreExtension;
+use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
+use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -41,7 +44,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 /**
  * @internal
  */
-class OpenDxpCoreBundle extends Bundle
+class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
 {
     public function getContainerExtension(): ExtensionInterface
     {
@@ -76,5 +79,10 @@ class OpenDxpCoreBundle extends Bundle
     public function getPath(): string
     {
         return dirname(__DIR__);
+    }
+
+    public static function registerDependentBundles(BundleCollection $collection): void
+    {
+        $collection->addBundle(new OpenDxpAdminBundle(), 60);
     }
 }
