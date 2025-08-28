@@ -31,11 +31,6 @@ parameters:
 			path: bundles/CustomReportsBundle/src/DependencyInjection/Configuration.php
 
 		-
-			message: "#^Call to method addSetting\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\IndexActionSettingsEvent\\.$#"
-			count: 1
-			path: bundles/CustomReportsBundle/src/EventListener/IndexSettingsListener.php
-
-		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: bundles/CustomReportsBundle/src/EventListener/IndexSettingsListener.php
@@ -111,26 +106,6 @@ parameters:
 			path: bundles/SeoBundle/src/Model/Redirect/Listing/Dao.php
 
 		-
-			message: "#^Access to constant CONTEXT_SEARCH on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\ElementAdminStyleEvent\\.$#"
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
-			message: "#^Access to constant RESOLVE_ELEMENT_ADMIN_STYLE on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\AdminEvents\\.$#"
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
-			message: "#^Call to method getAdminStyle\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\ElementAdminStyleEvent\\.$#"
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
-			message: "#^Call to method getFilterCondition\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Helper\\\\GridHelperService\\.$#"
-			count: 2
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
 			message: "#^Instantiated class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\ElementAdminStyleEvent not found\\.$#"
 			count: 1
 			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
@@ -154,11 +129,6 @@ parameters:
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: bundles/StaticRoutesBundle/src/DependencyInjection/Configuration.php
-
-		-
-			message: "#^Call to method addSetting\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\IndexActionSettingsEvent\\.$#"
-			count: 1
-			path: bundles/StaticRoutesBundle/src/EventListener/IndexSettingsListener.php
 
 		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
@@ -586,26 +556,6 @@ parameters:
 			path: models/DataObject/QuantityValue/Unit/Listing/Dao.php
 
 		-
-			message: "#^Call to method expandLocales\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\ConfigElementInterface\\.$#"
-			count: 1
-			path: models/DataObject/Service.php
-
-		-
-			message: "#^Call to method getLabeledValue\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\ConfigElementInterface\\.$#"
-			count: 1
-			path: models/DataObject/Service.php
-
-		-
-			message: "#^Call to method getRenderer\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\ConfigElementInterface\\.$#"
-			count: 2
-			path: models/DataObject/Service.php
-
-		-
-			message: "#^Call to method getValidLanguages\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\ConfigElementInterface\\.$#"
-			count: 1
-			path: models/DataObject/Service.php
-
-		-
 			message: "#^Class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\Service not found\\.$#"
 			count: 1
 			path: models/DataObject/Service.php
@@ -854,16 +804,6 @@ parameters:
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: models/Translation/Listing/Dao.php
-
-		-
-			message: "#^Call to static method get\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Perspective\\\\Config\\.$#"
-			count: 1
-			path: models/User.php
-
-		-
-			message: "#^Call to static method getAvailablePerspectives\\(\\) on an unknown class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Perspective\\\\Config\\.$#"
-			count: 1
-			path: models/User.php
 
 		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
