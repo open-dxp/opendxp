@@ -36,11 +36,6 @@ parameters:
 			path: bundles/CustomReportsBundle/src/EventListener/IndexSettingsListener.php
 
 		-
-			message: "#^Parameter \\$settingsEvent of method OpenDxp\\\\Bundle\\\\CustomReportsBundle\\\\EventListener\\\\IndexSettingsListener\\:\\:indexSettings\\(\\) has invalid type OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\IndexActionSettingsEvent\\.$#"
-			count: 1
-			path: bundles/CustomReportsBundle/src/EventListener/IndexSettingsListener.php
-
-		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: bundles/CustomReportsBundle/src/Tool/Config/Dao.php
@@ -106,16 +101,6 @@ parameters:
 			path: bundles/SeoBundle/src/Model/Redirect/Listing/Dao.php
 
 		-
-			message: "#^Instantiated class OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\ElementAdminStyleEvent not found\\.$#"
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
-			message: "#^Parameter \\$gridHelperService of method OpenDxp\\\\Bundle\\\\SimpleBackendSearchBundle\\\\Controller\\\\SearchController\\:\\:findAction\\(\\) has invalid type OpenDxp\\\\Bundle\\\\AdminBundle\\\\Helper\\\\GridHelperService\\.$#"
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/Controller/SearchController.php
-
-		-
 			message: "#^Method OpenDxp\\\\Bundle\\\\SimpleBackendSearchBundle\\\\MessageHandler\\\\SearchBackendHandler\\:\\:process\\(\\) is unused\\.$#"
 			count: 1
 			path: bundles/SimpleBackendSearchBundle/src/MessageHandler/SearchBackendHandler.php
@@ -132,11 +117,6 @@ parameters:
 
 		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
-			count: 1
-			path: bundles/StaticRoutesBundle/src/EventListener/IndexSettingsListener.php
-
-		-
-			message: "#^Parameter \\$settingsEvent of method OpenDxp\\\\Bundle\\\\StaticRoutesBundle\\\\EventListener\\\\IndexSettingsListener\\:\\:indexSettings\\(\\) has invalid type OpenDxp\\\\Bundle\\\\AdminBundle\\\\Event\\\\IndexActionSettingsEvent\\.$#"
 			count: 1
 			path: bundles/StaticRoutesBundle/src/EventListener/IndexSettingsListener.php
 
@@ -554,16 +534,6 @@ parameters:
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: models/DataObject/QuantityValue/Unit/Listing/Dao.php
-
-		-
-			message: "#^Class OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\Service not found\\.$#"
-			count: 1
-			path: models/DataObject/Service.php
-
-		-
-			message: "#^Method OpenDxp\\\\Model\\\\DataObject\\\\Service\\:\\:getConfigForHelperDefinition\\(\\) has invalid return type OpenDxp\\\\Bundle\\\\AdminBundle\\\\DataObject\\\\GridColumnConfig\\\\ConfigElementInterface\\.$#"
-			count: 1
-			path: models/DataObject/Service.php
 
 		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
