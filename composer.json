@@ -67,6 +67,7 @@
         "neitanod/forceutf8": "^2.0.4",
         "nesbot/carbon": "^3.8.4",
         "onnov/detect-encoding": "^2.0",
+        "open-dxp/admin-bundle": "*",
         "pear/net_url2": "^2.2",
         "presta/sitemap-bundle": "^3.3 || ^4.1",
         "sabre/dav": "^4.1.2",
