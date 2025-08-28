@@ -24,6 +24,7 @@ use Doctrine\DBAL\DriverManager;
 use Exception;
 use InvalidArgumentException;
 use OpenDxp;
+use OpenDxp\Bundle\AdminBundle\OpenDxpAdminBundle;
 use OpenDxp\Bundle\ApplicationLoggerBundle\OpenDxpApplicationLoggerBundle;
 use OpenDxp\Bundle\CustomReportsBundle\OpenDxpCustomReportsBundle;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\OpenDxpGenericExecutionEngineBundle;
@@ -68,6 +69,7 @@ class Installer
     const RECOMMENDED_BUNDLES = ['OpenDxpSimpleBackendSearchBundle'];
 
     public const INSTALLABLE_BUNDLES = [
+        'OpenDxpAdminBundle' => OpenDxpAdminBundle::class,
         'OpenDxpApplicationLoggerBundle' => OpenDxpApplicationLoggerBundle::class,
         'OpenDxpCustomReportsBundle' => OpenDxpCustomReportsBundle::class,
         'OpenDxpGlossaryBundle' => OpenDxpGlossaryBundle::class,
