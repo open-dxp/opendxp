@@ -76,11 +76,6 @@ parameters:
 			path: bundles/InstallBundle/src/Event/InstallEvents.php
 
 		-
-			message: "#^Call to an undefined method OpenDxp\\\\Bundle\\\\SeoBundle\\\\Controller\\\\Document\\\\DocumentController\\:\\:getTreeNodeConfig\\(\\)\\.$#"
-			count: 1
-			path: bundles/SeoBundle/src/Controller/Document/DocumentController.php
-
-		-
 			message: "#^File is missing a \"declare\\(strict_types\\=1\\)\" declaration\\.$#"
 			count: 1
 			path: bundles/SeoBundle/src/Controller/Document/DocumentController.php

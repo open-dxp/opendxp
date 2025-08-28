@@ -339,9 +339,7 @@ class SearchController extends UserAwareController
                 if (class_exists(GridData\DataObject::class)) {
                     $data = match (true) {
                         $element instanceof DataObject\AbstractObject => GridData\DataObject::getData($element, $fields),
-                        // @phpstan-ignore-next-line checking dataObject once is enough
                         $element instanceof Document => GridData\Document::getData($element),
-                        // @phpstan-ignore-next-line otherwise have to do class_exists for each element type
                         $element instanceof Asset => GridData\Asset::getData($element),
                         default => null
                     };
