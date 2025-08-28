@@ -24,6 +24,8 @@
         "source": "https://github.com/open-dxp/opendxp",
         "forum": "https://github.com/open-dxp/opendxp/discussions"
     },
+    "prefer-stable": true,
+    "minimum-stability": "dev",
     "require": {
         "php": "~8.3.0 || ~8.4.0",
         "ext-SimpleXML": "*",
