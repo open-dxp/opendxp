@@ -226,6 +226,9 @@
             "dev-1.x": "1.1.x-dev"
         }
     },
+    "replace": {
+      "open-dxp/opendxp": "self.version"
+    },
     "config": {
         "sort-packages": true,
         "preferred-install": {
