@@ -21,10 +21,8 @@ use OpenDxp;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Logger;
-use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element\Service;
-use OpenDxp\Model\Version;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -80,15 +78,6 @@ class SearchBackendReindexCommand extends AbstractCommand
                 $elements = $list->load();
                 foreach ($elements as $element) {
                     try {
-                        //process page count, if not exists
-                        if (
-                            $element instanceof Asset\Document &&
-                            !$element->getCustomSetting('document_page_count') &&
-                            $element->processPageCount()
-                        ) {
-                            $this->saveAsset($element);
-                        }
-
                         $searchEntry = Search\Backend\Data::getForElement($element);
                         if ($searchEntry->getId() instanceof Search\Backend\Data\Id) {
                             $searchEntry->setDataFromElement($element);
@@ -109,16 +98,5 @@ class SearchBackendReindexCommand extends AbstractCommand
         $db->executeQuery('OPTIMIZE TABLE search_backend_data;');
 
         return 0;
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function saveAsset(Asset $asset): void
-    {
-        Version::disable();
-        $asset->markFieldDirty('modificationDate'); // prevent modificationDate from being changed
-        $asset->save();
-        Version::enable();
     }
 }
