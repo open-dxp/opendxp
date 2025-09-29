@@ -104,7 +104,7 @@ class Document extends Model\Asset
         int $page = 1,
         bool $deferred = false
     ): Document\ImageThumbnailInterface {
-        if (!$this->isThumbnailsEnabled() || !\Pimcore\Document::isAvailable()) {
+        if (!$this->isThumbnailsEnabled() || !\OpenDxp\Document::isAvailable()) {
             return new Document\ImageThumbnail(null);
         }
 
@@ -120,13 +120,13 @@ class Document extends Model\Asset
             return null;
         }
 
-        if (!\Pimcore\Document::isAvailable() || !\Pimcore\Document::isFileTypeSupported($this->getFilename())) {
+        if (!\OpenDxp\Document::isAvailable() || !\OpenDxp\Document::isFileTypeSupported($this->getFilename())) {
             return null;
         }
 
         $cacheKey = 'asset_document_text_' . $this->getId() . '_' . ($page ? $page : 'all');
         if (!$text = Cache::load($cacheKey)) {
-            $document = \Pimcore\Document::getInstance();
+            $document = \OpenDxp\Document::getInstance();
             $text = $document->getText($page, $this);
             Cache::save($text, $cacheKey, $this->getCacheTags(), null, 99, true);
         }

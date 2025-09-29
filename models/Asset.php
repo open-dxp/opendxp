@@ -72,7 +72,7 @@ class Asset extends Element\AbstractElement
     use ScheduledTasksTrait;
     use TemporaryFileHelperTrait;
 
-    public const CUSTOM_SETTING_PROCESSING_FAILED = 'pimcore-asset-processing-failed';
+    public const CUSTOM_SETTING_PROCESSING_FAILED = 'opendxp-asset-processing-failed';
 
     /**
      * @internal
@@ -733,7 +733,7 @@ class Asset extends Element\AbstractElement
                         $tempFilePath .= '.' . $pathInfo['extension'];
                     }
 
-                    $storage->writeStream($tempFilePath, $src)https://github.com/pimcore/pimcore/compare/v11.5.9...v11.5.10.patch;
+                    $storage->writeStream($tempFilePath, $src);
                     $storage->delete($path);
                     $storage->move($tempFilePath, $path);
                 }
@@ -1782,18 +1782,7 @@ class Asset extends Element\AbstractElement
 
     /**
      * @internal
-     * public because it's also used by pimcore/admin-ui-classic-bundle
-     */
-    public function addToUpdateTaskQueue(): void
-    {
-        if (!$this->getCustomSetting(self::CUSTOM_SETTING_PROCESSING_FAILED)) {
-            $this->triggerUpdateTask();
-        }
-    }
-
-    /**
-     * @internal
-     * public because it's also used by pimcore/admin-ui-classic-bundle
+     * public because it's also used by open-dxp/admin-bundle
      */
     public function addToUpdateTaskQueue(): void
     {
@@ -1808,24 +1797,9 @@ class Asset extends Element\AbstractElement
     public function triggerUpdateTask(): void
     {
         /** @var LockInterface $lock */
-        $lock = Pimcore::getContainer()->get(LockFactory::class)->createLock($this->getUpdateQueueLockId());
+        $lock = OpenDxp::getContainer()->get(LockFactory::class)->createLock($this->getUpdateQueueLockId());
         if ($lock->acquire()) {
-            $bus = Pimcore::getContainer()->get('messenger.bus.pimcore-core');
-            $message = new AssetUpdateTasksMessage($this->getId());
-
-            $bus->dispatch($message);
-        }
-    }
-
-    /**
-     * @internal
-     */
-    public function triggerUpdateTask(): void
-    {
-        /** @var LockInterface $lock */
-        $lock = Pimcore::getContainer()->get(LockFactory::class)->createLock($this->getUpdateQueueLockId());
-        if ($lock->acquire()) {
-            $bus = Pimcore::getContainer()->get('messenger.bus.pimcore-core');
+            $bus = OpenDxp::getContainer()->get('messenger.bus.opendxp-core');
             $message = new AssetUpdateTasksMessage($this->getId());
 
             $bus->dispatch($message);
