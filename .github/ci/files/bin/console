@@ -18,14 +18,14 @@ use OpenDxp\Console\Application;
 
 ob_get_clean();
 
-include __DIR__ . "/../vendor/autoload_runtime.php";
+include __DIR__ . '/../vendor/autoload_runtime.php';
 
 define('OPENDXP_PROJECT_ROOT', __DIR__ . '/..');
 define('OPENDXP_CONSOLE', true);
 
-return function (array $context) {
+return static function () {
+
     $kernel = Bootstrap::startupCli();
-    $application = new Application($kernel);
-    $application->run();
-    return $application;
+
+    return new Application($kernel);
 };

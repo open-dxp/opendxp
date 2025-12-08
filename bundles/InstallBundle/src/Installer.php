@@ -86,7 +86,7 @@ class Installer
     /**
      * Predefined DB credentials from config
      */
-    private array $dbCredentials;
+    private array $dbCredentials = [];
 
     private ?OpenDxpStyle $commandLineOutput = null;
 
