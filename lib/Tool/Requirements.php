@@ -132,7 +132,7 @@ final class Requirements
                   field varchar(190) DEFAULT NULL,
                   PRIMARY KEY (id)
                 ) DEFAULT CHARSET=utf8mb4;');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -146,7 +146,7 @@ final class Requirements
 
         try {
             $db->executeQuery('ALTER TABLE __opendxp_req_check ADD COLUMN alter_field varchar(190) NULL DEFAULT NULL');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -161,7 +161,7 @@ final class Requirements
         try {
             $db->executeQuery('CREATE INDEX field_alter_field ON __opendxp_req_check (field, alter_field);');
             $db->executeQuery('DROP INDEX field_alter_field ON __opendxp_req_check;');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -175,7 +175,7 @@ final class Requirements
 
         try {
             $db->executeQuery('ALTER TABLE __opendxp_req_check ADD FULLTEXT INDEX `fulltextFieldIndex` (`field`)');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -192,7 +192,7 @@ final class Requirements
                 'field' => uniqid(),
                 'alter_field' => uniqid(),
             ]);
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -209,7 +209,7 @@ final class Requirements
                 'field' => uniqid(),
                 'alter_field' => uniqid(),
             ]);
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 

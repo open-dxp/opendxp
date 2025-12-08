@@ -10,6 +10,7 @@ use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\Stmt\RemoveUnreachableStatementRector;
 use Rector\EarlyReturn\Rector\StmtsAwareInterface\ReturnEarlyIfVariableRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
+use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
 use Rector\PHPUnit\CodeQuality\Rector\ClassMethod\DataProviderArrayItemsNewLinedRector;
 use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
@@ -24,24 +25,27 @@ return RectorConfig::configure()
         __DIR__ . '/models',
     ])
     ->withSkip([
-        StringClassNameToClassConstantRector::class        => [
+        StringClassNameToClassConstantRector::class            => [
             __DIR__ . '/lib/Bootstrap.php',
         ],
-        ReturnEarlyIfVariableRector::class                 => [
+        ReturnEarlyIfVariableRector::class                     => [
             __DIR__ . '/lib/Navigation/Page/Document.php',
         ],
-        RemoveUnreachableStatementRector::class            => [
+        RemoveUnreachableStatementRector::class                => [
             __DIR__ . '/lib/Twig/Extension/DocumentEditableExtension.php',
         ],
-        GetFunctionsToAsTwigFunctionAttributeRector::class => [
+        GetFunctionsToAsTwigFunctionAttributeRector::class     => [
             __DIR__ . '/lib/Twig/Extension/DocumentEditableExtension.php',
             __DIR__ . '/lib/Twig/Extension/HelpersExtension.php',
             __DIR__ . '/lib/Twig/Extension/OpenDxpObjectExtension.php',
         ],
-        GetFiltersToAsTwigFilterAttributeRector::class     => [
+        GetFiltersToAsTwigFilterAttributeRector::class         => [
             __DIR__ . '/lib/Twig/Extension/DocumentEditableExtension.php',
             __DIR__ . '/lib/Twig/Extension/HelpersExtension.php',
             __DIR__ . '/lib/Twig/Extension/OpenDxpObjectExtension.php',
+        ],
+        ClassPropertyAssignToConstructorPromotionRector::class => [
+            __DIR__ . '/models/Version/Adapter/ProxyVersionStorageAdapter.php',
         ],
         DisallowedEmptyRuleFixerRector::class,
         ExplicitBoolCompareRector::class,

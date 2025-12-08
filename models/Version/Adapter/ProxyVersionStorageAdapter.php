@@ -20,8 +20,11 @@ use OpenDxp\Model\Version;
 
 class ProxyVersionStorageAdapter implements VersionStorageAdapterInterface
 {
-    public function __construct(protected VersionStorageAdapterInterface $storageAdapter)
+    protected VersionStorageAdapterInterface $storageAdapter;
+
+    public function __construct(FileSystemVersionStorageAdapter $storageAdapter)
     {
+        $this->storageAdapter = $storageAdapter;
     }
 
     public function getStorageType(?int $metaDataSize = null, ?int $binaryDataSize = null): string
