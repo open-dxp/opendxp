@@ -1019,7 +1019,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
     }
 
     /**
-     * TODO Pimcore 12: Change empty string return to null
+     * TODO OpenDXP 2: Change empty string return to null
      */
     public function getImageThumbnail(string|Asset\Video\Thumbnail\Config $config): Asset\Video\ImageThumbnailInterface|Asset\Image\ThumbnailInterface|string
     {

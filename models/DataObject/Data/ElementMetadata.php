@@ -191,17 +191,21 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
 
     public function __toString(): string
     {
-        return $this->getElement()->__toString();
+        return $this->getElement()?->__toString() ?? '';
     }
 
     public function __unserialize(array $data): void
     {
+        $this->fieldname = $data["\0*\0fieldname"] ?? null;
+        $this->columns = $data["\0*\0columns"] ?? [];
+
         foreach (get_object_vars($this) as $property => $value) {
             if ($property === 'elementId') {
                 $this->$property = (int) ($data["\0*\0".$property] ?? $value);
 
                 continue;
             }
+
             $this->$property = $data["\0*\0".$property] ?? $value;
         }
     }

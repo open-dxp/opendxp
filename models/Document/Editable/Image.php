@@ -680,8 +680,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
      * https://github.com/pimcore/pimcore/issues/15932
      * used for non-nullable properties stored with null
      *
-     * @TODO: Remove in Pimcore 12
-     *
+     * @TODO: Remove in OpenDXP 2
      */
     public function __unserialize(array $data): void
     {

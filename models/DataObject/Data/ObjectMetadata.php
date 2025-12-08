@@ -182,7 +182,7 @@ class ObjectMetadata extends Model\AbstractModel implements DataObject\OwnerAwar
 
     public function __toString(): string
     {
-        return $this->getObject()->__toString();
+        return $this->getObject()?->__toString() ?? '';
     }
 
     public function getObjectId(): int
@@ -197,12 +197,16 @@ class ObjectMetadata extends Model\AbstractModel implements DataObject\OwnerAwar
 
     public function __unserialize(array $data): void
     {
+        $this->fieldname = $data["\0*\0fieldname"] ?? null;
+        $this->columns = $data["\0*\0columns"] ?? [];
+
         foreach (get_object_vars($this) as $property => $value) {
             if ($property === 'objectId') {
                 $this->$property = (int) ($data["\0*\0".$property] ?? $value);
 
                 continue;
             }
+
             $this->$property = $data["\0*\0".$property] ?? $value;
         }
 

@@ -461,8 +461,7 @@ class Link implements OwnerAwareFieldInterface, Stringable
      * https://github.com/pimcore/pimcore/pull/15926
      * used for non-nullable properties stored with null
      *
-     * @TODO: Remove in Pimcore 12
-     *
+     * @TODO: Remove in OpenDXP 2
      */
     public function __unserialize(array $data): void
     {
