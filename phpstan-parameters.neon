@@ -14,7 +14,7 @@ parameters:
         - bundles/SimpleBackendSearchBundle/src/DataProvider/GDPR/DataObjects.php
 
     symfony:
-        containerXmlPath: ../../var/cache/test/App_KernelTestDebugContainer.xml
+        containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
 
     ignoreErrors:
         - identifier: new.static
