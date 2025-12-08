@@ -27,6 +27,7 @@ class BundleRoutingLoader extends Loader
 {
     public function __construct(private readonly BundleConfigLocator $locator)
     {
+        parent::__construct();
     }
 
     public function load(mixed $resource, ?string $type = null): mixed

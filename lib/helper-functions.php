@@ -312,7 +312,7 @@ function recursiveDelete(string $directory, bool $empty = true): bool
         $contents = '.';
         while ($contents) {
             $contents = readdir($directoryHandle);
-            if (strlen($contents) && $contents != '.' && $contents != '..') {
+            if ($contents !== '' && $contents !== '.' && $contents !== '..') {
                 $path = $directory . '/' . $contents;
 
                 if (is_dir($path)) {

@@ -175,7 +175,7 @@ class InheritanceHelper
         // if we have a tree (which is the case if either fields or relations is configured) then
         // rely on the childFound flag
         // without a tree we have to do the select anyway
-        if ($createMissingChildrenRows && ($this->childFound || $this->fields === [] && $this->relations === [])) {
+        if ($createMissingChildrenRows && ($this->childFound || ($this->fields === [] && $this->relations === []))) {
             $object = DataObject\Concrete::getById($oo_id);
             $classId = $object->getClassId();
             $query = "

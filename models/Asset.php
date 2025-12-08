@@ -851,10 +851,12 @@ class Asset extends Element\AbstractElement
             // only create a new version if there is at least 1 allowed
             // or if saveVersion() was called directly (it's a newer version of the asset)
             $assetsConfig = SystemSettingsConfig::get()['assets'];
-            if ((is_null($assetsConfig['versions']['days'] ?? null) && is_null($assetsConfig['versions']['steps'] ?? null))
-                || (!empty($assetsConfig['versions']['steps']))
-                || !empty($assetsConfig['versions']['days'])
-                || $setModificationDate) {
+            if (
+                (is_null($assetsConfig['versions']['days'] ?? null) && is_null($assetsConfig['versions']['steps'] ?? null)) ||
+                (!empty($assetsConfig['versions']['steps'])) ||
+                !empty($assetsConfig['versions']['days']) ||
+                $setModificationDate
+            ) {
                 $saveStackTrace = !($assetsConfig['versions']['disable_stack_trace'] ?? false);
                 $version = $this->doSaveVersion($versionNote, $saveOnlyVersion, $saveStackTrace);
             }
@@ -1552,7 +1554,7 @@ class Asset extends Element\AbstractElement
             if ($md['name'] != $name) {
                 continue;
             }
-            if ($language == $md['language'] || empty($md['language']) && !$strictMatchLanguage) {
+            if ($language == $md['language'] || (empty($md['language']) && !$strictMatchLanguage)) {
                 $data = $md;
 
                 break;
