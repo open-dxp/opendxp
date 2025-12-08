@@ -148,8 +148,6 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
     }
 
     /**
-     * @param Concrete|null $object
-     *
      * @see Data::getDataForEditmode
      */
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
@@ -163,7 +161,6 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
 
     /**
      *
-     * @return null
      *
      * @see Data::getDataFromEditmode
      *
@@ -179,16 +176,19 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return (string)$this->getDataForEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         // nothing to do
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return (string) $this->getDataFromObjectParam($object, $params);
@@ -199,6 +199,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return 'varchar(' . $this->getColumnLength() . ')';
     }
 
+    #[\Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -221,11 +222,11 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
 
         $code .= "\t" . '$data = \\OpenDxp\\Model\\DataObject\\Service::getCalculatedFieldValue($object, $data);' . "\n\n";
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -273,11 +274,11 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
 
         $code .= "\t" . '$data = \\OpenDxp\\Model\\DataObject\\Service::getCalculatedFieldValue($object, $data);' . "\n";
         $code .= "\treturn " . '$data' . ";\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         $key = $this->getName();
@@ -297,11 +298,11 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
 
         $code .= "\t" . '$data = DataObject\Service::getCalculatedFieldValue($this->getObject(), $data);' . "\n";
         $code .= "\treturn " . '$data' . ";\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         $key = $this->getName();
@@ -323,26 +324,29 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
 
         $code .= "\t" . '$data = DataObject\Service::getCalculatedFieldValue($this, $data);' . "\n\n";
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getSetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         return '';
     }
 
+    #[\Override]
     public function getSetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         return '';
     }
 
+    #[\Override]
     public function getSetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         return '';
     }
 
+    #[\Override]
     public function getSetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         return '';
@@ -353,6 +357,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $data;
     }
 
+    #[\Override]
     public function supportsInheritance(): bool
     {
         return false;
@@ -388,11 +393,13 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return 'calculatedValue';
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return match ($this->elementType) {

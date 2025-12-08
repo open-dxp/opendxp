@@ -29,15 +29,10 @@ class Xliff12Exporter implements ExporterInterface
 {
     const DELIMITER = '~-~';
 
-    private Xliff12Escaper $xliffEscaper;
-
     private ?SimpleXMLElement $xliffFile = null;
 
-    public function __construct(
-        Xliff12Escaper $xliffEscaper,
-        protected Filesystem $filesystem
-    ) {
-        $this->xliffEscaper = $xliffEscaper;
+    public function __construct(private readonly Xliff12Escaper $xliffEscaper, protected Filesystem $filesystem)
+    {
     }
 
     public function export(AttributeSet $attributeSet, ?string $exportId = null): string
@@ -98,7 +93,7 @@ class Xliff12Exporter implements ExporterInterface
 
     protected function prepareExportFile(string $exportFilePath): void
     {
-        if ($this->xliffFile === null) {
+        if (!$this->xliffFile instanceof \SimpleXMLElement) {
             $dom = new DOMDocument();
             $dom->loadXML(file_get_contents($exportFilePath));
             $this->xliffFile = simplexml_import_dom($dom);

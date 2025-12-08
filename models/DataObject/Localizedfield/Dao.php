@@ -171,7 +171,7 @@ class Dao extends Model\Dao\AbstractDao
                 foreach ($fieldDefinitions as $fieldName => $fd) {
                     if ($fd instanceof CustomResourcePersistingInterface) {
                         // for fieldtypes which have their own save algorithm eg. relational data types, ...
-                        $context = $this->model->getContext() ? $this->model->getContext() : [];
+                        $context = $this->model->getContext() ?: [];
                         if (isset($context['containerType']) && ($context['containerType'] === 'fieldcollection' || $context['containerType'] === 'objectbrick')) {
                             $context['subContainerType'] = 'localizedfield';
                         }
@@ -202,7 +202,7 @@ class Dao extends Model\Dao\AbstractDao
                                 $object,
                                 $fieldDefinitionParams
                             );
-                            $insertData = array_merge($insertData, $insertDataArray);
+                            $insertData = [...$insertData, ...$insertDataArray];
                             $this->model->setLocalizedValue($fieldName, $fd->getDataFromResource($insertDataArray, $object, $fieldDefinitionParams), $language, false);
                         } else {
                             $isUpdate = $params['isUpdate'] ?? false;
@@ -233,7 +233,7 @@ class Dao extends Model\Dao\AbstractDao
                     )) {
                         Helper::upsert($this->db, $storeTable, $insertData, $this->getPrimaryKey($storeTable));
                     }
-                } catch (TableNotFoundException $e) {
+                } catch (TableNotFoundException) {
                     // if the table doesn't exist -> create it! deferred creation for object bricks ...
                     try {
                         $this->db->rollBack();
@@ -268,7 +268,7 @@ class Dao extends Model\Dao\AbstractDao
 
                     try {
                         $oldData = $this->db->fetchAssociative($sql);
-                    } catch (TableNotFoundException $e) {
+                    } catch (TableNotFoundException) {
                         // if the table doesn't exist -> create it!
 
                         // the following is to ensure consistent data and atomic transactions, while having the flexibility
@@ -328,7 +328,7 @@ class Dao extends Model\Dao\AbstractDao
 
                                 if (is_array($insertData)) {
                                     $columnNames = array_keys($insertData);
-                                    $data = array_merge($data, $insertData);
+                                    $data = [...$data, ...$insertData];
                                 } else {
                                     $columnNames = [$key];
                                     $data[$key] = $insertData;
@@ -381,26 +381,24 @@ class Dao extends Model\Dao\AbstractDao
                                                 $this->inheritanceHelper->addRelationToCheck($key, $fd);
                                             }
                                         }
-                                    } else {
-                                        if (is_array($insertData)) {
-                                            foreach ($insertData as $insertDataKey => $insertDataValue) {
-                                                $oldDataValue = $oldData[$insertDataKey] ?? null;
-                                                $parentDataValue = $parentData[$insertDataKey] ?? null;
-                                                if ($isEmpty && $oldDataValue == $parentDataValue) {
-                                                    // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                                } elseif ($oldDataValue != $insertDataValue) {
-                                                    $this->inheritanceHelper->addFieldToCheck($insertDataKey, $fd);
-                                                }
-                                            }
-                                        } else {
-                                            $oldDataValue = $oldData[$key] ?? null;
-                                            $parentDataValue = $parentData[$key] ?? null;
+                                    } elseif (is_array($insertData)) {
+                                        foreach ($insertData as $insertDataKey => $insertDataValue) {
+                                            $oldDataValue = $oldData[$insertDataKey] ?? null;
+                                            $parentDataValue = $parentData[$insertDataKey] ?? null;
                                             if ($isEmpty && $oldDataValue == $parentDataValue) {
                                                 // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                            } elseif ($oldDataValue != $insertData) {
-                                                // data changed, do check and update
-                                                $this->inheritanceHelper->addFieldToCheck($key, $fd);
+                                            } elseif ($oldDataValue != $insertDataValue) {
+                                                $this->inheritanceHelper->addFieldToCheck($insertDataKey, $fd);
                                             }
+                                        }
+                                    } else {
+                                        $oldDataValue = $oldData[$key] ?? null;
+                                        $parentDataValue = $parentData[$key] ?? null;
+                                        if ($isEmpty && $oldDataValue == $parentDataValue) {
+                                            // do nothing, ... value is still empty and parent data is equal to current data in query table
+                                        } elseif ($oldDataValue != $insertData) {
+                                            // data changed, do check and update
+                                            $this->inheritanceHelper->addFieldToCheck($key, $fd);
                                         }
                                     }
                                 }
@@ -415,7 +413,7 @@ class Dao extends Model\Dao\AbstractDao
                     $queryTable = $this->getQueryTableName().'_'.$language;
                     Helper::upsert($this->db, $queryTable, $data, $this->getPrimaryKey($queryTable));
                     if ($inheritanceEnabled) {
-                        $context = isset($params['context']) ? $params['context'] : [];
+                        $context = $params['context'] ?? [];
                         if ($context['containerType'] === 'objectbrick') {
                             $inheritanceRelationContext = [
                                 'ownertype' => 'localizedfield',
@@ -495,7 +493,7 @@ class Dao extends Model\Dao\AbstractDao
             foreach ($childDefinitions as $fd) {
                 if ($fd instanceof CustomResourcePersistingInterface) {
                     $params = [
-                        'context' => $this->model->getContext() ? $this->model->getContext() : [],
+                        'context' => $this->model->getContext() ?: [],
                         'isUpdate' => $isUpdate,
                     ];
                     if (isset($params['context']['containerType']) && ($params['context']['containerType'] === 'fieldcollection' || $params['context']['containerType'] === 'objectbrick')) {
@@ -529,10 +527,8 @@ class Dao extends Model\Dao\AbstractDao
             $this->model->markLanguageAsDirtyByFallback();
         }
 
-        if (!DataObject::isDirtyDetectionDisabled()) {
-            if (!$this->model->hasDirtyFields()) {
-                return false;
-            }
+        if (!DataObject::isDirtyDetectionDisabled() && !$this->model->hasDirtyFields()) {
+            return false;
         }
 
         $db = Db::get();
@@ -679,7 +675,7 @@ class Dao extends Model\Dao\AbstractDao
                 if ($fd instanceof ResourcePersistenceAwareInterface) {
                     if (is_array($fd->getColumnType())) {
                         $multidata = [];
-                        foreach ($fd->getColumnType() as $fkey => $fvalue) {
+                        foreach (array_keys($fd->getColumnType()) as $fkey) {
                             $multidata[$key.'__'.$fkey] = $row[$key.'__'.$fkey];
                         }
                         $value = $fd->getDataFromResource($multidata, null, $this->getFieldDefinitionParams($key, $row['language']));
@@ -739,10 +735,7 @@ class Dao extends Model\Dao\AbstractDao
                 $tablename = $this->getQueryTableName().'_'.$language;
 
                 // get available columns
-                $viewColumns = array_merge(
-                    $this->db->fetchAllAssociative('SHOW COLUMNS FROM `'.$defaultTable.'`'),
-                    $this->db->fetchAllAssociative('SHOW COLUMNS FROM `objects`')
-                );
+                $viewColumns = [...$this->db->fetchAllAssociative('SHOW COLUMNS FROM `'.$defaultTable.'`'), ...$this->db->fetchAllAssociative('SHOW COLUMNS FROM `objects`')];
                 $localizedColumns = $this->db->fetchAllAssociative('SHOW COLUMNS FROM `'.$tablename.'`');
 
                 // get view fields
@@ -767,7 +760,7 @@ class Dao extends Model\Dao\AbstractDao
                 }
 
                 // create view select fields
-                $selectViewFields = implode(',', array_merge($viewFields, $localizedFields));
+                $selectViewFields = implode(',', [...$viewFields, ...$localizedFields]);
 
                 // create view
                 $viewQuery = <<<QUERY
@@ -855,24 +848,24 @@ QUERY;
         $localizedFieldDefinition = $container->getFieldDefinition('localizedfields', ['suppressEnrichment' => true]);
         if ($localizedFieldDefinition instanceof DataObject\ClassDefinition\Data\Localizedfields) {
             foreach ($localizedFieldDefinition->getFieldDefinitions(['suppressEnrichment' => true]) as $value) {
-                if ($value instanceof ResourcePersistenceAwareInterface) {
-                    if ($value->getColumnType()) {
-                        $key = $value->getName();
-
-                        if (is_array($value->getColumnType())) {
-                            // if a datafield requires more than one column
-                            foreach ($value->getColumnType() as $fkey => $fvalue) {
-                                $this->addModifyColumn($table, $key . '__' . $fkey, $fvalue, '', 'NULL');
-                                $protectedColumns[] = $key . '__' . $fkey;
-                            }
-                        } else {
-                            $this->addModifyColumn($table, $key, $value->getColumnType(), '', 'NULL');
-                            $protectedColumns[] = $key;
-                        }
-
-                        $this->addIndexToField($value, $table, 'getColumnType', true, true);
-                    }
+                if (!$value instanceof ResourcePersistenceAwareInterface) {
+                    continue;
                 }
+                if (!$value->getColumnType()) {
+                    continue;
+                }
+                $key = $value->getName();
+                if (is_array($value->getColumnType())) {
+                    // if a datafield requires more than one column
+                    foreach ($value->getColumnType() as $fkey => $fvalue) {
+                        $this->addModifyColumn($table, $key . '__' . $fkey, $fvalue, '', 'NULL');
+                        $protectedColumns[] = $key . '__' . $fkey;
+                    }
+                } else {
+                    $this->addModifyColumn($table, $key, $value->getColumnType(), '', 'NULL');
+                    $protectedColumns[] = $key;
+                }
+                $this->addIndexToField($value, $table, 'getColumnType', true, true);
             }
         }
 
@@ -963,13 +956,6 @@ QUERY;
 
     public function getFieldDefinitionParams(string $fieldname, string $language, array $extraParams = []): array
     {
-        return array_merge(
-            [
-                'owner' => $this->model,
-                'fieldname' => $fieldname,
-                'language' => $language,
-            ],
-            $extraParams
-        );
+        return ['owner' => $this->model, 'fieldname' => $fieldname, 'language' => $language, ...$extraParams];
     }
 }

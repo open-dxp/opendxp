@@ -28,6 +28,7 @@ class OpenDxpSimpleBackendSearchBundle extends AbstractOpenDxpBundle implements 
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -58,6 +59,7 @@ class OpenDxpSimpleBackendSearchBundle extends AbstractOpenDxpBundle implements 
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

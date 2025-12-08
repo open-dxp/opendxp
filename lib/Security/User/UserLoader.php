@@ -28,19 +28,13 @@ class UserLoader
 {
     protected ?UserModel $user = null;
 
-    protected TokenStorageUserResolver $userResolver;
-
-    protected RequestHelper $requestHelper;
-
-    public function __construct(TokenStorageUserResolver $userResolver, RequestHelper $requestHelper)
+    public function __construct(protected TokenStorageUserResolver $userResolver, protected RequestHelper $requestHelper)
     {
-        $this->userResolver = $userResolver;
-        $this->requestHelper = $requestHelper;
     }
 
     public function getUser(): ?UserModel
     {
-        if (null === $this->user) {
+        if (!$this->user instanceof \OpenDxp\Model\User) {
             $user = $this->loadUser();
 
             if ($user) {

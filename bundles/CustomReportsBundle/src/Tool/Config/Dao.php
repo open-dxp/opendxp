@@ -26,8 +26,9 @@ use OpenDxp\Model;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'custom_reports';
+    private const string CONFIG_KEY = 'custom_reports';
 
+    #[\Override]
     public function configure(): void
     {
         $config = OpenDxp::getContainer()->getParameter('opendxp_custom_reports.config_location');
@@ -103,6 +104,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getName());
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

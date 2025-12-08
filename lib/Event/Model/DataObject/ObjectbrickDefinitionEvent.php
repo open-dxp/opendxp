@@ -21,11 +21,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class ObjectbrickDefinitionEvent extends Event
 {
-    protected Definition $objectbrickDefinition;
-
-    public function __construct(Definition $objectbrickDefinition)
+    public function __construct(protected Definition $objectbrickDefinition)
     {
-        $this->objectbrickDefinition = $objectbrickDefinition;
     }
 
     public function getObjectbrickDefinition(): Definition

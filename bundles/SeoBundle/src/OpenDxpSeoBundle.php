@@ -31,6 +31,7 @@ class OpenDxpSeoBundle extends AbstractOpenDxpBundle implements DependentBundleI
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -63,6 +64,7 @@ class OpenDxpSeoBundle extends AbstractOpenDxpBundle implements DependentBundleI
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

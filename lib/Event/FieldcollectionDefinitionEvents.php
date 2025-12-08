@@ -20,43 +20,31 @@ final class FieldcollectionDefinitionEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_ADD = 'opendxp.fieldcollection.preAdd';
+    const string PRE_ADD = 'opendxp.fieldcollection.preAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_ADD = 'opendxp.fieldcollection.postAdd';
+    const string POST_ADD = 'opendxp.fieldcollection.postAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_UPDATE = 'opendxp.fieldcollection.preUpdate';
+    const string PRE_UPDATE = 'opendxp.fieldcollection.preUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_UPDATE = 'opendxp.fieldcollection.postUpdate';
+    const string POST_UPDATE = 'opendxp.fieldcollection.postUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.fieldcollection.preDelete';
+    const string PRE_DELETE = 'opendxp.fieldcollection.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\FieldcollectionDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.fieldcollection.postDelete';
+    const string POST_DELETE = 'opendxp.fieldcollection.postDelete';
 }

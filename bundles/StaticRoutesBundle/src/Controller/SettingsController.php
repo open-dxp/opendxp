@@ -43,43 +43,37 @@ class SettingsController extends UserAwareController
                     }
                 }
             }
-
-            if ($request->query->getString('xaction') == 'destroy') {
+            if ($request->query->getString('xaction') === 'destroy') {
                 $id = $data['id'];
                 $route = Staticroute::getById($id);
                 if (!$route->isWriteable()) {
                     throw new ConfigWriteException();
                 }
                 $route->delete();
-
                 return $this->jsonResponse(['success' => true, 'data' => []]);
-            } elseif ($request->query->getString('xaction') == 'update') {
+            }
+            if ($request->query->getString('xaction') === 'update') {
                 // save routes
                 $route = Staticroute::getById($data['id']);
                 if (!$route->isWriteable()) {
                     throw new ConfigWriteException();
                 }
-
                 $route->setValues($data);
-
                 $route->save();
-
                 return $this->jsonResponse(['data' => $route->getObjectVars(), 'success' => true]);
-            } elseif ($request->query->getString('xaction') == 'create') {
+            }
+
+            if ($request->query->getString('xaction') === 'create') {
                 if (!(new Staticroute())->isWriteable()) {
                     throw new ConfigWriteException();
                 }
                 unset($data['id']);
-
                 // save route
                 $route = new Staticroute();
                 $route->setValues($data);
-
                 $route->save();
-
                 $responseData = $route->getObjectVars();
                 $responseData['writeable'] = $route->isWriteable();
-
                 return $this->jsonResponse(['data' => $responseData, 'success' => true]);
             }
         } else {

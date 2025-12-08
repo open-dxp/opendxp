@@ -21,10 +21,10 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Exception\ExecutionContextNotDef
 /**
  * @internal
  */
-final class ExecutionContext implements ExecutionContextInterface
+final readonly class ExecutionContext implements ExecutionContextInterface
 {
     public function __construct(
-        private readonly array $contexts
+        private array $contexts
     ) {
     }
 

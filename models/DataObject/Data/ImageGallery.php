@@ -20,7 +20,7 @@ use Iterator;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 
-class ImageGallery implements Iterator, OwnerAwareFieldInterface
+class ImageGallery implements Iterator, OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
 
@@ -87,7 +87,7 @@ class ImageGallery implements Iterator, OwnerAwareFieldInterface
             /** @var array<int, Hotspotimage> $filtered */
             $filtered = array_filter($this->items, fn ($item) => !is_null($item));
 
-            return implode(',', array_map('strval', $filtered));
+            return implode(',', array_map(strval(...), $filtered));
         }
 
         return '';

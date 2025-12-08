@@ -20,37 +20,29 @@ final class DataObjectEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const PRE_ADD = 'opendxp.dataobject.preAdd';
+    const string PRE_ADD = 'opendxp.dataobject.preAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_ADD = 'opendxp.dataobject.postAdd';
+    const string POST_ADD = 'opendxp.dataobject.postAdd';
 
     /**
      * Arguments:
      *  - exception | exception object
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_ADD_FAILURE = 'opendxp.dataobject.postAddFailure';
+    const string POST_ADD_FAILURE = 'opendxp.dataobject.postAddFailure';
 
     /**
      * Arguments:
      *  - saveVersionOnly | is set if method saveVersion() was called instead of save()
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const PRE_UPDATE = 'opendxp.dataobject.preUpdate';
+    const string PRE_UPDATE = 'opendxp.dataobject.preUpdate';
 
     /**
      * Arguments:
@@ -59,10 +51,8 @@ final class DataObjectEvents
      *  - separator | string | Separator between validation messages. Defaults to ' / '.
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const PRE_UPDATE_VALIDATION_EXCEPTION = 'opendxp.dataobject.preUpdateValidationException';
+    const string PRE_UPDATE_VALIDATION_EXCEPTION = 'opendxp.dataobject.preUpdateValidationException';
 
     /**
      * Arguments:
@@ -70,10 +60,8 @@ final class DataObjectEvents
      *  - oldPath | the old full path in case the path has changed
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_UPDATE = 'opendxp.dataobject.postUpdate';
+    const string POST_UPDATE = 'opendxp.dataobject.postUpdate';
 
     /**
      * Arguments:
@@ -81,71 +69,55 @@ final class DataObjectEvents
      *  - exception | exception object
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_UPDATE_FAILURE = 'opendxp.dataobject.postUpdateFailure';
+    const string POST_UPDATE_FAILURE = 'opendxp.dataobject.postUpdateFailure';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObjectDeleteInfoEvent")
-     *
-     * @var string
      */
-    const DELETE_INFO = 'opendxp.dataobject.deleteInfo';
+    const string DELETE_INFO = 'opendxp.dataobject.deleteInfo';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.dataobject.preDelete';
+    const string PRE_DELETE = 'opendxp.dataobject.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.dataobject.postDelete';
+    const string POST_DELETE = 'opendxp.dataobject.postDelete';
 
     /**
      * Arguments:
      *  - exception | exception object
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_DELETE_FAILURE = 'opendxp.dataobject.postDeleteFailure';
+    const string POST_DELETE_FAILURE = 'opendxp.dataobject.postDeleteFailure';
 
     /**
      * Arguments:
      *  - params | array | contains the values that were passed to getById() as the second parameter
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_LOAD = 'opendxp.dataobject.postLoad';
+    const string POST_LOAD = 'opendxp.dataobject.postLoad';
 
     /**
      * Arguments:
      *  - target_element | OpenDxp\Model\AbstractObject | contains the target object used in copying process
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const PRE_COPY = 'opendxp.dataobject.preCopy';
+    const string PRE_COPY = 'opendxp.dataobject.preCopy';
 
     /**
      * Arguments:
      *  - base_element | OpenDxp\Model\AbstractObject | contains the base object used in copying process
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_COPY = 'opendxp.dataobject.postCopy';
+    const string POST_COPY = 'opendxp.dataobject.postCopy';
 
     /**
      * Arguments:
@@ -157,8 +129,6 @@ final class DataObjectEvents
      *  - returnMappedFieldNames | bool | if "true" the objectData is an associative array, otherwise it is an indexed array
      *
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_CSV_ITEM_EXPORT = 'opendxp.dataobject.postCsvItemExport';
+    const string POST_CSV_ITEM_EXPORT = 'opendxp.dataobject.postCsvItemExport';
 }

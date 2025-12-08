@@ -20,21 +20,12 @@ use OpenDxp\Model\Element\ElementInterface;
 
 class TranslationItem
 {
-    private string $type;
-
-    private string $id;
-
-    private ElementInterface $element;
-
     /**
      * TranslationItem constructor.
      *
      */
-    public function __construct(string $type, string $id, ElementInterface $element)
+    public function __construct(private readonly string $type, private readonly string $id, private readonly ElementInterface $element)
     {
-        $this->type = $type;
-        $this->id = $id;
-        $this->element = $element;
     }
 
     public function getType(): string

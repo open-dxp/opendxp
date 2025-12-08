@@ -213,7 +213,6 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
     }
 
     /**
-     * @param null|DataObject\Concrete $object
      *
      * @see Data::getDataFromEditmode
      *
@@ -234,6 +233,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data) && count($data) > 0) {
@@ -250,6 +250,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return '';
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -266,11 +267,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
 
                 $allowClass = $this->allowObjectRelation($o);
                 if (!$allowClass || !($o instanceof DataObject\Concrete)) {
-                    if (!$allowClass && $o instanceof DataObject\Concrete) {
-                        $id = $o->getId();
-                    } else {
-                        $id = '??';
-                    }
+                    $id = !$allowClass && $o instanceof DataObject\Concrete ? $o->getId() : '??';
 
                     throw new Element\ValidationException('Invalid object relation to object [' . $id . '] in field ' . $this->getName() . ' , tried to assign ' . $o->getId());
                 }
@@ -282,6 +279,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         }
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -299,6 +297,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return '';
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -367,6 +366,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return $this->maxItems;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -376,7 +376,6 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      * a image URL.
      *
      * @param Element\ElementInterface[]|null $data
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): array
@@ -396,14 +395,14 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
     public function rewriteIds(mixed $container, array $idMapping, array $params = []): mixed
     {
         $data = $this->getDataFromObjectParam($container, $params);
-        $data = $this->rewriteIdsService($data, $idMapping);
 
-        return $data;
+        return $this->rewriteIdsService($data, $idMapping);
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\ManyToManyObjectRelation $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
@@ -450,18 +449,14 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
                 $fieldFound = false;
                 /** @var Localizedfields|null $localizedfields */
                 $localizedfields = $class->getFieldDefinitions($context)['localizedfields'] ?? null;
-                if ($localizedfields) {
-                    if ($fd = $localizedfields->getFieldDefinition($field)) {
-                        $this->visibleFieldDefinitions[$field]['name'] = $fd->getName();
-                        $this->visibleFieldDefinitions[$field]['title'] = $fd->getTitle();
-                        $this->visibleFieldDefinitions[$field]['fieldtype'] = $fd->getFieldType();
-
-                        if ($fd instanceof DataObject\ClassDefinition\Data\Select || $fd instanceof DataObject\ClassDefinition\Data\Multiselect) {
-                            $this->visibleFieldDefinitions[$field]['options'] = $fd->getOptions();
-                        }
-
-                        $fieldFound = true;
+                if ($localizedfields && $fd = $localizedfields->getFieldDefinition($field)) {
+                    $this->visibleFieldDefinitions[$field]['name'] = $fd->getName();
+                    $this->visibleFieldDefinitions[$field]['title'] = $fd->getTitle();
+                    $this->visibleFieldDefinitions[$field]['fieldtype'] = $fd->getFieldType();
+                    if ($fd instanceof DataObject\ClassDefinition\Data\Select || $fd instanceof DataObject\ClassDefinition\Data\Multiselect) {
+                        $this->visibleFieldDefinitions[$field]['options'] = $fd->getOptions();
                     }
+                    $fieldFound = true;
                 }
 
                 if (!$fieldFound) {
@@ -607,19 +602,20 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return $data;
     }
 
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $originalData = $data;
         $data = parent::getDiffDataForEditMode($data, $object, $params);
-        $data = $this->processDiffDataForEditMode($originalData, $data, $object, $params);
 
-        return $data;
+        return $this->processDiffDataForEditMode($originalData, $data, $object, $params);
     }
 
     /** See parent class.
      *
      *
      */
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data) {
@@ -699,11 +695,13 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         $this->enableTextSelection = $enableTextSelection;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof DataObject\Concrete) {
@@ -724,6 +722,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      *
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $prefix = '';

@@ -51,6 +51,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
      */
     public bool $lazyLoading = true;
 
+    #[\Override]
     public function setClasses(array $classes): static
     {
         //dummy, classes are set from owner classId
@@ -122,7 +123,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
     {
         //only relations of owner type are allowed
         $ownerClass = DataObject\ClassDefinition::getByName($this->getOwnerClassName());
-        if ($ownerClass instanceof DataObject\ClassDefinition && $object instanceof DataObject\Concrete && $ownerClass->getId() == $object->getClassId()) {
+        if ($ownerClass instanceof DataObject\ClassDefinition && $object instanceof DataObject\Concrete && $ownerClass->getId() === $object->getClassId()) {
             $fd = $ownerClass->getFieldDefinition($this->getOwnerFieldName());
             if ($fd instanceof DataObject\ClassDefinition\Data\Relations\AbstractRelations) {
                 return true;
@@ -132,6 +133,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         return false;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         //TODO
@@ -149,6 +151,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         }
     }
 
+    #[\Override]
     public function load(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): array
     {
         if ($this->getOwnerClassId() === null) {
@@ -171,16 +174,19 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         return $data['data'];
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         return $tags;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         return [];
     }
 
+    #[\Override]
     public function preGetData(mixed $container, array $params = []): array
     {
         $data = $this->load($container);
@@ -191,16 +197,19 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
     /**
      * @return false
      */
+    #[\Override]
     public function supportsInheritance(): bool
     {
         return false;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'reverseObjectRelation';
     }
 
+    #[\Override]
     public function getClasses(): array
     {
         if ($this->getOwnerClassId()) {

@@ -64,9 +64,9 @@ abstract class AbstractCommand extends Command
 
     private function doDump(mixed $data): void
     {
-        if (null === $this->cliDumper) {
+        if (!$this->cliDumper instanceof \Symfony\Component\VarDumper\Dumper\CliDumper) {
             $this->cliDumper = new CliDumper();
-            $output = $this->output instanceof StreamOutput ? $this->output->getStream() : function ($line, $depth, $indentPad) {
+            $output = $this->output instanceof StreamOutput ? $this->output->getStream() : function ($line, $depth, $indentPad): void {
                 if (-1 !== $depth) {
                     $this->output->writeln(str_repeat($indentPad, $depth) . $line);
                 }

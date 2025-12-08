@@ -41,7 +41,7 @@ final class Config
                     $siteId = preg_replace('/^robots\.txt\-/', '', $robots->getId());
                     $config[$siteId] = $robots->getData();
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
             }
 
             self::setRobotsConfig($config);

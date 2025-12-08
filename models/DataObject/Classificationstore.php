@@ -109,10 +109,8 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
 
     public function setObject(Concrete $object): static
     {
-        if ($this->object) {
-            if ($this->object->getId() != $object->getId()) {
-                $this->markFieldDirty('_self');
-            }
+        if ($this->object && $this->object->getId() !== $object->getId()) {
+            $this->markFieldDirty('_self');
         }
         $this->object = $object;
 
@@ -168,7 +166,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
         $language = $this->getLanguage($language);
 
         // treat value "0" nonempty
-        $nonEmpty = is_string($value) ? strlen($value) > 0 : isset($value);
+        $nonEmpty = is_string($value) ? $value !== '' : isset($value);
 
         // Workaround for booleanSelect
         // @TODO Find a better solution for using isEmpty() in all ClassDefintion DataTypes
@@ -206,7 +204,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
             $nonEmpty = true;
         }
 
-        if ($dataDefinition instanceof Model\DataObject\ClassDefinition\Data\Multiselect && is_array($value) && empty($value)) {
+        if ($dataDefinition instanceof Model\DataObject\ClassDefinition\Data\Multiselect && is_array($value) && $value === []) {
             $nonEmpty = true;
         }
 
@@ -268,11 +266,9 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
     {
         $newList = [];
 
-        if ($activeGroups) {
-            foreach ($activeGroups as $key => $value) {
-                if ($value) {
-                    $newList[$key] = true;
-                }
+        foreach ($activeGroups as $key => $value) {
+            if ($value) {
+                $newList[$key] = true;
             }
         }
 
@@ -333,7 +329,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
         $language = $this->getLanguage($language);
 
         $keyConfig = Model\DataObject\Classificationstore\DefinitionCache::get($keyId);
-        if ($keyConfig->getType() == 'calculatedValue') {
+        if ($keyConfig->getType() === 'calculatedValue') {
             $data = new Model\DataObject\Data\CalculatedValue($this->getFieldname());
             $childDef = Model\DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
             $data->setContextualData('classificationstore', $this->getFieldname(), null, $language, $groupId, $keyId, $childDef);
@@ -356,7 +352,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
             $data = $this->getFallbackValue($groupId, $keyId, $language, $fieldDefinition);
         }
 
-        if ($fieldDefinition->isEmpty($data) && !$ignoreDefaultLanguage && $language != 'default') {
+        if ($fieldDefinition->isEmpty($data) && !$ignoreDefaultLanguage && $language !== 'default') {
             $data = $this->items[$groupId][$keyId]['default'] ?? null;
         }
 
@@ -367,23 +363,18 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
             $class = $object->getClass();
             $allowInherit = $class->getAllowInherit();
 
-            if ($allowInherit) {
-                if ($object->getParent() instanceof AbstractObject) {
-                    $parent = $object->getParent();
-                    while ($parent && $parent->getType() == AbstractObject::OBJECT_TYPE_FOLDER) {
-                        $parent = $parent->getParent();
-                    }
-
-                    if ($parent && ($parent->getType() == AbstractObject::OBJECT_TYPE_OBJECT || $parent->getType() == AbstractObject::OBJECT_TYPE_VARIANT)) {
-                        /** @var Concrete $parent */
-                        if ($parent->getClassId() == $object->getClassId()) {
-                            $getter = 'get' . ucfirst($this->fieldname);
-                            $classificationStore = $parent->$getter();
-                            if ($classificationStore instanceof Classificationstore) {
-                                if ($classificationStore->object->getId() != $this->object->getId()) {
-                                    $data = $classificationStore->getLocalizedKeyValue($groupId, $keyId, $language, false);
-                                }
-                            }
+            if ($allowInherit && $object->getParent() instanceof AbstractObject) {
+                $parent = $object->getParent();
+                while ($parent && $parent->getType() === AbstractObject::OBJECT_TYPE_FOLDER) {
+                    $parent = $parent->getParent();
+                }
+                if ($parent && ($parent->getType() === AbstractObject::OBJECT_TYPE_OBJECT || $parent->getType() === AbstractObject::OBJECT_TYPE_VARIANT)) {
+                    /** @var Concrete $parent */
+                    if ($parent->getClassId() === $object->getClassId()) {
+                        $getter = 'get' . ucfirst($this->fieldname);
+                        $classificationStore = $parent->$getter();
+                        if ($classificationStore instanceof Classificationstore && $classificationStore->object->getId() !== $this->object->getId()) {
+                            $data = $classificationStore->getLocalizedKeyValue($groupId, $keyId, $language, false);
                         }
                     }
                 }
@@ -391,7 +382,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
         }
 
         if ($fieldDefinition instanceof PreGetDataInterface) {
-            $data = $fieldDefinition->preGetData($this, [
+            return $fieldDefinition->preGetData($this, [
                 'data' => $data,
                 'language' => $language,
                 'name' => $groupId . '-' . $keyId,
@@ -451,7 +442,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
     {
         $fieldsArray = $mergeFunction($this, []);
         $object = $this->getObject();
-        while (!is_null($object) && ($parent = Service::hasInheritableParentObject($object)) !== null) {
+        while (!is_null($object) && ($parent = Service::hasInheritableParentObject($object)) instanceof \OpenDxp\Model\DataObject\Concrete) {
             $fieldsArray = $mergeFunction($parent->{'get' . ucfirst($this->getFieldname())}(), $fieldsArray);
 
             $object = $parent;
@@ -492,11 +483,7 @@ class Classificationstore extends Model\AbstractModel implements DirtyIndicatorI
     {
         foreach ($a1 as $key => $value) {
             if (array_key_exists($key, $a2)) {
-                if (is_array($value)) {
-                    $a2[$key] = $this->mergeArrays($a2[$key], $value);
-                } else {
-                    $a2[$key] = $value;
-                }
+                $a2[$key] = is_array($value) ? $this->mergeArrays($a2[$key], $value) : $value;
             } else {
                 $a2[$key] = $value;
             }

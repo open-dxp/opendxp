@@ -28,26 +28,8 @@ use Symfony\Component\Workflow\WorkflowInterface;
 
 class ExpressionService
 {
-    private ExpressionLanguage $expressionLanguage;
-
-    private TokenStorageInterface $tokenStorage;
-
-    private AuthorizationCheckerInterface $authenticationChecker;
-
-    private AuthenticationTrustResolverInterface $trustResolver;
-
-    private ?RoleHierarchyInterface $roleHierarchy = null;
-
-    private ?ValidatorInterface $validator = null;
-
-    public function __construct(ExpressionLanguage $expressionLanguage, TokenStorageInterface $tokenStorage, AuthorizationCheckerInterface $authenticationChecker, AuthenticationTrustResolverInterface $trustResolver, ?RoleHierarchyInterface $roleHierarchy = null, ?ValidatorInterface $validator = null)
+    public function __construct(private readonly ExpressionLanguage $expressionLanguage, private readonly TokenStorageInterface $tokenStorage, private readonly AuthorizationCheckerInterface $authenticationChecker, private readonly AuthenticationTrustResolverInterface $trustResolver, private readonly ?RoleHierarchyInterface $roleHierarchy = null, private readonly ?ValidatorInterface $validator = null)
     {
-        $this->expressionLanguage = $expressionLanguage;
-        $this->tokenStorage = $tokenStorage;
-        $this->authenticationChecker = $authenticationChecker;
-        $this->trustResolver = $trustResolver;
-        $this->roleHierarchy = $roleHierarchy;
-        $this->validator = $validator;
     }
 
     public function evaluateExpression(WorkflowInterface $workflow, object $subject, string $expression): mixed
@@ -61,7 +43,7 @@ class ExpressionService
         $token = $this->tokenStorage->getToken() ?: new NullToken;
 
         $roleNames = $token->getRoleNames();
-        if (null !== $this->roleHierarchy) {
+        if ($this->roleHierarchy instanceof \Symfony\Component\Security\Core\Role\RoleHierarchyInterface) {
             $roleNames = $this->roleHierarchy->getReachableRoleNames($roleNames);
         }
 

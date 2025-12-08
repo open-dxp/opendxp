@@ -25,7 +25,7 @@ use OpenDxp\Messenger\ScheduledTaskMessage;
 class ScheduledTaskHandler
 {
     public function __construct(
-        private ExecutorInterface $maintenanceExecutor
+        private readonly ExecutorInterface $maintenanceExecutor
     ) {
     }
 

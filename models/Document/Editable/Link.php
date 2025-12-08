@@ -56,6 +56,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return $this->data;
     }
 
+    #[\Override]
     protected function getEditmodeElementClasses(array $options = []): array
     {
         // we don't want the class attribute being applied to the editable container element (<div>, only to the <a> tag inside
@@ -72,7 +73,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
     {
         $url = $this->getHref();
 
-        if (strlen($url) > 0) {
+        if ($url !== '') {
             $prefix = '';
             $suffix = '';
             $noText = false;
@@ -99,7 +100,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
             }
 
             $this->data = is_array($this->data) ? $this->data : [];
-            $availableAttribs = array_merge($this->data, $this->config);
+            $availableAttribs = [...$this->data, ...$this->config];
 
             // add attributes to link
             $attribs = [];
@@ -127,6 +128,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return '';
     }
 
+    #[\Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -173,11 +175,11 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
 
         $url = $this->data['path'] ?? '';
 
-        if (strlen($this->data['parameters'] ?? '') > 0) {
+        if ((string) ($this->data['parameters'] ?? '') !== '') {
             $url .= (str_contains($url, '?') ? '&' : '?') . htmlspecialchars(str_replace('?', '', $this->getParameters()));
         }
 
-        if (strlen($this->data['anchor'] ?? '') > 0) {
+        if ((string) ($this->data['anchor'] ?? '') !== '') {
             $anchor = str_replace('"', urlencode('"'), htmlspecialchars($this->getAnchor()));
             $url .= '#' . str_replace('#', '', $anchor);
         }
@@ -209,20 +211,18 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
                 if ($object = Model\DataObject::getById((int) $this->data['internalId'])) {
                     if ($editmode) {
                         $this->data['path'] = $object->getFullPath();
-                    } else {
-                        if ($object instanceof Model\DataObject\Concrete) {
-                            if ($linkGenerator = $object->getClass()->getLinkGenerator()) {
-                                if ($realPath) {
-                                    $this->data['path'] = $object->getFullPath();
-                                } else {
-                                    $this->data['path'] = $linkGenerator->generate(
-                                        $object,
-                                        [
-                                            'document' => $this->getDocument(),
-                                            'context' => $this,
-                                        ]
-                                    );
-                                }
+                    } elseif ($object instanceof Model\DataObject\Concrete) {
+                        if ($linkGenerator = $object->getClass()->getLinkGenerator()) {
+                            if ($realPath) {
+                                $this->data['path'] = $object->getFullPath();
+                            } else {
+                                $this->data['path'] = $linkGenerator->generate(
+                                    $object,
+                                    [
+                                        'document' => $this->getDocument(),
+                                        'context' => $this,
+                                    ]
+                                );
                             }
                         }
                     }
@@ -349,40 +349,39 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return strlen($this->getHref()) < 1;
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
         $isInternal = $this->data['internal'] ?? false;
 
-        if (is_array($this->data) && $isInternal) {
-            if ((int)$this->data['internalId'] > 0) {
-                if ($this->data['internalType'] == 'document') {
-                    if ($doc = Document::getById((int) $this->data['internalId'])) {
-                        $key = 'document_'.$doc->getId();
+        if (is_array($this->data) && $isInternal && (int) $this->data['internalId'] > 0) {
+            if ($this->data['internalType'] == 'document') {
+                if ($doc = Document::getById((int) $this->data['internalId'])) {
+                    $key = 'document_'.$doc->getId();
 
-                        $dependencies[$key] = [
-                            'id' => $doc->getId(),
-                            'type' => 'document',
-                        ];
-                    }
-                } elseif ($this->data['internalType'] == 'asset') {
-                    if ($asset = Asset::getById((int) $this->data['internalId'])) {
-                        $key = 'asset_' . $asset->getId();
+                    $dependencies[$key] = [
+                        'id' => $doc->getId(),
+                        'type' => 'document',
+                    ];
+                }
+            } elseif ($this->data['internalType'] == 'asset') {
+                if ($asset = Asset::getById((int) $this->data['internalId'])) {
+                    $key = 'asset_' . $asset->getId();
 
-                        $dependencies[$key] = [
-                            'id' => $asset->getId(),
-                            'type' => 'asset',
-                        ];
-                    }
-                } elseif ($this->data['internalType'] == 'object') {
-                    if ($object = DataObject\Concrete::getById($this->data['internalId'])) {
-                        $key = 'object_' . $object->getId();
+                    $dependencies[$key] = [
+                        'id' => $asset->getId(),
+                        'type' => 'asset',
+                    ];
+                }
+            } elseif ($this->data['internalType'] == 'object') {
+                if ($object = DataObject\Concrete::getById($this->data['internalId'])) {
+                    $key = 'object_' . $object->getId();
 
-                        $dependencies[$key] = [
-                            'id' => $object->getId(),
-                            'type' => 'object',
-                        ];
-                    }
+                    $dependencies[$key] = [
+                        'id' => $object->getId(),
+                        'type' => 'object',
+                    ];
                 }
             }
         }
@@ -396,11 +395,9 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
             $type = $this->data['internalType'];
             $id = (int)$this->data['internalId'];
 
-            if (array_key_exists($type, $idMapping)) {
-                if (array_key_exists($id, $idMapping[$type])) {
-                    $this->data['internalId'] = $idMapping[$type][$id];
-                    $this->getHref();
-                }
+            if (array_key_exists($type, $idMapping) && array_key_exists($id, $idMapping[$type])) {
+                $this->data['internalId'] = $idMapping[$type][$id];
+                $this->getHref();
             }
         }
     }

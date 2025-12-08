@@ -44,9 +44,7 @@ class SanityCheckHandler implements BatchHandlerInterface
     // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
-        $jobs = $this->filterUnique($jobs, static function (SanityCheckMessage $message) {
-            return $message->getType() . '-' . $message->getId();
-        });
+        $jobs = $this->filterUnique($jobs, static fn(SanityCheckMessage $message) => $message->getType() . '-' . $message->getId());
 
         foreach ($jobs as [$message, $ack]) {
             try {
@@ -72,10 +70,8 @@ class SanityCheckHandler implements BatchHandlerInterface
         }
         $latestNotPublishedVersion = null;
 
-        if ($latestVersion = $element->getLatestVersion()) {
-            if ($latestVersion->getDate() > $element->getModificationDate() || $latestVersion->getVersionCount() > $element->getVersionCount()) {
-                $latestNotPublishedVersion = $latestVersion;
-            }
+        if (($latestVersion = $element->getLatestVersion()) && ($latestVersion->getDate() > $element->getModificationDate() || $latestVersion->getVersionCount() > $element->getVersionCount())) {
+            $latestNotPublishedVersion = $latestVersion;
         }
 
         $element->setUserModification(0);

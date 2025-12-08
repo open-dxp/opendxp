@@ -74,7 +74,7 @@ final class Site extends AbstractModel
             try {
                 $site = new self();
                 $site->getDao()->getById($id);
-            } catch (NotFoundException $e) {
+            } catch (NotFoundException) {
                 $site = 'failed';
             }
 
@@ -97,7 +97,7 @@ final class Site extends AbstractModel
             $site->getDao()->getByRootId($id);
 
             return $site;
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }
@@ -116,7 +116,7 @@ final class Site extends AbstractModel
             try {
                 $site = new self();
                 $site->getDao()->getByDomain($domain);
-            } catch (NotFoundException $e) {
+            } catch (NotFoundException) {
                 $site = 'failed';
             }
 
@@ -164,7 +164,7 @@ final class Site extends AbstractModel
      */
     public static function isSiteRequest(): bool
     {
-        return null !== self::$currentSite;
+        return self::$currentSite instanceof \OpenDxp\Model\Site;
     }
 
     /**
@@ -172,7 +172,7 @@ final class Site extends AbstractModel
      */
     public static function getCurrentSite(): Site
     {
-        if (null !== self::$currentSite) {
+        if (self::$currentSite instanceof \OpenDxp\Model\Site) {
             return self::$currentSite;
         }
 
@@ -227,7 +227,7 @@ final class Site extends AbstractModel
         }
         if (is_array($domains)) {
             $domains = array_filter($domains);
-            array_map(static function ($domain) {
+            array_map(static function ($domain): void {
                 //replace all wildcards with a placeholder dummy string
                 $wildCardLessDomain = str_replace('*', 'anystring', $domain);
                 if (

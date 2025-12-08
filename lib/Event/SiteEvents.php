@@ -20,29 +20,21 @@ final class SiteEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\SiteEvent")
-     *
-     * @var string
      */
-    const PRE_SAVE = 'opendxp.site.preSave';
+    const string PRE_SAVE = 'opendxp.site.preSave';
 
     /**
      * @Event("OpenDxp\Event\Model\SiteEvent")
-     *
-     * @var string
      */
-    const POST_SAVE = 'opendxp.site.postSave';
+    const string POST_SAVE = 'opendxp.site.postSave';
 
     /**
      * @Event("OpenDxp\Event\Model\SiteEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.site.preDelete';
+    const string PRE_DELETE = 'opendxp.site.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\SiteEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.site.postDelete';
+    const string POST_DELETE = 'opendxp.site.postDelete';
 }

@@ -38,6 +38,7 @@ class Image extends Model\Asset
 
     private bool $clearThumbnailsOnSave = false;
 
+    #[\Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {
@@ -131,9 +132,8 @@ EOT;
             'frontendPath' => $path,
         ]);
         OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_IMAGE_THUMBNAIL);
-        $path = $event->getArgument('frontendPath');
 
-        return $path;
+        return $event->getArgument('frontendPath');
     }
 
     private function getLowQualityPreviewStoragePath(): string
@@ -154,7 +154,7 @@ EOT;
 
         try {
             $dataUri = 'data:image/svg+xml;base64,' . base64_encode(Storage::get('thumbnail')->read($this->getLowQualityPreviewStoragePath()));
-        } catch (Exception $e) {
+        } catch (Exception) {
             $dataUri = null;
         }
 
@@ -179,7 +179,7 @@ EOT;
     {
         try {
             $image = \OpenDxp\Image::getInstance();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $image = null;
         }
 
@@ -194,9 +194,11 @@ EOT;
     {
         if ($this->getWidth() > $this->getHeight()) {
             return 'landscape';
-        } elseif ($this->getWidth() == $this->getHeight()) {
+        }
+        if ($this->getWidth() === $this->getHeight()) {
             return 'square';
-        } elseif ($this->getHeight() > $this->getWidth()) {
+        }
+        if ($this->getHeight() > $this->getWidth()) {
             return 'portrait';
         }
 
@@ -258,16 +260,14 @@ EOT;
         // EXIF orientation
         if (function_exists('exif_read_data')) {
             $exif = @exif_read_data($path);
-            if (is_array($exif)) {
-                if (array_key_exists('Orientation', $exif)) {
-                    $orientation = (int)$exif['Orientation'];
-                    if (in_array($orientation, [5, 6, 7, 8])) {
-                        // flip height & width
-                        $dimensions = [
-                            'width' => $dimensions['height'],
-                            'height' => $dimensions['width'],
-                        ];
-                    }
+            if (is_array($exif) && array_key_exists('Orientation', $exif)) {
+                $orientation = (int)$exif['Orientation'];
+                if (in_array($orientation, [5, 6, 7, 8])) {
+                    // flip height & width
+                    $dimensions = [
+                        'width' => $dimensions['height'],
+                        'height' => $dimensions['width'],
+                    ];
                 }
             }
         }
@@ -306,13 +306,12 @@ EOT;
         return 0;
     }
 
+    #[\Override]
     public function setCustomSetting(string $key, mixed $value): static
     {
-        if (in_array($key, ['focalPointX', 'focalPointY'])) {
-            // if the focal point changes we need to clean all thumbnails on save
-            if ($this->getCustomSetting($key) != $value) {
-                $this->clearThumbnailsOnSave = true;
-            }
+        // if the focal point changes we need to clean all thumbnails on save
+        if (in_array($key, ['focalPointX', 'focalPointY']) && $this->getCustomSetting($key) != $value) {
+            $this->clearThumbnailsOnSave = true;
         }
 
         return parent::setCustomSetting($key, $value);
@@ -321,11 +320,7 @@ EOT;
     public function isVectorGraphic(): bool
     {
         // we use a simple file-extension check, for performance reasons
-        if (preg_match("@\.(svgz?|eps|pdf|ps|ai|indd)$@", $this->getFilename())) {
-            return true;
-        }
-
-        return false;
+        return (bool) preg_match("@\.(svgz?|eps|pdf|ps|ai|indd)$@", $this->getFilename());
     }
 
     /**

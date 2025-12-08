@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpStaticRoutesExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_static_routes';

@@ -24,6 +24,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpGlossaryExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_glossary';

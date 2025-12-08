@@ -19,12 +19,12 @@ namespace OpenDxp\ValueObject\Integer;
 
 use ValueError;
 
-final class PositiveInteger
+final readonly class PositiveInteger
 {
     /**
      * @throws ValueError
      */
-    public function __construct(private readonly int $value)
+    public function __construct(private int $value)
     {
         $this->validate();
     }

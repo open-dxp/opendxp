@@ -32,12 +32,14 @@ class Installer extends SettingsStoreAwareInstaller
         'routes',
     ];
 
+    #[\Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
+    #[\Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();
@@ -71,10 +73,8 @@ class Installer extends SettingsStoreAwareInstaller
     private function removeRoutesFromSettingsStore(): void
     {
         $staticRoutes = SettingsStore::getIdsByScope(self::SETTINGS_STORE_SCOPE);
-        if (!empty($staticRoutes)) {
-            foreach ($staticRoutes as $staticRoute) {
-                SettingsStore::delete($staticRoute, self::SETTINGS_STORE_SCOPE);
-            }
+        foreach ($staticRoutes as $staticRoute) {
+            SettingsStore::delete($staticRoute, self::SETTINGS_STORE_SCOPE);
         }
     }
 }

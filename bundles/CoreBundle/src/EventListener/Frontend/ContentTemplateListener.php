@@ -73,7 +73,7 @@ class ContentTemplateListener implements EventSubscriberInterface
         $parameters = $this->resolveParameters($event, $attribute->vars ?? []);
         $status = 200;
 
-        if (interface_exists('Symfony\\Component\\Form\\FormInterface')) {
+        if (interface_exists(\Symfony\Component\Form\FormInterface::class)) {
             foreach ($parameters as $k => $v) {
                 if (!$v instanceof \Symfony\Component\Form\FormInterface) {
                     continue;
@@ -96,13 +96,13 @@ class ContentTemplateListener implements EventSubscriberInterface
         $controllerArguments = $event->controllerArgumentsEvent?->getNamedArguments() ?? [];
         $controllerResults = is_array($event->getControllerResult()) ? $event->getControllerResult() : [];
 
-        $mergedArray = array_merge(array_keys($controllerArguments), array_keys($controllerResults), array_keys($vars));
+        $mergedArray = [...array_keys($controllerArguments), ...array_keys($controllerResults), ...array_keys($vars)];
         $duplicateKeys = array_unique(array_diff_assoc($mergedArray, array_unique($mergedArray)));
 
         if ($duplicateKeys) {
             throw new Exception('Duplicate keys found: '.implode(', ', array_values($duplicateKeys)).'. Please use unique names for your controller arguments, controller results and template variables.');
         }
 
-        return array_merge($controllerArguments, $controllerResults, $vars);
+        return [...$controllerArguments, ...$controllerResults, ...$vars];
     }
 }

@@ -30,6 +30,7 @@ class OpenDxpXliffBundle extends AbstractOpenDxpBundle implements OpenDxpBundleA
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -57,6 +58,7 @@ class OpenDxpXliffBundle extends AbstractOpenDxpBundle implements OpenDxpBundleA
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

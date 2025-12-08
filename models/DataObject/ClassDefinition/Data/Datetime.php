@@ -52,7 +52,6 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     public string $columnType = 'bigint(20)';
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataForResource
      *
@@ -63,8 +62,8 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
 
         if ($data) {
             $result = $data->getTimestamp();
-            if ($this->getColumnType() == 'datetime') {
-                $result = date('Y-m-d H:i:s', $result);
+            if ($this->getColumnType() === 'datetime') {
+                return date('Y-m-d H:i:s', $result);
             }
 
             return $result;
@@ -74,23 +73,19 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
-     *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      */
     public function getDataFromResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?Carbon
     {
         if ($data) {
-            if ($this->getColumnType() == 'datetime') {
+            if ($this->getColumnType() === 'datetime') {
                 $data = strtotime($data);
                 if ($data === false) {
                     return null;
                 }
             }
 
-            $result = $this->getDateFromTimestamp($data);
-
-            return $result;
+            return $this->getDateFromTimestamp($data);
         }
 
         return null;
@@ -105,7 +100,6 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see Data::getDataForEditmode
      *
@@ -128,7 +122,6 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see Data::getDataFromEditmode
      *
@@ -146,23 +139,15 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         return null;
     }
 
-    /**
-     * @param Model\DataObject\Concrete|null $object
-     *
-     */
     public function getDataFromGridEditor(float|string $data, ?Concrete $object = null, array $params = []): Carbon|null
     {
         if ($data && is_float($data)) {
-            $data = $data * 1000;
+            $data *= 1000;
         }
 
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    /**
-     * @param Model\DataObject\Concrete|null $object
-     *
-     */
     public function getDataForGrid(?\DateTime $data, ?Concrete $object = null, array $params = []): ?int
     {
         if ($data) {
@@ -178,6 +163,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DateTimeInterface) {
@@ -187,6 +173,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         return '';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -197,6 +184,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
@@ -212,12 +200,8 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
      */
     public function setDefaultValue(mixed $defaultValue): static
     {
-        if (strlen((string)$defaultValue) > 0) {
-            if (is_numeric($defaultValue)) {
-                $this->defaultValue = (int)$defaultValue;
-            } else {
-                $this->defaultValue = strtotime($defaultValue);
-            }
+        if ((string)$defaultValue !== '') {
+            $this->defaultValue = is_numeric($defaultValue) ? (int)$defaultValue : strtotime($defaultValue);
         }
 
         return $this;
@@ -250,6 +234,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         return $this;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -259,6 +244,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
      *
      *
      */
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?Carbon
     {
         $thedata = $data[0]['data'];
@@ -270,9 +256,9 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     }
 
     /** See parent class.
-     * @param Model\DataObject\Concrete|null $object
      *
      */
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $result = [];
@@ -287,7 +273,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         $diffdata['type'] = $this->getFieldType();
         $diffdata['value'] = $this->getVersionPreview($data, $object, $params);
         $diffdata['data'] = $thedata;
-        $diffdata['title'] = !empty($this->title) ? $this->title : $this->name;
+        $diffdata['title'] = empty($this->title) ? $this->name : $this->title;
         $diffdata['disabled'] = false;
 
         $result[] = $diffdata;
@@ -301,34 +287,33 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
      * @param array $params optional params used to change the behavior
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $timestamp = $value;
 
-        if ($this->getColumnType() == 'datetime') {
+        if ($this->getColumnType() === 'datetime') {
             $value = date('Y-m-d', $value);
         }
 
-        if ($operator == '=') {
+        if ($operator === '=') {
             $db = Db::get();
 
-            if ($this->getColumnType() == 'datetime') {
+            if ($this->getColumnType() === 'datetime') {
                 $brickPrefix = $params['brickPrefix'] ? $db->quoteIdentifier($params['brickPrefix']) . '.' : '';
-                $condition = 'DATE(' . $brickPrefix . '`' . $params['name'] . '`) = ' . $db->quote($value);
 
-                return $condition;
-            } else {
-                $maxTime = $timestamp + (86400 - 1); //specifies the top point of the range used in the condition
-                $filterField = $params['name'] ? $params['name'] : $this->getName();
-                $condition = '`' . $filterField . '` BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxTime);
-
-                return $condition;
+                return 'DATE(' . $brickPrefix . '`' . $params['name'] . '`) = ' . $db->quote($value);
             }
+            $maxTime = $timestamp + (86400 - 1);
+            //specifies the top point of the range used in the condition
+            $filterField = $params['name'] ?: $this->getName();
+            return '`' . $filterField . '` BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxTime);
         }
 
         return parent::getFilterConditionExt($value, $operator, $params);
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -339,9 +324,9 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
         if ($this->getDefaultValue()) {
             $date = new \Carbon\Carbon();
             $date->setTimestamp($this->getDefaultValue());
-
             return $date;
-        } elseif ($this->isUseCurrentDate()) {
+        }
+        if ($this->isUseCurrentDate()) {
             return new \Carbon\Carbon();
         }
 
@@ -404,7 +389,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
             'fieldDefinitionsCache',
         ];
 
-        return array_merge($defaultBlockedVars, $this->getBlockedVarsForExport());
+        return [...$defaultBlockedVars, ...$this->getBlockedVarsForExport()];
     }
 
     public function getColumnType(): string
@@ -430,7 +415,7 @@ class Datetime extends Data implements ResourcePersistenceAwareInterface, QueryR
     private function applyTimezone(DateTimeInterface $date): DateTimeInterface
     {
         if ($this->isRespectTimezone()) {
-            $date = UserTimezone::applyTimezone($date);
+            return UserTimezone::applyTimezone($date);
         }
 
         return $date;

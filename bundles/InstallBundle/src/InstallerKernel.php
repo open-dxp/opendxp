@@ -32,30 +32,30 @@ class InstallerKernel extends Kernel
 {
     use MicroKernelTrait;
 
-    private string $projectRoot;
-
-    public function __construct(string $projectRoot, string $environment, bool $debug)
+    public function __construct(private string $projectRoot, string $environment, bool $debug)
     {
-        $this->projectRoot = $projectRoot;
-
         parent::__construct($environment, $debug);
     }
 
+    #[\Override]
     public function getProjectDir(): string
     {
         return $this->projectRoot;
     }
 
+    #[\Override]
     public function getLogDir(): string
     {
         return $this->projectRoot . '/var/installer/log';
     }
 
+    #[\Override]
     public function getCacheDir(): string
     {
         return $this->projectRoot . '/var/installer/cache';
     }
 
+    #[\Override]
     public function getBuildDir(): string
     {
         return $this->projectRoot . '/var/installer/build';

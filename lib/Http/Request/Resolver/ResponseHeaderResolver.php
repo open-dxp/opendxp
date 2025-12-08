@@ -36,7 +36,7 @@ class ResponseHeaderResolver extends AbstractRequestResolver
      */
     public function getResponseHeaders(?Request $request = null): array
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 

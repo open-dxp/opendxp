@@ -23,6 +23,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 final class OpenDxpWordExportExtension extends Extension
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_word_export';

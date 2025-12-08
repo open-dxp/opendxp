@@ -28,14 +28,10 @@ use Symfony\Component\Routing\RequestContext;
  */
 class UrlGenerator implements UrlGeneratorInterface
 {
-    private RequestContext $requestContext;
+    private readonly OptionsResolver $optionsResolver;
 
-    private OptionsResolver $optionsResolver;
-
-    public function __construct(RequestContext $requestContext)
+    public function __construct(private readonly RequestContext $requestContext)
     {
-        $this->requestContext = $requestContext;
-
         $this->optionsResolver = new OptionsResolver();
         $this->configureOptions($this->optionsResolver);
     }

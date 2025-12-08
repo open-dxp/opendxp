@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class ClassDefinitionEvent extends Event
 {
-    protected ClassDefinition $classDefinition;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(ClassDefinition $classDefinition)
+    public function __construct(protected ClassDefinition $classDefinition)
     {
-        $this->classDefinition = $classDefinition;
     }
 
     public function getClassDefinition(): ClassDefinition

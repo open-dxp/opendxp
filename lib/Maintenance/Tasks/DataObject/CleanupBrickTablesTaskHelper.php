@@ -25,12 +25,12 @@ use Psr\Log\LoggerInterface;
  */
 class CleanupBrickTablesTaskHelper implements ConcreteTaskHelperInterface
 {
-    private const OPENDXP_OBJECTBRICK_CLASS_DIRECTORY = OPENDXP_CLASS_DEFINITION_DIRECTORY . '/objectbricks';
+    private const string OPENDXP_OBJECTBRICK_CLASS_DIRECTORY = OPENDXP_CLASS_DEFINITION_DIRECTORY . '/objectbricks';
 
     public function __construct(
-        private LoggerInterface $logger,
-        private DataObjectTaskHelperInterface $helper,
-        private Connection $db
+        private readonly LoggerInterface $logger,
+        private readonly DataObjectTaskHelperInterface $helper,
+        private readonly Connection $db
     ) {
     }
 
@@ -39,7 +39,7 @@ class CleanupBrickTablesTaskHelper implements ConcreteTaskHelperInterface
         $collectionNames =
             $this->helper->getCollectionNames(self::OPENDXP_OBJECTBRICK_CLASS_DIRECTORY);
 
-        if (empty($collectionNames)) {
+        if ($collectionNames === []) {
             return;
         }
 

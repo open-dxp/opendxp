@@ -22,20 +22,17 @@ use Symfony\Contracts\EventDispatcher\Event;
 class IgnoredSessionKeysEvent extends Event
 {
     /**
-     * Session keys which will be ignored when determining
-     * if the full page cache should be disabled due to
-     * existing session data.
-     *
-     * @var string[]
-     */
-    private array $keys = [];
-
-    /**
      * @param string[] $keys
      */
-    public function __construct(array $keys = [])
+    public function __construct(
+        /**
+         * Session keys which will be ignored when determining
+         * if the full page cache should be disabled due to
+         * existing session data.
+         */
+        private array $keys = []
+    )
     {
-        $this->keys = $keys;
     }
 
     /**

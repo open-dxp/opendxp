@@ -21,14 +21,8 @@ use OpenDxp\Model\DataObject\Classificationstore;
 
 final class Group
 {
-    protected GroupConfig $configuration;
-
-    protected Classificationstore $classificationStore;
-
-    public function __construct(Classificationstore $classificationStore, GroupConfig $configuration)
+    public function __construct(protected Classificationstore $classificationStore, protected GroupConfig $configuration)
     {
-        $this->configuration = $configuration;
-        $this->classificationStore = $classificationStore;
     }
 
     public function getConfiguration(): GroupConfig

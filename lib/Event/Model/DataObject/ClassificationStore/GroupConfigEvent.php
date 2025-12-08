@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class GroupConfigEvent extends Event
 {
-    protected GroupConfig $groupConfig;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(GroupConfig $groupConfig)
+    public function __construct(protected GroupConfig $groupConfig)
     {
-        $this->groupConfig = $groupConfig;
     }
 
     public function getGroupConfig(): GroupConfig

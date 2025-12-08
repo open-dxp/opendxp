@@ -59,8 +59,9 @@ trait OptionsProviderTrait
 
     public function useConfiguredOptions(): bool
     {
-        return $this->getOptionsProviderType() === OptionsProviderInterface::TYPE_CONFIGURE
-            // Legacy fallback in case no type was set yet and no class/service was configured
-            || ($this->getOptionsProviderType() === null && empty($this->getOptionsProviderClass()));
+        if ($this->getOptionsProviderType() === OptionsProviderInterface::TYPE_CONFIGURE) {
+            return true;
+        }
+        return $this->getOptionsProviderType() === null && empty($this->getOptionsProviderClass());
     }
 }

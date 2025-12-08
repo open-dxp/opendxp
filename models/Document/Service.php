@@ -48,11 +48,6 @@ class Service extends Model\Element\Service
     /**
      * @internal
      */
-    protected ?Model\User $_user;
-
-    /**
-     * @internal
-     */
     protected array $_copyRecursiveIds = [];
 
     /**
@@ -60,9 +55,13 @@ class Service extends Model\Element\Service
      */
     protected array $nearestPathCache;
 
-    public function __construct(?Model\User $user = null)
+    public function __construct(
+        /**
+         * @internal
+         */
+        protected ?Model\User $_user = null
+    )
     {
-        $this->_user = $user;
     }
 
     /**
@@ -78,9 +77,8 @@ class Service extends Model\Element\Service
 
         // keep useLayout compatibility
         $attributes['_useLayout'] = $useLayout;
-        $content = $renderer->render($document, $attributes, $query, $options);
 
-        return $content;
+        return $renderer->render($document, $attributes, $query, $options);
     }
 
     /**
@@ -223,7 +221,7 @@ class Service extends Model\Element\Service
     public function copyContents(Document $target, Document $source): Link|Page|Document|PageSnippet
     {
         // check if the type is the same
-        if (get_class($source) != get_class($target)) {
+        if ($source::class !== $target::class) {
             throw new Exception('Source and target have to be the same type');
         }
 
@@ -288,7 +286,7 @@ class Service extends Model\Element\Service
         $doc->getProperties();
 
         if ($doc instanceof Document\PageSnippet) {
-            foreach ($doc->getEditables() as $name => $data) {
+            foreach ($doc->getEditables() as $data) {
                 if ($data instanceof LazyLoadingInterface) {
                     $data->load();
                 }
@@ -298,6 +296,7 @@ class Service extends Model\Element\Service
         return $doc;
     }
 
+    #[\Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -314,7 +313,7 @@ class Service extends Model\Element\Service
 
                 return true;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         return false;
@@ -353,7 +352,7 @@ class Service extends Model\Element\Service
                             $editable = clone $contentMainEditable;
                             $editable->rewriteIds($rewriteConfig);
 
-                            if (Serialize::serialize($editable) != Serialize::serialize($contentMainEditable)) {
+                            if (Serialize::serialize($editable) !== Serialize::serialize($contentMainEditable)) {
                                 $changedEditables[] = $editable;
                             }
                         }
@@ -378,7 +377,7 @@ class Service extends Model\Element\Service
                 $document->setSourceId($rewriteConfig['document'][(int) $document->getSourceId()]);
             }
         } elseif ($document instanceof Document\Link) {
-            if (array_key_exists('document', $rewriteConfig) && $document->getLinktype() == 'internal' && $document->getInternalType() == 'document' && array_key_exists((int) $document->getInternal(), $rewriteConfig['document'])) {
+            if (array_key_exists('document', $rewriteConfig) && $document->getLinktype() === 'internal' && $document->getInternalType() == 'document' && array_key_exists((int) $document->getInternal(), $rewriteConfig['document'])) {
                 $document->setInternal($rewriteConfig['document'][(int) $document->getInternal()]);
             }
         }
@@ -410,11 +409,16 @@ class Service extends Model\Element\Service
                 $sitesObjects = $sitesList->load();
 
                 foreach ($sitesObjects as $site) {
-                    if ($site->getRootDocument() && (in_array($urlParts['host'], $site->getDomains()) || $site->getMainDomain() == $urlParts['host'])) {
-                        if ($document = Document::getByPath($site->getRootDocument() . $urlParts['path'])) {
-                            break;
-                        }
+                    if (!$site->getRootDocument()) {
+                        continue;
                     }
+                    if (!in_array($urlParts['host'], $site->getDomains()) && $site->getMainDomain() != $urlParts['host']) {
+                        continue;
+                    }
+                    if (!$document = Document::getByPath($site->getRootDocument() . $urlParts['path'])) {
+                        continue;
+                    }
+                    break;
                 }
             }
         }
@@ -422,6 +426,7 @@ class Service extends Model\Element\Service
         return $document;
     }
 
+    #[\Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -484,7 +489,7 @@ class Service extends Model\Element\Service
             $paths = array_reverse($paths);
             foreach ($paths as $p) {
                 if ($document = Document::getByPath($p)) {
-                    if (empty($types) || in_array($document->getType(), $types)) {
+                    if ($types === [] || in_array($document->getType(), $types)) {
                         $document = $this->nearestPathCache[$cacheKey] = $document;
 
                         break;
@@ -497,25 +502,20 @@ class Service extends Model\Element\Service
                     $originalPath = preg_replace('@^' . $site->getRootPath() . '@', '', $p);
 
                     $sitePrettyDocId = $this->getDao()->getDocumentIdByPrettyUrlInSite($site, $originalPath);
-                    if ($sitePrettyDocId) {
-                        if ($sitePrettyDoc = Document::getById($sitePrettyDocId)) {
-                            $document = $this->nearestPathCache[$cacheKey] = $sitePrettyDoc;
-
-                            break;
-                        }
+                    if ($sitePrettyDocId && $sitePrettyDoc = Document::getById($sitePrettyDocId)) {
+                        $document = $this->nearestPathCache[$cacheKey] = $sitePrettyDoc;
+                        break;
                     }
                 }
             }
         }
 
         if ($document) {
-            if (!$ignoreHardlinks) {
-                if ($document instanceof Document\Hardlink) {
-                    if ($hardLinkedDocument = Document\Hardlink\Service::getNearestChildByPath($document, $path)) {
-                        $document = $hardLinkedDocument;
-                    } else {
-                        $document = Document\Hardlink\Service::wrap($document);
-                    }
+            if (!$ignoreHardlinks && $document instanceof Document\Hardlink) {
+                if ($hardLinkedDocument = Document\Hardlink\Service::getNearestChildByPath($document, $path)) {
+                    $document = $hardLinkedDocument;
+                } else {
+                    $document = Document\Hardlink\Service::wrap($document);
                 }
             }
 

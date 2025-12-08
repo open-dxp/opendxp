@@ -34,7 +34,7 @@ class Dao extends AbstractDao
 
         try {
             $count = (int) $this->db->fetchOne($sql, $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
-        } catch (\Exception $ex) {
+        } catch (\Exception) {
             $count = 0;
         }
 

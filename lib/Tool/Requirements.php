@@ -63,7 +63,7 @@ final class Requirements
                     'state' => $varWritable ? Check::STATE_OK : Check::STATE_ERROR,
                     'message' => str_replace(OPENDXP_PROJECT_ROOT, '', $varDir) . ' needs to be writable by PHP',
                 ]);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $checks[] = new Check([
                     'name' => str_replace(OPENDXP_PROJECT_ROOT, '', $varDir) . ' (not checked - too many files)',
                     'state' => Check::STATE_WARNING,
@@ -101,7 +101,7 @@ final class Requirements
         $result = $db->fetchAssociative("SHOW VARIABLES LIKE 'character\_set\_database'");
         $checks[] = new Check([
             'name' => 'Database Charset utf8mb4',
-            'state' => ($result && (strtolower($result['Value']) == 'utf8mb4')) ? Check::STATE_OK : Check::STATE_ERROR,
+            'state' => ($result && (strtolower($result['Value']) === 'utf8mb4')) ? Check::STATE_OK : Check::STATE_ERROR,
         ]);
 
         // empty values are provided by MariaDB => 10.3
@@ -114,7 +114,7 @@ final class Requirements
         $fileFormat = $db->fetchAssociative("SHOW GLOBAL VARIABLES LIKE 'innodb\_file\_format';");
         $checks[] = new Check([
             'name' => 'innodb_file_format = Barracuda',
-            'state' => ($fileFormat && (!empty($fileFormat['Value']) && strtolower($fileFormat['Value']) != 'barracuda')) ? Check::STATE_ERROR : Check::STATE_OK,
+            'state' => ($fileFormat && (!empty($fileFormat['Value']) && strtolower($fileFormat['Value']) !== 'barracuda')) ? Check::STATE_ERROR : Check::STATE_OK,
         ]);
 
         $fileFilePerTable = $db->fetchAssociative("SHOW GLOBAL VARIABLES LIKE 'innodb\_file\_per\_table';");
@@ -223,7 +223,7 @@ final class Requirements
 
         try {
             $db->fetchAllAssociative('SELECT * FROM __opendxp_req_check');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -237,7 +237,7 @@ final class Requirements
 
         try {
             $db->executeQuery('CREATE OR REPLACE VIEW __opendxp_req_check_view AS SELECT * FROM __opendxp_req_check');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -251,7 +251,7 @@ final class Requirements
 
         try {
             $db->fetchAllAssociative('SELECT * FROM __opendxp_req_check_view');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -265,7 +265,7 @@ final class Requirements
 
         try {
             $db->executeQuery('DELETE FROM __opendxp_req_check');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -279,7 +279,7 @@ final class Requirements
 
         try {
             $db->executeQuery('SHOW CREATE VIEW __opendxp_req_check_view');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -293,7 +293,7 @@ final class Requirements
 
         try {
             $db->executeQuery('SHOW CREATE TABLE __opendxp_req_check');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -307,7 +307,7 @@ final class Requirements
 
         try {
             $db->executeQuery('DROP VIEW __opendxp_req_check_view');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -321,7 +321,7 @@ final class Requirements
 
         try {
             $db->executeQuery('DROP TABLE __opendxp_req_check');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -340,7 +340,7 @@ final class Requirements
                 )
                 SELECT * from counter'
             );
-        } catch (Exception $e) {
+        } catch (Exception) {
             $queryCheck = false;
         }
 
@@ -362,7 +362,7 @@ final class Requirements
         // PHP CLI BIN
         try {
             $phpCliBin = (bool) \OpenDxp\Tool\Console::getPhpCli();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $phpCliBin = false;
         }
 
@@ -380,7 +380,7 @@ final class Requirements
         // FFMPEG BIN
         try {
             $ffmpegBin = (bool) \OpenDxp\Video\Adapter\Ffmpeg::getFfmpegCli();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $ffmpegBin = false;
         }
 
@@ -392,7 +392,7 @@ final class Requirements
         // Chromium or Gotenberg
         try {
             $htmlToImage = \OpenDxp\Image\HtmlToImage::isSupported();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $htmlToImage = false;
         }
 
@@ -404,7 +404,7 @@ final class Requirements
         // ghostscript BIN
         try {
             $ghostscriptBin = (bool) \OpenDxp\Document\Adapter\Ghostscript::getGhostscriptCli();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $ghostscriptBin = false;
         }
 
@@ -418,7 +418,7 @@ final class Requirements
         if (!$libreofficeGotenberg) {
             try {
                 $libreofficeGotenberg = (bool)\OpenDxp\Document\Adapter\LibreOffice::getLibreOfficeCli();
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $libreofficeGotenberg = false;
             }
         }
@@ -432,7 +432,7 @@ final class Requirements
         foreach (['jpegoptim', 'pngquant', 'optipng', 'exiftool'] as $optimizerName) {
             try {
                 $optimizerAvailable = \OpenDxp\Tool\Console::getExecutable($optimizerName);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $optimizerAvailable = false;
             }
 
@@ -445,7 +445,7 @@ final class Requirements
         // timeout binary
         try {
             $timeoutBin = (bool) \OpenDxp\Tool\Console::getTimeoutBinary();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $timeoutBin = false;
         }
 
@@ -457,7 +457,7 @@ final class Requirements
         // pdftotext binary
         try {
             $pdftotextBin = (bool) \OpenDxp\Document\Adapter\Ghostscript::getPdftotextCli();
-        } catch (Exception $e) {
+        } catch (Exception) {
             $pdftotextBin = false;
         }
 
@@ -468,7 +468,7 @@ final class Requirements
 
         try {
             $graphvizAvailable = \OpenDxp\Tool\Console::getExecutable('dot');
-        } catch (Exception $e) {
+        } catch (Exception) {
             $graphvizAvailable = false;
         }
 
@@ -674,11 +674,7 @@ final class Requirements
         ]);
 
         // WebP for active image adapter
-        if (extension_loaded('imagick')) {
-            $imageAdapter = new Image\Adapter\Imagick();
-        } else {
-            $imageAdapter = new Image\Adapter\GD();
-        }
+        $imageAdapter = extension_loaded('imagick') ? new Image\Adapter\Imagick() : new Image\Adapter\GD();
 
         $reflect = new ReflectionClass($imageAdapter);
         $imageAdapterType = $reflect->getShortName();
@@ -704,7 +700,7 @@ final class Requirements
      */
     protected static function rscandir(string $base = '', array &$data = []): array
     {
-        if (substr($base, -1, 1) != DIRECTORY_SEPARATOR) { //add trailing slash if it doesn't exists
+        if (substr($base, -1, 1) !== DIRECTORY_SEPARATOR) { //add trailing slash if it doesn't exists
             $base .= DIRECTORY_SEPARATOR;
         }
 
@@ -728,10 +724,10 @@ final class Requirements
     public static function checkAll(Connection $db): array
     {
         return [
-            'checksPHP' => static::checkPhp(),
-            'checksFS' => static::checkFilesystem(),
-            'checksApps' => static::checkExternalApplications(),
-            'checksMySQL' => static::checkMysql($db),
+            'checksPHP' => self::checkPhp(),
+            'checksFS' => self::checkFilesystem(),
+            'checksApps' => self::checkExternalApplications(),
+            'checksMySQL' => self::checkMysql($db),
         ];
     }
 }

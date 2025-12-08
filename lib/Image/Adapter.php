@@ -83,11 +83,9 @@ abstract class Adapter implements AdapterInterface
     protected function removeTmpFiles(): void
     {
         // remove tmp files
-        if (!empty($this->tmpFiles)) {
-            foreach ($this->tmpFiles as $tmpFile) {
-                if (file_exists($tmpFile)) {
-                    unlink($tmpFile);
-                }
+        foreach ($this->tmpFiles as $tmpFile) {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
             }
         }
     }
@@ -110,7 +108,7 @@ abstract class Adapter implements AdapterInterface
     {
         if ($forceResize || $width <= $this->getWidth() || $this->isVectorGraphic()) {
             $height = floor(($width / $this->getWidth()) * $this->getHeight());
-            $this->resize((int)max(1, $width), (int)max(1, $height));
+            $this->resize(max(1, $width), (int)max(1, $height));
         }
 
         return $this;
@@ -132,9 +130,11 @@ abstract class Adapter implements AdapterInterface
         $y = $this->getHeight() / $height;
         if ((!$forceResize) && $x <= 1 && $y <= 1 && !$this->isVectorGraphic()) {
             return $this;
-        } elseif ($x > $y) {
+        }
+        if ($x > $y) {
             $this->scaleByWidth($width, $forceResize);
-        } else {
+        }
+        else {
             $this->scaleByHeight($height, $forceResize);
         }
 

@@ -37,23 +37,15 @@ final class ImageThumbnail implements ImageThumbnailInterface
 {
     use Model\Asset\Thumbnail\ImageThumbnailTrait;
 
-    /**
+    public function __construct(?Model\Asset\Video $asset, array|string|Image\Thumbnail\Config|null $config = null, /**
      * @internal
-     *
      */
-    protected ?int $timeOffset = null;
-
-    /**
+    protected ?int $timeOffset = null, /**
      * @internal
-     *
      */
-    protected ?Image $imageAsset = null;
-
-    public function __construct(?Model\Asset\Video $asset, array|string|Image\Thumbnail\Config|null $config = null, ?int $timeOffset = null, ?Image $imageAsset = null, bool $deferred = true)
+    protected ?Image $imageAsset = null, bool $deferred = true)
     {
         $this->asset = $asset;
-        $this->timeOffset = $timeOffset;
-        $this->imageAsset = $imageAsset;
         $this->config = $this->createConfig($config ?? []);
         $this->deferred = $deferred;
     }
@@ -73,9 +65,8 @@ final class ImageThumbnail implements ImageThumbnailInterface
             'frontendPath' => $path,
         ]);
         OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_VIDEO_IMAGE_THUMBNAIL);
-        $path = $event->getArgument('frontendPath');
 
-        return $path;
+        return $event->getArgument('frontendPath');
     }
 
     /**
@@ -88,7 +79,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
         $deferred = $deferredAllowed && $this->deferred;
         $generated = false;
 
-        if ($this->asset && empty($this->pathReference)) {
+        if ($this->asset && $this->pathReference === []) {
 
             if (!$this->checkAllowedFormats($this->config->getFormat(), $this->asset)) {
                 throw new ThumbnailFormatNotSupportedException();
@@ -98,11 +89,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
             $im = $this->asset->getCustomSetting('image_thumbnail_asset');
 
             if ($im || $this->imageAsset) {
-                if ($this->imageAsset) {
-                    $im = $this->imageAsset;
-                } else {
-                    $im = Model\Asset::getById((int) $im);
-                }
+                $im = $this->imageAsset ?: Model\Asset::getById((int) $im);
 
                 if ($im instanceof Image) {
                     $imageThumbnail = $im->getThumbnail($this->getConfig());
@@ -177,7 +164,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
             }
         }
 
-        if (empty($this->pathReference)) {
+        if ($this->pathReference === []) {
             $this->pathReference = [
                 'type' => 'error',
                 'src' => '/bundles/opendxpadmin/img/filetype-not-supported.svg',
@@ -210,7 +197,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
     {
         $thumbnailConfig = Image\Thumbnail\Config::getByAutoDetect($selector);
 
-        if (!empty($selector) && $thumbnailConfig === null) {
+        if (!empty($selector) && !$thumbnailConfig instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
             throw new Model\Exception\NotFoundException('Thumbnail definition "' . (is_string($selector) ? $selector : '') . '" does not exist');
         }
 
@@ -241,9 +228,8 @@ final class ImageThumbnail implements ImageThumbnailInterface
                 }
 
                 return $thumb ?? null;
-            } else {
-                throw new Exception("Media query '" . $name . "' doesn't exist in thumbnail configuration: " . $thumbConfig->getName());
             }
+            throw new Exception("Media query '" . $name . "' doesn't exist in thumbnail configuration: " . $thumbConfig->getName());
         }
 
         return null;

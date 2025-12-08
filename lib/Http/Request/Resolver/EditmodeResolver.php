@@ -29,17 +29,10 @@ class EditmodeResolver extends AbstractRequestResolver implements LoggerAwareInt
 
     const ATTRIBUTE_EDITMODE = '_editmode';
 
-    protected UserLoader $userLoader;
-
-    protected RequestHelper $requestHelper;
-
     private bool $forceEditmode = false;
 
-    public function __construct(RequestStack $requestStack, UserLoader $userLoader, RequestHelper $requestHelper)
+    public function __construct(RequestStack $requestStack, protected UserLoader $userLoader, protected RequestHelper $requestHelper)
     {
-        $this->userLoader = $userLoader;
-        $this->requestHelper = $requestHelper;
-
         parent::__construct($requestStack);
     }
 
@@ -58,7 +51,7 @@ class EditmodeResolver extends AbstractRequestResolver implements LoggerAwareInt
             return true;
         }
 
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 

@@ -82,6 +82,7 @@ class InputQuantityValue extends AbstractQuantityValue
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($omitMandatoryCheck) {

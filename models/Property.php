@@ -287,14 +287,8 @@ final class Property extends AbstractModel
      */
     public function rewriteIds(array $idMapping): void
     {
-        if (!$this->isInherited()) {
-            if (array_key_exists($this->getType(), $idMapping)) {
-                if ($this->getData() instanceof ElementInterface) {
-                    if (array_key_exists((int) $this->getData()->getId(), $idMapping[$this->getType()])) {
-                        $this->setData(Element\Service::getElementById($this->getType(), (int) $idMapping[$this->getType()][$this->getData()->getId()]));
-                    }
-                }
-            }
+        if (!$this->isInherited() && array_key_exists($this->getType(), $idMapping) && ($this->getData() instanceof ElementInterface && array_key_exists((int) $this->getData()->getId(), $idMapping[$this->getType()]))) {
+            $this->setData(Element\Service::getElementById($this->getType(), (int) $idMapping[$this->getType()][$this->getData()->getId()]));
         }
     }
 

@@ -39,7 +39,7 @@ final class CacheFallbackPass implements CompilerPassInterface
         if ($appCache instanceof ChildDefinition && $appCache->getParent() === 'cache.adapter.filesystem') {
             $this->replaceCacheDefinition($appCache);
 
-            foreach ($container->findTaggedServiceIds('cache.pool') as $id => $arguments) {
+            foreach (array_keys($container->findTaggedServiceIds('cache.pool')) as $id) {
                 $cacheDef = $container->findDefinition($id);
                 if ($cacheDef instanceof ChildDefinition && $cacheDef->getParent() === 'cache.app') {
                     $this->replaceCacheDefinition($cacheDef);

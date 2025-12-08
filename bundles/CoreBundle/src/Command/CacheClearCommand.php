@@ -36,7 +36,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 )]
 class CacheClearCommand extends AbstractCommand
 {
-    public function __construct(private EventDispatcherInterface $eventDispatcher)
+    public function __construct(private readonly EventDispatcherInterface $eventDispatcher)
     {
         parent::__construct();
     }

@@ -26,6 +26,7 @@ class Installer extends SettingsStoreAwareInstaller
         'application_logging',
     ];
 
+    #[\Override]
     public function install(): void
     {
         $this->addUserPermission();
@@ -34,6 +35,7 @@ class Installer extends SettingsStoreAwareInstaller
         parent::install();
     }
 
+    #[\Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

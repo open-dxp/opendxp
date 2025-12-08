@@ -62,7 +62,7 @@ class HardlinkCanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        if (class_exists(Staticroute::class) && null !== Staticroute::getCurrentRoute()) {
+        if (class_exists(Staticroute::class) && Staticroute::getCurrentRoute() instanceof \OpenDxp\Bundle\StaticRoutesBundle\Model\Staticroute) {
             return;
         }
 
@@ -87,11 +87,9 @@ class HardlinkCanonicalListener implements EventSubscriberInterface
             $canonical = $request->getSchemeAndHttpHost() . $hardlinkCanonicalSourceDocument->getFullPath();
         } elseif (Site::isSiteRequest()) {
             $sourceSite = Frontend::getSiteForDocument($hardlinkCanonicalSourceDocument);
-            if ($sourceSite) {
-                if ($sourceSite->getMainDomain()) {
-                    $sourceSiteRelPath = preg_replace('@^' . preg_quote($sourceSite->getRootPath(), '@') . '@', '', $hardlinkCanonicalSourceDocument->getRealFullPath());
-                    $canonical = $request->getScheme() . '://' . $sourceSite->getMainDomain() . $sourceSiteRelPath;
-                }
+            if ($sourceSite && $sourceSite->getMainDomain()) {
+                $sourceSiteRelPath = preg_replace('@^' . preg_quote($sourceSite->getRootPath(), '@') . '@', '', $hardlinkCanonicalSourceDocument->getRealFullPath());
+                $canonical = $request->getScheme() . '://' . $sourceSite->getMainDomain() . $sourceSiteRelPath;
             }
         }
 

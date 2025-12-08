@@ -35,14 +35,13 @@ class Document extends Data
 
     public function denormalize(mixed $value, array $params = []): mixed
     {
-        $element = null;
         if (is_numeric($value)) {
-            $element = Service::getElementById('document', (int) $value);
+            return Service::getElementById('document', (int) $value);
         }
-
-        return $element;
+        return null;
     }
 
+    #[\Override]
     public function transformGetterData(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
@@ -52,6 +51,7 @@ class Document extends Data
         return $data;
     }
 
+    #[\Override]
     public function transformSetterData(mixed $data, array $params = []): mixed
     {
         if ($data instanceof \OpenDxp\Model\Document) {
@@ -61,6 +61,7 @@ class Document extends Data
         return $data;
     }
 
+    #[\Override]
     public function getDataFromEditMode(mixed $data, array $params = []): int|string|null
     {
         $element = $data;
@@ -74,6 +75,7 @@ class Document extends Data
         return '';
     }
 
+    #[\Override]
     public function getDataForResource(mixed $data, array $params = []): mixed
     {
         if ($data instanceof \OpenDxp\Model\Document) {
@@ -83,6 +85,7 @@ class Document extends Data
         return $data;
     }
 
+    #[\Override]
     public function getDataForEditMode(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
@@ -90,11 +93,11 @@ class Document extends Data
         }
         if ($data instanceof \OpenDxp\Model\Document) {
             return $data->getRealFullPath();
-        } else {
-            return '';
         }
+        return '';
     }
 
+    #[\Override]
     public function getDataForListfolderGrid(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
@@ -108,6 +111,7 @@ class Document extends Data
         return $data;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data, array $params = []): array
     {
         if ($data instanceof \OpenDxp\Model\Document && isset($params['type'])) {
@@ -126,6 +130,7 @@ class Document extends Data
         return [];
     }
 
+    #[\Override]
     public function getDataFromListfolderGrid(mixed $data, array $params = []): ?int
     {
         $data = \OpenDxp\Model\Document::getByPath($data);

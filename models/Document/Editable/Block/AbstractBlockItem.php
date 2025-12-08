@@ -20,29 +20,21 @@ use OpenDxp\Model\Document;
 
 abstract class AbstractBlockItem
 {
-    /**
-     * @internal
-     *
-     */
-    protected Document\PageSnippet $document;
-
-    /**
-     * @internal
-     *
-     */
-    protected array $parentBlockNames;
-
-    /**
-     * @internal
-     *
-     */
-    protected int $index;
-
-    public function __construct(Document\PageSnippet $document, array $parentBlockNames, int $index)
+    public function __construct(
+        /**
+         * @internal
+         */
+        protected Document\PageSnippet $document,
+        /**
+         * @internal
+         */
+        protected array $parentBlockNames,
+        /**
+         * @internal
+         */
+        protected int $index
+    )
     {
-        $this->document = $document;
-        $this->parentBlockNames = $parentBlockNames;
-        $this->index = $index;
     }
 
     abstract protected function getItemType(): string;
@@ -64,7 +56,7 @@ abstract class AbstractBlockItem
         $element = $this->getEditable($args[0]);
         $class = 'OpenDxp\\Model\\Document\\Editable\\' . str_replace('get', '', $func);
 
-        if ($element !== null && !strcasecmp(get_class($element), $class)) {
+        if ($element instanceof \OpenDxp\Model\Document\Editable && !strcasecmp($element::class, $class)) {
             return $element;
         }
 

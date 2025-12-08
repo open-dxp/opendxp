@@ -52,12 +52,12 @@ class Task extends Model\AbstractModel
             if (!$task) {
                 throw new Exception('Scheduled Task in Registry is not valid');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $task = new self();
                 $task->getDao()->getById($id);
                 \OpenDxp\Cache\RuntimeCache::set($cacheKey, $task);
-            } catch (Model\Exception\NotFoundException $e) {
+            } catch (Model\Exception\NotFoundException) {
                 return null;
             }
         }

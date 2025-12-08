@@ -20,15 +20,11 @@ final class XliffEvents
 {
     /**
      * @Event("OpenDxp\Bundle\XliffBundle\Event\Model\TranslationXliffEvent")
-     *
-     * @var string
      */
-    const XLIFF_ATTRIBUTE_SET_EXPORT = 'opendxp.translation.xliff.attribute_set_export';
+    const string XLIFF_ATTRIBUTE_SET_EXPORT = 'opendxp.translation.xliff.attribute_set_export';
 
     /**
      * @Event("OpenDxp\Bundle\XliffBundle\Event\Model\TranslationXliffEvent")
-     *
-     * @var string
      */
-    const XLIFF_ATTRIBUTE_SET_IMPORT = 'opendxp.translation.xliff.attribute_set_import';
+    const string XLIFF_ATTRIBUTE_SET_IMPORT = 'opendxp.translation.xliff.attribute_set_import';
 }

@@ -35,32 +35,8 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class DocumentRenderer implements DocumentRendererInterface
 {
-    private RequestHelper $requestHelper;
-
-    private ActionRenderer $actionRenderer;
-
-    private FragmentRendererInterface $fragmentRenderer;
-
-    private DocumentRouteHandler $documentRouteHandler;
-
-    private EventDispatcherInterface $eventDispatcher;
-
-    private LocaleServiceInterface $localeService;
-
-    public function __construct(
-        RequestHelper $requestHelper,
-        ActionRenderer $actionRenderer,
-        FragmentRendererInterface $fragmentRenderer,
-        DocumentRouteHandler $documentRouteHandler,
-        EventDispatcherInterface $eventDispatcher,
-        LocaleServiceInterface $localeService
-    ) {
-        $this->requestHelper = $requestHelper;
-        $this->actionRenderer = $actionRenderer;
-        $this->fragmentRenderer = $fragmentRenderer;
-        $this->documentRouteHandler = $documentRouteHandler;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->localeService = $localeService;
+    public function __construct(private readonly RequestHelper $requestHelper, private readonly ActionRenderer $actionRenderer, private readonly FragmentRendererInterface $fragmentRenderer, private readonly DocumentRouteHandler $documentRouteHandler, private readonly EventDispatcherInterface $eventDispatcher, private readonly LocaleServiceInterface $localeService)
+    {
     }
 
     #[Required]
@@ -91,7 +67,7 @@ class DocumentRenderer implements DocumentRendererInterface
 
         try {
             $request = $this->requestHelper->getCurrentRequest();
-        } catch (Exception $e) {
+        } catch (Exception) {
 
             $host = null;
             $url = $document->getFullPath();

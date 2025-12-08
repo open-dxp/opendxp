@@ -21,11 +21,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class SettingsEvent extends Event
 {
-    private array $settings;
-
-    public function __construct(array $settings)
+    public function __construct(private array $settings)
     {
-        $this->settings = $settings;
     }
 
     public function getSettings(): array

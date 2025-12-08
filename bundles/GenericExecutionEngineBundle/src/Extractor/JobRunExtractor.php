@@ -27,11 +27,11 @@ use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Exception\NotFoundException;
 
-final class JobRunExtractor implements JobRunExtractorInterface
+final readonly class JobRunExtractor implements JobRunExtractorInterface
 {
     public function __construct(
-        private readonly ExpressionServiceInterface $symfonyExpressionService,
-        private readonly JobRunRepositoryInterface $jobRunRepository
+        private ExpressionServiceInterface $symfonyExpressionService,
+        private JobRunRepositoryInterface $jobRunRepository
     ) {
     }
 
@@ -147,7 +147,7 @@ final class JobRunExtractor implements JobRunExtractorInterface
                 $elementDescriptor->getId(),
                 $types
             );
-            if ($element !== null) {
+            if ($element instanceof \OpenDxp\Model\Element\ElementInterface) {
                 $elementsToProcess[] = $element;
             }
         }

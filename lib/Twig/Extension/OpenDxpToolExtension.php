@@ -26,11 +26,12 @@ use Twig\TwigFunction;
  */
 class OpenDxpToolExtension extends AbstractExtension
 {
+    #[\Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('opendxp_supported_locales', [\OpenDxp\Tool::class, 'getSupportedLocales']),
-            new TwigFunction('opendxp_device', [DeviceDetector::class, 'getInstance'], ['is_safe' => ['html']]),
+            new TwigFunction('opendxp_supported_locales', \OpenDxp\Tool::getSupportedLocales(...)),
+            new TwigFunction('opendxp_device', DeviceDetector::getInstance(...), ['is_safe' => ['html']]),
         ];
     }
 }

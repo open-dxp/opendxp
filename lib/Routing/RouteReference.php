@@ -23,17 +23,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class RouteReference implements RouteReferenceInterface
 {
-    protected string $route;
-
-    protected array $parameters;
-
-    protected int $type;
-
-    public function __construct(string $route, array $parameters = [], int $type = UrlGeneratorInterface::ABSOLUTE_PATH)
+    public function __construct(protected string $route, protected array $parameters = [], protected int $type = UrlGeneratorInterface::ABSOLUTE_PATH)
     {
-        $this->route = $route;
-        $this->parameters = $parameters;
-        $this->type = $type;
     }
 
     public function getRoute(): string

@@ -21,14 +21,8 @@ use OpenDxp\Model\DataObject\ClassDefinition;
 
 final class Key
 {
-    protected KeyConfig $configuration;
-
-    protected Group $group;
-
-    public function __construct(Group $group, KeyConfig $configuration)
+    public function __construct(protected Group $group, protected KeyConfig $configuration)
     {
-        $this->group = $group;
-        $this->configuration = $configuration;
     }
 
     public function getConfiguration(): KeyConfig

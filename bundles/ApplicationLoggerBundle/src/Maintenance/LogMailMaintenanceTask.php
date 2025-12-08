@@ -27,14 +27,8 @@ use Symfony\Component\Mime\Address;
  */
 class LogMailMaintenanceTask implements TaskInterface
 {
-    private Connection $db;
-
-    private Config $config;
-
-    public function __construct(Connection $db, Config $config)
+    public function __construct(private readonly Connection $db, private Config $config)
     {
-        $this->db = $db;
-        $this->config = $config;
     }
 
     public function execute(): void
@@ -43,7 +37,7 @@ class LogMailMaintenanceTask implements TaskInterface
         if (!empty($this->config['applicationlog']['mail_notification']['send_log_summary'])) {
             $receivers = preg_split('/,|;/', $this->config['applicationlog']['mail_notification']['mail_receiver']);
 
-            array_walk($receivers, function (&$value) {
+            array_walk($receivers, function (&$value): void {
                 $value = trim($value);
             });
 

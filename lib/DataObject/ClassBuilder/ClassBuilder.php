@@ -133,8 +133,7 @@ class ClassBuilder implements ClassBuilderInterface
         }
 
         $cd .= "}\n";
-        $cd .= "\n";
 
-        return $cd;
+        return $cd . "\n";
     }
 }

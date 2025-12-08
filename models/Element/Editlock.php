@@ -65,7 +65,7 @@ final class Editlock extends Model\AbstractModel
             $lock->getDao()->getByElement($cid, $ctype);
 
             return $lock;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -77,7 +77,7 @@ final class Editlock extends Model\AbstractModel
             $lock->getDao()->clearSession($sessionId);
 
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return null;
         }
     }

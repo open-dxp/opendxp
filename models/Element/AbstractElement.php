@@ -216,7 +216,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function getParent(): ?AbstractElement
     {
         $parentId = $this->getParentId();
-        if ($this->parent === null && $parentId !== null && $parentId !== 0) {
+        if (!$this->parent instanceof \OpenDxp\Model\Element\AbstractElement && $parentId !== null && $parentId !== 0) {
             $parent = Service::getElementById(Service::getElementType($this), $parentId);
             $this->setParent($parent);
         }
@@ -287,7 +287,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      */
     protected function updateModificationInfos(): void
     {
-        if (Model\Version::isEnabled() === true) {
+        if (Model\Version::isEnabled()) {
             $this->setVersionCount($this->getDao()->getVersionCountForUpdate() + 1);
         } else {
             $this->setVersionCount($this->getDao()->getVersionCountForUpdate());
@@ -326,15 +326,13 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function getProperty(string $name, bool $asContainer = false): mixed
     {
         $properties = $this->getProperties();
-        if ($this->hasProperty($name)) {
-            if ($asContainer) {
-                return $properties[$name];
-            } else {
-                return $properties[$name]->getData();
-            }
+        if (!$this->hasProperty($name)) {
+            return null;
         }
-
-        return null;
+        if ($asContainer) {
+            return $properties[$name];
+        }
+        return $properties[$name]->getData();
     }
 
     public function hasProperty(string $name): bool
@@ -353,7 +351,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     public function getVersionCount(): int
     {
-        return $this->versionCount ? $this->versionCount : 0;
+        return $this->versionCount ?: 0;
     }
 
     public function setVersionCount(int $versionCount): static
@@ -446,7 +444,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         $columns = array_diff(array_keys($vars), $ignored);
         $defaultValue = 0;
 
-        if (null === $user) {
+        if (!$user instanceof \OpenDxp\Model\User) {
             $user = \OpenDxp\Tool\Admin::getCurrentUser();
         }
 
@@ -476,16 +474,12 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     public function isAllowed(string $type, ?User $user = null): bool
     {
-        if (null === $user) {
+        if (!$user instanceof \OpenDxp\Model\User) {
             $user = \OpenDxp\Tool\Admin::getCurrentUser();
         }
 
         if (!$user) {
-            if (php_sapi_name() === 'cli') {
-                return true;
-            }
-
-            return false;
+            return php_sapi_name() === 'cli';
         }
         /** @var Manager $workflowManager */
         $workflowManager = OpenDxp::getContainer()->get(Manager::class);
@@ -638,6 +632,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return ['dependencies', 'parent'];
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         if ($this->isInDumpState()) {
@@ -668,6 +663,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         $this->setInDumpState(false);
     }
 
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();
@@ -726,6 +722,6 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
         $myProperties = $this->getProperties();
         $inheritedProperties = $this->getDao()->getProperties(true);
-        $this->setProperties(array_merge($inheritedProperties, $myProperties));
+        $this->setProperties([...$inheritedProperties, ...$myProperties]);
     }
 }

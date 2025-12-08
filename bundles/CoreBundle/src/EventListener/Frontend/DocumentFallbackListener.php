@@ -120,7 +120,7 @@ class DocumentFallbackListener implements EventSubscriberInterface
 
             $eligibleRequests = [];
 
-            if (null !== $parentRequest) {
+            if ($parentRequest instanceof \Symfony\Component\HttpFoundation\Request) {
                 $eligibleRequests[] = $parentRequest;
             }
 

@@ -27,16 +27,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 final class OpenDxpStyle extends SymfonyStyle
 {
-    private InputInterface $input;
-
-    private OutputInterface $output;
-
-    public function __construct(InputInterface $input, OutputInterface $output)
+    public function __construct(private readonly InputInterface $input, private readonly OutputInterface $output)
     {
-        $this->input = $input;
-        $this->output = $output;
-
-        parent::__construct($input, $output);
+        parent::__construct($this->input, $this->output);
     }
 
     public function getInput(): InputInterface

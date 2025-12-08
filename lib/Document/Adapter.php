@@ -31,11 +31,9 @@ abstract class Adapter
     protected function removeTmpFiles(): void
     {
         // remove tmp files
-        if (!empty($this->tmpFiles)) {
-            foreach ($this->tmpFiles as $tmpFile) {
-                if (file_exists($tmpFile)) {
-                    unlink($tmpFile);
-                }
+        foreach ($this->tmpFiles as $tmpFile) {
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
             }
         }
     }

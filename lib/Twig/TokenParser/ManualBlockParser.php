@@ -42,13 +42,13 @@ final class ManualBlockParser extends AbstractTokenParser
 
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $startNode = $this->parser->subparse([$this, 'decideIterateStart'], true);
+        $startNode = $this->parser->subparse($this->decideIterateStart(...), true);
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $bodyNode = $this->parser->subparse([$this, 'decideIterateEnd'], true);
+        $bodyNode = $this->parser->subparse($this->decideIterateEnd(...), true);
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $endNode = $this->parser->subparse([$this, 'decideOpenDxpManualBlockEnd'], true);
+        $endNode = $this->parser->subparse($this->decideOpenDxpManualBlockEnd(...), true);
 
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
 

@@ -108,18 +108,16 @@ class CacheClearer
     {
         $preparedOptions = [];
         foreach ($arguments as $optionKey => $optionValue) {
-            if ($optionValue === false || $optionValue === null) {
+            if ($optionValue === false) {
                 continue;
             }
-
+            if ($optionValue === null) {
+                continue;
+            }
             $preparedOptions[] = '--' . $optionKey . (($optionValue === true) ? '' : '=' . $optionValue);
         }
 
-        $cmd = array_merge([
-            Console::getPhpCli(),
-            'bin/console',
-            $command,
-        ], $preparedOptions);
+        $cmd = [Console::getPhpCli(), 'bin/console', $command, ...$preparedOptions];
 
         $process = new Process($cmd);
         $process

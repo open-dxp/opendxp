@@ -27,6 +27,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class OpenDxpGenericExecutionEngineExtension extends Extension
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_generic_execution_engine';

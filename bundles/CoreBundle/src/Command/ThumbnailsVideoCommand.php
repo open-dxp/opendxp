@@ -95,7 +95,7 @@ class ThumbnailsVideoCommand extends AbstractCommand
         foreach ($assetIdsList as $assetId) {
             foreach ($videoThumbnailList->getThumbnails() as $thumbnailConfig) {
                 $thumbName = $thumbnailConfig->getName();
-                if (empty($allowedThumbs) || in_array($thumbName, $allowedThumbs)) {
+                if ($allowedThumbs === [] || in_array($thumbName, $allowedThumbs)) {
                     $items[] = $assetId . '~~~' . $thumbName;
                 }
             }

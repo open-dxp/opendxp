@@ -23,22 +23,18 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 class Item extends AbstractItem
 {
-    private BundleInterface $bundle;
-
     public function __construct(
-        BundleInterface $bundle,
+        private readonly BundleInterface $bundle,
         int $priority = 0,
         array $environments = [],
         string $source = self::SOURCE_PROGRAMATICALLY
     ) {
-        $this->bundle = $bundle;
-
         parent::__construct($priority, $environments, $source);
     }
 
     public function getBundleIdentifier(): string
     {
-        return get_class($this->bundle);
+        return $this->bundle::class;
     }
 
     public function getBundle(): BundleInterface

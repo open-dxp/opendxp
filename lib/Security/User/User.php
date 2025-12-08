@@ -28,11 +28,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class User implements UserInterface, EquatableInterface, GoogleTwoFactorInterface, PasswordAuthenticatedUserInterface
 {
-    protected OpenDxpUser $user;
-
-    public function __construct(OpenDxpUser $user)
+    public function __construct(protected OpenDxpUser $user)
     {
-        $this->user = $user;
     }
 
     public function getId(): int
@@ -54,11 +51,7 @@ class User implements UserInterface, EquatableInterface, GoogleTwoFactorInterfac
     {
         $roles = [];
 
-        if ($this->user->isAdmin()) {
-            $roles[] = 'ROLE_OPENDXP_ADMIN';
-        } else {
-            $roles[] = 'ROLE_OPENDXP_USER';
-        }
+        $roles[] = $this->user->isAdmin() ? 'ROLE_OPENDXP_ADMIN' : 'ROLE_OPENDXP_USER';
 
         foreach ($this->user->getRoles() as $roleId) {
             if ($role = OpenDxpUser\Role::getById($roleId)) {
@@ -91,11 +84,7 @@ class User implements UserInterface, EquatableInterface, GoogleTwoFactorInterfac
      */
     public function isGoogleAuthenticatorEnabled(): bool
     {
-        if ($this->user->getTwoFactorAuthentication('enabled')) {
-            return true;
-        }
-
-        return false;
+        return (bool) $this->user->getTwoFactorAuthentication('enabled');
     }
 
     /**

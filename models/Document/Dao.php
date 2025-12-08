@@ -102,7 +102,7 @@ class Dao extends Model\Element\Dao
         $validColumnsTypeSpecific = [];
         $documentsConfig = \OpenDxp\Config::getSystemConfiguration('documents');
         $validTables = [];
-        foreach ($documentsConfig['type_definitions']['map'] as $type => $config) {
+        foreach ($documentsConfig['type_definitions']['map'] as $config) {
             if (isset($config['valid_table']) && $config['valid_table']) {
                 $validTables[] = $config['valid_table'];
             }
@@ -222,7 +222,7 @@ class Dao extends Model\Element\Dao
 
         try {
             $path = $this->db->fetchOne('SELECT CONCAT(`path`,`key`) as `path` FROM documents WHERE id = ?', [$this->model->getId()]);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Logger::error('could not  get current document path from DB');
         }
 
@@ -273,9 +273,7 @@ class Dao extends Model\Element\Dao
         }
 
         // because this should be faster than mysql
-        usort($propertiesRaw, function ($left, $right) {
-            return strcmp($left['cpath'], $right['cpath']);
-        });
+        usort($propertiesRaw, fn($left, $right) => strcmp($left['cpath'], $right['cpath']));
 
         foreach ($propertiesRaw as $propertyRaw) {
             try {
@@ -359,8 +357,6 @@ class Dao extends Model\Element\Dao
 
     /**
      * Returns the amount of children (not recursively),
-     *
-     * @param Model\User|null $user
      */
     public function getChildAmount(?User $user = null): int
     {
@@ -432,12 +428,7 @@ class Dao extends Model\Element\Dao
 
         $parentIds = $this->getParentIds();
         $inhertitedLocks = $this->db->fetchOne('SELECT id FROM tree_locks WHERE id IN (' . implode(',', $parentIds) . ") AND `type`='document' AND locked = 'propagate' LIMIT 1");
-
-        if ($inhertitedLocks > 0) {
-            return true;
-        }
-
-        return false;
+        return $inhertitedLocks > 0;
     }
 
     /**
@@ -506,7 +497,7 @@ class Dao extends Model\Element\Dao
             }
 
             // exception for list permission
-            if (empty($permissionsParent) && $type == 'list') {
+            if (empty($permissionsParent) && $type === 'list') {
                 // check for children with permissions
                 $path = $this->model->getRealFullPath() . '/';
                 if ($this->model->getId() == 1) {
@@ -518,7 +509,7 @@ class Dao extends Model\Element\Dao
                     return true;
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             Logger::warn('Unable to get permission ' . $type . ' for document ' . $this->model->getId());
         }
 
@@ -561,10 +552,6 @@ class Dao extends Model\Element\Dao
     public function __isBasedOnLatestData(): bool
     {
         $data = $this->db->fetchAssociative('SELECT modificationDate,versionCount from documents WHERE id = ?', [$this->model->getId()]);
-        if ($data['modificationDate'] == $this->model->__getDataVersionTimestamp() && $data['versionCount'] == $this->model->getVersionCount()) {
-            return true;
-        }
-
-        return false;
+        return $data['modificationDate'] == $this->model->__getDataVersionTimestamp() && $data['versionCount'] == $this->model->getVersionCount();
     }
 }

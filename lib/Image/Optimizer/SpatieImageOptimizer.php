@@ -51,6 +51,6 @@ final class SpatieImageOptimizer implements \OpenDxp\Image\Optimizer\OptimizerIn
     public function supports(string $mimeType): bool
     {
         //  Implement supports() method.
-        return $mimeType === 'image/jpeg' || $mimeType === 'image/png' || $mimeType === 'image/webp';
+        return in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true);
     }
 }

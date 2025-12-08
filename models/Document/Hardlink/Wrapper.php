@@ -64,11 +64,7 @@ trait Wrapper
         if ($this->properties == null) {
             $hardLink = $this->getHardLinkSource();
 
-            if ($hardLink->getPropertiesFromSource()) {
-                $sourceProperties = $this->getDao()->getProperties();
-            } else {
-                $sourceProperties = [];
-            }
+            $sourceProperties = $hardLink->getPropertiesFromSource() ? $this->getDao()->getProperties() : [];
 
             if ($this->getSourceDocument()) {
                 // if we have a source document, it means that this document is not directly linked, it's a
@@ -86,18 +82,16 @@ trait Wrapper
                 // if the property doesn't exist in the source-properties just add it
                 if (!array_key_exists($key, $sourceProperties)) {
                     $hardLinkProperties[$key] = $prop;
-                } else {
+                } elseif ($sourceProperties[$key]->isInherited() || !$prop->isInherited()) {
                     // if the property does exist in the source properties but it is inherited, then overwrite it with the hardlink property
                     // or if the property is set directly on the hardlink itself
-                    if ($sourceProperties[$key]->isInherited() || !$prop->isInherited()) {
-                        $hardLinkProperties[$key] = $prop;
-                    }
+                    $hardLinkProperties[$key] = $prop;
                 }
 
                 $prop->setInherited(true);
             }
 
-            $properties = array_merge($sourceProperties, $hardLinkProperties);
+            $properties = [...$sourceProperties, ...$hardLinkProperties];
             $this->setProperties($properties);
         }
 

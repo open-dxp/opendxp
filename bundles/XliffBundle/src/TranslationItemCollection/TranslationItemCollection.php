@@ -59,7 +59,7 @@ class TranslationItemCollection
     {
         $elementsArray = [];
         foreach ($this->getItems() as $element) {
-            $elementsArray[$element->getType()] = $elementsArray[$element->getType()] ?? [];
+            $elementsArray[$element->getType()] ??= [];
             $elementsArray[$element->getType()][] = $element->getId();
         }
 
@@ -68,6 +68,6 @@ class TranslationItemCollection
 
     public function isEmpty(): bool
     {
-        return empty($this->items);
+        return $this->items === [];
     }
 }

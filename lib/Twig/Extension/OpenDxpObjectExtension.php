@@ -30,26 +30,27 @@ use Twig\TwigFunction;
  */
 class OpenDxpObjectExtension extends AbstractExtension
 {
+    #[\Override]
     public function getFunctions(): array
     {
         // simple object access functions in case documents/assets/objects need to be loaded directly in the template
         return [
-            new TwigFunction('opendxp_document', [Document::class, 'getById']),
-            new TwigFunction('opendxp_document_by_path', [Document::class, 'getByPath']),
-            new TwigFunction('opendxp_site', [Site::class, 'getById']),
-            new TwigFunction('opendxp_site_by_root_id', [Site::class, 'getByRootId']),
-            new TwigFunction('opendxp_site_by_domain', [Site::class, 'getByDomain']),
-            new TwigFunction('opendxp_site_is_request', [Site::class, 'isSiteRequest']),
-            new TwigFunction('opendxp_site_current', [Site::class, 'getCurrentSite']),
-            new TwigFunction('opendxp_asset', [Asset::class, 'getById']),
-            new TwigFunction('opendxp_asset_by_path', [Asset::class, 'getByPath']),
-            new TwigFunction('opendxp_object', [DataObject::class, 'getById']),
-            new TwigFunction('opendxp_object_by_path', [DataObject::class, 'getByPath']),
-            new TwigFunction('opendxp_document_wrap_hardlink', [Document\Hardlink\Service::class, 'wrap']),
-            new TwigFunction('opendxp_user', [User::class, 'getById']),
-            new TwigFunction('opendxp_object_classificationstore_group', [DataObject\Classificationstore\GroupConfig::class, 'getById']),
-            new TwigFunction('opendxp_object_classificationstore_get_field_definition_from_json', [$this, 'getFieldDefinitionFromJson']),
-            new TwigFunction('opendxp_object_brick_definition_key', [DataObject\Objectbrick\Definition::class, 'getByKey']),
+            new TwigFunction('opendxp_document', Document::getById(...)),
+            new TwigFunction('opendxp_document_by_path', Document::getByPath(...)),
+            new TwigFunction('opendxp_site', Site::getById(...)),
+            new TwigFunction('opendxp_site_by_root_id', Site::getByRootId(...)),
+            new TwigFunction('opendxp_site_by_domain', Site::getByDomain(...)),
+            new TwigFunction('opendxp_site_is_request', Site::isSiteRequest(...)),
+            new TwigFunction('opendxp_site_current', Site::getCurrentSite(...)),
+            new TwigFunction('opendxp_asset', Asset::getById(...)),
+            new TwigFunction('opendxp_asset_by_path', Asset::getByPath(...)),
+            new TwigFunction('opendxp_object', DataObject::getById(...)),
+            new TwigFunction('opendxp_object_by_path', DataObject::getByPath(...)),
+            new TwigFunction('opendxp_document_wrap_hardlink', Document\Hardlink\Service::wrap(...)),
+            new TwigFunction('opendxp_user', User::getById(...)),
+            new TwigFunction('opendxp_object_classificationstore_group', DataObject\Classificationstore\GroupConfig::getById(...)),
+            new TwigFunction('opendxp_object_classificationstore_get_field_definition_from_json', $this->getFieldDefinitionFromJson(...)),
+            new TwigFunction('opendxp_object_brick_definition_key', DataObject\Objectbrick\Definition::getByKey(...)),
         ];
     }
 

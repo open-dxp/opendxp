@@ -26,16 +26,10 @@ use OpenDxp\Model\Document\Editable;
  * Simple value object containing both name and real name of
  * a block.
  */
-final class BlockName implements JsonSerializable
+final readonly class BlockName implements JsonSerializable
 {
-    private string $name;
-
-    private string $realName;
-
-    public function __construct(string $name, string $realName)
+    public function __construct(private string $name, private string $realName)
     {
-        $this->name = $name;
-        $this->realName = $realName;
     }
 
     /**

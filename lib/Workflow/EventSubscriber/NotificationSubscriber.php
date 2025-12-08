@@ -42,25 +42,10 @@ class NotificationSubscriber implements EventSubscriberInterface
 
     const DEFAULT_MAIL_TEMPLATE_PATH = '@OpenDxpCore/Workflow/NotificationEmail/notificationEmail.html.twig';
 
-    protected NotificationEmailService $mailService;
-
-    protected Workflow\Notification\OpenDxpNotificationService $OpenDxpNotificationService;
-
-    protected TranslatorInterface $translator;
-
     protected bool $enabled = true;
 
-    protected Workflow\ExpressionService $expressionService;
-
-    protected Workflow\Manager $workflowManager;
-
-    public function __construct(NotificationEmailService $mailService, Workflow\Notification\OpenDxpNotificationService $OpenDxpNotificationService, TranslatorInterface $translator, Workflow\ExpressionService $expressionService, Workflow\Manager $workflowManager)
+    public function __construct(protected NotificationEmailService $mailService, protected Workflow\Notification\OpenDxpNotificationService $OpenDxpNotificationService, protected TranslatorInterface $translator, protected Workflow\ExpressionService $expressionService, protected Workflow\Manager $workflowManager)
     {
-        $this->mailService = $mailService;
-        $this->OpenDxpNotificationService = $OpenDxpNotificationService;
-        $this->translator = $translator;
-        $this->expressionService = $expressionService;
-        $this->workflowManager = $workflowManager;
     }
 
     public function onWorkflowCompleted(Event $event): void
@@ -75,7 +60,7 @@ class NotificationSubscriber implements EventSubscriberInterface
         $transition = $event->getTransition();
         $workflow = $this->workflowManager->getWorkflowByName($event->getWorkflowName());
 
-        if ($workflow === null) {
+        if (!$workflow instanceof \Symfony\Component\Workflow\WorkflowInterface) {
             return;
         }
 

@@ -116,10 +116,11 @@ class BooleanSelect extends Data implements
         if (is_numeric($data)) {
             $data = (int) $data;
         }
-
         if ($data === self::YES_VALUE) {
             return true;
-        } elseif ($data === self::NO_VALUE) {
+        }
+
+        if ($data === self::NO_VALUE) {
             return false;
         }
 
@@ -149,7 +150,8 @@ class BooleanSelect extends Data implements
         }
         if ($data === true) {
             return self::YES_VALUE;
-        } elseif ($data === false) {
+        }
+        if ($data === false) {
             return self::NO_VALUE;
         }
 
@@ -162,6 +164,7 @@ class BooleanSelect extends Data implements
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data === true) {
@@ -174,6 +177,7 @@ class BooleanSelect extends Data implements
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -182,6 +186,7 @@ class BooleanSelect extends Data implements
     /** See parent class.
      *
      */
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $result = [];
@@ -203,13 +208,14 @@ class BooleanSelect extends Data implements
         }
 
         $diffdata['value'] = $value;
-        $diffdata['title'] = !empty($this->title) ? $this->title : $this->name;
+        $diffdata['title'] = empty($this->title) ? $this->name : $this->title;
 
         $result[] = $diffdata;
 
         return $result;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         //TODO mandatory probably doesn't make much sense
@@ -218,6 +224,7 @@ class BooleanSelect extends Data implements
         }
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return $data !== true && $data !== false;
@@ -226,6 +233,7 @@ class BooleanSelect extends Data implements
     /**
      * @param DataObject\ClassDefinition\Data\BooleanSelect $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->options = $mainDefinition->options;
@@ -292,10 +300,6 @@ class BooleanSelect extends Data implements
         return $this;
     }
 
-    /**
-     * @param null|Model\DataObject\Concrete $object
-     *
-     */
     public function getDataForGrid(?bool $data, ?Concrete $object = null, array $params = []): int
     {
         return $this->getDataForEditmode($data, $object, $params);
@@ -319,10 +323,6 @@ class BooleanSelect extends Data implements
         return self::EMPTY_VALUE_EDITMODE;
     }
 
-    /**
-     * @param DataObject\Concrete|null $object
-     *
-     */
     public function getDataFromGridEditor(mixed $data, ?Concrete $object = null, array $params = []): ?bool
     {
         return $this->getDataFromEditmode($data, $object, $params);
@@ -338,7 +338,8 @@ class BooleanSelect extends Data implements
     {
         if ((int)$data === 1) {
             return true;
-        } elseif ((int)$data === -1) {
+        }
+        if ((int)$data === -1) {
             return false;
         }
 
@@ -350,6 +351,7 @@ class BooleanSelect extends Data implements
         return $oldValue === $newValue;
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $value = $this->getDataFromObjectParam($object, $params);

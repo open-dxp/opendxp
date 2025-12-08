@@ -23,11 +23,8 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\Countrymultiselect;
 
 class CountryOptionsProvider implements SelectOptionsProviderInterface
 {
-    private LocaleServiceInterface $localeService;
-
-    public function __construct(LocaleServiceInterface $localeService)
+    public function __construct(private readonly LocaleServiceInterface $localeService)
     {
-        $this->localeService = $localeService;
     }
 
     public function getOptions(array $context, Data $fieldDefinition): array

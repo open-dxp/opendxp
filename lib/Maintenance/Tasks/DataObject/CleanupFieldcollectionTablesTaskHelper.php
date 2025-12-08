@@ -24,13 +24,13 @@ use Psr\Log\LoggerInterface;
  */
 class CleanupFieldcollectionTablesTaskHelper implements ConcreteTaskHelperInterface
 {
-    private const OPENDXP_FIELDCOLLECTION_CLASS_DIRECTORY =
+    private const string OPENDXP_FIELDCOLLECTION_CLASS_DIRECTORY =
         OPENDXP_CLASS_DEFINITION_DIRECTORY . '/fieldcollections';
 
     public function __construct(
-        private LoggerInterface $logger,
-        private DataObjectTaskHelperInterface $helper,
-        private Connection $db
+        private readonly LoggerInterface $logger,
+        private readonly DataObjectTaskHelperInterface $helper,
+        private readonly Connection $db
     ) {
     }
 
@@ -39,7 +39,7 @@ class CleanupFieldcollectionTablesTaskHelper implements ConcreteTaskHelperInterf
         $collectionNames =
             $this->helper->getCollectionNames(self::OPENDXP_FIELDCOLLECTION_CLASS_DIRECTORY);
 
-        if (empty($collectionNames)) {
+        if ($collectionNames === []) {
             return;
         }
 

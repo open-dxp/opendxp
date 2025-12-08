@@ -23,6 +23,7 @@ class Folder extends UserRole\Folder
 {
     protected string $type = 'userfolder';
 
+    #[\Override]
     public function getChildren(): array
     {
         if ($this->children === null) {

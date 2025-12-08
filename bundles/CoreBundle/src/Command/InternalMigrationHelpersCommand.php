@@ -36,7 +36,7 @@ use Throwable;
 )]
 class InternalMigrationHelpersCommand extends AbstractCommand
 {
-    public function __construct(private DependencyFactory $dependencyFactory, private FilteredTableMetadataStorage $metadataStorage, ?string $name = null)
+    public function __construct(private readonly DependencyFactory $dependencyFactory, private readonly FilteredTableMetadataStorage $metadataStorage, ?string $name = null)
     {
         parent::__construct($name);
     }
@@ -61,7 +61,7 @@ class InternalMigrationHelpersCommand extends AbstractCommand
                     $this->metadataStorage->ensureInitialized();
                     $output->write('1');
                 }
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 // nothing to do
             }
         }

@@ -56,19 +56,18 @@ class Service extends Model\Element\Service
     protected array $_copyRecursiveIds = [];
 
     /**
-     * @internal
-     */
-    protected ?Model\User $_user;
-
-    /**
      * System fields used by filter conditions
      *
      */
     protected static array $systemFields = ['path', 'key', 'id', 'published', 'creationDate', 'modificationDate', 'fullpath'];
 
-    public function __construct(?Model\User $user = null)
+    public function __construct(
+        /**
+         * @internal
+         */
+        protected ?Model\User $_user = null
+    )
     {
-        $this->_user = $user;
     }
 
     /**
@@ -235,7 +234,7 @@ class Service extends Model\Element\Service
     public function copyContents(Concrete $target, Concrete $source): Concrete
     {
         // check if the type is the same
-        if (get_class($source) !== get_class($target)) {
+        if ($source::class !== $target::class) {
             throw new Exception('Source and target have to be the same type');
         }
 
@@ -264,9 +263,7 @@ class Service extends Model\Element\Service
 
         $new->save();
 
-        $target = Concrete::getById($new->getId());
-
-        return $target;
+        return Concrete::getById($new->getId());
     }
 
     /**
@@ -534,7 +531,7 @@ class Service extends Model\Element\Service
                     $definition = \OpenDxp\Model\DataObject\Classificationstore\Service::getFieldDefinitionFromJson($definition, $type);
 
                     if (method_exists($definition, 'getDataForGrid')) {
-                        $fielddata = $definition->getDataForGrid($fielddata, $object);
+                        return $definition->getDataForGrid($fielddata, $object);
                     }
 
                     return $fielddata;
@@ -624,6 +621,7 @@ class Service extends Model\Element\Service
         return self::getOptionsForSelectField($object, $fieldname);
     }
 
+    #[\Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -643,12 +641,12 @@ class Service extends Model\Element\Service
             unset($pathElements[$keyIdx]);
             $pathOnly = implode('/', $pathElements);
 
-            if ($validKey == $key && self::isValidPath($pathOnly, 'object')) {
+            if ($validKey === $key && self::isValidPath($pathOnly, 'object')) {
                 $object->getDao()->getByPath($path);
 
                 return true;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         return false;
@@ -724,9 +722,7 @@ class Service extends Model\Element\Service
 
         $classId = $object->getClassId();
         $list = new ClassDefinition\CustomLayout\Listing();
-        $list->setOrder(function (ClassDefinition\CustomLayout $a, ClassDefinition\CustomLayout $b) {
-            return strcmp($a->getName(), $b->getName());
-        });
+        $list->setOrder(fn(ClassDefinition\CustomLayout $a, ClassDefinition\CustomLayout $b) => strcmp($a->getName(), $b->getName()));
 
         if (is_array($layoutPermissions) && count($layoutPermissions)) {
             $layoutIds = array_values($layoutPermissions);
@@ -737,7 +733,7 @@ class Service extends Model\Element\Service
             $currentLayoutId = $layout->getId();
             $keep = $currentLayoutClassId === $classId && !str_contains($currentLayoutId, '.brick.');
             if ($keep && $layoutIds !== null) {
-                $keep = in_array($currentLayoutId, $layoutIds);
+                return in_array($currentLayoutId, $layoutIds);
             }
 
             return $keep;
@@ -745,7 +741,7 @@ class Service extends Model\Element\Service
 
         $list = $list->load();
 
-        if ((!count($resultList) && !count($list)) || (count($resultList) == 1 && !count($list))) {
+        if ((!count($resultList) && !count($list)) || (count($resultList) === 1 && !count($list))) {
             return [];
         }
 
@@ -759,14 +755,12 @@ class Service extends Model\Element\Service
     /**
      * Returns the fields of a datatype container (e.g. block or localized fields)
      *
-     * @param ClassDefinition\Data|Model\DataObject\ClassDefinition\Layout $layout
      * @param ClassDefinition\Data[] $targetList
-     *
      * @return ClassDefinition\Data[]
      */
     public static function extractFieldDefinitions(ClassDefinition\Data|ClassDefinition\Layout $layout, string $targetClass, array $targetList, bool $insideDataType): array
     {
-        if ($insideDataType && $layout instanceof ClassDefinition\Data && !is_a($layout, $targetClass)) {
+        if ($insideDataType && $layout instanceof ClassDefinition\Data && !$layout instanceof $targetClass) {
             $targetList[$layout->getName()] = $layout;
         }
 
@@ -867,7 +861,7 @@ class Service extends Model\Element\Service
 
             foreach (['Localizedfields', 'Block'] as $dataType) {
                 $targetList = self::extractFieldDefinitions($class->getLayoutDefinitions(), '\OpenDxp\Model\DataObject\ClassDefinition\Data\\' . $dataType, [], false);
-                $mainDefinition = array_merge($mainDefinition, $targetList);
+                $mainDefinition = [...$mainDefinition, ...$targetList];
             }
 
             self::synchronizeCustomLayoutFieldWithMain($mainDefinition, $customLayoutDefinition);
@@ -902,7 +896,7 @@ class Service extends Model\Element\Service
         }
 
         $childPermissions = $object->getChildPermissions(null, $user);
-        $permissionList = array_merge($permissionList, $childPermissions);
+        $permissionList = [...$permissionList, ...$childPermissions];
 
         $layoutDefinitions = [];
 
@@ -910,15 +904,17 @@ class Service extends Model\Element\Service
             $allowedLayoutIds = self::getLayoutPermissions($classId, $permissionSet);
             if (is_array($allowedLayoutIds)) {
                 foreach ($allowedLayoutIds as $allowedLayoutId) {
-                    if ($allowedLayoutId) {
-                        if (!isset($layoutDefinitions[$allowedLayoutId])) {
-                            $customLayout = ClassDefinition\CustomLayout::getById($allowedLayoutId);
-                            if (!$customLayout) {
-                                continue;
-                            }
-                            $layoutDefinitions[$allowedLayoutId] = $customLayout;
-                        }
+                    if (!$allowedLayoutId) {
+                        continue;
                     }
+                    if (isset($layoutDefinitions[$allowedLayoutId])) {
+                        continue;
+                    }
+                    $customLayout = ClassDefinition\CustomLayout::getById($allowedLayoutId);
+                    if (!$customLayout) {
+                        continue;
+                    }
+                    $layoutDefinitions[$allowedLayoutId] = $customLayout;
                 }
             }
         }
@@ -986,9 +982,8 @@ class Service extends Model\Element\Service
     {
         $deepCopy = new \DeepCopy\DeepCopy();
         $deepCopy->addFilter(new SetNullFilter(), new PropertyNameMatcher('fieldDefinitionsCache'));
-        $theCopy = $deepCopy->copy($definition);
 
-        return $theCopy;
+        return $deepCopy->copy($definition);
     }
 
     private static function mergeFieldDefinition(array &$mergedFieldDefinition, array &$customFieldDefinitions, string $key): void
@@ -1088,6 +1083,7 @@ class Service extends Model\Element\Service
         return $result;
     }
 
+    #[\Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -1123,9 +1119,7 @@ class Service extends Model\Element\Service
     /**
      * Enriches the layout definition before it is returned to the admin interface.
      *
-     * @param Model\DataObject\ClassDefinition\Data|Model\DataObject\ClassDefinition\Layout|null $layout
      * @param array<string, mixed> $context additional contextual data
-     *
      * @internal
      */
     public static function enrichLayoutDefinition(ClassDefinition\Data|ClassDefinition\Layout|null &$layout, ?Concrete $object = null, array $context = []): void
@@ -1140,7 +1134,7 @@ class Service extends Model\Element\Service
             $layout->enrichLayoutDefinition($object, $context);
         }
 
-        if ($layout instanceof Model\DataObject\ClassDefinition\Data\Localizedfields || $layout instanceof Model\DataObject\ClassDefinition\Data\Classificationstore && $layout->localized === true) {
+        if ($layout instanceof Model\DataObject\ClassDefinition\Data\Localizedfields || $layout instanceof Model\DataObject\ClassDefinition\Data\Classificationstore && $layout->localized) {
             $user = AdminTool::getCurrentUser();
             if (!$user->isAdmin() && ($context['purpose'] ?? null) !== 'gridconfig' && $object) {
                 $allowedView = self::getLanguagePermissions($object, $user, 'lView');
@@ -1179,7 +1173,7 @@ class Service extends Model\Element\Service
      */
     public static function enrichLayoutPermissions(ClassDefinition\Data &$layout, ?array $allowedView, ?array $allowedEdit): void
     {
-        if ($layout instanceof Model\DataObject\ClassDefinition\Data\Localizedfields || $layout instanceof Model\DataObject\ClassDefinition\Data\Classificationstore && $layout->localized === true) {
+        if ($layout instanceof Model\DataObject\ClassDefinition\Data\Localizedfields || $layout instanceof Model\DataObject\ClassDefinition\Data\Classificationstore && $layout->localized) {
             if (is_array($allowedView) && count($allowedView) > 0) {
                 $haveAllowedViewDefault = null;
                 if ($layout->getFieldtype() === 'localizedfields') {
@@ -1188,7 +1182,7 @@ class Service extends Model\Element\Service
                         unset($allowedView['default']);
                     }
                 }
-                if (!($haveAllowedViewDefault && count($allowedView) == 0)) {
+                if (!($haveAllowedViewDefault && count($allowedView) === 0)) {
                     $layout->setPermissionView(
                         AdminTool::reorderWebsiteLanguages(
                             AdminTool::getCurrentUser(),
@@ -1207,7 +1201,7 @@ class Service extends Model\Element\Service
                     }
                 }
 
-                if (!($haveAllowedEditDefault && count($allowedEdit) == 0)) {
+                if (!($haveAllowedEditDefault && count($allowedEdit) === 0)) {
                     $layout->setPermissionEdit(
                         AdminTool::reorderWebsiteLanguages(
                             AdminTool::getCurrentUser(),
@@ -1217,13 +1211,11 @@ class Service extends Model\Element\Service
                     );
                 }
             }
-        } else {
-            if (method_exists($layout, 'getChildren')) {
-                $children = $layout->getChildren();
-                if (is_array($children)) {
-                    foreach ($children as $child) {
-                        self::enrichLayoutPermissions($child, $allowedView, $allowedEdit);
-                    }
+        } elseif (method_exists($layout, 'getChildren')) {
+            $children = $layout->getChildren();
+            if (is_array($children)) {
+                foreach ($children as $child) {
+                    self::enrichLayoutPermissions($child, $allowedView, $allowedEdit);
                 }
             }
         }
@@ -1233,9 +1225,9 @@ class Service extends Model\Element\Service
     {
         $expressionLanguage = new ExpressionLanguage();
         //overwrite constant function to aviod exposing internal information
-        $expressionLanguage->register('constant', function ($str) {
+        $expressionLanguage->register('constant', function ($str): void {
             throw new SyntaxError('`constant` function not available');
-        }, function ($arguments, $str) {
+        }, function ($arguments, $str): void {
             throw new SyntaxError('`constant` function not available');
         });
 
@@ -1243,8 +1235,6 @@ class Service extends Model\Element\Service
     }
 
     /**
-     * @param Model\DataObject\Data\CalculatedValue|null $data
-     *
      * @internal
      */
     public static function getCalculatedFieldValueForEditMode(Concrete $object, array $params, ?Data\CalculatedValue $data): ?string
@@ -1403,11 +1393,7 @@ class Service extends Model\Element\Service
         $conditionParts = [];
         foreach ($descriptor as $key => $value) {
             $lastChar = is_string($value) ? $value[strlen($value) - 1] : null;
-            if ($lastChar === '%') {
-                $conditionParts[] = $key . ' LIKE ' . $db->quote($value);
-            } else {
-                $conditionParts[] = $key . ' = ' . $db->quote($value);
-            }
+            $conditionParts[] = $lastChar === '%' ? $key . ' LIKE ' . $db->quote($value) : $key . ' = ' . $db->quote($value);
         }
 
         return $conditionParts;
@@ -1474,15 +1460,12 @@ class Service extends Model\Element\Service
         ]);
 
         OpenDxp::getEventDispatcher()->dispatch($event, DataObjectEvents::POST_CSV_ITEM_EXPORT);
-        $objectData = $event->getArgument('objectData');
 
-        return $objectData;
+        return $event->getArgument('objectData');
     }
 
     /**
-     * @param DataObject\Listing $list
      * @param string[] $fields
-     *
      * @internal
      */
     public static function getCsvData(string $requestedLanguage, LocaleServiceInterface $localeService, Listing $list, array $fields, string $header = '', bool $addTitles = true, array $context = []): array
@@ -1495,10 +1478,10 @@ class Service extends Model\Element\Service
 
             $objects = $list->getObjects();
             foreach ($objects as $object) {
-                if ($addTitles && empty($data)) {
+                if ($addTitles && $data === []) {
                     $tmp = [];
                     $mapped = self::getCsvDataForObject($object, $requestedLanguage, $fields, $helperDefinitions, $localeService, $header, true, $context);
-                    foreach ($mapped as $key => $value) {
+                    foreach (array_keys($mapped) as $key) {
                         $tmp[] = '"' . $key . '"';
                     }
                     $data[] = $tmp;
@@ -1524,7 +1507,7 @@ class Service extends Model\Element\Service
         if (str_starts_with($key, '#')) {
             if (isset($helperDefinitions[$key])) {
                 if ($helperDefinitions[$key]->attributes) {
-                    return $helperDefinitions[$key]->attributes->label ? $helperDefinitions[$key]->attributes->label : $title;
+                    return $helperDefinitions[$key]->attributes->label ?: $title;
                 }
 
                 return $title;
@@ -1579,121 +1562,119 @@ class Service extends Model\Element\Service
         $fieldDefinition = $object->getClass()->getFieldDefinition($field);
         if ($fieldDefinition) {
             return $fieldDefinition->getForCsvExport($object, ['language' => $requestedLanguage]);
-        } else {
-            $fieldParts = explode('~', $field);
+        }
+        $fieldParts = explode('~', $field);
+        // check for objects bricks and localized fields
+        if (static::isHelperGridColumnConfig($field)) {
+            if ($helperDefinitions[$field]) {
+                $cellValue = static::calculateCellValue($object, $helperDefinitions, $field, ['language' => $requestedLanguage]);
 
-            // check for objects bricks and localized fields
-            if (static::isHelperGridColumnConfig($field)) {
-                if ($helperDefinitions[$field]) {
-                    $cellValue = static::calculateCellValue($object, $helperDefinitions, $field, ['language' => $requestedLanguage]);
+                // Mimic grid concatenation behavior
+                if (is_array($cellValue)) {
+                    $cellValue = implode(',', $cellValue);
+                }
 
-                    // Mimic grid concatenation behavior
-                    if (is_array($cellValue)) {
-                        $cellValue = implode(',', $cellValue);
+                return (string) $cellValue;
+            }
+        } elseif (str_starts_with($field, '~')) {
+            $type = $fieldParts[1];
+
+            if ($type === 'classificationstore') {
+                $fieldname = $fieldParts[2];
+                $groupKeyId = explode('-', $fieldParts[3]);
+                $groupId = (int) $groupKeyId[0];
+                $keyId = (int) $groupKeyId[1];
+                $getter = 'get' . ucfirst($fieldname);
+                if (method_exists($object, $getter)) {
+                    $keyConfig = DataObject\Classificationstore\KeyConfig::getById($keyId);
+                    $type = $keyConfig->getType();
+                    $definition = json_decode($keyConfig->getDefinition(), true);
+                    $fieldDefinition = \OpenDxp\Model\DataObject\Classificationstore\Service::getFieldDefinitionFromJson($definition, $type);
+
+                    /** @var DataObject\ClassDefinition\Data\Classificationstore $csFieldDefinition */
+                    $csFieldDefinition = $object->getClass()->getFieldDefinition($fieldname);
+                    $csLanguage = $requestedLanguage;
+                    if (!$csFieldDefinition->isLocalized()) {
+                        $csLanguage = 'default';
                     }
 
-                    return (string) $cellValue;
+                    return $fieldDefinition->getForCsvExport(
+                        $object,
+                        ['context' => [
+                            'containerType' => 'classificationstore',
+                            'fieldname' => $fieldname,
+                            'groupId' => $groupId,
+                            'keyId' => $keyId,
+                            'language' => $csLanguage,
+                        ]]
+                    );
                 }
-            } elseif (str_starts_with($field, '~')) {
-                $type = $fieldParts[1];
+            }
+            //key value store - ignore for now
+        } elseif (count($fieldParts) > 1) {
+            // brick
+            $brickType = $fieldParts[0];
+            $brickDescriptor = null;
+            $innerContainer = null;
 
-                if ($type === 'classificationstore') {
-                    $fieldname = $fieldParts[2];
-                    $groupKeyId = explode('-', $fieldParts[3]);
-                    $groupId = (int) $groupKeyId[0];
-                    $keyId = (int) $groupKeyId[1];
-                    $getter = 'get' . ucfirst($fieldname);
-                    if (method_exists($object, $getter)) {
-                        $keyConfig = DataObject\Classificationstore\KeyConfig::getById($keyId);
-                        $type = $keyConfig->getType();
-                        $definition = json_decode($keyConfig->getDefinition(), true);
-                        $fieldDefinition = \OpenDxp\Model\DataObject\Classificationstore\Service::getFieldDefinitionFromJson($definition, $type);
+            if (str_contains($brickType, '?')) {
+                $brickDescriptor = substr($brickType, 1);
+                $brickDescriptor = json_decode($brickDescriptor, true);
+                $innerContainer = $brickDescriptor['innerContainer'] ?? 'localizedfields';
+                $brickType = $brickDescriptor['containerKey'];
+            }
+            $brickKey = $fieldParts[1];
 
-                        /** @var DataObject\ClassDefinition\Data\Classificationstore $csFieldDefinition */
-                        $csFieldDefinition = $object->getClass()->getFieldDefinition($fieldname);
-                        $csLanguage = $requestedLanguage;
-                        if (!$csFieldDefinition->isLocalized()) {
-                            $csLanguage = 'default';
-                        }
+            $key = static::getFieldForBrickType($object->getClass(), $brickType);
 
-                        return $fieldDefinition->getForCsvExport(
-                            $object,
-                            ['context' => [
-                                'containerType' => 'classificationstore',
-                                'fieldname' => $fieldname,
-                                'groupId' => $groupId,
-                                'keyId' => $keyId,
-                                'language' => $csLanguage,
-                            ]]
-                        );
-                    }
-                }
-                //key value store - ignore for now
-            } elseif (count($fieldParts) > 1) {
-                // brick
-                $brickType = $fieldParts[0];
-                $brickDescriptor = null;
-                $innerContainer = null;
+            $brickClass = DataObject\Objectbrick\Definition::getByKey($brickType);
 
-                if (str_contains($brickType, '?')) {
-                    $brickDescriptor = substr($brickType, 1);
-                    $brickDescriptor = json_decode($brickDescriptor, true);
-                    $innerContainer = $brickDescriptor['innerContainer'] ?? 'localizedfields';
-                    $brickType = $brickDescriptor['containerKey'];
-                }
-                $brickKey = $fieldParts[1];
-
-                $key = static::getFieldForBrickType($object->getClass(), $brickType);
-
-                $brickClass = DataObject\Objectbrick\Definition::getByKey($brickType);
-
-                if ($brickDescriptor) {
-                    /** @var DataObject\ClassDefinition\Data\Localizedfields $localizedFields */
-                    $localizedFields = $brickClass->getFieldDefinition($innerContainer);
-                    $fieldDefinition = $localizedFields->getFieldDefinition($brickDescriptor['brickfield']);
-                } else {
-                    $fieldDefinition = $brickClass->getFieldDefinition($brickKey);
-                }
-
-                if ($fieldDefinition) {
-                    $brickContainer = $object->{'get' . ucfirst($key)}();
-                    if ($brickContainer && !empty($brickKey)) {
-                        $brick = $brickContainer->{'get' . ucfirst($brickType)}();
-                        if ($brick) {
-                            $params = [
-                                'context' => [
-                                    'containerType' => 'objectbrick',
-                                    'containerKey' => $brickType,
-                                    'fieldname' => $brickKey,
-                                ],
-
-                            ];
-
-                            $value = $brick;
-
-                            if ($brickDescriptor) {
-                                $innerContainer = $brickDescriptor['innerContainer'] ?? 'localizedfields';
-                                $value = $brick->{'get' . ucfirst($innerContainer)}();
-
-                                if ($value instanceof Localizedfield) {
-                                    $params['language'] = $requestedLanguage;
-                                }
-                            }
-
-                            return $fieldDefinition->getForCsvExport($value, $params);
-                        }
-                    }
-                }
+            if ($brickDescriptor) {
+                /** @var DataObject\ClassDefinition\Data\Localizedfields $localizedFields */
+                $localizedFields = $brickClass->getFieldDefinition($innerContainer);
+                $fieldDefinition = $localizedFields->getFieldDefinition($brickDescriptor['brickfield']);
             } else {
-                // if the definition is not set try to get the definition from localized fields
-                /** @var DataObject\ClassDefinition\Data\Localizedfields|null $locFields */
-                $locFields = $object->getClass()->getFieldDefinition('localizedfields');
+                $fieldDefinition = $brickClass->getFieldDefinition($brickKey);
+            }
 
-                if ($locFields) {
-                    $fieldDefinition = $locFields->getFieldDefinition($field);
-                    if ($fieldDefinition) {
-                        return $fieldDefinition->getForCsvExport($object->get('localizedFields'), ['language' => $fallbackLanguage]);
+            if ($fieldDefinition) {
+                $brickContainer = $object->{'get' . ucfirst($key)}();
+                if ($brickContainer && !empty($brickKey)) {
+                    $brick = $brickContainer->{'get' . ucfirst($brickType)}();
+                    if ($brick) {
+                        $params = [
+                            'context' => [
+                                'containerType' => 'objectbrick',
+                                'containerKey' => $brickType,
+                                'fieldname' => $brickKey,
+                            ],
+
+                        ];
+
+                        $value = $brick;
+
+                        if ($brickDescriptor) {
+                            $innerContainer = $brickDescriptor['innerContainer'] ?? 'localizedfields';
+                            $value = $brick->{'get' . ucfirst($innerContainer)}();
+
+                            if ($value instanceof Localizedfield) {
+                                $params['language'] = $requestedLanguage;
+                            }
+                        }
+
+                        return $fieldDefinition->getForCsvExport($value, $params);
                     }
+                }
+            }
+        } else {
+            // if the definition is not set try to get the definition from localized fields
+            /** @var DataObject\ClassDefinition\Data\Localizedfields|null $locFields */
+            $locFields = $object->getClass()->getFieldDefinition('localizedfields');
+
+            if ($locFields) {
+                $fieldDefinition = $locFields->getFieldDefinition($field);
+                if ($fieldDefinition) {
+                    return $fieldDefinition->getForCsvExport($object->get('localizedFields'), ['language' => $fallbackLanguage]);
                 }
             }
         }

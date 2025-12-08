@@ -18,7 +18,7 @@ namespace OpenDxp\Tool;
 
 use Exception;
 
-class DeviceDetector
+class DeviceDetector implements \Stringable
 {
     protected array $validDeviceTypes = ['phone', 'tablet', 'desktop'];
 
@@ -92,11 +92,11 @@ class DeviceDetector
     public function setDeviceType(string $type): void
     {
         $instance = self::$instance;
-        if ($type == 'desktop') {
+        if ($type === 'desktop') {
             $instance->isDesktop = true;
             $instance->isPhone = false;
             $instance->isTablet = false;
-        } elseif ($type == 'tablet') {
+        } elseif ($type === 'tablet') {
             $instance->isTablet = true;
             $instance->isDesktop = false;
             $instance->isPhone = false;
@@ -122,7 +122,7 @@ class DeviceDetector
 
     public function __toString(): string
     {
-        return $this->getDevice();
+        return (string) $this->getDevice();
     }
 
     private function determineDeviceType(): void
@@ -141,11 +141,7 @@ class DeviceDetector
         foreach (['mobile', 'tablet', 'desktop'] as $cfType) {
             $cfHeaderName = 'HTTP_CLOUDFRONT_IS_' . strtoupper($cfType) . '_VIEWER';
             if (isset($_SERVER[$cfHeaderName]) && $_SERVER[$cfHeaderName] === 'true') {
-                if ($cfType === 'mobile') {
-                    $type = 'phone';
-                } else {
-                    $type = $cfType;
-                }
+                $type = $cfType === 'mobile' ? 'phone' : $cfType;
             }
         }
 
@@ -153,11 +149,7 @@ class DeviceDetector
             // android devices
             if (stripos($userAgent, 'android') !== false) {
                 // unfortunately there are still android tablet that contain "Mobile" in user-agent, damn!
-                if (stripos($userAgent, 'mobile') !== false) {
-                    $type = 'phone';
-                } else {
-                    $type = 'tablet';
-                }
+                $type = stripos($userAgent, 'mobile') !== false ? 'phone' : 'tablet';
             }
 
             // ios devices
@@ -193,17 +185,14 @@ class DeviceDetector
             $typeForced = $_COOKIE['forceDeviceType'];
         }
 
-        if ($typeForced) {
-            if (in_array($typeForced, $this->validDeviceTypes)) {
-                /**
-                 * @psalm-taint-escape cookie
-                 */
-                $type = $typeForced;
-
-                // we don't set a cookie if we're in preview mode, or if a cookie is set already
-                if (!isset($_COOKIE['forceDeviceType']) && !isset($_REQUEST['opendxp_preview'])) {
-                    setcookie('forceDeviceType', $type);
-                }
+        if ($typeForced && in_array($typeForced, $this->validDeviceTypes)) {
+            /**
+             * @psalm-taint-escape cookie
+             */
+            $type = $typeForced;
+            // we don't set a cookie if we're in preview mode, or if a cookie is set already
+            if (!isset($_COOKIE['forceDeviceType']) && !isset($_REQUEST['opendxp_preview'])) {
+                setcookie('forceDeviceType', $type);
             }
         }
 

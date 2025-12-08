@@ -31,7 +31,7 @@ use Psr\Log\LoggerInterface;
  */
 class VersionsCleanupTask implements TaskInterface
 {
-    public function __construct(private LoggerInterface $logger, private SystemSettingsConfig $config)
+    public function __construct(private readonly LoggerInterface $logger, private readonly SystemSettingsConfig $config)
     {
     }
 
@@ -52,7 +52,7 @@ class VersionsCleanupTask implements TaskInterface
             ->loadIdList();
 
         $this->logger->debug('Auto-save versions to delete: ' . count($ids));
-        foreach ($ids as $i => $id) {
+        foreach ($ids as $id) {
             $this->logger->debug('Deleting auto-save version: ' . $id);
             $version = Version::getById($id);
             $version->delete();
@@ -112,7 +112,7 @@ class VersionsCleanupTask implements TaskInterface
             $this->logger->debug('versions to check: ' . count($versions));
 
             $totalCount = count($versions);
-            foreach ($versions as $index => $id) {
+            foreach ($versions as $id) {
                 if (!$version = Version::getById($id)) {
                     $ignoredIds[] = $id;
                     $this->logger->debug('Version with ' . $id . " not found\n");

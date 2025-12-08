@@ -124,7 +124,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
      *
      * @var string|null
      */
-    protected $classId = null;
+    protected $classId;
 
     /**
      * @internal
@@ -132,19 +132,18 @@ abstract class AbstractObject extends Model\Element\AbstractElement
      */
     protected ?array $__rawRelationData = null;
 
+    #[\Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['versions', 'class', 'scheduledTasks', 'omitMandatoryCheck'];
 
         if ($this->isInDumpState()) {
             // this is if we want to make a full dump of the object (eg. for a new version), including children for recyclebin
-            $blockedVars = array_merge($blockedVars, ['dirtyFields']);
-        } else {
-            // this is if we want to cache the object
-            $blockedVars = array_merge($blockedVars, ['children', 'properties']);
+            return [...$blockedVars, 'dirtyFields'];
         }
 
-        return $blockedVars;
+        // this is if we want to cache the object
+        return [...$blockedVars, 'children', 'properties'];
     }
 
     public static function getHideUnpublished(): bool
@@ -174,7 +173,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
 
     public static function doGetInheritedValues(?Concrete $object = null): bool
     {
-        if (self::$getInheritedValues && $object !== null) {
+        if (self::$getInheritedValues && $object instanceof \OpenDxp\Model\DataObject\Concrete) {
             $class = $object->getClass();
 
             return $class->getAllowInherit();
@@ -274,7 +273,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
             $object->getDao()->getByPath($path);
 
             return static::getById($object->getId(), Model\Element\Service::prepareGetByIdParams($params));
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -286,7 +285,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
     {
         $className = DataObject::class;
         // get classname
-        if (!in_array(static::class, [__CLASS__, Concrete::class, Folder::class], true)) {
+        if (!in_array(static::class, [self::class, Concrete::class, Folder::class], true)) {
             $tmpObject = new static();
             if ($tmpObject instanceof Concrete) {
                 $className = 'OpenDxp\\Model\\DataObject\\' . ucfirst($tmpObject->getClassName());
@@ -671,7 +670,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
 
         if (Service::pathExists($this->getRealFullPath())) {
             $duplicate = DataObject::getByPath($this->getRealFullPath());
-            if ($duplicate instanceof self && $duplicate->getId() != $this->getId()) {
+            if ($duplicate instanceof self && $duplicate->getId() !== $this->getId()) {
                 $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ '.$this->getRealFullPath().' ] - cannot save object');
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
@@ -728,7 +727,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
 
         try {
             $tags = ['object_' . $objectId, 'object_properties', 'output'];
-            $tags = array_merge($tags, $additionalTags);
+            $tags = [...$tags, ...$additionalTags];
 
             Cache::clearTags($tags);
         } catch (Exception $e) {
@@ -760,6 +759,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this->getFullPath();
     }
 
+    #[\Override]
     public function getParentId(): ?int
     {
         $parentId = parent::getParentId();
@@ -787,6 +787,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this->index;
     }
 
+    #[\Override]
     public function setParentId(?int $parentId): static
     {
         if ($parentId !== $this->parentId) {
@@ -841,7 +842,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         ],
         bool $includingUnpublished = false
     ): static {
-        if ($children === null) {
+        if (!$children instanceof \OpenDxp\Model\DataObject\Listing) {
             // unset all cached children
             $this->children = [];
         } else {
@@ -853,6 +854,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this;
     }
 
+    #[\Override]
     public function getParent(): ?AbstractObject
     {
         $parent = parent::getParent();
@@ -953,7 +955,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
             $objectTypes = implode('_', $objectTypes);
         }
 
-        return $objectTypes . (!empty($includingUnpublished) ? '_' : '') . (string)$includingUnpublished;
+        return $objectTypes . (empty($includingUnpublished) ? '' : '_') . $includingUnpublished;
     }
 
     /**
@@ -1003,6 +1005,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
     /**
      * load lazy loaded fields before cloning
      */
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();
@@ -1039,7 +1042,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
                 $listConfig['limit'] = $limit;
                 $listConfig['offset'] = $offset;
             } else {
-                $listConfig = array_merge($listConfig, $limit);
+                $listConfig = [...$listConfig, ...$limit];
                 $limitCondition = $limit['condition'] ?? '';
                 $listConfig['condition'] = $defaultCondition.$limitCondition;
             }

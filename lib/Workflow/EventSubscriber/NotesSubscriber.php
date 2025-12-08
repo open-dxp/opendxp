@@ -35,15 +35,12 @@ class NotesSubscriber implements EventSubscriberInterface
 
     const ADDITIONAL_DATA_NOTES_ADDITIONAL_FIELDS = 'additional';
 
-    private TranslatorInterface $translator;
-
     private bool $enabled = true;
 
     private array $additionalData = [];
 
-    public function __construct(TranslatorInterface $translator)
+    public function __construct(private readonly TranslatorInterface $translator)
     {
-        $this->translator = $translator;
     }
 
     /**
@@ -120,7 +117,7 @@ class NotesSubscriber implements EventSubscriberInterface
 
             //check required
             if ($additionalFieldConfig['required'] && empty($data)) {
-                $label = isset($additionalFieldConfig['title']) && strlen($additionalFieldConfig['title']) > 0
+                $label = isset($additionalFieldConfig['title']) && (string) $additionalFieldConfig['title'] !== ''
                     ? $additionalFieldConfig['title']
                     : $additionalFieldConfig['name'];
 

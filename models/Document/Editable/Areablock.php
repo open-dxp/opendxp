@@ -76,6 +76,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         return $this->indices;
     }
 
+    #[\Override]
     public function admin(): void
     {
         $this->frontend();
@@ -138,10 +139,8 @@ class Areablock extends Model\Document\Editable implements BlockInterface
                 $this->blockDestruct();
                 $this->blockEnd();
             }
-        } else {
-            if (!$manual) {
-                $this->start();
-            }
+        } elseif (!$manual) {
+            $this->start();
         }
 
         if ($this->current < count($this->indices) && $this->current < $config['limit']) {
@@ -172,13 +171,11 @@ class Areablock extends Model\Document\Editable implements BlockInterface
             }
 
             return true;
-        } else {
-            if (!$manual) {
-                $this->end();
-            }
-
-            return false;
         }
+        if (!$manual) {
+            $this->end();
+        }
+        return false;
     }
 
     /**
@@ -200,7 +197,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         }
 
         if (is_array($config['globalParams'] ?? null)) {
-            $params = array_merge($config['globalParams'], $params);
+            $params = [...$config['globalParams'], ...$params];
         }
 
         $info->setParams($params);
@@ -209,9 +206,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
     }
 
     /**
-     * @param null|Document\Editable\Area\Info $info
-     *
-     * @return string|void
+     * @return string|null
      */
     public function content(?Area\Info $info = null, array $templateParams = [], bool $return = false)
     {
@@ -236,6 +231,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         if ($return) {
             return $content;
         }
+        return null;
     }
 
     /**
@@ -286,38 +282,30 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         ];
     }
 
+    #[\Override]
     public function getEditmodeDefinition(): array
     {
-        $config = array_merge($this->getToolBarDefaultConfig(), $this->getConfig());
+        $config = [...$this->getToolBarDefaultConfig(), ...$this->getConfig()];
 
         $options = parent::getEditmodeDefinition();
-        $options = array_merge($options, [
-            'config' => $config,
-        ]);
 
-        return $options;
+        return [...$options, 'config' => $config];
     }
 
+    #[\Override]
     protected function getEditmodeElementAttributes(): array
     {
         $attributes = parent::getEditmodeElementAttributes();
 
-        $attributes = array_merge($attributes, [
-            'name' => $this->getName(),
-            'type' => $this->getType(),
-        ]);
-
-        return $attributes;
+        return [...$attributes, 'name' => $this->getName(), 'type' => $this->getType()];
     }
 
     public function start(bool $return = false)
     {
-        if (($this->config['manual'] ?? false) === true) {
-            // in manual mode $this->render() is not called for the areablock, so we need to add
-            // the editable to the collector manually here
-            if ($editableDefCollector = $this->getEditableDefinitionCollector()) {
-                $editableDefCollector->add($this);
-            }
+        // in manual mode $this->render() is not called for the areablock, so we need to add
+        // the editable to the collector manually here
+        if (($this->config['manual'] ?? false) === true && $editableDefCollector = $this->getEditableDefinitionCollector()) {
+            $editableDefCollector->add($this);
         }
 
         reset($this->indices);
@@ -353,6 +341,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         }
 
         $this->outputEditmode($html);
+        return null;
     }
 
     public function blockStart(?Area\Info $info = null): array
@@ -427,7 +416,8 @@ class Areablock extends Model\Document\Editable implements BlockInterface
             // Unsupported element was passed (e.g., Block, Areablock, ...)
             // or an Areas was passed, which is not supported to avoid too long editable names
             throw new Exception(sprintf('Using editables of type "%s" for the editable dialog "%s" is not supported.', get_debug_type($config), $dialogId));
-        } elseif ($config instanceof Document\Editable) {
+        }
+        if ($config instanceof Document\Editable) {
             // Map editable to array config
             $config = [
                 'type' => $config->getType(),
@@ -466,6 +456,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         $this->blockStarted = false;
     }
 
+    #[\Override]
     public function setConfig(array $config): static
     {
         // we need to set this here otherwise custom areaDir's won't work
@@ -497,10 +488,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
             }
 
             if (count($groupingareas) > 0) {
-                $uncatAreas = [];
-                foreach ($groupingareas as $area) {
-                    $uncatAreas[] = $area;
-                }
+                $uncatAreas = $groupingareas;
                 $n = 'Uncategorized';
                 $groups[$n] = $uncatAreas;
             }
@@ -530,12 +518,10 @@ class Areablock extends Model\Document\Editable implements BlockInterface
     {
         if (isset($config['sorting']) && is_array($config['sorting']) && count($config['sorting'])) {
             $sorting = $config['sorting'];
+        } elseif (isset($config['allowed']) && is_array($config['allowed']) && count($config['allowed'])) {
+            $sorting = $config['allowed'];
         } else {
-            if (isset($config['allowed']) && is_array($config['allowed']) && count($config['allowed'])) {
-                $sorting = $config['allowed'];
-            } else {
-                $sorting = [];
-            }
+            $sorting = [];
         }
 
         $result = [
@@ -545,7 +531,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
 
         foreach ($areas as $area) {
             $sortIndex = false;
-            if (!empty($sorting)) {
+            if ($sorting !== []) {
                 $sortIndex = array_search($area['type'], $sorting);
             }
 
@@ -560,25 +546,15 @@ class Areablock extends Model\Document\Editable implements BlockInterface
 
         // sort with translated names
         if (count($result['name'])) {
-            usort($result['name'], function ($a, $b) {
-                if ($a['name'] == $b['name']) {
-                    return 0;
-                }
-
-                return ($a['name'] < $b['name']) ? -1 : 1;
-            });
+            usort($result['name'], fn($a, $b) => $a['name'] <=> $b['name']);
         }
 
         // sort by allowed brick config order
         if (count($result['index'])) {
-            usort($result['index'], function ($a, $b) {
-                return $a['sortIndex'] - $b['sortIndex'];
-            });
+            usort($result['index'], fn($a, $b) => $a['sortIndex'] - $b['sortIndex']);
         }
 
-        $result = array_merge($result['index'], $result['name']);
-
-        return $result;
+        return [...$result['index'], ...$result['name']];
     }
 
     public function getCount(): int

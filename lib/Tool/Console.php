@@ -67,7 +67,7 @@ final class Console
 
         // allow custom setup routines for certain programs
         $customSetupMethod = 'setup' . ucfirst($name);
-        if (method_exists(__CLASS__, $customSetupMethod)) {
+        if (method_exists(self::class, $customSetupMethod)) {
             self::$customSetupMethod();
         }
 
@@ -89,33 +89,26 @@ final class Console
             Logger::warning((string) $e);
         }
 
-        array_push($paths, '');
+        $paths[] = '';
 
         // allow custom check routines for certain programs
         $customCheckMethod = 'check' . ucfirst($name);
-        if (!method_exists(__CLASS__, $customCheckMethod)) {
+        if (!method_exists(self::class, $customCheckMethod)) {
             $customCheckMethod = null;
         }
 
         foreach ($paths as $path) {
             try {
                 $path = rtrim($path, '/\\ ');
-                if ($path) {
-                    $executablePath = $path . DIRECTORY_SEPARATOR . $name;
-                } else {
-                    $executablePath = $name;
-                }
+                $executablePath = $path ? $path . DIRECTORY_SEPARATOR . $name : $name;
 
                 $executableFinder = new ExecutableFinder();
                 $fullQualifiedPath = $executableFinder->find($executablePath);
-                if ($fullQualifiedPath) {
-                    if (!$customCheckMethod || self::$customCheckMethod($executablePath)) {
-                        self::$executableCache[$name] = $fullQualifiedPath;
-
-                        return $fullQualifiedPath;
-                    }
+                if ($fullQualifiedPath && (!$customCheckMethod || self::$customCheckMethod($executablePath))) {
+                    self::$executableCache[$name] = $fullQualifiedPath;
+                    return $fullQualifiedPath;
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // nothing to do ...
             }
         }
@@ -161,7 +154,7 @@ final class Console
             if (!$phpPath) {
                 throw new NotFoundException('No PHP executable found, get from getExecutable()');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             $phpPath = self::getExecutable('php', true, false);
         }
 
@@ -186,14 +179,11 @@ final class Console
         $phpCli = self::getPhpCli();
 
         $cmd = [$phpCli, $script];
-
         if (Config::getEnvironment()) {
-            array_push($cmd, '--env=' . Config::getEnvironment());
+            $cmd[] = '--env=' . Config::getEnvironment();
         }
 
-        $cmd = array_merge($cmd, $arguments);
-
-        return $cmd;
+        return [...$cmd, ...$arguments];
     }
 
     /**
@@ -211,7 +201,7 @@ final class Console
 
         if (!empty($outputFile)) {
             $logHandle = fopen($outputFile, 'a');
-            $process->wait(function ($type, $buffer) use ($logHandle) {
+            $process->wait(function ($type, $buffer) use ($logHandle): void {
                 fwrite($logHandle, $buffer);
             });
             fclose($logHandle);
@@ -225,13 +215,14 @@ final class Console
     public static function execInBackground(string $cmd, ?string $outputFile = null): int
     {
         // windows systems
-        if (self::getSystemEnvironment() == 'windows') {
+        if (self::getSystemEnvironment() === 'windows') {
             return self::execInBackgroundWindows($cmd, $outputFile);
-        } elseif (self::getSystemEnvironment() == 'darwin') {
-            return self::execInBackgroundUnix($cmd, $outputFile, false);
-        } else {
-            return self::execInBackgroundUnix($cmd, $outputFile);
         }
+        // windows systems
+        if (self::getSystemEnvironment() === 'darwin') {
+            return self::execInBackgroundUnix($cmd, $outputFile, false);
+        }
+        return self::execInBackgroundUnix($cmd, $outputFile);
     }
 
     private static function execInBackgroundUnix(string $cmd, ?string $outputFile, bool $useNohup = true): int

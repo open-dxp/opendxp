@@ -43,15 +43,15 @@ final class Config extends AbstractModel implements JsonSerializable
 {
     use LocateFileTrait;
 
-    public const PROPERTY_ID = 'id';
+    public const string PROPERTY_ID = 'id';
 
-    public const PROPERTY_GROUP = 'group';
+    public const string PROPERTY_GROUP = 'group';
 
-    public const PROPERTY_USE_TRAITS = 'useTraits';
+    public const string PROPERTY_USE_TRAITS = 'useTraits';
 
-    public const PROPERTY_IMPLEMENTS_INTERFACES = 'implementsInterfaces';
+    public const string PROPERTY_IMPLEMENTS_INTERFACES = 'implementsInterfaces';
 
-    public const PROPERTY_SELECT_OPTIONS = 'selectOptions';
+    public const string PROPERTY_SELECT_OPTIONS = 'selectOptions';
 
     protected string $id;
 
@@ -183,7 +183,7 @@ final class Config extends AbstractModel implements JsonSerializable
 
     public function hasSelectOptions(): bool
     {
-        return !empty($this->selectOptions);
+        return $this->selectOptions !== [];
     }
 
     public static function getById(string $id): ?Config
@@ -195,14 +195,14 @@ final class Config extends AbstractModel implements JsonSerializable
             if (!$selectOptions instanceof self) {
                 throw new RuntimeException('Select options in registry is invalid', 1678353750987);
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $selectOptions = new self();
                 /** @var Config\Dao $dao */
                 $dao = $selectOptions->getDao();
                 $dao->getById($id);
                 RuntimeCache::set($cacheKey, $selectOptions);
-            } catch (NotFoundException $e) {
+            } catch (NotFoundException) {
                 return null;
             }
         }
@@ -218,17 +218,17 @@ final class Config extends AbstractModel implements JsonSerializable
     public static function createFromData(array $data): static
     {
         // Check whether ID is available
-        $id = $data[static::PROPERTY_ID] ?? null;
+        $id = $data[self::PROPERTY_ID] ?? null;
         if (empty($id)) {
             throw new RuntimeException('ID is mandatory for select options definition', 1676646778230);
         }
 
-        $group = $data[static::PROPERTY_GROUP] ?? null;
-        $useTraits = $data[static::PROPERTY_USE_TRAITS] ?? '';
-        $implementsInterfaces = $data[static::PROPERTY_IMPLEMENTS_INTERFACES] ?? '';
-        $selectOptionsData = $data[static::PROPERTY_SELECT_OPTIONS] ?? [];
+        $group = $data[self::PROPERTY_GROUP] ?? null;
+        $useTraits = $data[self::PROPERTY_USE_TRAITS] ?? '';
+        $implementsInterfaces = $data[self::PROPERTY_IMPLEMENTS_INTERFACES] ?? '';
+        $selectOptionsData = $data[self::PROPERTY_SELECT_OPTIONS] ?? [];
 
-        return (new static())
+        return (new self())
             ->setId($id)
             ->setGroup($group)
             ->setUseTraits($useTraits)
@@ -247,11 +247,11 @@ final class Config extends AbstractModel implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            static::PROPERTY_ID => $this->getId(),
-            static::PROPERTY_GROUP => $this->getGroup(),
-            static::PROPERTY_USE_TRAITS => $this->getUseTraits(),
-            static::PROPERTY_IMPLEMENTS_INTERFACES => $this->getImplementsInterfaces(),
-            static::PROPERTY_SELECT_OPTIONS => $this->getSelectOptions(),
+            self::PROPERTY_ID => $this->getId(),
+            self::PROPERTY_GROUP => $this->getGroup(),
+            self::PROPERTY_USE_TRAITS => $this->getUseTraits(),
+            self::PROPERTY_IMPLEMENTS_INTERFACES => $this->getImplementsInterfaces(),
+            self::PROPERTY_SELECT_OPTIONS => $this->getSelectOptions(),
         ];
     }
 
@@ -268,7 +268,7 @@ final class Config extends AbstractModel implements JsonSerializable
 
         $fieldsUsedIn = [];
         foreach ($definitions as $definition) {
-            $prefix = match (get_class($definition)) {
+            $prefix = match ($definition::class) {
                 ClassDefinition::class => 'Class',
                 Fieldcollection\Definition::class => 'Field Collection',
                 Objectbrick\Definition::class => 'Objectbrick',
@@ -299,11 +299,7 @@ final class Config extends AbstractModel implements JsonSerializable
         ClassDefinition|Fieldcollection\Definition|Objectbrick\Definition $definition,
         string $prefix
     ): array {
-        if (method_exists($definition, 'getName')) {
-            $definitionName = $definition->getName();
-        } else {
-            $definitionName = $definition->getKey();
-        }
+        $definitionName = method_exists($definition, 'getName') ? $definition->getName() : $definition->getKey();
 
         $fieldsUsedIn = [];
         foreach ($this->getAllFieldDefinitions($definition) as $fieldDefinition) {
@@ -318,7 +314,7 @@ final class Config extends AbstractModel implements JsonSerializable
     protected function isConfiguredAsOptionsProvider(?ClassDefinition\Data $fieldDefinition): bool
     {
         if (
-            $fieldDefinition === null
+            !$fieldDefinition instanceof \OpenDxp\Model\DataObject\ClassDefinition\Data
             || !$fieldDefinition instanceof ClassDefinition\Data\OptionsProviderInterface
             || empty($fieldDefinition->getOptionsProviderType())
             || $fieldDefinition->getOptionsProviderType() === ClassDefinition\Data\OptionsProviderInterface::TYPE_CONFIGURE
@@ -347,7 +343,7 @@ final class Config extends AbstractModel implements JsonSerializable
         $fieldDefinitions = $definition->getFieldDefinitions(['suppressEnrichment' => true]);
         $localizedFieldDefinition = $definition->getFieldDefinition('localizedfields', ['suppressEnrichment' => true]);
         if ($localizedFieldDefinition instanceof ClassDefinition\Data\Localizedfields) {
-            $fieldDefinitions = [
+            return [
                 ...$fieldDefinitions,
                 ...$localizedFieldDefinition->getFieldDefinitions(['suppressEnrichment' => true]),
             ];

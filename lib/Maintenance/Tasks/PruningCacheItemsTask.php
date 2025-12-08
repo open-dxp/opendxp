@@ -20,7 +20,7 @@ use OpenDxp\Maintenance\TaskInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\PruneableInterface;
 
-final class PruningCacheItemsTask implements TaskInterface
+final readonly class PruningCacheItemsTask implements TaskInterface
 {
     public function __construct(private CacheItemPoolInterface $pool)
     {

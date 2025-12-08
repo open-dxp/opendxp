@@ -67,11 +67,9 @@ class Definition extends Model\AbstractModel
      */
     protected function extractDataDefinitions(DataObject\ClassDefinition\Data|DataObject\ClassDefinition\Layout $def): void
     {
-        if ($def instanceof DataObject\ClassDefinition\Layout) {
-            if ($def->hasChildren()) {
-                foreach ($def->getChildren() as $child) {
-                    $this->extractDataDefinitions($child);
-                }
+        if ($def instanceof DataObject\ClassDefinition\Layout && $def->hasChildren()) {
+            foreach ($def->getChildren() as $child) {
+                $this->extractDataDefinitions($child);
             }
         }
 
@@ -163,13 +161,14 @@ class Definition extends Model\AbstractModel
         $classes = $classList->load();
         foreach ($classes as $class) {
             foreach ($class->getFieldDefinitions() as $fieldDef) {
-                if ($fieldDef instanceof DataObject\ClassDefinition\Data\Fieldcollections) {
-                    if (in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
-                        $this->getDao()->createUpdateTable($class);
-
-                        break;
-                    }
+                if (!$fieldDef instanceof DataObject\ClassDefinition\Data\Fieldcollections) {
+                    continue;
                 }
+                if (!in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
+                    continue;
+                }
+                $this->getDao()->createUpdateTable($class);
+                break;
             }
         }
 
@@ -243,13 +242,14 @@ class Definition extends Model\AbstractModel
         $classes = $classList->load();
         foreach ($classes as $class) {
             foreach ($class->getFieldDefinitions() as $fieldDef) {
-                if ($fieldDef instanceof DataObject\ClassDefinition\Data\Fieldcollections) {
-                    if (in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
-                        $this->getDao()->delete($class);
-
-                        break;
-                    }
+                if (!$fieldDef instanceof DataObject\ClassDefinition\Data\Fieldcollections) {
+                    continue;
                 }
+                if (!in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
+                    continue;
+                }
+                $this->getDao()->delete($class);
+                break;
             }
         }
 
@@ -293,9 +293,7 @@ class Definition extends Model\AbstractModel
             $cd .= ' * ' . str_replace("\n", "\n * ", trim($fieldDefinitionDocBlockBuilder->buildFieldDefinitionDocBlock($fieldDefinition))) . "\n";
         }
 
-        $cd .= ' */';
-
-        return $cd;
+        return $cd . ' */';
     }
 
     public function isForbiddenName(): bool

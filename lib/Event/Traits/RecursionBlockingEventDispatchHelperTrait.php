@@ -32,7 +32,7 @@ trait RecursionBlockingEventDispatchHelperTrait
      */
     protected function dispatchEvent(object $event, ?string $eventName = null): void
     {
-        $eventName ??= get_class($event);
+        $eventName ??= $event::class;
         if (!isset($this->activeDispatchingEvents[$eventName])) {
             $this->activeDispatchingEvents[$eventName] = true;
             OpenDxp::getEventDispatcher()->dispatch($event, $eventName);

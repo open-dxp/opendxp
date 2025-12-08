@@ -130,7 +130,6 @@ class Video extends Data implements
     }
 
     /**
-     * @param null|DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      *
@@ -140,16 +139,12 @@ class Video extends Data implements
         if ($data) {
             $raw = Serialize::unserialize($data);
 
-            if ($raw['type'] === 'asset') {
-                if ($asset = Asset::getById((int) $raw['data'])) {
-                    $raw['data'] = $asset;
-                }
+            if ($raw['type'] === 'asset' && $asset = Asset::getById((int) $raw['data'])) {
+                $raw['data'] = $asset;
             }
 
-            if ($raw['poster']) {
-                if ($poster = Asset::getById((int) $raw['poster'])) {
-                    $raw['poster'] = $poster;
-                }
+            if ($raw['poster'] && $poster = Asset::getById((int) $raw['poster'])) {
+                $raw['poster'] = $poster;
             }
 
             if ($raw['data']) {
@@ -215,19 +210,11 @@ class Video extends Data implements
         $video = null;
 
         if (isset($data['type']) && $data['type'] === 'asset') {
-            if ($asset = Asset::getByPath($data['data'])) {
-                $data['data'] = $asset;
-            } else {
-                $data['data'] = null;
-            }
+            $data['data'] = Asset::getByPath($data['data']);
         }
 
         if (!empty($data['poster'])) {
-            if ($poster = Asset::getByPath($data['poster'])) {
-                $data['poster'] = $poster;
-            } else {
-                $data['poster'] = null;
-            }
+            $data['poster'] = Asset::getByPath($data['poster']);
         }
 
         if (!empty($data['data'])) {
@@ -242,19 +229,11 @@ class Video extends Data implements
         return $video;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataFromGridEditor(?array $data, ?Concrete $object = null, array $params = []): ?DataObject\Data\Video
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    /**
-     * @param DataObject\Concrete|null $object
-     *
-     */
     public function getDataForGrid(?DataObject\Data\Video $data, ?Concrete $object = null, array $params = []): array
     {
         $id = null;
@@ -275,6 +254,7 @@ class Video extends Data implements
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data && $data->getType() == 'asset' && $data->getData() instanceof Asset) {
@@ -284,6 +264,7 @@ class Video extends Data implements
         return parent::getVersionPreview($data, $object, $params);
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -299,30 +280,26 @@ class Video extends Data implements
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
         if ($data instanceof DataObject\Data\Video) {
-            $value = $data->getTitle() . ' ' . $data->getDescription();
-
-            return $value;
+            return $data->getTitle() . ' ' . $data->getDescription();
         }
 
         return '';
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
-        if ($data && $data->getData() instanceof Asset) {
-            if (!array_key_exists($data->getData()->getCacheTag(), $tags)) {
-                $tags = $data->getData()->getCacheTags($tags);
-            }
+        if ($data && $data->getData() instanceof Asset && !array_key_exists($data->getData()->getCacheTag(), $tags)) {
+            $tags = $data->getData()->getCacheTags($tags);
         }
 
-        if ($data && $data->getPoster() instanceof Asset) {
-            if (!array_key_exists($data->getPoster()->getCacheTag(), $tags)) {
-                $tags = $data->getPoster()->getCacheTags($tags);
-            }
+        if ($data && $data->getPoster() instanceof Asset && !array_key_exists($data->getPoster()->getCacheTag(), $tags)) {
+            return $data->getPoster()->getCacheTags($tags);
         }
 
         return $tags;
@@ -342,6 +319,7 @@ class Video extends Data implements
         return $this->enrichFieldDefinition($context);
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -363,6 +341,7 @@ class Video extends Data implements
         return $dependencies;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return false;
@@ -371,7 +350,6 @@ class Video extends Data implements
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?DataObject\Data\Video $data, ?Concrete $object = null, array $params = []): array|string
@@ -383,11 +361,7 @@ class Video extends Data implements
         }
 
         if ($versionPreview) {
-            $value = [];
-            $value['src'] = $versionPreview;
-            $value['type'] = 'img';
-
-            return $value;
+            return ['src' => $versionPreview, 'type' => 'img'];
         }
 
         return '';
@@ -397,16 +371,12 @@ class Video extends Data implements
     {
         $data = $this->getDataFromObjectParam($container, $params);
 
-        if ($data && $data->getData() instanceof Asset) {
-            if (array_key_exists('asset', $idMapping) && array_key_exists($data->getData()->getId(), $idMapping['asset'])) {
-                $data->setData(Asset::getById((int) $idMapping['asset'][$data->getData()->getId()]));
-            }
+        if ($data && $data->getData() instanceof Asset && (array_key_exists('asset', $idMapping) && array_key_exists($data->getData()->getId(), $idMapping['asset']))) {
+            $data->setData(Asset::getById((int) $idMapping['asset'][$data->getData()->getId()]));
         }
 
-        if ($data && $data->getPoster() instanceof Asset) {
-            if (array_key_exists('asset', $idMapping) && array_key_exists($data->getPoster()->getId(), $idMapping['asset'])) {
-                $data->setPoster(Asset::getById((int) $idMapping['asset'][$data->getPoster()->getId()]));
-            }
+        if ($data && $data->getPoster() instanceof Asset && (array_key_exists('asset', $idMapping) && array_key_exists($data->getPoster()->getId(), $idMapping['asset']))) {
+            $data->setPoster(Asset::getById((int) $idMapping['asset'][$data->getPoster()->getId()]));
         }
 
         return $data;
@@ -423,7 +393,7 @@ class Video extends Data implements
 
         if (!$oldValue instanceof DataObject\Data\Video
             || !$newValue instanceof DataObject\Data\Video
-            || $oldValue->getType() != $newValue->getType()) {
+            || $oldValue->getType() !== $newValue->getType()) {
             return false;
         }
 

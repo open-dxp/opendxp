@@ -28,11 +28,8 @@ use Sabre\DAV;
  */
 class File extends DAV\File
 {
-    private Asset $asset;
-
-    public function __construct(Asset $asset)
+    public function __construct(private readonly Asset $asset)
     {
-        $this->asset = $asset;
     }
 
     public function getName(): string
@@ -102,8 +99,6 @@ class File extends DAV\File
      *
      * @throws DAV\Exception\Forbidden
      * @throws Exception
-     *
-     * @return null
      */
     public function put($data)
     {
@@ -139,9 +134,8 @@ class File extends DAV\File
     {
         if ($this->asset->isAllowed('view')) {
             return $this->asset->getStream();
-        } else {
-            throw new DAV\Exception\Forbidden();
         }
+        throw new DAV\Exception\Forbidden();
     }
 
     /**
@@ -166,6 +160,7 @@ class File extends DAV\File
      * Get size of file in bytes
      *
      */
+    #[\Override]
     public function getSize(): int
     {
         return $this->asset->getFileSize();

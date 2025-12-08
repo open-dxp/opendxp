@@ -29,6 +29,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpSeoExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_seo';
@@ -60,13 +61,7 @@ final class OpenDxpSeoExtension extends ConfigurableExtension implements Prepend
             $generators = $config['generators'];
         }
 
-        uasort($generators, function (array $a, array $b) {
-            if ($a['priority'] === $b['priority']) {
-                return 0;
-            }
-
-            return $a['priority'] < $b['priority'] ? 1 : -1;
-        });
+        uasort($generators, fn(array $a, array $b) => $b['priority'] <=> $a['priority']);
 
         $mapping = [];
         foreach ($generators as $generatorName => $generatorConfig) {

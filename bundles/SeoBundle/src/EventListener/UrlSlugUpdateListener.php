@@ -50,17 +50,18 @@ class UrlSlugUpdateListener implements EventSubscriberInterface
         $db = Db::get();
         foreach ($data as $slug) {
             if ($previousSlug = $slug->getPreviousSlug()) {
-                if ($previousSlug === $slug->getSlug() || !$slug->getSlug()) {
+                if ($previousSlug === $slug->getSlug()) {
                     continue;
                 }
-
+                if (!$slug->getSlug()) {
+                    continue;
+                }
                 $checkSql = 'SELECT id FROM redirects WHERE source = :sourcePath AND `type` = :typeAuto';
                 if ($slug->getSiteId()) {
                     $checkSql .= ' AND sourceSite = ' . $db->quote($slug->getSiteId());
                 } else {
                     $checkSql .= ' AND sourceSite IS NULL';
                 }
-
                 $existingCheck = $db->fetchOne($checkSql, ['sourcePath' => $previousSlug, 'typeAuto' => Redirect::TYPE_AUTO_CREATE]);
                 if (!$existingCheck) {
                     $redirect = new Redirect();
@@ -78,7 +79,6 @@ class UrlSlugUpdateListener implements EventSubscriberInterface
 
                     $redirect->save();
                 }
-
                 $slug->setPreviousSlug(null);
             }
         }

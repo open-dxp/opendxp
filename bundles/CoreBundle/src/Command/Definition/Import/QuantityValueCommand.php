@@ -105,10 +105,8 @@ class QuantityValueCommand extends AbstractCommand
             $this->output->writeln('Successfully imported definitions');
 
             return 0;
-        } else {
-            $this->output->writeln('<error>ERROR:</error> Failed to import definitions');
-
-            return 1;
         }
+        $this->output->writeln('<error>ERROR:</error> Failed to import definitions');
+        return 1;
     }
 }

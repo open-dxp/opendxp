@@ -43,8 +43,7 @@ class GeneratePagePreviews extends AbstractCommand
                 'urlPrefix',
                 'u',
                 InputOption::VALUE_OPTIONAL,
-                'Prefix for the document path, eg. https://example.com, if not specified, OpenDxp will try use the main domain from system settings.',
-                null
+                'Prefix for the document path, eg. https://example.com, if not specified, OpenDxp will try use the main domain from system settings.'
             )
             ->addOption(
                 'parent',

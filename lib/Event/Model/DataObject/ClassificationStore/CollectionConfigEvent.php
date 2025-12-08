@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class CollectionConfigEvent extends Event
 {
-    protected CollectionConfig $collectionConfig;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(CollectionConfig $collectionConfig)
+    public function __construct(protected CollectionConfig $collectionConfig)
     {
-        $this->collectionConfig = $collectionConfig;
     }
 
     public function getCollectionConfig(): CollectionConfig

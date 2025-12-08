@@ -22,7 +22,7 @@ use OpenDxp;
 
 class RuntimeCache extends ArrayObject
 {
-    private const SERVICE_ID = __CLASS__;
+    private const string SERVICE_ID = self::class;
 
     protected static ?RuntimeCache $tempInstance = null;
 

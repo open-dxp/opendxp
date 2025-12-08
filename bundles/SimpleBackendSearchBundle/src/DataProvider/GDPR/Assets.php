@@ -25,6 +25,7 @@ use OpenDxp\Model\Element\Service;
 
 class Assets extends DataProvider\Assets
 {
+    #[\Override]
     public function searchData(int $id, string $firstname, string $lastname, string $email, int $start, int $limit, ?string $sort = null): array
     {
         if (empty($id) && empty($firstname) && empty($lastname) && empty($email)) {

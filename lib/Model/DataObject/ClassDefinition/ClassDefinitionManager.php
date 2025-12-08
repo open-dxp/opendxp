@@ -69,7 +69,7 @@ class ClassDefinitionManager
      */
     public function createOrUpdateClassDefinitions(bool $force = false): array
     {
-        $objectClassesFolders = array_filter(array_unique(array_map('realpath', [
+        $objectClassesFolders = array_filter(array_unique(array_map(realpath(...), [
             OPENDXP_CLASS_DEFINITION_DIRECTORY,
             OPENDXP_CUSTOM_CONFIGURATION_CLASS_DEFINITION_DIRECTORY,
         ])));

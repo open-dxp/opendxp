@@ -29,19 +29,13 @@ class RequestHelper
 {
     const ATTRIBUTE_FRONTEND_REQUEST = '_opendxp_frontend_request';
 
-    protected RequestStack $requestStack;
-
-    protected RequestContext $requestContext;
-
-    public function __construct(RequestStack $requestStack, RequestContext $requestContext)
+    public function __construct(protected RequestStack $requestStack, protected RequestContext $requestContext)
     {
-        $this->requestStack = $requestStack;
-        $this->requestContext = $requestContext;
     }
 
     public function hasCurrentRequest(): bool
     {
-        return null !== $this->requestStack->getCurrentRequest();
+        return $this->requestStack->getCurrentRequest() instanceof \Symfony\Component\HttpFoundation\Request;
     }
 
     public function getCurrentRequest(): Request
@@ -55,8 +49,8 @@ class RequestHelper
 
     public function getRequest(?Request $request = null): Request
     {
-        if (null === $request) {
-            $request = $this->getCurrentRequest();
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
+            return $this->getCurrentRequest();
         }
 
         return $request;
@@ -64,13 +58,13 @@ class RequestHelper
 
     public function hasMainRequest(): bool
     {
-        return null !== $this->requestStack->getMainRequest();
+        return $this->requestStack->getMainRequest() instanceof \Symfony\Component\HttpFoundation\Request;
     }
 
     public function getMainRequest(): Request
     {
         $mainRequest = $this->requestStack->getMainRequest();
-        if (null === $mainRequest) {
+        if (!$mainRequest instanceof \Symfony\Component\HttpFoundation\Request) {
             throw new LogicException('There is no main request available.');
         }
 
@@ -111,12 +105,7 @@ class RequestHelper
         if (OpenDxp::inAdmin()) {
             return false;
         }
-
-        if (preg_match('@^/admin.*@', $request->getRequestUri())) {
-            return false;
-        }
-
-        return true;
+        return !preg_match('@^/admin.*@', $request->getRequestUri());
     }
 
     /**
@@ -154,12 +143,7 @@ class RequestHelper
                 return true;
             }
         }
-
-        if (preg_match('@^/admin/document_tag/renderlet@', $request->getRequestUri())) {
-            return true;
-        }
-
-        return false;
+        return (bool) preg_match('@^/admin/document_tag/renderlet@', $request->getRequestUri());
     }
 
     /**
@@ -182,9 +166,8 @@ class RequestHelper
     private function anonymizeIp(string $ip): string
     {
         $aip = substr($ip, 0, strrpos($ip, '.') + 1);
-        $aip .= '255';
 
-        return $aip;
+        return $aip . '255';
     }
 
     /**
@@ -206,13 +189,11 @@ class RequestHelper
             $port = ':'.$this->requestContext->getHttpsPort();
         }
 
-        $request = Request::create(
+        return Request::create(
             $scheme .'://'. $this->requestContext->getHost().$port.$this->requestContext->getBaseUrl().$uri,
             $this->requestContext->getMethod(),
             $this->requestContext->getParameters()
         );
-
-        return $request;
     }
 
     /**

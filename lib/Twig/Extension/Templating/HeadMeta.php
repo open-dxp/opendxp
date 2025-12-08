@@ -98,18 +98,10 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
         if ((null !== $content) && (null !== $keyValue)) {
             $item = $this->createData($keyType, $keyValue, $content, $modifiers);
             $action = strtolower($placement);
-            switch ($action) {
-                case 'append':
-                case 'prepend':
-                case 'set':
-                    $this->$action($item);
-
-                    break;
-                default:
-                    $this->append($item);
-
-                    break;
-            }
+            match ($action) {
+                'append', 'prepend', 'set' => $this->$action($item),
+                default => $this->append($item),
+            };
         }
 
         return $this;
@@ -117,16 +109,12 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
 
     protected function _normalizeType(string $type): string
     {
-        switch ($type) {
-            case 'Name':
-                return 'name';
-            case 'HttpEquiv':
-                return 'http-equiv';
-            case 'Property':
-                return 'property';
-            default:
-                throw new Exception(sprintf('Invalid type "%s" passed to _normalizeType', $type));
-        }
+        return match ($type) {
+            'Name' => 'name',
+            'HttpEquiv' => 'http-equiv',
+            'Property' => 'property',
+            default => throw new Exception(sprintf('Invalid type "%s" passed to _normalizeType', $type)),
+        };
     }
 
     public function getItem(string $type, string $keyValue): mixed
@@ -157,6 +145,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @return HeadMeta
      */
+    #[\Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(pre|ap)pend|offsetSet)(?P<type>Name|HttpEquiv|Property)$/', $method, $matches)) {
@@ -165,11 +154,9 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
             $argc = count($args);
             $index = null;
 
-            if ('offsetSet' === $action) {
-                if (0 < $argc) {
-                    $index = array_shift($args);
-                    --$argc;
-                }
+            if ('offsetSet' === $action && 0 < $argc) {
+                $index = array_shift($args);
+                --$argc;
             }
 
             if (2 > $argc) {
@@ -227,6 +214,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception
      */
+    #[\Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -243,6 +231,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception
      */
+    #[\Override]
     public function offsetUnset($index): void
     {
         if (!in_array($index, $this->getContainer()->getKeys())) {
@@ -333,6 +322,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
     /**
      * Render placeholder as string
      */
+    #[\Override]
     public function toString(int|string|null $indent = null): string
     {
         $indent = (null !== $indent)
@@ -355,9 +345,8 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
 
         // add raw items
         $separator = $this->_escape($this->getSeparator()) . $indent;
-        $metaString .= ($separator . implode($separator, $this->rawItems));
 
-        return $metaString;
+        return $metaString . ($separator . implode($separator, $this->rawItems));
     }
 
     /**

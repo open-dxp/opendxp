@@ -33,13 +33,13 @@ class DelegateVersionStorageAdapter implements VersionStorageAdapterInterface
         protected VersionStorageAdapterInterface $defaultAdapter,
         protected VersionStorageAdapterInterface $fallbackAdapter
     ) {
-        $this->adapters[$defaultAdapter->getStorageType(null, null)] = $defaultAdapter;
-        $this->adapters[$fallbackAdapter->getStorageType(null, null)] = $fallbackAdapter;
+        $this->adapters[$defaultAdapter->getStorageType()] = $defaultAdapter;
+        $this->adapters[$fallbackAdapter->getStorageType()] = $fallbackAdapter;
     }
 
     protected function getAdapter(?string $storageType = null): VersionStorageAdapterInterface
     {
-        if (empty($storageType) === true) {
+        if (empty($storageType)) {
             return $this->defaultAdapter;
         }
 

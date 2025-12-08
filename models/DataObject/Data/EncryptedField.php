@@ -30,16 +30,10 @@ class EncryptedField implements OwnerAwareFieldInterface
 {
     use OwnerAwareFieldTrait;
 
-    protected Data $delegate;
-
-    protected mixed $plain = null;
-
     protected mixed $encrypted = null;
 
-    public function __construct(Data $delegate, mixed $plain)
+    public function __construct(protected Data $delegate, protected mixed $plain)
     {
-        $this->plain = $plain;
-        $this->delegate = $delegate;
         $this->markMeDirty();
     }
 
@@ -87,7 +81,7 @@ class EncryptedField implements OwnerAwareFieldInterface
             } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new Exception('could not load key');
+                throw new Exception('could not load key', $e->getCode(), $e);
             }
 
             return ['encrypted', '_owner'];
@@ -119,7 +113,7 @@ class EncryptedField implements OwnerAwareFieldInterface
             } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new Exception('could not load key');
+                throw new Exception('could not load key', $e->getCode(), $e);
             }
         }
 

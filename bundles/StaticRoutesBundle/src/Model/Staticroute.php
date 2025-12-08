@@ -101,13 +101,13 @@ final class Staticroute extends AbstractModel
             if (!$route) {
                 throw new Exception('Route in registry is null');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $route = new self();
                 $route->setId($id);
                 $route->getDao()->getById();
                 \OpenDxp\Cache\RuntimeCache::set($cacheKey, $route);
-            } catch (NotFoundException $e) {
+            } catch (NotFoundException) {
                 return null;
             }
         }
@@ -132,7 +132,7 @@ final class Staticroute extends AbstractModel
 
         try {
             $route->getDao()->getByName($name, $siteId);
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
 
@@ -170,7 +170,7 @@ final class Staticroute extends AbstractModel
         $t = explode('|', $defaultsString);
         foreach ($t as $v) {
             $d = explode('=', $v);
-            if (strlen($d[0]) > 0 && strlen($d[1]) > 0) {
+            if ($d[0] !== '' && $d[1] !== '') {
                 $defaults[$d[0]] = $d[1];
             }
         }
@@ -350,14 +350,14 @@ final class Staticroute extends AbstractModel
         $defaultValues = $this->getDefaultsArray();
 
         // apply values (controller, ... ) from previous match if applicable (only when )
-        if (self::$_currentRoute && (self::$_currentRoute->getName() == $this->getName())) {
-            $defaultValues = array_merge($defaultValues, self::$_currentRoute->_values);
+        if (self::$_currentRoute && (self::$_currentRoute->getName() === $this->getName())) {
+            $defaultValues = [...$defaultValues, ...self::$_currentRoute->_values];
         }
 
         // merge with defaults
         // merge router.request_context params e.g. "_locale"
         $requestParameters = OpenDxp::getContainer()->get('opendxp.routing.router.request_context')->getParameters();
-        $urlParams = array_merge($defaultValues, $requestParameters, $urlOptions);
+        $urlParams = [...$defaultValues, ...$requestParameters, ...$urlOptions];
 
         $parametersInReversePattern = [];
         $parametersGet = [];
@@ -365,40 +365,35 @@ final class Staticroute extends AbstractModel
         $forbiddenCharacters = ['#', ':', '?'];
 
         // check for named variables
-        uksort($urlParams, function ($a, $b) {
+        uksort($urlParams, fn($a, $b) =>
             // order by key length, longer key have priority
             // (%abcd prior %ab, so that %ab doesn't replace %ab in [%ab]cd)
-            return strlen($b) - strlen($a);
-        });
+            strlen($b) - strlen($a));
 
         $tmpReversePattern = $this->getReverse();
         foreach ($urlParams as $key => $param) {
             if (str_contains($tmpReversePattern, '%' . $key)) {
                 $parametersInReversePattern[$key] = (string) $param;
-
                 // we need to replace the found variable to that it cannot match again a placeholder
                 // eg. %abcd prior %ab if %abcd matches already %ab shouldn't match again on the same placeholder
                 $tmpReversePattern = str_replace('%' . $key, '---', $tmpReversePattern);
-            } else {
+            } elseif (array_key_exists($key, $urlOptions)) {
                 // only append the get parameters if there are defined in $urlOptions
-                if (array_key_exists($key, $urlOptions)) {
-                    $parametersGet[$key] = $param;
-                }
+                $parametersGet[$key] = $param;
             }
         }
 
         $urlEncodeEscapeCharacters = '~|urlen' . md5(microtime()) . 'code|~';
 
         // replace named variables
-        uksort($parametersInReversePattern, function ($a, $b) {
+        uksort($parametersInReversePattern, fn($a, $b) =>
             // order by key length, longer key have priority
             // (%abcd prior %ab, so that %ab doesn't replace %ab in [%ab]cd)
-            return strlen($b) - strlen($a);
-        });
+            strlen($b) - strlen($a));
 
         foreach ($parametersInReversePattern as $key => $value) {
             $value = str_replace($forbiddenCharacters, '', $value);
-            if (strlen($value) > 0) {
+            if ((string) $value !== '') {
                 if ($encode) {
                     $value = urlencode_ignore_slash($value);
                 }
@@ -412,12 +407,8 @@ final class Staticroute extends AbstractModel
         $url = str_replace(['{', '}'], '', $url);
 
         // optional get parameters
-        if (!empty($parametersGet)) {
-            if ($encode) {
-                $getParams = array_urlencode($parametersGet);
-            } else {
-                $getParams = array_toquerystring($parametersGet);
-            }
+        if ($parametersGet !== []) {
+            $getParams = $encode ? array_urlencode($parametersGet) : array_toquerystring($parametersGet);
             $url .= '?' . $getParams;
         }
 
@@ -430,9 +421,8 @@ final class Staticroute extends AbstractModel
             'encode' => $encode,
         ]);
         OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::STATICROUTE_PATH);
-        $url = $event->getArgument('frontendPath');
 
-        return $url;
+        return $event->getArgument('frontendPath');
     }
 
     /**
@@ -444,10 +434,8 @@ final class Staticroute extends AbstractModel
     {
         if (@preg_match($this->getPattern(), $path)) {
             // check for site
-            if ($this->getSiteId()) {
-                if (!Site::isSiteRequest() || !in_array(Site::getCurrentSite()->getId(), $this->getSiteId())) {
-                    return false;
-                }
+            if ($this->getSiteId() && (!Site::isSiteRequest() || !in_array(Site::getCurrentSite()->getId(), $this->getSiteId()))) {
+                return false;
             }
 
             $variables = explode(',', $this->getVariables());
@@ -531,6 +519,7 @@ final class Staticroute extends AbstractModel
         return $this->creationDate;
     }
 
+    #[\Override]
     public function __clone(): void
     {
         if ($this->dao) {

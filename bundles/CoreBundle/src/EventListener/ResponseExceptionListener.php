@@ -148,10 +148,8 @@ class ResponseExceptionListener implements EventSubscriberInterface
             ['page', 'snippet', 'hardlink', 'link', 'folder']
         );
 
-        if ($document && $document->getFullPath() !== '/') {
-            if ($document->getProperty('language')) {
-                $locale = $document->getProperty('language');
-            }
+        if ($document && $document->getFullPath() !== '/' && $document->getProperty('language')) {
+            $locale = $document->getProperty('language');
         }
 
         $config = $this->config->getSystemSettingsConfig();
@@ -181,7 +179,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
 
         if (empty($errorPath)) {
-            $errorPath = $defaultErrorDocumentPath;
+            return $defaultErrorDocumentPath;
         }
 
         return $errorPath;

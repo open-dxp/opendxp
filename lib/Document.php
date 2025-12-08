@@ -59,11 +59,7 @@ class Document
      */
     public static function isAvailable(): bool
     {
-        if (self::getDefaultAdapter()) {
-            return true;
-        }
-
-        return false;
+        return self::getDefaultAdapter() instanceof \OpenDxp\Document\Adapter;
     }
 
     /**

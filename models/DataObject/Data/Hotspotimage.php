@@ -22,7 +22,7 @@ use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Element\ElementDescriptor;
 use OpenDxp\Model\Element\Service;
 
-class Hotspotimage implements OwnerAwareFieldInterface
+class Hotspotimage implements OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
 
@@ -38,12 +38,10 @@ class Hotspotimage implements OwnerAwareFieldInterface
      */
     protected ?array $marker = null;
 
-    /**
+    public function __construct(Asset\Image|int|null $image = null, array $hotspots = [], array $marker = [], /**
      * @var array[]|null
      */
-    protected ?array $crop = null;
-
-    public function __construct(Asset\Image|int|null $image = null, array $hotspots = [], array $marker = [], array $crop = [])
+    protected ?array $crop = [])
     {
         if ($image instanceof Asset\Image) {
             $this->image = $image;
@@ -60,8 +58,6 @@ class Hotspotimage implements OwnerAwareFieldInterface
         foreach ($marker as $m) {
             $this->marker[] = $m;
         }
-
-        $this->crop = $crop;
         $this->markMeDirty();
     }
 
@@ -157,7 +153,7 @@ class Hotspotimage implements OwnerAwareFieldInterface
             if ($thumbConfig->hasMedias()) {
                 $medias = $thumbConfig->getMedias() ?: [];
 
-                foreach ($medias as $mediaName => $mediaConfig) {
+                foreach (array_keys($medias) as $mediaName) {
                     $thumbConfig->addItemAt(0, 'cropPercent', [
                         'width' => $crop['cropWidth'],
                         'height' => $crop['cropHeight'],
@@ -193,11 +189,7 @@ class Hotspotimage implements OwnerAwareFieldInterface
     {
         if ($this->image instanceof ElementDescriptor) {
             $image = Service::getElementById($this->image->getType(), $this->image->getId());
-            if ($image instanceof Asset\Image) {
-                $this->image = $image;
-            } else {
-                $this->image = null;
-            }
+            $this->image = $image instanceof Asset\Image ? $image : null;
         }
     }
 }

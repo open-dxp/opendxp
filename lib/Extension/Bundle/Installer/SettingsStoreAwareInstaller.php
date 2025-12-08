@@ -27,18 +27,15 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class SettingsStoreAwareInstaller extends AbstractInstaller
 {
-    protected BundleInterface $bundle;
-
     protected FilteredMigrationsRepository $migrationRepository;
 
     protected FilteredTableMetadataStorage $tableMetadataStorage;
 
     protected DependencyFactory $dependencyFactory;
 
-    public function __construct(BundleInterface $bundle)
+    public function __construct(protected BundleInterface $bundle)
     {
         parent::__construct();
-        $this->bundle = $bundle;
     }
 
     #[Required]
@@ -127,6 +124,7 @@ abstract class SettingsStoreAwareInstaller extends AbstractInstaller
         $this->markUninstalled();
     }
 
+    #[\Override]
     public function isInstalled(): bool
     {
         $installSetting = SettingsStore::get($this->getSettingsStoreInstallationId(), 'opendxp');
@@ -134,11 +132,13 @@ abstract class SettingsStoreAwareInstaller extends AbstractInstaller
         return (bool) ($installSetting ? $installSetting->getData() : false);
     }
 
+    #[\Override]
     public function canBeInstalled(): bool
     {
         return !$this->isInstalled();
     }
 
+    #[\Override]
     public function canBeUninstalled(): bool
     {
         return $this->isInstalled();

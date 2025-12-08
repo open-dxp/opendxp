@@ -159,15 +159,13 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
 
         $brickDefinition = DataObject\Objectbrick\Definition::getByKey($allowedBrickType);
 
-        $editmodeDataItem = [
+        return [
             'data' => $brickData,
             'type' => $item->getType(),
             'metaData' => $brickMetaData,
             'inherited' => $inherited,
             'title' => $brickDefinition->getTitle(),
         ];
-
-        return $editmodeDataItem;
     }
 
     /**
@@ -213,12 +211,12 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
                 $data = $relations[0] ?? null;
             } else {
                 foreach ($relations as $rel) {
-                    $data[] = ['id' => $rel['id'], 'fullpath' => $rel['path'],  'type' => $rel['type'], 'subtype' => $rel['subtype'], 'published' => ($rel['published'] ? true : false)];
+                    $data[] = ['id' => $rel['id'], 'fullpath' => $rel['path'],  'type' => $rel['type'], 'subtype' => $rel['subtype'], 'published' => ((bool) $rel['published'])];
                 }
             }
             $result->objectData = $data;
             $result->metaData['objectid'] = $baseObject->getId();
-            $result->metaData['inherited'] = $level != 0;
+            $result->metaData['inherited'] = $level !== 0;
         } else {
             $fieldValue = $item->$valueGetter();
             $editmodeValue = $fielddefinition->getDataForEditmode($fieldValue, $baseObject, $params);
@@ -234,7 +232,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
             }
             $result->objectData = $editmodeValue;
             $result->metaData['objectid'] = $baseObject ? $baseObject->getId() : null;
-            $result->metaData['inherited'] = $level != 0;
+            $result->metaData['inherited'] = $level !== 0;
         }
 
         return $result;
@@ -302,6 +300,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
      *
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         // this is handled directly in the template
@@ -309,11 +308,13 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return 'BRICKS';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return 'NOT SUPPORTED';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $dataString = '';
@@ -382,7 +383,8 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         }
 
         if (is_array($allowedTypes)) {
-            for ($i = 0; $i < count($allowedTypes); $i++) {
+            $counter = count($allowedTypes);
+            for ($i = 0; $i < $counter; $i++) {
                 if (!DataObject\Objectbrick\Definition::getByKey($allowedTypes[$i])) {
                     Logger::warn("Removed unknown allowed type [ $allowedTypes[$i] ] from allowed types of object brick");
                     unset($allowedTypes[$i]);
@@ -405,6 +407,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $data;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -420,7 +423,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
                     foreach ($collectionDef->getFieldDefinitions() as $fd) {
                         $key = $fd->getName();
                         $getter = 'get' . ucfirst($key);
-                        $dependencies = array_merge($dependencies, $fd->resolveDependencies($item->$getter()));
+                        $dependencies = [...$dependencies, ...$fd->resolveDependencies($item->$getter())];
                     }
                 }
             }
@@ -429,6 +432,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $dependencies;
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Objectbrick) {
@@ -451,13 +455,10 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $tags;
     }
 
+    #[\Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $key = $this->getName();
 
@@ -487,11 +488,11 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         $code .= $this->getPreGetValueHookCode($key);
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data instanceof DataObject\Objectbrick) {
@@ -571,15 +572,12 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         }
     }
 
-    /**
-     * @param DataObject\Concrete|null $object
-     */
     public function getDataForGrid(?Objectbrick $data, ?Concrete $object = null, array $params = []): string
     {
         return 'NOT SUPPORTED';
     }
 
-    private function getDiffDataForField(Objectbrick\Data\AbstractData $item, string $key, Data $fielddefinition, int $level, DataObject\Concrete $baseObject, string $getter, array $params = []): ?array
+    private function getDiffDataForField(Objectbrick\Data\AbstractData $item, string $key, Data $fielddefinition, DataObject\Concrete $baseObject, array $params = []): ?array
     {
         $valueGetter = 'get' . ucfirst($key);
 
@@ -608,7 +606,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         $result = [];
 
         foreach ($collectionDef->getFieldDefinitions() as $fd) {
-            $fieldData = $this->getDiffDataForField($item, $fd->getName(), $fd, $level, $data->getObject(), $getter, $params = []);
+            $fieldData = $this->getDiffDataForField($item, $fd->getName(), $fd, $data->getObject(), $params = []);
 
             $diffdata = [];
 
@@ -640,6 +638,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
     /** See parent class.
      *
      */
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $editmodeData = [];
@@ -665,6 +664,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
      *
      *
      */
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): mixed
     {
         $valueGetter = 'get' . ucfirst($this->getName());
@@ -707,6 +707,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $brickdata;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -743,6 +744,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
     /**
      * @param DataObject\ClassDefinition\Data\Objectbricks $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->allowedTypes = $mainDefinition->allowedTypes;

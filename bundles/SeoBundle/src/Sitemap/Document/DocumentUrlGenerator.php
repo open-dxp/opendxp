@@ -27,11 +27,8 @@ use RuntimeException;
  */
 class DocumentUrlGenerator implements DocumentUrlGeneratorInterface
 {
-    private UrlGeneratorInterface $urlGenerator;
-
-    public function __construct(UrlGeneratorInterface $urlGenerator)
+    public function __construct(private readonly UrlGeneratorInterface $urlGenerator)
     {
-        $this->urlGenerator = $urlGenerator;
     }
 
     public function generateUrl(string $path, array $options = []): string
@@ -48,7 +45,7 @@ class DocumentUrlGenerator implements DocumentUrlGeneratorInterface
             $prettyUrlSet = false;
             $path = $document->getRealFullPath();
         }
-        if (null !== $site && !$prettyUrlSet) {
+        if ($site instanceof \OpenDxp\Model\Site && !$prettyUrlSet) {
             // strip site prefix from path
             $path = substr($path, strlen($site->getRootDocument()->getRealFullPath()));
         }
@@ -60,14 +57,11 @@ class DocumentUrlGenerator implements DocumentUrlGeneratorInterface
 
     protected function prepareOptions(array $options, ?Site $site = null): array
     {
-        if (!isset($options['host'])) {
-            // set site host as default value if it is not explicitely set via options
-            if (null !== $site) {
-                $host = $this->hostForSite($site);
-
-                if (!empty($host)) {
-                    $options['host'] = $host;
-                }
+        // set site host as default value if it is not explicitely set via options
+        if (!isset($options['host']) && $site instanceof \OpenDxp\Model\Site) {
+            $host = $this->hostForSite($site);
+            if (!empty($host)) {
+                $options['host'] = $host;
             }
         }
 

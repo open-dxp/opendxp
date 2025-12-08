@@ -27,11 +27,8 @@ use Symfony\Component\HttpKernel\Controller\ControllerReference;
  */
 class ActionRenderer
 {
-    protected HttpKernelRuntime $httpKernelRuntime;
-
-    public function __construct(HttpKernelRuntime $httpKernelRuntime)
+    public function __construct(protected HttpKernelRuntime $httpKernelRuntime)
     {
-        $this->httpKernelRuntime = $httpKernelRuntime;
     }
 
     /**

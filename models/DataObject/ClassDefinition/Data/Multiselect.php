@@ -223,12 +223,10 @@ class Multiselect extends Data implements
         $this->setOptions($options);
 
         if (isset($params['purpose']) && $params['purpose'] === 'editmode') {
-            $result = $data;
-        } else {
-            $result = ['value' => $data, 'options' => $this->getOptions()];
+            return $data;
         }
 
-        return $result;
+        return ['value' => $data, 'options' => $this->getOptions()];
     }
 
     /**
@@ -242,6 +240,7 @@ class Multiselect extends Data implements
         return $data;
     }
 
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $data = $data[0]['data'];
@@ -258,17 +257,17 @@ class Multiselect extends Data implements
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data)) {
-            return implode(',', array_map(function ($v) {
-                return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-            }, $data));
+            return implode(',', array_map(fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'), $data));
         }
 
         return '';
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -280,6 +279,7 @@ class Multiselect extends Data implements
         }
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -290,6 +290,7 @@ class Multiselect extends Data implements
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -305,6 +306,7 @@ class Multiselect extends Data implements
      *
      *
      */
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -322,10 +324,11 @@ class Multiselect extends Data implements
      * @param array $params optional params used to change the behavior
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         if ($operator === '=' || $operator === 'LIKE') {
-            $name = $params['name'] ? $params['name'] : $this->name;
+            $name = $params['name'] ?: $this->name;
 
             $db = \OpenDxp\Db::get();
             $key = $db->quoteIdentifier($name);
@@ -333,10 +336,8 @@ class Multiselect extends Data implements
                 $key = $params['brickPrefix'].$key;
             }
 
-            if (str_contains($name, 'cskey') && is_array($value) && !empty($value)) {
-                $values = array_map(function ($val) use ($db) {
-                    return $db->quote('%' .Helper::escapeLike($val). '%');
-                }, $value);
+            if (str_contains($name, 'cskey') && is_array($value) && $value !== []) {
+                $values = array_map(fn($val) => $db->quote('%' .Helper::escapeLike($val). '%'), $value);
 
                 return $key . ' LIKE ' . implode(' OR ' . $key . ' LIKE ', $values);
             }
@@ -351,6 +352,7 @@ class Multiselect extends Data implements
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -359,7 +361,6 @@ class Multiselect extends Data implements
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): array|string
@@ -386,42 +387,41 @@ class Multiselect extends Data implements
             $value['type'] = 'html';
 
             return $value;
-        } else {
-            return '';
         }
+        return '';
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\Multiselect $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
         $this->options = $mainDefinition->options;
     }
 
+    #[\Override]
     public function appendData(?array $existingData, array $additionalData): array
     {
         if (!is_array($existingData)) {
             $existingData = [];
         }
 
-        $existingData = array_unique(array_merge($existingData, $additionalData));
-
-        return $existingData;
+        return array_unique([...$existingData, ...$additionalData]);
     }
 
+    #[\Override]
     public function removeData(?array $existingData, array $removeData): array
     {
         if (!is_array($existingData)) {
             $existingData = [];
         }
 
-        $existingData = array_unique(array_diff($existingData, $removeData));
-
-        return $existingData;
+        return array_unique(array_diff($existingData, $removeData));
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -432,6 +432,7 @@ class Multiselect extends Data implements
         return $this->isEqualArray($oldValue, $newValue);
     }
 
+    #[\Override]
     public function jsonSerialize(): mixed
     {
         if (!$this->useConfiguredOptions() && $this->getOptionsProviderClass() && Service::doRemoveDynamicOptions()) {
@@ -488,16 +489,14 @@ class Multiselect extends Data implements
 
             try {
                 $options = $optionsProvider->getOptions($context, $this);
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 // error from getOptions => no values => no comma => no problems
                 $options = null;
             }
         } else {
             $options = $this->getOptions();
         }
-        if (is_array($options) && array_reduce($options, static function ($containsComma, $option) {
-            return $containsComma || str_contains((string)$option['value'], ',');
-        }, false)) {
+        if (is_array($options) && array_reduce($options, static fn($containsComma, $option) => $containsComma || str_contains((string)$option['value'], ','), false)) {
             throw new Exception("Field {$this->getName()}: Multiselect option values may not contain commas (,) for now.");
         }
     }

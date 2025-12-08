@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 class OpenDxpUuidExtension extends ConfigurableExtension
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_uuid';

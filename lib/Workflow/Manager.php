@@ -39,14 +39,6 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class Manager
 {
-    private Registry $workflowRegistry;
-
-    private NotesSubscriber $notesSubscriber;
-
-    private ExpressionService $expressionService;
-
-    private EventDispatcherInterface $eventDispatcher;
-
     /**
      * @var PlaceConfig[][]
      */
@@ -62,12 +54,8 @@ class Manager
      */
     private array $workflows = [];
 
-    public function __construct(Registry $workflowRegistry, NotesSubscriber $notesSubscriber, ExpressionService $expressionService, EventDispatcherInterface $eventDispatcher)
+    public function __construct(private readonly Registry $workflowRegistry, private readonly NotesSubscriber $notesSubscriber, private readonly ExpressionService $expressionService, private readonly EventDispatcherInterface $eventDispatcher)
     {
-        $this->workflowRegistry = $workflowRegistry;
-        $this->notesSubscriber = $notesSubscriber;
-        $this->expressionService = $expressionService;
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -76,7 +64,7 @@ class Manager
      */
     public function addPlaceConfig(string $workflowName, string $place, array $placeConfig): static
     {
-        $this->placeConfigs[$workflowName] = $this->placeConfigs[$workflowName] ?? [];
+        $this->placeConfigs[$workflowName] ??= [];
         $this->placeConfigs[$workflowName][$place] = new PlaceConfig($place, $placeConfig, $this->expressionService, $workflowName);
 
         return $this;
@@ -88,7 +76,7 @@ class Manager
      */
     public function addGlobalAction(string $workflowName, string $action, array $actionConfig, ?CustomHtmlServiceInterface $customHtmlService = null): static
     {
-        $this->globalActions[$workflowName] = $this->globalActions[$workflowName] ?? [];
+        $this->globalActions[$workflowName] ??= [];
         $this->globalActions[$workflowName][$action] = new GlobalAction($action, $actionConfig, $this->expressionService, $workflowName, $customHtmlService);
 
         return $this;
@@ -147,9 +135,7 @@ class Manager
     {
         $this->workflows[$workflowName] = new WorkflowConfig($workflowName, $options);
 
-        uasort($this->workflows, function (WorkflowConfig $a, WorkflowConfig $b) {
-            return $b->getPriority() <=> $a->getPriority();
-        });
+        uasort($this->workflows, fn(WorkflowConfig $a, WorkflowConfig $b) => $b->getPriority() <=> $a->getPriority());
     }
 
     /**
@@ -194,7 +180,7 @@ class Manager
     {
         try {
             $workflow = $this->workflowRegistry->get($subject, $workflowName);
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             // workflow does not apply to given subject
             return null;
         }
@@ -334,7 +320,7 @@ class Manager
         // check that the subject has a non-empty place
         $initialPlaces = $this->getInitialPlacesForWorkflow($workflow);
         $markingObject = $markingStore->getMarking($subject);
-        foreach ($markingObject->getPlaces() as $placeName => $nbToken) {
+        foreach (array_keys($markingObject->getPlaces()) as $placeName) {
             if ('' !== $placeName) {
                 continue;
             }
@@ -387,7 +373,7 @@ class Manager
 
             try {
                 $marking = $workflow->getMarking($element);
-            } catch (LogicException $e) {
+            } catch (LogicException) {
                 continue;
             }
 
@@ -397,10 +383,7 @@ class Manager
 
             foreach ($this->getOrderedPlaceConfigs($workflow, $marking) as $placeConfig) {
                 if (!empty($placeConfig->getPermissions($workflow, $element))) {
-                    $userPermissions = array_merge(
-                        $userPermissions,
-                        $placeConfig->getUserPermissions($workflow, $element)
-                    );
+                    $userPermissions = [...$userPermissions, ...$placeConfig->getUserPermissions($workflow, $element)];
                 }
             }
         }

@@ -25,23 +25,14 @@ class GlobalAction implements NotesAwareInterface
 {
     use NotesAwareTrait;
 
-    private string $name;
-
     /**
      * @var array
      */
     private $options;
 
-    private ExpressionService $expressionService;
-
-    private string $workflowName;
-
-    public function __construct(string $name, array $options, ExpressionService $expressionService, string $workflowName, ?CustomHtmlServiceInterface $customHtmlService = null)
+    public function __construct(private string $name, array $options, private ExpressionService $expressionService, private string $workflowName, ?CustomHtmlServiceInterface $customHtmlService = null)
     {
-        $this->name = $name;
         $this->options = $options;
-        $this->expressionService = $expressionService;
-        $this->workflowName = $workflowName;
         if ($customHtmlService instanceof CustomHtmlServiceInterface) {
             $this->setCustomHtmlService($customHtmlService);
         }

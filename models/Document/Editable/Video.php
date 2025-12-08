@@ -185,7 +185,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         $allowedTypes = $this->getAllowedTypes();
 
         if (
-            empty($this->type) === true
+            empty($this->type)
             || in_array($this->type, $allowedTypes, true) === false
         ) {
             // Set the first type in array as default selection for dropdown
@@ -225,6 +225,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $data;
     }
 
+    #[\Override]
     public function getDataForResource(): array
     {
         return [
@@ -244,28 +245,32 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         if (array_key_exists(0, $args)) {
             $inAdmin = $args[0];
         }
-
-        if (
-            empty($this->id) === true
-            || empty($this->type) === true
-            || in_array($this->type, $this->getAllowedTypes(), true) === false
-        ) {
+        if (empty($this->id)
+        || empty($this->type)
+        || in_array($this->type, $this->getAllowedTypes(), true) === false) {
             return $this->getEmptyCode();
-        } elseif ($this->type === self::TYPE_ASSET) {
+        }
+        if ($this->type === self::TYPE_ASSET) {
             return $this->getAssetCode($inAdmin);
-        } elseif ($this->type === self::TYPE_YOUTUBE) {
+        }
+        if ($this->type === self::TYPE_YOUTUBE) {
             return $this->getYoutubeCode($inAdmin);
-        } elseif ($this->type === self::TYPE_VIMEO) {
+        }
+        if ($this->type === self::TYPE_VIMEO) {
             return $this->getVimeoCode($inAdmin);
-        } elseif ($this->type === self::TYPE_DAILYMOTION) {
+        }
+        if ($this->type === self::TYPE_DAILYMOTION) {
             return $this->getDailymotionCode($inAdmin);
-        } elseif ($this->type === 'url') {
+        }
+
+        if ($this->type === 'url') {
             return $this->getUrlCode();
         }
 
         return $this->getEmptyCode();
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -292,6 +297,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $dependencies;
     }
 
+    #[\Override]
     public function checkValidity(): bool
     {
         $valid = true;
@@ -318,6 +324,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $valid;
     }
 
+    #[\Override]
     public function admin()
     {
         $html = parent::admin();
@@ -344,7 +351,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
     public function setDataFromEditmode(mixed $data): static
     {
         if (isset($data['type'])
-            && in_array($data['type'], self::ALLOWED_TYPES, true) === true
+            && in_array($data['type'], self::ALLOWED_TYPES, true)
         ) {
             $this->type = $data['type'];
         }
@@ -363,11 +370,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         }
 
         $video = Asset::getByPath((string)$data['path']);
-        if ($video instanceof Asset\Video) {
-            $this->id = $video->getId();
-        } else {
-            $this->id = $data['path'];
-        }
+        $this->id = $video instanceof Asset\Video ? $video->getId() : $data['path'];
 
         $this->poster = null;
         $poster = Asset::getByPath($data['poster']);
@@ -435,9 +438,8 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
                 if ($inAdmin && isset($config['editmodeImagePreview']) && $config['editmodeImagePreview']) {
                     $code = '<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video '. ($config['class'] ?? '') .'">';
                     $code .= '<img width="' . $this->getWidth() . '" src="' . $image . '" />';
-                    $code .= '</div>';
 
-                    return $code;
+                    return $code . '</div>';
                 }
 
                 if ($thumbnail['status'] === 'finished') {
@@ -527,41 +529,33 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
             $message = '';
         }
 
-        $code = '
+        return '
         <div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video">
             <div class="opendxp_editable_video_error" style="text-align:center; width: ' . $width . '; height: ' . $height . '; border:1px solid #000; background: url(/bundles/opendxpadmin/img/filetype-not-supported.svg) no-repeat center center #fff;">
                 ' . $message . '
             </div>
         </div>';
-
-        return $code;
     }
 
     private function parseYoutubeId(): string
     {
         $youtubeId = '';
-        if ($this->type === self::TYPE_YOUTUBE) {
-            if ($youtubeId = $this->id) {
-                if (str_contains($youtubeId, '//')) {
-                    $parts = parse_url($this->id);
-                    if (array_key_exists('query', $parts)) {
-                        parse_str($parts['query'], $vars);
+        if ($this->type === self::TYPE_YOUTUBE && ($youtubeId = $this->id) && str_contains($youtubeId, '//')) {
+            $parts = parse_url($this->id);
+            if (array_key_exists('query', $parts)) {
+                parse_str($parts['query'], $vars);
 
-                        if (isset($vars['v']) && $vars['v']) {
-                            $youtubeId = $vars['v'];
-                        }
-                    }
-
-                    //get youtube id if form urls like  http://www.youtube.com/embed/youtubeId
-                    if (str_contains($this->id, 'embed')) {
-                        $explodedPath = explode('/', $parts['path']);
-                        $youtubeId = $explodedPath[array_search('embed', $explodedPath) + 1];
-                    }
-
-                    if (isset($parts['host']) && $parts['host'] === 'youtu.be') {
-                        $youtubeId = trim($parts['path'], ' /');
-                    }
+                if (isset($vars['v']) && $vars['v']) {
+                    $youtubeId = $vars['v'];
                 }
+            }
+            //get youtube id if form urls like  http://www.youtube.com/embed/youtubeId
+            if (str_contains($this->id, 'embed')) {
+                $explodedPath = explode('/', $parts['path']);
+                $youtubeId = $explodedPath[array_search('embed', $explodedPath) + 1];
+            }
+            if (isset($parts['host']) && $parts['host'] === 'youtu.be') {
+                $youtubeId = trim($parts['path'], ' /');
             }
         }
 
@@ -642,30 +636,25 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         // this is to be backward compatible to <= v 1.4.7
         $configurations = $clipConfig;
         if (array_key_exists(self::TYPE_YOUTUBE, $config) && is_array($config[self::TYPE_YOUTUBE])) {
-            $configurations = array_merge($clipConfig, $config[self::TYPE_YOUTUBE]);
+            $configurations = [...$clipConfig, ...$config[self::TYPE_YOUTUBE]];
         }
-
-        if (!empty($configurations)) {
-            foreach ($configurations as $key => $value) {
-                if (in_array($key, $validYoutubeParams)) {
-                    if (is_bool($value)) {
-                        if ($value) {
-                            $additionalParams .= '&amp;'.$key.'=1';
-                        } else {
-                            $additionalParams .= '&amp;'.$key.'=0';
-                        }
+        foreach ($configurations as $key => $value) {
+            if (in_array($key, $validYoutubeParams)) {
+                if (is_bool($value)) {
+                    if ($value) {
+                        $additionalParams .= '&amp;'.$key.'=1';
                     } else {
-                        $additionalParams .= '&amp;'.$key.'='.$value;
+                        $additionalParams .= '&amp;'.$key.'=0';
                     }
+                } else {
+                    $additionalParams .= '&amp;'.$key.'='.$value;
                 }
             }
         }
 
-        $code .= '<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video '. ($config['class'] ?? '') .'">
+        return $code . ('<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video ' . ($config['class'] ?? '') . '">
             <iframe width="' . $width . '" height="' . $height . '" src="https://www.youtube-nocookie.com/embed/' . $seriesPrefix . $youtubeId . $wmode . $additionalParams . '" title="YouTube video" allow="fullscreen" data-type="opendxp_video_editable"></iframe>
-        </div>';
-
-        return $code;
+        </div>');
     }
 
     private function getVimeoCode(bool $inAdmin = false): string
@@ -720,30 +709,25 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
             // this is to be backward compatible to <= v 1.4.7
             $configurations = $clipConfig;
             if (isset($config[self::TYPE_VIMEO]) && is_array($config[self::TYPE_VIMEO])) {
-                $configurations = array_merge($clipConfig, $config[self::TYPE_VIMEO]);
+                $configurations = [...$clipConfig, ...$config[self::TYPE_VIMEO]];
             }
-
-            if (!empty($configurations)) {
-                foreach ($configurations as $key => $value) {
-                    if (in_array($key, $validVimeoParams)) {
-                        if (is_bool($value)) {
-                            if ($value) {
-                                $additionalParams .= '&amp;'.$key.'=1';
-                            } else {
-                                $additionalParams .= '&amp;'.$key.'=0';
-                            }
+            foreach ($configurations as $key => $value) {
+                if (in_array($key, $validVimeoParams)) {
+                    if (is_bool($value)) {
+                        if ($value) {
+                            $additionalParams .= '&amp;'.$key.'=1';
                         } else {
-                            $additionalParams .= '&amp;'.$key.'='.$value;
+                            $additionalParams .= '&amp;'.$key.'=0';
                         }
+                    } else {
+                        $additionalParams .= '&amp;'.$key.'='.$value;
                     }
                 }
             }
 
-            $code .= '<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video '. ($config['class'] ?? '') .'">
+            return $code . ('<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video ' . ($config['class'] ?? '') . '">
                 <iframe src="https://player.vimeo.com/video/' . $vimeoId . '?dnt=1&amp;title=0&amp;byline=0&amp;portrait=0' . $additionalParams . '" width="' . $width . '" height="' . $height . '" title="Vimeo video" allow="fullscreen" data-type="opendxp_video_editable"></iframe>
-            </div>';
-
-            return $code;
+            </div>');
         }
 
         // default => return the empty code
@@ -792,30 +776,25 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
             // this is to be backward compatible to <= v 1.4.7
             $configurations = $clipConfig;
             if (isset($config[self::TYPE_DAILYMOTION]) && is_array($config[self::TYPE_DAILYMOTION])) {
-                $configurations = array_merge($clipConfig, $config[self::TYPE_DAILYMOTION]);
+                $configurations = [...$clipConfig, ...$config[self::TYPE_DAILYMOTION]];
             }
-
-            if (!empty($configurations)) {
-                foreach ($configurations as $key => $value) {
-                    if (in_array($key, $validDailymotionParams)) {
-                        if (is_bool($value)) {
-                            if ($value) {
-                                $additionalParams .= '&amp;'.$key.'=1';
-                            } else {
-                                $additionalParams .= '&amp;'.$key.'=0';
-                            }
+            foreach ($configurations as $key => $value) {
+                if (in_array($key, $validDailymotionParams)) {
+                    if (is_bool($value)) {
+                        if ($value) {
+                            $additionalParams .= '&amp;'.$key.'=1';
                         } else {
-                            $additionalParams .= '&amp;'.$key.'='.$value;
+                            $additionalParams .= '&amp;'.$key.'=0';
                         }
+                    } else {
+                        $additionalParams .= '&amp;'.$key.'='.$value;
                     }
                 }
             }
 
-            $code .= '<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video '. ($config['class'] ?? '') .'">
+            return $code . ('<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video ' . ($config['class'] ?? '') . '">
                 <iframe src="https://www.dailymotion.com/embed/video/' . $dailymotionId . '?' . $additionalParams . '" width="' . $width . '" height="' . $height . '" title="DailyMotion video" allow="fullscreen" data-type="opendxp_video_editable"></iframe>
-            </div>';
-
-            return $code;
+            </div>');
         }
 
         // default => return the empty code
@@ -877,7 +856,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
             $config = $this->getConfig();
 
             if (array_key_exists('attributes', $config)) {
-                $attributes = array_merge($attributes, $config['attributes']);
+                $attributes = [...$attributes, ...$config['attributes']];
             }
 
             if (isset($config['removeAttributes']) && is_array($config['removeAttributes'])) {
@@ -936,14 +915,14 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         if ($duration / 3600 >= 1) {
             $hours = floor($duration / 3600);
             $durationParts[] = $hours . 'H';
-            $duration = $duration - $hours * 3600;
+            $duration -= $hours * 3600;
         }
 
         // minutes
         if ($duration / 60 >= 1) {
             $minutes = floor($duration / 60);
             $durationParts[] = $minutes . 'M';
-            $duration = $duration - $minutes * 60;
+            $duration -= $minutes * 60;
         }
 
         $durationParts[] = $duration . 'S';
@@ -954,7 +933,8 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
     private function getProgressCode(?string $thumbnail = null): string
     {
         $uid = $this->getUniqId();
-        $code = '
+
+        return '
         <div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video">
             <style type="text/css">
                 #' . $uid . ' .opendxp_editable_video_progress_status {
@@ -978,8 +958,6 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
                 <div class="opendxp_editable_video_progress_status"></div>
             </div>
         </div>';
-
-        return $code;
     }
 
     private function getEmptyCode(): string
@@ -994,7 +972,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         $this->allowedTypes = self::ALLOWED_TYPES;
 
         if (
-            isset($config['allowedTypes']) === true
+            isset($config['allowedTypes'])
             && empty($config['allowedTypes']) === false
             && empty(array_diff($config['allowedTypes'], self::ALLOWED_TYPES))
         ) {
@@ -1009,16 +987,12 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
 
     public function isEmpty(): bool
     {
-        if ($this->id) {
-            return false;
-        }
-
-        return true;
+        return !$this->id;
     }
 
     public function getVideoType(): string
     {
-        if (empty($this->type) === true) {
+        if (empty($this->type)) {
             $this->type = $this->getAllowedTypes()[0];
         }
 

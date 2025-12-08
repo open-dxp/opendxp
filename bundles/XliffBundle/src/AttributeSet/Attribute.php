@@ -38,31 +38,13 @@ class Attribute
 
     const TYPE_ELEMENT_KEY = 'key';
 
-    private string $type;
-
-    private string $name;
-
-    private string $content;
-
-    /**
-     * @var string[]
-     */
-    private array $targetContent;
-
-    private bool $isReadonly;
-
     /**
      * DataExtractorResultAttribute constructor.
      *
      * @param string[] $targetContent
      */
-    public function __construct(string $type, string $name, string $content, bool $isReadonly = false, array $targetContent = [])
+    public function __construct(private readonly string $type, private readonly string $name, private readonly string $content, private readonly bool $isReadonly = false, private readonly array $targetContent = [])
     {
-        $this->type = $type;
-        $this->name = $name;
-        $this->content = $content;
-        $this->isReadonly = $isReadonly;
-        $this->targetContent = $targetContent;
     }
 
     public function getType(): string

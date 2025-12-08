@@ -32,17 +32,8 @@ use Psr\Log\LoggerInterface;
  */
 class LogArchiveTask implements TaskInterface
 {
-    private Connection $db;
-
-    private Config $config;
-
-    private LoggerInterface $logger;
-
-    public function __construct(Connection $db, Config $config, LoggerInterface $logger)
+    public function __construct(private readonly Connection $db, private Config $config, private readonly LoggerInterface $logger)
     {
-        $this->db = $db;
-        $this->config = $config;
-        $this->logger = $logger;
     }
 
     public function execute(): void
@@ -85,10 +76,8 @@ class LogArchiveTask implements TaskInterface
             $fileObjectPaths = $db->fetchAllAssociative(sprintf($sql, 'fileobject'));
             foreach ($fileObjectPaths as $objectPath) {
                 $filePath = $objectPath['fileobject'];
-                if ($filePath !== null) {
-                    if ($storage->fileExists($filePath)) {
-                        $storage->delete($filePath);
-                    }
+                if ($filePath !== null && $storage->fileExists($filePath)) {
+                    $storage->delete($filePath);
                 }
             }
 

@@ -51,17 +51,17 @@ final class BlockState implements JsonSerializable
 
     public function hasBlocks(): bool
     {
-        return !empty($this->blocks);
+        return $this->blocks !== [];
     }
 
     public function pushBlock(BlockName $block): void
     {
-        array_push($this->blocks, $block);
+        $this->blocks[] = $block;
     }
 
     public function popBlock(): BlockName
     {
-        if (empty($this->blocks)) {
+        if ($this->blocks === []) {
             throw new UnderflowException('There are no blocks to pop from as blocks list is empty');
         }
 
@@ -83,17 +83,17 @@ final class BlockState implements JsonSerializable
 
     public function hasIndexes(): bool
     {
-        return !empty($this->indexes);
+        return $this->indexes !== [];
     }
 
     public function pushIndex(int $index): void
     {
-        array_push($this->indexes, $index);
+        $this->indexes[] = $index;
     }
 
     public function popIndex(): int
     {
-        if (empty($this->indexes)) {
+        if ($this->indexes === []) {
             throw new UnderflowException('There are no indexes to pop from as index list is empty');
         }
 

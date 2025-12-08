@@ -208,7 +208,7 @@ class FullPageCacheListener
                 }
 
                 // output-cache is always disabled when logged in at the admin ui
-                if (null !== $openDxpUser = Tool\Authentication::authenticateSession($request)) {
+                if (($openDxpUser = Tool\Authentication::authenticateSession($request)) instanceof \OpenDxp\Model\User) {
                     $this->disable('backend user is logged in');
 
                     return;
@@ -320,7 +320,7 @@ class FullPageCacheListener
             $response->headers->set('X-OpenDxp-Output-Cache-Disable-Reason', $this->disableReason, true);
         }
 
-        if ($this->enabled && $response->getStatusCode() == 200 && $this->defaultCacheKey) {
+        if ($this->enabled && $response->getStatusCode() === 200 && $this->defaultCacheKey) {
             try {
                 if ($this->lifetime && $this->addExpireHeader) {
                     // add cache control for proxies and http-caches like varnish, ...

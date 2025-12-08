@@ -39,7 +39,7 @@ class Helper
             $data = $quoteIdentifiers ? self::quoteDataIdentifiers($connection, $data) : $data;
 
             return $connection->insert($table, $data);
-        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $exception) {
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
             $critera = [];
             foreach ($keys as $key) {
                 $key = $quoteIdentifiers ? $connection->quoteIdentifier($key) : $key;
@@ -73,10 +73,10 @@ class Helper
 
         $idsForDeletion = $db->fetchFirstColumn($sql);
 
-        if (!empty($idsForDeletion)) {
+        if ($idsForDeletion !== []) {
             $chunks = array_chunk($idsForDeletion, 1000);
             foreach ($chunks as $chunk) {
-                $idString = implode(',', array_map([$db, 'quote'], $chunk));
+                $idString = implode(',', array_map($db->quote(...), $chunk));
                 $db->executeStatement('DELETE FROM ' . $table . ' WHERE ' . $idColumn . ' IN (' . $idString . ')');
             }
         }

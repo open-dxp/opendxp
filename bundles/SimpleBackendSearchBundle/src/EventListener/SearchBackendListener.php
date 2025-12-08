@@ -36,7 +36,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class SearchBackendListener implements EventSubscriberInterface
 {
     public function __construct(
-        private MessageBusInterface $messengerBusOpendxpCore
+        private readonly MessageBusInterface $messengerBusOpendxpCore
     ) {
     }
 

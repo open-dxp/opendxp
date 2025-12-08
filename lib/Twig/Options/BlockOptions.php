@@ -106,8 +106,6 @@ final class BlockOptions
             $options .= "'class' => \"". $this->getClass() . '",';
         }
 
-        $options .= ']';
-
-        return $options;
+        return $options . ']';
     }
 }

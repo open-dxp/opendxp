@@ -118,6 +118,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         ];
     }
 
+    #[\Override]
     public function getDataForResource(): array
     {
         return [
@@ -188,6 +189,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         return null;
     }
 
+    #[\Override]
     public function getConfig(): array
     {
         $config = parent::getConfig();
@@ -248,10 +250,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
                 $thumbnail = $image->getThumbnail();
             }
 
-            $attributes = array_merge($this->config, [
-                'alt' => $this->alt,
-                'title' => $this->alt,
-            ]);
+            $attributes = [...$this->config, 'alt' => $this->alt, 'title' => $this->alt];
 
             $removeAttributes = [];
             if (isset($this->config['removeAttributes']) && is_array($this->config['removeAttributes'])) {
@@ -445,7 +444,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
 
         // also crop media query specific configs
         if ($thumbConfig->hasMedias()) {
-            foreach ($thumbConfig->getMedias() as $mediaName => $mediaItems) {
+            foreach (array_keys($thumbConfig->getMedias()) as $mediaName) {
                 $thumbConfig->addItemAt(0, 'cropPercent', $cropConfig, $mediaName);
             }
         }
@@ -454,21 +453,16 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
     public function isEmpty(): bool
     {
         $image = $this->getImage();
-        if ($image instanceof Asset\Image) {
-            return false;
-        }
-
-        return true;
+        return !$image instanceof Asset\Image;
     }
 
+    #[\Override]
     public function getCacheTags(Model\Document\PageSnippet $ownerDocument, array $tags = []): array
     {
         $image = $this->getImage();
 
-        if ($image instanceof Asset) {
-            if (!array_key_exists($image->getCacheTag(), $tags)) {
-                $tags = $image->getCacheTags($tags);
-            }
+        if ($image instanceof Asset && !array_key_exists($image->getCacheTag(), $tags)) {
+            $tags = $image->getCacheTags($tags);
         }
 
         $getMetaDataCacheTags = function ($data, $tags) {
@@ -483,10 +477,8 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
                             $metaData = get_object_vars($metaData);
                         }
 
-                        if ($metaData['value'] instanceof Element\ElementInterface) {
-                            if (!array_key_exists($metaData['value']->getCacheTag(), $tags)) {
-                                $tags = $metaData['value']->getCacheTags($tags);
-                            }
+                        if ($metaData['value'] instanceof Element\ElementInterface && !array_key_exists($metaData['value']->getCacheTag(), $tags)) {
+                            $tags = $metaData['value']->getCacheTags($tags);
                         }
                     }
                 }
@@ -496,11 +488,11 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         };
 
         $tags = $getMetaDataCacheTags($this->marker, $tags);
-        $tags = $getMetaDataCacheTags($this->hotspots, $tags);
 
-        return $tags;
+        return $getMetaDataCacheTags($this->hotspots, $tags);
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -541,9 +533,8 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         };
 
         $dependencies = $getMetaDataDependencies($this->marker, $dependencies);
-        $dependencies = $getMetaDataDependencies($this->hotspots, $dependencies);
 
-        return $dependencies;
+        return $getMetaDataDependencies($this->hotspots, $dependencies);
     }
 
     /**
@@ -664,6 +655,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         }
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $finalVars = [];

@@ -216,6 +216,7 @@ class Objectbrick extends Model\AbstractModel implements DirtyIndicatorInterface
         $this->getDao()->delete($object);
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $finalVars = [];

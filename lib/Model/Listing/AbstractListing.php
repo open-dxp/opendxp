@@ -101,11 +101,7 @@ abstract class AbstractListing extends AbstractModel implements Iterator, Counta
     {
         $this->setData(null);
 
-        if (is_numeric($limit)) {
-            $this->limit = (int)$limit;
-        } else {
-            $this->limit = null;
-        }
+        $this->limit = is_numeric($limit) ? $limit : null;
 
         return $this;
     }
@@ -229,10 +225,10 @@ abstract class AbstractListing extends AbstractModel implements Iterator, Counta
         $conditionParams = $this->getConditionParams();
 
         $params = [];
-        if (!empty($conditionParams)) {
+        if ($conditionParams !== []) {
             $i = 0;
             foreach ($conditionParams as $key => $value) {
-                if (!$this->condition && $i == 0) {
+                if (!$this->condition && $i === 0) {
                     $conditionString .= $key . ' ';
                 } else {
                     $conditionString .= ' ' . $value['concatenator'] . ' ' . $key . ' ';
@@ -255,7 +251,7 @@ abstract class AbstractListing extends AbstractModel implements Iterator, Counta
                 $i++;
             }
         }
-        $params = array_merge((array) $this->getConditionVariablesFromSetCondition(), $params);
+        $params = [...(array) $this->getConditionVariablesFromSetCondition(), ...$params];
 
         $this->setConditionVariables($params);
 
@@ -287,8 +283,6 @@ abstract class AbstractListing extends AbstractModel implements Iterator, Counta
     }
 
     /**
-     * @param array|scalar|null $conditionVariables
-     *
      * @return $this
      */
     public function setCondition(string $condition, float|array|bool|int|string|null $conditionVariables = null): static

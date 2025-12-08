@@ -54,11 +54,7 @@ class Ghostscript extends Adapter
     public function isFileTypeSupported(string $fileType): bool
     {
         // it's also possible to pass a path or filename
-        if (preg_match("/\.?pdf$/i", $fileType)) {
-            return true;
-        }
-
-        return false;
+        return (bool) preg_match("/\.?pdf$/i", $fileType);
     }
 
     /**
@@ -231,9 +227,13 @@ class Ghostscript extends Adapter
                 // first try to use poppler's pdftotext, because this produces more accurate results than the txtwrite device from ghostscript
                 $cmd = [$pdftotextBin];
                 if ($page) {
-                    array_push($cmd, '-f', $page, '-l', $page);
+                    $cmd[] = '-f';
+                    $cmd[] = $page;
+                    $cmd[] = '-l';
+                    $cmd[] = $page;
                 }
-                array_push($cmd, $assetPath, '-');
+                $cmd[] = $assetPath;
+                $cmd[] = '-';
                 Console::addLowProcessPriority($cmd);
                 $process = new Process($cmd);
                 $process->setTimeout(120);
@@ -248,10 +248,13 @@ class Ghostscript extends Adapter
         // pure ghostscript way
         $cmd = [self::getGhostscriptCli(), '-dBATCH', '-dNOPAUSE', '-sDEVICE=txtwrite'];
         if ($page) {
-            array_push($cmd, '-dFirstPage=' . $page, '-dLastPage=' . $page);
+            $cmd[] = '-dFirstPage=' . $page;
+            $cmd[] = '-dLastPage=' . $page;
         }
         $textFile = OPENDXP_SYSTEM_TEMP_DIRECTORY . '/pdf-text-extract-' . uniqid() . '.txt';
-        array_push($cmd, '-dTextFormat=2', '-sOutputFile=' . $textFile, $assetPath);
+        $cmd[] = '-dTextFormat=2';
+        $cmd[] = '-sOutputFile=' . $textFile;
+        $cmd[] = $assetPath;
 
         Console::addLowProcessPriority($cmd);
         $process = new Process($cmd);

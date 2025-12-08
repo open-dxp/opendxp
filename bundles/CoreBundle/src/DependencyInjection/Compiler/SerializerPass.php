@@ -37,22 +37,22 @@ final class SerializerPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $container): void
     {
-        if (!$container->hasDefinition('OpenDxp\\Serializer\\Serializer')) {
+        if (!$container->hasDefinition(\OpenDxp\Serializer\Serializer::class)) {
             return;
         }
 
-        $definition = $container->getDefinition('OpenDxp\\Serializer\\Serializer');
+        $definition = $container->getDefinition(\OpenDxp\Serializer\Serializer::class);
 
         // Looks for all the services tagged "serializer.normalizer" and adds them to the Serializer service
         $normalizers = $this->findAndSortTaggedServices('opendxp.serializer.normalizer', $container);
 
-        if (empty($normalizers)) {
+        if ($normalizers === []) {
             throw new RuntimeException('You must tag at least one service as "opendxp.serializer.normalizer" to use the OpenDxp Serializer service');
         }
 
         // Looks for all the services tagged "serializer.encoders" and adds them to the Serializer service
         $encoders = $this->findAndSortTaggedServices('opendxp.serializer.encoder', $container);
-        if (empty($encoders)) {
+        if ($encoders === []) {
             throw new RuntimeException('You must tag at least one service as "opendxp.serializer.encoder" to use the OpenDxp Serializer service');
         }
 

@@ -36,6 +36,7 @@ abstract class FrontendController extends AbstractController
     /**
      * @return string[]
      */
+    #[\Override]
     public static function getSubscribedServices(): array
     {
         $services = parent::getSubscribedServices();
@@ -85,7 +86,7 @@ abstract class FrontendController extends AbstractController
      */
     protected function addResponseHeader(string $key, array|string $values, bool $replace = false, ?Request $request = null): void
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->container->get('request_stack')->getCurrentRequest();
         }
 
@@ -101,7 +102,7 @@ abstract class FrontendController extends AbstractController
      */
     public function getDocumentEditable(string $type, string $inputName, array $options = [], ?Document\PageSnippet $document = null): Document\Editable\EditableInterface
     {
-        if (null === $document) {
+        if (!$document instanceof \OpenDxp\Model\Document\PageSnippet) {
             $document = $this->document;
             if (!$document instanceof Document\PageSnippet) {
                 throw new Exception('FrontendController::getDocumentEditable() needs a Document\PageSnippet instance');

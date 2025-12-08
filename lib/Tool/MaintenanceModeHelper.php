@@ -65,13 +65,11 @@ class MaintenanceModeHelper implements MaintenanceModeHelperInterface
             return false;
         }
 
-        if ($maintenanceModeEntry = $this->getEntry()) {
-            if ($matchSessionId === null || $matchSessionId !== $maintenanceModeEntry) {
-                return true;
-            }
+        if (!$maintenanceModeEntry = $this->getEntry()) {
+            return false;
         }
 
-        return false;
+        return $matchSessionId === null || $matchSessionId !== $maintenanceModeEntry;
     }
 
     protected function addEntry(string $sessionId): void
@@ -83,7 +81,7 @@ class MaintenanceModeHelper implements MaintenanceModeHelperInterface
     {
         try {
             $tmpStore = TmpStore::get(self::ENTRY_ID);
-        } catch (Exception $e) {
+        } catch (Exception) {
             //nothing to log as the tmp doesn't exist
             return null;
         }
@@ -95,7 +93,7 @@ class MaintenanceModeHelper implements MaintenanceModeHelperInterface
     {
         try {
             TmpStore::delete(self::ENTRY_ID);
-        } catch (Exception $e) {
+        } catch (Exception) {
             //nothing to log as the tmp doesn't exist
         }
     }

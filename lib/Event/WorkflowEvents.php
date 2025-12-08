@@ -23,18 +23,14 @@ final class WorkflowEvents
      * your own logic. i.e. validation or checks on other system vars
      *
      * @Event("OpenDxp\Event\Workflow\GlobalActionEvent")
-     *
-     * @var string
      */
-    const PRE_GLOBAL_ACTION = 'opendxp.workflow.preGlobalAction';
+    const string PRE_GLOBAL_ACTION = 'opendxp.workflow.preGlobalAction';
 
     /**
      * 	Fired AFTER a global action happens in the workflow. Use this to hook into actions globally and
      * define your own logic. i.e. trigger an email or maintenance job.
      *
      * @Event("OpenDxp\Event\Workflow\GlobalActionEvent")
-     *
-     * @var string
      */
-    const POST_GLOBAL_ACTION = 'opendxp.workflow.postGlobalAction';
+    const string POST_GLOBAL_ACTION = 'opendxp.workflow.postGlobalAction';
 }

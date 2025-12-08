@@ -26,7 +26,7 @@ class DefinitionCache
     public static function get(int $id, string $type = 'key'): ?KeyConfig
     {
         $key = $type . $id;
-        $config = isset(self::$cache[$key]) ? self::$cache[$key] : null;
+        $config = self::$cache[$key] ?? null;
         if ($config) {
             return $config;
         }

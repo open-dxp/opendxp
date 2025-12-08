@@ -188,7 +188,7 @@ class SelectOptionsEnumBuilder implements SelectOptionsEnumBuilderInterface
         $selectOptionName = $this->getSelectOptionName($selectOption);
 
         // Start with a letter or underscore, followed by zero or more alphanumeric and underscore characters
-        if (!preg_match('/^[A-Z-a-z_][A-Za-z0-9_]*$/', $selectOptionName)) {
+        if (!preg_match('/^[A-Z-a-z_]\w*$/', $selectOptionName)) {
             throw new Exception(
                 sprintf(
                     'Invalid name \'%s\' for option with value \'%s\'. Must be alphanumeric and start with a letter (underscores allowed). Configure a name or use a different value.',

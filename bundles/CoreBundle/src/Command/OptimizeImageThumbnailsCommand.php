@@ -34,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class OptimizeImageThumbnailsCommand extends AbstractCommand
 {
-    public function __construct(private ImageOptimizerInterface $optimizer)
+    public function __construct(private readonly ImageOptimizerInterface $optimizer)
     {
         parent::__construct();
     }

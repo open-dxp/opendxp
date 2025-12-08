@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class ConsoleEvent extends Event
 {
-    protected Application $application;
-
     /**
      * ConsoleEvent constructor.
      *
      */
-    public function __construct(Application $application)
+    public function __construct(protected Application $application)
     {
-        $this->application = $application;
     }
 
     public function getApplication(): Application

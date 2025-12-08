@@ -53,7 +53,7 @@ class Fieldcollection extends Model\AbstractModel implements Iterator, DirtyIndi
      */
     public function __construct(array $items = [], ?string $fieldname = null)
     {
-        if (!empty($items)) {
+        if ($items !== []) {
             $this->setItems($items);
         }
         if ($fieldname) {
@@ -235,7 +235,7 @@ class Fieldcollection extends Model\AbstractModel implements Iterator, DirtyIndi
         // lazy loading existing can be data if the item already had an index
         $item = $this->getByOriginalIndex($index);
         if ($item && !$item->isLazyKeyLoaded($field)) {
-            if ($type == $item->getType()) {
+            if ($type === $item->getType()) {
 
                 $fcDef = Model\DataObject\Fieldcollection\Definition::getByKey($type);
                 $fieldDef = $fcDef->getFieldDefinition($field);

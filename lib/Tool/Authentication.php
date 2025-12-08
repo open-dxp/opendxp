@@ -34,7 +34,7 @@ class Authentication
 {
     public static function authenticateSession(?Request $request = null): ?User
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = OpenDxp::getContainer()->get('request_stack')->getCurrentRequest();
 
             if (null === $request) {
@@ -69,7 +69,7 @@ class Authentication
     protected static function safelyUnserialize(string $serializedToken): mixed
     {
         $token = null;
-        $prevUnserializeHandler = ini_set('unserialize_callback_func', __CLASS__.'::handleUnserializeCallback');
+        $prevUnserializeHandler = ini_set('unserialize_callback_func', self::class.'::handleUnserializeCallback');
         $prevErrorHandler = set_error_handler(static function (int $type, string $msg, string $file, int $line, array $context = []) use (&$prevErrorHandler) {
             if (__FILE__ === $file) {
                 throw new ErrorException($msg, 0x37313BC, $type, $file, $line);
@@ -195,7 +195,7 @@ class Authentication
 
         try {
             $config = Config::getSystemConfiguration()['security']['password'];
-        } catch (Exception $e) {
+        } catch (Exception) {
             // default config in case kernel is not booted yet (e.g. in installer)
             $config = [
                 'algorithm' => PASSWORD_DEFAULT,

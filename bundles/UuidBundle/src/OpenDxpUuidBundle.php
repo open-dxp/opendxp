@@ -24,6 +24,7 @@ class OpenDxpUuidBundle extends AbstractOpenDxpBundle
 {
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -33,6 +34,7 @@ class OpenDxpUuidBundle extends AbstractOpenDxpBundle
         return $this->extension;
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

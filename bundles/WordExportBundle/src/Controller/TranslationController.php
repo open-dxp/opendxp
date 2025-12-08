@@ -39,7 +39,7 @@ class TranslationController extends UserAwareController
 {
     use JsonHelperTrait;
 
-    private const PERMISSION = 'word_export';
+    private const string PERMISSION = 'word_export';
 
     #[Route('/word-export', name: 'opendxp_bundle_wordexport_translation_wordexport', methods: ['POST'])]
     public function wordExportAction(Request $request, Filesystem $filesystem): JsonResponse

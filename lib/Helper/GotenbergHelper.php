@@ -58,7 +58,7 @@ class GotenbergHelper
                 self::$validPing = true;
 
                 return true;
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // nothing to do
             }
         }

@@ -36,7 +36,7 @@ trait VarExport
             'queryColumnType',
         ];
 
-        return array_merge($defaultBlockedVars, $this->getBlockedVarsForExport());
+        return [...$defaultBlockedVars, ...$this->getBlockedVarsForExport()];
     }
 
     public static function __set_state(array $data): static

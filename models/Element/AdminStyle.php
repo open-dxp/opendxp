@@ -100,8 +100,8 @@ class AdminStyle
                 if ($site = Site::getByRootId($element->getId())) {
                     $this->elementIconClass = 'opendxp_icon_site';
                 }
-            } elseif ($element->getType() === 'folder' || $element->getType() === 'link' || $element->getType() === 'hardlink') {
-                if (!$element->hasChildren() && $element->getType() == 'folder') {
+            } elseif (in_array($element->getType(), ['folder', 'link', 'hardlink'], true)) {
+                if (!$element->hasChildren() && $element->getType() === 'folder') {
                     $this->elementIconClass = 'opendxp_icon_folder';
                 }
             }

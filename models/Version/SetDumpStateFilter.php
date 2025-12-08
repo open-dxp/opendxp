@@ -24,11 +24,8 @@ use OpenDxp\Model\Element\ElementDumpStateInterface;
  */
 final class SetDumpStateFilter implements Filter
 {
-    protected bool $state;
-
-    public function __construct(bool $state)
+    public function __construct(protected bool $state)
     {
-        $this->state = $state;
     }
 
     public function apply($object, $property, $objectCopier): void

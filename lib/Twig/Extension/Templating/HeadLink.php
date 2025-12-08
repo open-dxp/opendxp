@@ -128,21 +128,11 @@ class HeadLink extends CacheBusterAware
     {
         if (null !== $attributes) {
             $item = $this->createData($attributes);
-            switch ($placement) {
-                case Container::SET:
-                    $this->set($item);
-
-                    break;
-                case Container::PREPEND:
-                    $this->prepend($item);
-
-                    break;
-                case Container::APPEND:
-                default:
-                    $this->append($item);
-
-                    break;
-            }
+            match ($placement) {
+                Container::SET => $this->set($item),
+                Container::PREPEND => $this->prepend($item),
+                default => $this->append($item),
+            };
         }
 
         return $this;
@@ -161,6 +151,7 @@ class HeadLink extends CacheBusterAware
      * - prependAlternate($href, $type, $title, $extras)
      * - setAlternate($href, $type, $title, $extras)
      */
+    #[\Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(?P<type>Stylesheet|Alternate)$/', $method, $matches)) {
@@ -169,11 +160,9 @@ class HeadLink extends CacheBusterAware
             $type = $matches['type'];
             $index = null;
 
-            if ('offsetSet' == $action) {
-                if (0 < $argc) {
-                    $index = array_shift($args);
-                    --$argc;
-                }
+            if ('offsetSet' === $action && 0 < $argc) {
+                $index = array_shift($args);
+                --$argc;
             }
 
             if (1 > $argc) {
@@ -188,7 +177,7 @@ class HeadLink extends CacheBusterAware
             }
 
             if ($item) {
-                if ('offsetSet' == $action) {
+                if ('offsetSet' === $action) {
                     $this->offsetSet($index, $item);
                 } else {
                     $this->$action($item);
@@ -215,11 +204,7 @@ class HeadLink extends CacheBusterAware
         $vars = get_object_vars($value);
         $keys = array_keys($vars);
         $intersection = array_intersect($this->_itemKeys, $keys);
-        if (empty($intersection)) {
-            return false;
-        }
-
-        return true;
+        return $intersection !== [];
     }
 
     /**
@@ -243,6 +228,7 @@ class HeadLink extends CacheBusterAware
      * @param  string|int $offset
      *
      */
+    #[\Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -304,7 +290,7 @@ class HeadLink extends CacheBusterAware
 
         $link .= '/>';
 
-        if (($link == '<link />') || ($link == '<link >')) {
+        if (($link === '<link />') || ($link === '<link >')) {
             return '';
         }
 
@@ -325,6 +311,7 @@ class HeadLink extends CacheBusterAware
      *
      *
      */
+    #[\Override]
     public function toString(int|string|null $indent = null): string
     {
         $this->prepareEntries();
@@ -348,13 +335,11 @@ class HeadLink extends CacheBusterAware
     protected function prepareEntries(): void
     {
         foreach ($this as &$item) {
-            if ($this->isCacheBuster()) {
-                // adds the automatic cache buster functionality
-                if (isset($item->href)) {
-                    $realFile = OPENDXP_WEB_ROOT . $item->href;
-                    if (file_exists($realFile)) {
-                        $item->href = '/cache-buster-' . filemtime($realFile) . $item->href;
-                    }
+            // adds the automatic cache buster functionality
+            if ($this->isCacheBuster() && isset($item->href)) {
+                $realFile = OPENDXP_WEB_ROOT . $item->href;
+                if (file_exists($realFile)) {
+                    $item->href = '/cache-buster-' . filemtime($realFile) . $item->href;
                 }
             }
 
@@ -364,7 +349,7 @@ class HeadLink extends CacheBusterAware
             OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::VIEW_HELPER_HEAD_LINK);
 
             $source = $item->href ?? '';
-            $itemAttributes = isset($item->extras) ? $item->extras : [];
+            $itemAttributes = $item->extras ?? [];
 
             if (isset($item->extras) && is_array($item->extras) && isset($item->extras['webLink'])) {
                 unset($item->extras['webLink']);
@@ -383,9 +368,7 @@ class HeadLink extends CacheBusterAware
      */
     public function createData(array $attributes): stdClass
     {
-        $data = (object) $attributes;
-
-        return $data;
+        return (object) $attributes;
     }
 
     /**
@@ -408,11 +391,7 @@ class HeadLink extends CacheBusterAware
 
         if (0 < count($args)) {
             $media = array_shift($args);
-            if (is_array($media)) {
-                $media = implode(',', $media);
-            } else {
-                $media = (string) $media;
-            }
+            $media = is_array($media) ? implode(',', $media) : (string) $media;
         }
         if (0 < count($args)) {
             $conditionalStylesheet = array_shift($args);
@@ -426,7 +405,7 @@ class HeadLink extends CacheBusterAware
             $extras = (array) $extras;
         }
 
-        $attributes = compact('rel', 'type', 'href', 'media', 'conditionalStylesheet', 'extras');
+        $attributes = ['rel' => $rel, 'type' => $type, 'href' => $href, 'media' => $media, 'conditionalStylesheet' => $conditionalStylesheet, 'extras' => $extras];
 
         return $this->createData($this->_applyExtras($attributes));
     }
@@ -477,7 +456,7 @@ class HeadLink extends CacheBusterAware
         $type = (string) $type;
         $title = (string) $title;
 
-        $attributes = compact('rel', 'href', 'type', 'title', 'extras');
+        $attributes = ['rel' => $rel, 'href' => $href, 'type' => $type, 'title' => $title, 'extras' => $extras];
 
         return $this->createData($this->_applyExtras($attributes));
     }

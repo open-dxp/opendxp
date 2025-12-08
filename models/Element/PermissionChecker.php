@@ -39,16 +39,12 @@ class PermissionChecker
 
         if ($element instanceof DataObject\AbstractObject) {
             $type = 'object';
+        } elseif ($element instanceof Asset) {
+            $type = 'asset';
+        } elseif ($element instanceof Document) {
+            $type = 'document';
         } else {
-            if ($element instanceof Asset) {
-                $type = 'asset';
-            } else {
-                if ($element instanceof Document) {
-                    $type = 'document';
-                } else {
-                    throw new Exception('type not supported');
-                }
-            }
+            throw new Exception('type not supported');
         }
         $db = Db::get();
         $tableName = 'users_workspaces_'.$type;
@@ -106,7 +102,7 @@ class PermissionChecker
                     );
 
                     if ($permissionsParent) {
-                        $userPermission[$columnName] = $permissionsParent[$columnName] ? true : false;
+                        $userPermission[$columnName] = (bool) $permissionsParent[$columnName];
 
                         $details[] = self::createDetail($user, $columnName, $userPermission[$columnName], $permissionsParent['type'], $permissionsParent['name'], $permissionsParent['cpath']);
 
@@ -129,13 +125,13 @@ class PermissionChecker
                             [Helper::escapeLike($path) .'%']
                         );
                         if ($permissionsChildren) {
-                            $result[$columnName] = $permissionsChildren[$columnName] ? true : false;
+                            $result[$columnName] = (bool) $permissionsChildren[$columnName];
                             $details[] = self::createDetail($user, $columnName, $result[$columnName], $permissionsChildren['type'], $permissionsChildren['name'], $permissionsChildren['cpath']);
 
                             continue;
                         }
                     }
-                } catch (Exception $e) {
+                } catch (Exception) {
                     Logger::warn('Unable to get permission '.$type.' for object '.$element->getId());
                 }
             }
@@ -170,7 +166,7 @@ class PermissionChecker
 
     protected static function createDetail(User $user, ?string $a = null, ?bool $b = null, ?string $c = null, ?string $d = null, ?string $e = null, ?string $f = null): array
     {
-        $detailEntry = [
+        return [
             'userId' => $user->getId(),
             'a' => $a,
             'b' => $b,
@@ -179,18 +175,16 @@ class PermissionChecker
             'e' => $e,
             'f' => $f,
         ];
-
-        return $detailEntry;
     }
 
     protected static function getUserPermissions(User $user, array &$details): void
     {
         if ($user->isAdmin()) {
-            $details[] = self::createDetail($user, 'ADMIN', true, null, null);
+            $details[] = self::createDetail($user, 'ADMIN', true);
 
             return;
         }
-        $details[] = self::createDetail($user, '<b>User Permissions</b>', null, null, null);
+        $details[] = self::createDetail($user, '<b>User Permissions</b>');
 
         $db = Db::get();
         $permissions = $db->fetchFirstColumn('select `key` from users_permission_definitions');
@@ -212,7 +206,7 @@ class PermissionChecker
             }
 
             if (!$entry) {
-                $entry = self::createDetail($user, $permissionKey, false, null, null);
+                $entry = self::createDetail($user, $permissionKey, false);
             }
             $details[] = $entry;
         }
@@ -225,7 +219,7 @@ class PermissionChecker
         }
 
         if ($element instanceof DataObject\AbstractObject) {
-            $details[] = self::createDetail($user, '<b>Language Permissions</b>', null, null, null);
+            $details[] = self::createDetail($user, '<b>Language Permissions</b>');
 
             $permissions = ['lView' => 'view', 'lEdit' => 'edit'];
             foreach ($permissions as $permissionKey => $permissionName) {

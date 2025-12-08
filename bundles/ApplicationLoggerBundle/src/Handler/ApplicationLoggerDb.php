@@ -29,11 +29,8 @@ class ApplicationLoggerDb extends AbstractProcessingHandler
 
     const TABLE_ARCHIVE_PREFIX = 'application_logs_archive';
 
-    private Connection $db;
-
-    public function __construct(Connection $db, int|string|Level $level = Level::Debug, bool $bubble = true)
+    public function __construct(private readonly Connection $db, int|string|Level $level = Level::Debug, bool $bubble = true)
     {
-        $this->db = $db;
         parent::__construct($level, $bubble);
     }
 
@@ -61,9 +58,7 @@ class ApplicationLoggerDb extends AbstractProcessingHandler
     {
         $db = Db::get();
 
-        $components = $db->fetchFirstColumn('SELECT component FROM ' . self::TABLE_NAME . ' WHERE NOT ISNULL(component) GROUP BY component;');
-
-        return $components;
+        return $db->fetchFirstColumn('SELECT component FROM ' . self::TABLE_NAME . ' WHERE NOT ISNULL(component) GROUP BY component;');
     }
 
     /**

@@ -25,11 +25,8 @@ use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 
 class StateTableMarkingStore implements MarkingStoreInterface
 {
-    private string $workflowName;
-
-    public function __construct(string $workflowName)
+    public function __construct(private readonly string $workflowName)
     {
-        $this->workflowName = $workflowName;
     }
 
     public function getMarking(object $subject): Marking

@@ -80,6 +80,6 @@ class Table extends Model\Document\Editable
 
     public function isEmpty(): bool
     {
-        return empty($this->data);
+        return $this->data === [];
     }
 }

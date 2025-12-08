@@ -87,7 +87,7 @@ final class KeyConfig extends Model\AbstractModel
             Cache::save($config, $cacheKey);
 
             return $config;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -113,14 +113,14 @@ final class KeyConfig extends Model\AbstractModel
 
             $config = new self();
             $config->setName($name);
-            $config->setStoreId($storeId ? $storeId : 1);
+            $config->setStoreId($storeId ?: 1);
             $config->getDao()->getByName();
 
             Cache\RuntimeCache::set($cacheKey, $config);
             Cache::save($config, $cacheKey);
 
             return $config;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -203,11 +203,7 @@ final class KeyConfig extends Model\AbstractModel
         $isUpdate = false;
 
         $def = json_decode($this->definition, true);
-        if ($def && isset($def['title'])) {
-            $this->title = $def['title'];
-        } else {
-            $this->title = null;
-        }
+        $this->title = $def && isset($def['title']) ? $def['title'] : null;
 
         if ($this->getId()) {
             self::removeCache();

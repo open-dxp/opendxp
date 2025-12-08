@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class UserRoleEvent extends Event
 {
-    protected AbstractUser $userRole;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(AbstractUser $userRole)
+    public function __construct(protected AbstractUser $userRole)
     {
-        $this->userRole = $userRole;
     }
 
     public function getUserRole(): AbstractUser

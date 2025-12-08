@@ -32,6 +32,7 @@ class Gotenberg extends Ghostscript
 {
     use GetTextConversionHelperTrait;
 
+    #[\Override]
     public function isAvailable(): bool
     {
         try {
@@ -46,14 +47,11 @@ class Gotenberg extends Ghostscript
         return false;
     }
 
+    #[\Override]
     public function isFileTypeSupported(string $fileType): bool
     {
         // it's also possible to pass a path or filename
-        if (preg_match("/\.?(pdf|doc|docx|odt|xls|xlsx|ods|ppt|pptx|odp)$/i", $fileType)) {
-            return true;
-        }
-
-        return false;
+        return (bool) preg_match("/\.?(pdf|doc|docx|odt|xls|xlsx|ods|ppt|pptx|odp)$/i", $fileType);
     }
 
     /**
@@ -65,6 +63,7 @@ class Gotenberg extends Ghostscript
         return GotenbergHelper::isAvailable();
     }
 
+    #[\Override]
     public function load(Asset\Document $asset): static
     {
         // avoid timeouts
@@ -84,15 +83,14 @@ class Gotenberg extends Ghostscript
 
         // first we have to create a pdf out of the document (if it isn't already one), so that we can pass it to ghostscript
         // unfortunately there isn't any other way at the moment
-        if (!preg_match("/\.?pdf$/i", $asset->getFilename())) {
-            if (!parent::isFileTypeSupported($asset->getFilename())) {
-                $this->getPdf();
-            }
+        if (!preg_match("/\.?pdf$/i", $asset->getFilename()) && !parent::isFileTypeSupported($asset->getFilename())) {
+            $this->getPdf();
         }
 
         return $this;
     }
 
+    #[\Override]
     public function getPdf(?Asset\Document $asset = null)
     {
         if (!$asset && $this->asset) {

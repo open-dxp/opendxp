@@ -19,12 +19,12 @@ namespace OpenDxp\ValueObject\String;
 
 use ValueError;
 
-final class Path
+final readonly class Path
 {
     /**
      * @throws ValueError
      */
-    public function __construct(private readonly string $path)
+    public function __construct(private string $path)
     {
         $this->validate();
     }

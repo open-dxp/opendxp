@@ -38,7 +38,7 @@ final class ServiceControllersPass implements CompilerPassInterface
         $serviceControllers = [];
 
         // find controllers tagged with controller.service_arguments first
-        foreach ($container->findTaggedServiceIds('controller.service_arguments') as $id => $tags) {
+        foreach (array_keys($container->findTaggedServiceIds('controller.service_arguments')) as $id) {
             $definition = $container->findDefinition($id);
             if ($definition->isAbstract()) {
                 continue;
@@ -49,14 +49,21 @@ final class ServiceControllersPass implements CompilerPassInterface
 
         // find all services extending Controller or AbstractController
         foreach ($container->getDefinitions() as $id => $definition) {
-            if ($definition->isAbstract() || !$definition->getClass() || $definition->isDeprecated()) {
+            if ($definition->isAbstract()) {
                 continue;
             }
-
-            if (!$definition->isPublic() || $definition->isPrivate()) {
+            if (!$definition->getClass()) {
                 continue;
             }
-
+            if ($definition->isDeprecated()) {
+                continue;
+            }
+            if (!$definition->isPublic()) {
+                continue;
+            }
+            if ($definition->isPrivate()) {
+                continue;
+            }
             $reflector = $container->getReflectionClass($definition->getClass());
             if (!$reflector) {
                 continue;

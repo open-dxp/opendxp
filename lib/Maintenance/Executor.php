@@ -30,17 +30,8 @@ final class Executor implements ExecutorInterface
 {
     private array $tasks = [];
 
-    private string $pidFileName;
-
-    private LoggerInterface $logger;
-
-    public function __construct(
-        string $pidFileName,
-        LoggerInterface $logger,
-        private MessageBusInterface $messengerBusOpendxpCore
-    ) {
-        $this->pidFileName = $pidFileName;
-        $this->logger = $logger;
+    public function __construct(private readonly string $pidFileName, private readonly LoggerInterface $logger, private readonly MessageBusInterface $messengerBusOpendxpCore)
+    {
     }
 
     public function executeTask(string $name): void

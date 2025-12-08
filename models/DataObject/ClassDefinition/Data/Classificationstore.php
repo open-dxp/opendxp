@@ -140,10 +140,8 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     public array $permissionEdit;
 
     /**
-     * @param Concrete|null $object
      *
      * @throws Exception
-     *
      * @see Data::getDataForEditmode
      */
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
@@ -158,7 +156,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
         // replace the real data with the data for the editmode
         foreach ($result['data'] as $language => &$groups) {
-            foreach ($groups as $groupId => &$keys) {
+            foreach ($groups as &$keys) {
                 foreach ($keys as $keyId => &$keyValue) {
                     $keyConfig = DataObject\Classificationstore\DefinitionCache::get($keyId);
                     if ($keyConfig->getEnabled()) {
@@ -241,11 +239,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
             $parent = DataObject\Service::hasInheritableParentObject($object);
             if ($parent) {
                 // same type, iterate over all language and all fields and check if there is something missing
-                if ($this->localized) {
-                    $validLanguages = Tool::getValidLanguages();
-                } else {
-                    $validLanguages = [];
-                }
+                $validLanguages = $this->localized ? Tool::getValidLanguages() : [];
                 array_unshift($validLanguages, 'default');
 
                 $foundEmptyValue = false;
@@ -354,10 +348,6 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $classificationStore;
     }
 
-    /**
-     * @param DataObject\Concrete|null $object
-     *
-     */
     public function getDataForGrid(mixed $data, ?Concrete $object = null, array $params = []): string
     {
         return 'not supported';
@@ -369,17 +359,20 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         // this is handled directly in the template
         return 'CLASSIFICATIONSTORE';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return 'not supported';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $dataString = '';
@@ -415,6 +408,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $dataString;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         if ($data instanceof DataObject\Classificationstore) {
@@ -555,6 +549,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $this->layout;
     }
 
+    #[\Override]
     public function setName(string $name): static
     {
         $this->name = $name;
@@ -562,6 +557,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $this;
     }
 
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -582,6 +578,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $this->region;
     }
 
+    #[\Override]
     public function setTitle(string $title): static
     {
         $this->title = $title;
@@ -589,11 +586,13 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         return $this;
     }
 
+    #[\Override]
     public function getTitle(): string
     {
         return $this->title;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $activeGroups = $data->getActiveGroups();
@@ -673,6 +672,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      *
      * @throws Exception
      */
+    #[\Override]
     public function getDiffDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         throw new Exception('not supported');
@@ -681,11 +681,13 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     /**
      * @throws Exception
      */
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?Concrete $object = null, array $params = []): mixed
     {
         throw new Exception('not supported');
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return false;
@@ -803,8 +805,6 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     }
 
     /**
-     * @param DataObject\Concrete|null $object
-     *
      * @internal
      */
     public function recursiveGetActiveGroupsIds(?Concrete $object, array $activeGroups = []): ?array
@@ -950,7 +950,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
     public function getStoreId(): int
     {
-        return $this->storeId ? $this->storeId : 1;
+        return $this->storeId ?: 1;
     }
 
     /**
@@ -958,7 +958,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      */
     public function setStoreId(int $storeId): static
     {
-        $this->storeId = $storeId ? $storeId : 1;
+        $this->storeId = $storeId ?: 1;
 
         return $this;
     }
@@ -968,11 +968,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
      */
     private function getValidLanguages(): array
     {
-        if ($this->localized) {
-            $validLanguages = Tool::getValidLanguages();
-        } else {
-            $validLanguages = [];
-        }
+        $validLanguages = $this->localized ? Tool::getValidLanguages() : [];
         array_unshift($validLanguages, 'default');
 
         return $validLanguages;
@@ -1031,39 +1027,37 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     public function normalize(mixed $value, array $params = []): ?array
     {
         if ($value instanceof DataObject\Classificationstore) {
-            $validLanguages = array_merge(['default'], Tool::getValidLanguages());
+            $validLanguages = ['default', ...Tool::getValidLanguages()];
             $result = [];
             $activeGroups = $value->getActiveGroups();
-            if ($activeGroups) {
-                foreach ($activeGroups as $groupId => $active) {
-                    if (!$active) {
-                        continue;
-                    }
+            foreach ($activeGroups as $groupId => $active) {
+                if (!$active) {
+                    continue;
+                }
 
-                    $groupConfig = DataObject\Classificationstore\GroupConfig::getById($groupId);
-                    if (!$groupConfig) {
-                        continue;
-                    }
+                $groupConfig = DataObject\Classificationstore\GroupConfig::getById($groupId);
+                if (!$groupConfig) {
+                    continue;
+                }
 
-                    $result[$groupConfig->getName()] = [];
+                $result[$groupConfig->getName()] = [];
 
-                    $relation = new DataObject\Classificationstore\KeyGroupRelation\Listing();
-                    $relation->setCondition('groupId = ' . $relation->quote($groupId));
-                    $relation = $relation->load();
+                $relation = new DataObject\Classificationstore\KeyGroupRelation\Listing();
+                $relation->setCondition('groupId = ' . $relation->quote($groupId));
+                $relation = $relation->load();
 
-                    foreach ($validLanguages as $validLanguage) {
-                        foreach ($relation as $key) {
-                            $keyId = $key->getKeyId();
+                foreach ($validLanguages as $validLanguage) {
+                    foreach ($relation as $key) {
+                        $keyId = $key->getKeyId();
 
-                            $csValue = $value->getLocalizedKeyValue($groupId, $keyId, $validLanguage, true, true);
-                            $keyConfig = DataObject\Classificationstore\DefinitionCache::get($keyId);
-                            $fd = DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
-                            if ($fd instanceof NormalizerInterface) {
-                                $csValue = $fd->normalize($csValue, $params);
-                            }
-                            if ($csValue !== null) {
-                                $result[$groupConfig->getName()][$validLanguage][$key->getName()] = $csValue;
-                            }
+                        $csValue = $value->getLocalizedKeyValue($groupId, $keyId, $validLanguage, true, true);
+                        $keyConfig = DataObject\Classificationstore\DefinitionCache::get($keyId);
+                        $fd = DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
+                        if ($fd instanceof NormalizerInterface) {
+                            $csValue = $fd->normalize($csValue, $params);
+                        }
+                        if ($csValue !== null) {
+                            $result[$groupConfig->getName()][$validLanguage][$key->getName()] = $csValue;
                         }
                     }
                 }
@@ -1110,6 +1104,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
     /**
      * Creates getter code which is used for generation of php file for object classes using this data type
      */
+    #[\Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -1130,9 +1125,8 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
         $code .= "\t" . '$data = $this->getClass()->getFieldDefinition("' . $key . '")->preGetData($this);' . "\n\n";
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     public static function __set_state(array $data): static
@@ -1161,7 +1155,7 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
         }
 
         // Check if they are of the same type
-        if (get_class($oldValue) !== get_class($newValue)) {
+        if ($oldValue::class !== $newValue::class) {
             return false;
         }
 

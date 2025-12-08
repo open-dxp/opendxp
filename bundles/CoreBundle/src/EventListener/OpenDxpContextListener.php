@@ -80,7 +80,7 @@ class OpenDxpContextListener implements EventSubscriberInterface, LoggerAwareInt
      */
     protected function initializeContext(string $context, Request $request): void
     {
-        if ($context == OpenDxpContextResolver::CONTEXT_ADMIN) {
+        if ($context === OpenDxpContextResolver::CONTEXT_ADMIN) {
             OpenDxp::setAdminMode();
             Document::setHideUnpublished(false);
             DataObject::setHideUnpublished(false);

@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class VersionEvent extends Event
 {
-    protected Version $version;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(Version $version)
+    public function __construct(protected Version $version)
     {
-        $this->version = $version;
     }
 
     public function getVersion(): Version

@@ -40,21 +40,17 @@ final class ImageThumbnail implements ImageThumbnailInterface
     use Model\Asset\Thumbnail\ImageThumbnailTrait;
     use TemporaryFileHelperTrait;
 
-    /**
-     * @internal
-     *
-     */
-    protected int $page = 1;
-
     public function __construct(
         ?Model\Asset\Document $asset,
         array|string|Image\Thumbnail\Config|null $config = null,
-        int $page = 1,
+        /**
+         * @internal
+         */
+        protected int $page = 1,
         bool $deferred = true
     ) {
         $this->asset = $asset;
         $this->config = $this->createConfig($config ?? []);
-        $this->page = $page;
         $this->deferred = $deferred;
     }
 
@@ -73,9 +69,8 @@ final class ImageThumbnail implements ImageThumbnailInterface
             'frontendPath' => $path,
         ]);
         OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_DOCUMENT_IMAGE_THUMBNAIL);
-        $path = $event->getArgument('frontendPath');
 
-        return $path;
+        return $event->getArgument('frontendPath');
     }
 
     /**
@@ -86,7 +81,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
         $deferred = $deferredAllowed && $this->deferred;
         $generated = false;
 
-        if ($this->asset && empty($this->pathReference)) {
+        if ($this->asset && $this->pathReference === []) {
 
             if (!$this->checkAllowedFormats($this->config->getFormat(), $this->asset)) {
                 throw new ThumbnailFormatNotSupportedException();
@@ -97,23 +92,19 @@ final class ImageThumbnail implements ImageThumbnailInterface
             $config->setFilenameSuffix('page-' . $this->page);
 
             try {
-                if (!$deferred) {
-                    if ($cacheFileStream = $this->getCacheFileStream()) {
-                        $generated = true;
-                    }
+                if (!$deferred && $cacheFileStream = $this->getCacheFileStream()) {
+                    $generated = true;
                 }
 
-                if ($config) {
-                    if ($deferred || $cacheFileStream) {
-                        $this->pathReference = Image\Thumbnail\Processor::process($this->asset, $config, $cacheFileStream, $deferred, $generated);
-                    }
+                if ($config && ($deferred || $cacheFileStream)) {
+                    $this->pathReference = Image\Thumbnail\Processor::process($this->asset, $config, $cacheFileStream, $deferred, $generated);
                 }
             } catch (Exception $e) {
                 Logger::error("Couldn't create image-thumbnail of document " . $this->asset->getRealFullPath() . ': ' . $e);
             }
         }
 
-        if (empty($this->pathReference)) {
+        if ($this->pathReference === []) {
             $this->pathReference = [
                 'type' => 'error',
                 'src' => '/bundles/opendxpadmin/img/filetype-not-supported.svg',
@@ -199,7 +190,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
     {
         $config = Image\Thumbnail\Config::getByAutoDetect($selector);
 
-        if (!empty($selector) && $config === null) {
+        if (!empty($selector) && !$config instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
             throw new NotFoundException('Thumbnail definition "' . (is_string($selector) ? $selector : '') . '" does not exist');
         }
 

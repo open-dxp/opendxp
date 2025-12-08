@@ -28,6 +28,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class UserChecker extends InMemoryUserChecker
 {
+    #[\Override]
     public function checkPreAuth(UserInterface $user): void
     {
         $this->checkValidUser($user);

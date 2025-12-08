@@ -36,11 +36,8 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
 
     const BLOCK_DELIMITER = '|';
 
-    protected array $exportAttributes;
-
-    public function __construct(array $exportAttributes = [])
+    public function __construct(protected array $exportAttributes = [])
     {
-        $this->exportAttributes = $exportAttributes;
     }
 
     /**
@@ -48,6 +45,7 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
      *
      * @throws Exception
      */
+    #[\Override]
     public function extract(
         TranslationItem $translationItem,
         string $sourceLanguage,
@@ -515,7 +513,7 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
                 }
 
                 $itemFieldDefinitions = $fieldCollection->getItemDefinitions();
-                if (empty($itemFieldDefinitions)) {
+                if ($itemFieldDefinitions === []) {
                     continue;
                 }
 
@@ -609,11 +607,6 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
         if (is_null($exportAttributes) && isset($this->exportAttributes[$className])) {
             $exportAttributes = $this->exportAttributes[$className];
         }
-
-        if (!empty($exportAttributes) && !in_array($definition->getName(), $exportAttributes)) {
-            return false;
-        }
-
-        return true;
+        return !(!empty($exportAttributes) && !in_array($definition->getName(), $exportAttributes));
     }
 }

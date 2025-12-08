@@ -58,6 +58,7 @@ class Block extends Model\Document\Editable implements BlockInterface
         return $this->indices;
     }
 
+    #[\Override]
     public function admin()
     {
         // nothing to do
@@ -92,7 +93,7 @@ class Block extends Model\Document\Editable implements BlockInterface
      */
     protected function setDefault(): static
     {
-        if (empty($this->indices) && isset($this->config['default']) && $this->config['default']) {
+        if ($this->indices === [] && isset($this->config['default']) && $this->config['default']) {
             for ($i = 0; $i < (int)$this->config['default']; $i++) {
                 $this->indices[$i] = $i + 1;
             }
@@ -161,10 +162,8 @@ class Block extends Model\Document\Editable implements BlockInterface
                 $this->blockDestruct();
                 $this->blockEnd();
             }
-        } else {
-            if (!$manual) {
-                $this->start();
-            }
+        } elseif (!$manual) {
+            $this->start();
         }
 
         if ($this->current < count($this->indices) && $this->current < $this->config['limit']) {
@@ -174,25 +173,19 @@ class Block extends Model\Document\Editable implements BlockInterface
             }
 
             return true;
-        } else {
-            if (!$manual) {
-                $this->end();
-            }
-
-            return false;
         }
+        if (!$manual) {
+            $this->end();
+        }
+        return false;
     }
 
+    #[\Override]
     protected function getEditmodeElementAttributes(): array
     {
         $attributes = parent::getEditmodeElementAttributes();
 
-        $attributes = array_merge($attributes, [
-            'name' => $this->getName(),
-            'type' => $this->getType(),
-        ]);
-
-        return $attributes;
+        return [...$attributes, 'name' => $this->getName(), 'type' => $this->getType()];
     }
 
     public function start()
@@ -261,6 +254,7 @@ class Block extends Model\Document\Editable implements BlockInterface
         }
 
         $this->outputEditmode($html);
+        return null;
     }
 
     /**
@@ -290,6 +284,7 @@ EOT;
         }
 
         $this->outputEditmode($html);
+        return null;
     }
 
     public function blockEnd(bool $return = false)
@@ -302,8 +297,10 @@ EOT;
         }
 
         $this->outputEditmode($html);
+        return null;
     }
 
+    #[\Override]
     public function setConfig(array $config): static
     {
         if (empty($config['limit'])) {

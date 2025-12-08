@@ -27,7 +27,8 @@ class BooleanSelect implements MarshallerInterface
     {
         if ($value === true) {
             return ['value' => \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::YES_VALUE];
-        } elseif ($value === false) {
+        }
+        if ($value === false) {
             return ['value' => \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::NO_VALUE];
         }
 
@@ -36,12 +37,14 @@ class BooleanSelect implements MarshallerInterface
 
     public function unmarshal(mixed $value, array $params = []): mixed
     {
-        if (is_array($value)) {
-            if ($value['value'] == \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::YES_VALUE) {
-                return true;
-            } elseif ($value['value'] == \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::NO_VALUE) {
-                return false;
-            }
+        if (!is_array($value)) {
+            return null;
+        }
+        if ($value['value'] == \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::YES_VALUE) {
+            return true;
+        }
+        if ($value['value'] == \OpenDxp\Model\DataObject\ClassDefinition\Data\BooleanSelect::NO_VALUE) {
+            return false;
         }
 
         return null;

@@ -19,7 +19,7 @@ namespace OpenDxp\Element;
 use OpenDxp\Marshaller\MarshallerInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-final class MarshallerService
+final readonly class MarshallerService
 {
     private ServiceLocator $marshallerLocator;
 

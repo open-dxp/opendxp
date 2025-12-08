@@ -32,32 +32,32 @@ use Twig\TwigTest;
  */
 class HelpersExtension extends AbstractExtension
 {
-    private OpenDxpUrl $OpenDxpUrlHelper;
+    private readonly OpenDxpUrl $OpenDxpUrlHelper;
 
     public function __construct(OpenDxpUrl $OpenDxpUrlHelper)
     {
         $this->OpenDxpUrlHelper = $OpenDxpUrlHelper;
     }
 
+    #[\Override]
     public function getFilters(): array
     {
         return [
-            new TwigFilter('basename', [$this, 'basenameFilter']),
+            new TwigFilter('basename', $this->basenameFilter(...)),
         ];
     }
 
+    #[\Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('opendxp_video_is_available', [Video::class, 'isAvailable']),
-            new TwigFunction('opendxp_document_is_available', [Document::class, 'isAvailable']),
-            new TwigFunction('opendxp_file_exists', function ($file) {
-                return is_file($file);
-            }),
-            new TwigFunction('opendxp_file_extension', [$this, 'getFileExtension']),
-            new TwigFunction('opendxp_image_version_preview', [$this, 'getImageVersionPreview']),
-            new TwigFunction('opendxp_asset_version_preview', [$this, 'getAssetVersionPreview']),
-            new TwigFunction('opendxp_breach_attack_random_content', [$this, 'breachAttackRandomContent'], [
+            new TwigFunction('opendxp_video_is_available', Video::isAvailable(...)),
+            new TwigFunction('opendxp_document_is_available', Document::isAvailable(...)),
+            new TwigFunction('opendxp_file_exists', is_file(...)),
+            new TwigFunction('opendxp_file_extension', $this->getFileExtension(...)),
+            new TwigFunction('opendxp_image_version_preview', $this->getImageVersionPreview(...)),
+            new TwigFunction('opendxp_asset_version_preview', $this->getAssetVersionPreview(...)),
+            new TwigFunction('opendxp_breach_attack_random_content', $this->breachAttackRandomContent(...), [
                 'is_safe' => ['html'],
             ]),
             new TwigFunction('opendxp_url', $this->OpenDxpUrlHelper, [
@@ -67,12 +67,11 @@ class HelpersExtension extends AbstractExtension
         ];
     }
 
+    #[\Override]
     public function getTests(): array
     {
         return [
-            new TwigTest('instanceof', function ($object, $class) {
-                return $object instanceof $class;
-            }),
+            new TwigTest('instanceof', fn($object, $class) => $object instanceof $class),
         ];
     }
 

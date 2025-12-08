@@ -30,24 +30,8 @@ use OpenDxp\Tool\DomCrawler;
  */
 class Processor
 {
-    private RequestHelper $requestHelper;
-
-    private EditmodeResolver $editmodeResolver;
-
-    private DocumentResolver $documentResolver;
-
-    private array $blockedTags = [];
-
-    public function __construct(
-        RequestHelper $requestHelper,
-        EditmodeResolver $editmodeResolver,
-        DocumentResolver $documentResolver,
-        array $blockedTags = [],
-    ) {
-        $this->requestHelper = $requestHelper;
-        $this->editmodeResolver = $editmodeResolver;
-        $this->documentResolver = $documentResolver;
-        $this->blockedTags = $blockedTags;
+    public function __construct(private readonly RequestHelper $requestHelper, private readonly EditmodeResolver $editmodeResolver, private readonly DocumentResolver $documentResolver, private readonly array $blockedTags = [])
+    {
     }
 
     /**
@@ -71,13 +55,11 @@ class Processor
     public function parse(string $content, array $options, string $locale, ?Document $document, ?string $uri): string
     {
         $data = $this->getData($locale);
-        if (empty($data)) {
+        if ($data === []) {
             return $content;
         }
 
-        $options = array_merge([
-            'limit' => -1,
-        ], $options);
+        $options = ['limit' => -1, ...$options];
 
         // why not using a simple str_ireplace(array(), array(), $subject) ?
         // because if you want to replace the terms "Donec vitae" and "Donec" you will get nested links, so the content
@@ -100,7 +82,7 @@ class Processor
                 }
 
                 // check if the current document is the target link (path check)
-                if ($document->getFullPath() == $linkTargetTrimmed) {
+                if ($document->getFullPath() === $linkTargetTrimmed) {
                     continue;
                 }
             }
@@ -117,7 +99,7 @@ class Processor
         $data = $tmpData;
         $data['count'] = array_fill(0, count($data['search']), 0);
 
-        $es->each(function (DomCrawler $parentNode) use ($options, $data) {
+        $es->each(function (DomCrawler $parentNode) use ($options, $data): void {
 
             $text = $parentNode->html();
 
@@ -210,7 +192,7 @@ class Processor
 
         // prepare data
         foreach ($data as $d) {
-            if (!($d['link'] || $d['abbr'])) {
+            if (!$d['link'] && !$d['abbr']) {
                 continue;
             }
 
@@ -226,13 +208,10 @@ class Processor
                 $linkType = 'external';
                 $linkTarget = $d['link'];
 
-                if ((int)$d['link']) {
-                    if ($doc = Document::getById((int) $d['link'])) {
-                        $d['link'] = $doc->getFullPath();
-
-                        $linkType = 'internal';
-                        $linkTarget = $doc->getId();
-                    }
+                if ((int) $d['link'] && $doc = Document::getById((int) $d['link'])) {
+                    $d['link'] = $doc->getFullPath();
+                    $linkType = 'internal';
+                    $linkTarget = $doc->getId();
                 }
 
                 $r = '<a class="opendxp_glossary" href="' . $d['link'] . '">' . $r . '</a>';

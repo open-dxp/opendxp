@@ -74,7 +74,7 @@ class Service
                 }
             }
 
-            if (isset($layout->blockedVarsForExport)) {
+            if (property_exists($layout, 'blockedVarsForExport') && $layout->blockedVarsForExport !== null) {
                 unset($layout->blockedVarsForExport);
             }
         }
@@ -83,10 +83,8 @@ class Service
             $children = $layout->getChildren();
             if (is_array($children)) {
                 foreach ($children as $child) {
-                    if ($child instanceof DataObject\ClassDefinition\Data\Select) {
-                        if (!$child->useConfiguredOptions() && $child->getOptionsProviderClass()) {
-                            $child->options = null;
-                        }
+                    if ($child instanceof DataObject\ClassDefinition\Data\Select && (!$child->useConfiguredOptions() && $child->getOptionsProviderClass())) {
+                        $child->options = null;
                     }
                     self::removeDynamicOptionsFromLayoutDefinition($child);
                 }
@@ -106,7 +104,7 @@ class Service
             $importData = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             if ($throwException) {
-                throw new RuntimeException('Error while decoding json data', previous: $e);
+                throw new RuntimeException('Error while decoding json data', $e->getCode(), previous: $e);
             }
 
             return false;
@@ -303,15 +301,11 @@ class Service
     public static function generateLayoutTreeFromArray(array $array, bool $throwException = false, bool $insideLocalizedField = false): Data\EncryptedField|bool|Data|Layout
     {
         if ($array) {
-            if ($title = $array['title'] ?? false) {
-                if (preg_match('/<.+?>/', $title)) {
-                    throw new Exception('not a valid title:' . htmlentities($title));
-                }
+            if (($title = $array['title'] ?? false) && preg_match('/<.+?>/', $title)) {
+                throw new Exception('not a valid title:' . htmlentities($title));
             }
-            if ($name = $array['name'] ?? false) {
-                if (preg_match('/<.+?>/', $name)) {
-                    throw new Exception('not a valid name:' . htmlentities($name));
-                }
+            if (($name = $array['name'] ?? false) && preg_match('/<.+?>/', $name)) {
+                throw new Exception('not a valid name:' . htmlentities($name));
             }
 
             /** @var LoaderInterface $loader */
@@ -421,7 +415,7 @@ class Service
                 }
 
                 if (str_replace(' ', '', strtolower($colDefinition['Type'])) === str_replace(' ', '', strtolower($type)) &&
-                        strtolower($colDefinition['Null']) == strtolower($null) &&
+                        strtolower($colDefinition['Null']) === strtolower($null) &&
                         $colDefinition['Default'] == $default) {
                     return true;
                 }
@@ -493,9 +487,8 @@ class Service
             foreach ($useParts as $part) {
                 $result .= 'use ' . $part . ";\n";
             }
-            $result .= "\n";
 
-            return $result;
+            return $result . "\n";
         }
 
         return '';

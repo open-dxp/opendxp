@@ -100,7 +100,7 @@ trait ManyToManyRelationTrait
             if (
                 substr($prefix, 0, 1) === $quoteIdentifierSymbol &&
                 substr($prefix, -2, 1) === $quoteIdentifierSymbol &&
-                substr($prefix, -1) === '.'
+                str_ends_with($prefix, '.')
             ) {
                 // Case: `db`.
                 $prefix = substr($prefix, 1, -2) . '.';

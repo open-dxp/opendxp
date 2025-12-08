@@ -55,7 +55,7 @@ class Textarea extends Model\Document\Editable implements EditmodeDataInterface
         }
 
         if (isset($config['nl2br']) && $config['nl2br']) {
-            $text = nl2br($text);
+            return nl2br($text);
         }
 
         return $text;

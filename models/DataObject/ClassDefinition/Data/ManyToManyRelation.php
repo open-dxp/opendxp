@@ -280,8 +280,8 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
                     $return[] = [$element->getId(), $element->getRealFullPath(), 'document', $element->getType(), $element->getPublished()];
                 }
             }
-            if (empty($return)) {
-                $return = null;
+            if ($return === []) {
+                return null;
             }
 
             return $return;
@@ -325,17 +325,12 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return $elements;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     */
     public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): ?array
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
     /**
-     * @param DataObject\Concrete|null $object
-     *
      * @todo: $pathes is undefined
      */
     public function getDataForGrid(?array $data, ?Concrete $object = null, array $params = []): ?array
@@ -346,6 +341,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
     /**
      * @see Data::getVersionPreview
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data) && count($data) > 0) {
@@ -363,6 +359,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return '';
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -395,6 +392,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         }
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -412,11 +410,13 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return '';
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         return $tags;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -527,6 +527,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         $this->allowToClearRelation = $allowToClearRelation;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -535,7 +536,6 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): array
@@ -555,14 +555,14 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
     public function rewriteIds(mixed $container, array $idMapping, array $params = []): mixed
     {
         $data = $this->getDataFromObjectParam($container, $params);
-        $data = $this->rewriteIdsService($data, $idMapping);
 
-        return $data;
+        return $this->rewriteIdsService($data, $idMapping);
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\ManyToManyRelation $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
@@ -641,7 +641,6 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
 
     /**
      * @param Element\ElementInterface[]|null $originalData
-     * @param null|DataObject\Concrete $object
      *
      */
     protected function processDiffDataForEditMode(?array $originalData, ?array $data, ?Concrete $object = null, array $params = []): ?array
@@ -698,15 +697,16 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return $data;
     }
 
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $originalData = $data;
         $data = parent::getDiffDataForEditMode($data, $object, $params);
-        $data = $this->processDiffDataForEditMode($originalData, $data, $object, $params);
 
-        return $data;
+        return $this->processDiffDataForEditMode($originalData, $data, $object, $params);
     }
 
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data) {
@@ -741,11 +741,13 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         $this->enableTextSelection = $enableTextSelection;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof Element\ElementInterface) {
@@ -765,7 +767,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
             return $listing;
         }
 
-        throw new InvalidArgumentException('Filtering '.__CLASS__.' does only support "=" operator');
+        throw new InvalidArgumentException('Filtering '.self::class.' does only support "=" operator');
     }
 
     /**
@@ -773,6 +775,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
      *
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $prefix = '';

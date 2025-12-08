@@ -44,7 +44,7 @@ class PlaceholderProcessor
 
     private function processArrayValue(array $value, array $placeholders): array
     {
-        if (empty($placeholders) || empty($value)) {
+        if ($placeholders === [] || $value === []) {
             return $value;
         }
 

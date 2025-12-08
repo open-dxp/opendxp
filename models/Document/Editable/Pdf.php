@@ -44,6 +44,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         ];
     }
 
+    #[\Override]
     public function getDataForResource(): array
     {
         return [
@@ -65,18 +66,18 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         ];
     }
 
+    #[\Override]
     public function getCacheTags(Model\Document\PageSnippet $ownerDocument, array $tags = []): array
     {
         $asset = $this->id ? Asset::getById($this->id) : null;
-        if ($asset instanceof Asset) {
-            if (!array_key_exists($asset->getCacheTag(), $tags)) {
-                $tags = $asset->getCacheTags($tags);
-            }
+        if ($asset instanceof Asset && !array_key_exists($asset->getCacheTag(), $tags)) {
+            return $asset->getCacheTags($tags);
         }
 
         return $tags;
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -93,6 +94,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         return $dependencies;
     }
 
+    #[\Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -141,16 +143,13 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
             $pdfPath = $asset->getFullPath();
             $thumbnailPath = $asset->getImageThumbnail($thumbnailConfig, 1, true);
 
-            $code = <<<HTML
+            return <<<HTML
             <div id="$divId" class="opendxp-pdfViewer">
                 <a href="$pdfPath" target="_blank"><img src="$thumbnailPath"></a>
             </div>
 HTML;
-
-            return $code;
-        } else {
-            return $this->getErrorCode('Preview in progress or not a valid PDF file');
         }
+        return $this->getErrorCode('Preview in progress or not a valid PDF file');
     }
 
     private function getErrorCode(string $message = ''): string
@@ -160,23 +159,17 @@ HTML;
             $message = '';
         }
 
-        $code = '
+        return '
         <div id="opendxp_pdf_' . $this->getName() . '" class="opendxp_editable_pdf">
             <div class="opendxp_editable_video_error" style="line-height: 50px; text-align:center; width: 100%; min-height: 50px; background: #ececec;">
                 ' . $message . '
             </div>
         </div>';
-
-        return $code;
     }
 
     public function isEmpty(): bool
     {
-        if ($this->id) {
-            return false;
-        }
-
-        return true;
+        return !$this->id;
     }
 
     public function getElement(): ?Asset

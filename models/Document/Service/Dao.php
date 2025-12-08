@@ -41,7 +41,7 @@ class Dao extends Model\Dao\AbstractDao
     {
         $sourceId = $this->db->fetchOne('SELECT sourceId FROM documents_translations WHERE id = ?', [$document->getId()]);
         if (!$sourceId) {
-            $sourceId = $document->getId();
+            return $document->getId();
         }
 
         return $sourceId;
@@ -56,14 +56,14 @@ class Dao extends Model\Dao\AbstractDao
         $sourceId = $this->getTranslationSourceId($document);
         $data = $this->db->fetchAllAssociative('SELECT id,language FROM documents_translations WHERE sourceId IN(?, ?) UNION SELECT sourceId as id,"source" FROM documents_translations WHERE id = ?', [$sourceId, $document->getId(), $document->getId()]);
 
-        if ($task == 'open') {
+        if ($task === 'open') {
             $linkedData = [];
             foreach ($data as $value) {
                 $linkedData = $this->db->fetchAllAssociative('SELECT id,language FROM documents_translations WHERE sourceId = ? UNION SELECT sourceId as id,"source" FROM documents_translations WHERE id = ?', [$value['id'], $value['id']]);
             }
 
             if (count($linkedData) > 0) {
-                $data = array_merge($data, $linkedData);
+                $data = [...$data, ...$linkedData];
             }
         }
 
@@ -78,7 +78,7 @@ class Dao extends Model\Dao\AbstractDao
         }
 
         // add language from source document
-        if (!empty($translations)) {
+        if ($translations !== []) {
             $sourceDocument = Document::getById((int) $sourceId);
             $translations[$sourceDocument->getProperty('language')] = $sourceDocument->getId();
         }

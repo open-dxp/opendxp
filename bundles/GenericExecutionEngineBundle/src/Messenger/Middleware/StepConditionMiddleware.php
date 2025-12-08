@@ -27,12 +27,12 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 /**
  * @internal
  */
-final class StepConditionMiddleware implements MiddlewareInterface
+final readonly class StepConditionMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly JobExecutionAgentInterface $jobExecutionAgent,
-        private readonly JobRunExtractorInterface $jobRunExtractor,
-        private readonly LoggerInterface $genericExecutionEngineLogger,
+        private JobExecutionAgentInterface $jobExecutionAgent,
+        private JobRunExtractorInterface $jobRunExtractor,
+        private LoggerInterface $genericExecutionEngineLogger,
     ) {
     }
 

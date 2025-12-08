@@ -117,11 +117,7 @@ class Dao extends Model\Dao\AbstractDao
                     }
                 }
                 if (is_array($value) || is_object($value)) {
-                    if ($this->model->getType() == 'select') {
-                        $value = json_encode($value);
-                    } else {
-                        $value = \OpenDxp\Tool\Serialize::serialize($value);
-                    }
+                    $value = $this->model->getType() == 'select' ? json_encode($value) : \OpenDxp\Tool\Serialize::serialize($value);
                 }
 
                 $data[$key] = $value;

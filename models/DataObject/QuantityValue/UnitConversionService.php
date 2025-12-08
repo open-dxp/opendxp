@@ -30,7 +30,7 @@ class UnitConversionService
     {
         $baseUnit = $toUnit->getBaseunit();
 
-        if ($baseUnit === null) {
+        if (!$baseUnit instanceof \OpenDxp\Model\DataObject\QuantityValue\Unit) {
             $baseUnit = $toUnit;
         }
 

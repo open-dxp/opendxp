@@ -70,10 +70,8 @@ class RedirectsController extends UserAwareController
                     return $this->jsonResponse(['success' => false]);
                 }
 
-                if ($data['target']) {
-                    if ($doc = Document::getByPath($data['target'])) {
-                        $data['target'] = $doc->getId();
-                    }
+                if ($data['target'] && $doc = Document::getByPath($data['target'])) {
+                    $data['target'] = $doc->getId();
                 }
 
                 if (!$data['regex'] && $data['source']) {
@@ -85,10 +83,8 @@ class RedirectsController extends UserAwareController
                 $redirect->save();
 
                 $redirectTarget = $redirect->getTarget();
-                if (is_numeric($redirectTarget)) {
-                    if ($doc = Document::getById((int)$redirectTarget)) {
-                        $redirect->setTarget($doc->getRealFullPath());
-                    }
+                if (is_numeric($redirectTarget) && $doc = Document::getById((int)$redirectTarget)) {
+                    $redirect->setTarget($doc->getRealFullPath());
                 }
 
                 return $this->jsonResponse(['data' => $redirect->getObjectVars(), 'success' => true]);
@@ -99,10 +95,8 @@ class RedirectsController extends UserAwareController
                 // save route
                 $redirect = new Redirect();
 
-                if (!empty($data['target'])) {
-                    if ($doc = Document::getByPath($data['target'])) {
-                        $data['target'] = $doc->getId();
-                    }
+                if (!empty($data['target']) && $doc = Document::getByPath($data['target'])) {
+                    $data['target'] = $doc->getId();
                 }
 
                 if (isset($data['regex']) && !$data['regex'] && isset($data['source']) && $data['source']) {
@@ -114,10 +108,8 @@ class RedirectsController extends UserAwareController
                 $redirect->save();
 
                 $redirectTarget = $redirect->getTarget();
-                if (is_numeric($redirectTarget)) {
-                    if ($doc = Document::getById((int)$redirectTarget)) {
-                        $redirect->setTarget($doc->getRealFullPath());
-                    }
+                if (is_numeric($redirectTarget) && $doc = Document::getById((int)$redirectTarget)) {
+                    $redirect->setTarget($doc->getRealFullPath());
                 }
 
                 return $this->jsonResponse(['data' => $redirect->getObjectVars(), 'success' => true]);
@@ -128,7 +120,7 @@ class RedirectsController extends UserAwareController
             $list->setLimit($request->request->getInt('limit', 50));
             $list->setOffset($request->request->getInt('start'));
 
-            $sortingSettings = QueryParams::extractSortingSettings(array_merge($request->request->all(), $request->query->all()));
+            $sortingSettings = QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
             if ($sortingSettings['orderKey']) {
                 $list->setOrderKey($sortingSettings['orderKey']);
                 $list->setOrder($sortingSettings['order']);
@@ -156,12 +148,9 @@ class RedirectsController extends UserAwareController
 
             $redirects = [];
             foreach ($list->getRedirects() as $redirect) {
-                if ($link = $redirect->getTarget()) {
-                    if (is_numeric($link)) {
-                        if ($doc = Document::getById((int)$link)) {
-                            $redirect->setTarget($doc->getRealFullPath());
-                        }
-                    }
+                $link = $redirect->getTarget();
+                if (is_numeric($link) && $doc = Document::getById((int)$link)) {
+                    $redirect->setTarget($doc->getRealFullPath());
                 }
 
                 $redirects[] = $redirect->getObjectVars();

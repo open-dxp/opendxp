@@ -28,6 +28,7 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class CustomLayoutCommand extends AbstractStructureImportCommand
 {
+    #[\Override]
     protected function configure(): void
     {
         parent::configure();

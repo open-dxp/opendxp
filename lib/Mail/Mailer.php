@@ -25,14 +25,8 @@ use Symfony\Component\Mime\RawMessage;
 
 class Mailer implements MailerInterface
 {
-    protected MailerInterface $mailer;
-
-    protected RedirectingPlugin $redirectPlugin;
-
-    public function __construct(MailerInterface $mailer, RedirectingPlugin $redirectPlugin)
+    public function __construct(protected MailerInterface $mailer, protected RedirectingPlugin $redirectPlugin)
     {
-        $this->mailer = $mailer;
-        $this->redirectPlugin = $redirectPlugin;
     }
 
     public function send(RawMessage $message, ?Envelope $envelope = null): void

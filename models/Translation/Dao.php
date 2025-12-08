@@ -59,7 +59,7 @@ class Dao extends Model\Dao\AbstractDao
             ['languages' => ArrayParameterType::STRING]
         );
 
-        if (!empty($data)) {
+        if ($data !== []) {
             foreach ($data as $d) {
                 $this->model->addTranslation($d['language'], $d['text']);
                 $this->model->setKey($d['key']);
@@ -86,10 +86,8 @@ class Dao extends Model\Dao\AbstractDao
         $sanitizer = $this->model->getTranslationSanitizer();
 
         $editableLanguages = [];
-        if ($this->model->getDomain() != Model\Translation::DOMAIN_ADMIN) {
-            if ($user = User::getById($this->model->getUserModification())) {
-                $editableLanguages = $user->getAllowedLanguagesForEditingWebsiteTranslations();
-            }
+        if ($this->model->getDomain() != Model\Translation::DOMAIN_ADMIN && $user = User::getById($this->model->getUserModification())) {
+            $editableLanguages = $user->getAllowedLanguagesForEditingWebsiteTranslations();
         }
 
         if ($this->model->getKey() !== '') {
@@ -179,7 +177,7 @@ class Dao extends Model\Dao\AbstractDao
             $this->db->fetchOne(sprintf('SELECT * FROM translations_%s LIMIT 1;', $domain));
 
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }
@@ -188,7 +186,7 @@ class Dao extends Model\Dao\AbstractDao
     {
         $table = $this->getDatabaseTableName();
 
-        if ($table == self::TABLE_PREFIX) {
+        if ($table === self::TABLE_PREFIX) {
             throw new Exception('Domain is missing to create new translation domain');
         }
 

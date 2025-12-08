@@ -134,7 +134,7 @@ class Sql extends AbstractAdapter
 
         $sql = $this->buildQueryString($this->config, $ignoreSelectAndGroupBy, $drillDownFilters, $selectField);
 
-        $extractAllFields = empty($fields);
+        $extractAllFields = $fields === [];
         foreach ($filters as $filter) {
             $value = $filter['value'] ?? null;
             $type = $filter['type'];
@@ -162,12 +162,9 @@ class Sql extends AbstractAdapter
                         'eq' => '=',
                     ];
 
-                    if ($type == 'date') {
-                        if ($operator == 'eq') {
-                            $condition[] = $db->quoteIdentifier($filter['property']) . ' BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxValue);
-
-                            break;
-                        }
+                    if ($type == 'date' && $operator == 'eq') {
+                        $condition[] = $db->quoteIdentifier($filter['property']) . ' BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxValue);
+                        break;
                     }
                     $fields[] = $filter['property'];
                     $condition[] = $db->quoteIdentifier($filter['property']) . ' ' . $compMapping[$operator] . ' ' . $db->quote($value);
@@ -219,12 +216,7 @@ class Sql extends AbstractAdapter
         }
 
         return [
-            'data' => array_merge(
-                [
-                    ['name' => 'empty', 'value' => null],
-                ],
-                $filteredData
-            ),
+            'data' => [['name' => 'empty', 'value' => null], ...$filteredData],
         ];
     }
 }

@@ -25,6 +25,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
  */
 final class DataLoader extends ImplementationLoader implements DataLoaderInterface
 {
+    #[\Override]
     public function build(string $name, array $params = []): Data
     {
         return parent::build($name, $params);

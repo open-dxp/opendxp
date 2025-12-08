@@ -31,7 +31,7 @@ final class Job
         private array $selectedElements = [],
         private readonly array $environmentData = []
     ) {
-        if (empty($this->steps)) {
+        if ($this->steps === []) {
             throw new InvalidArgumentException('Job must have at least one step');
         }
     }

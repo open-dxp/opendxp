@@ -72,7 +72,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
      *
      * @var string|null
      */
-    protected $className = null;
+    protected $className;
 
     /**
      * @internal
@@ -98,11 +98,12 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
      */
     public static function classId(): string
     {
-        $v = get_class_vars(get_called_class());
+        $v = get_class_vars(static::class);
 
         return $v['classId'];
     }
 
+    #[\Override]
     protected function update(?bool $isUpdate = null, array $params = []): void
     {
         $fieldDefinitions = $this->getClass()->getFieldDefinitions();
@@ -148,7 +149,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
                                 if (!$e instanceof Model\Element\ValidationException) {
                                     throw $e;
                                 }
-                                $exceptionClass = get_class($e);
+                                $exceptionClass = $e::class;
                                 $newException = new $exceptionClass($e->getMessage() . ' fieldname=' . $fd->getName(), $e->getCode(), $e->getPrevious());
                                 $newException->setSubItems($e->getSubItems());
 
@@ -194,7 +195,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
 
             $newVersionCount = $this->getVersionCount();
 
-            if (($newVersionCount != $oldVersionCount + 1) || $this->isFieldDirty('parentId')) {
+            if (($newVersionCount !== $oldVersionCount + 1) || $this->isFieldDirty('parentId')) {
                 self::disableDirtyDetection();
             }
 
@@ -216,6 +217,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         }
     }
 
+    #[\Override]
     protected function doDelete(): void
     {
         // Dispatch Symfony Message Bus to delete versions
@@ -292,6 +294,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * @return Model\Version[]
      */
+    #[\Override]
     public function getVersions(): array
     {
         if ($this->versions === null) {
@@ -329,6 +332,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return null;
     }
 
+    #[\Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
@@ -344,6 +348,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return $tags;
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = [parent::resolveDependencies()];
@@ -491,9 +496,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
      */
     public function getRelationData(string $fieldName, bool $forOwner, ?string $remoteClassId = null): array
     {
-        $relationData = $this->getDao()->getRelationData($fieldName, $forOwner, $remoteClassId);
-
-        return $relationData;
+        return $this->getDao()->getRelationData($fieldName, $forOwner, $remoteClassId);
     }
 
     /**
@@ -502,6 +505,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
      *
      * @throws Exception
      */
+    #[\Override]
     public static function __callStatic(string $method, array $arguments)
     {
         // check for custom static getters like DataObject::getByMyfield()
@@ -584,7 +588,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
                 $listConfig['limit'] = $limit;
                 $listConfig['offset'] = $offset;
             } else {
-                $listConfig = array_merge($listConfig, $limit);
+                $listConfig = [...$listConfig, ...$limit];
                 $limitCondition = $limit['condition'] ?? '';
                 $listConfig['condition'] = $defaultCondition . $limitCondition;
             }
@@ -598,7 +602,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
             if (isset($listConfig['limit']) && $listConfig['limit'] == 1) {
                 $elements = $list->getObjects();
 
-                return isset($elements[0]) ? $elements[0] : null;
+                return $elements[0] ?? null;
             }
 
             return $list;
@@ -606,7 +610,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
 
         try {
             return call_user_func_array([parent::class, $method], $arguments);
-        } catch (Exception $e) {
+        } catch (Exception) {
             // there is no property for the called method, so throw an exception
             Logger::error('Class: DataObject\\Concrete => call to undefined static method '.$method);
 
@@ -617,6 +621,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * @throws Exception
      */
+    #[\Override]
     public function save(array $parameters = []): static
     {
         $isDirtyDetectionDisabled = DataObject::isDirtyDetectionDisabled();
@@ -674,6 +679,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         $this->allLazyKeysMarkedAsLoaded = true;
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $parentVars = parent::__sleep();
@@ -681,10 +687,10 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         $blockedVars = ['__rawRelationData'];
 
         if (!$this->isInDumpState()) {
-            $blockedVars = array_merge(['loadedLazyKeys', 'allLazyKeysMarkedAsLoaded'], $blockedVars);
+            $blockedVars = ['loadedLazyKeys', 'allLazyKeysMarkedAsLoaded', ...$blockedVars];
             // do not dump lazy loaded fields for caching
             $lazyLoadedFields = $this->getLazyLoadedFieldNames();
-            $blockedVars = array_merge($lazyLoadedFields, $blockedVars);
+            $blockedVars = [...$lazyLoadedFields, ...$blockedVars];
         }
 
         foreach ($parentVars as $key) {
@@ -696,6 +702,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return $finalVars;
     }
 
+    #[\Override]
     public function __wakeup(): void
     {
         // parent::__wakeup() will call $this->setInDumpState(false) but we'll need the original value below
@@ -708,7 +715,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
             // We're reloading version data, there might be fields that now implement the ObjectAwareFieldInterface but
             // aren't included in the $this->__objectAwareFields array - for example versions created in OpenDxp <= 10.x
             // containing LocalizedFields. Verify all fields in this object.
-            foreach (get_object_vars($this) as $propertyKey => $propertyValue) {
+            foreach (get_object_vars($this) as $propertyValue) {
                 if ($propertyValue instanceof ObjectAwareFieldInterface) {
                     $propertyValue->setObject($this);
                 }
@@ -716,7 +723,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         } else {
             // We're reloading from cache, optimize by only reloading known object aware fields (instead of verifying
             // all fields within this object).
-            foreach ($this->__objectAwareFields as $objectAwareField => $exists) {
+            foreach (array_keys($this->__objectAwareFields) as $objectAwareField) {
                 if (isset($this->$objectAwareField) && $this->$objectAwareField instanceof ObjectAwareFieldInterface) {
                     $this->$objectAwareField->setObject($this);
                 }
@@ -727,6 +734,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * load lazy loaded fields before cloning
      */
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();
@@ -746,9 +754,8 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         $conditionParts = Service::buildConditionPartsFromDescriptor($descriptor);
 
         $query = 'SELECT * FROM ' . $table . ' WHERE ' . implode(' AND ', $conditionParts);
-        $result = $db->fetchAllAssociative($query);
 
-        return $result;
+        return $db->fetchAllAssociative($query);
     }
 
     /**
@@ -800,8 +807,6 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
             return true;
         };
 
-        $filteredData = array_filter($unfilteredData, $filterFn);
-
-        return $filteredData;
+        return array_filter($unfilteredData, $filterFn);
     }
 }

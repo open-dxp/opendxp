@@ -66,7 +66,7 @@ class Dao extends Model\DataObject\ClassDefinition\CustomLayout\Dao
             }
 
             return count($layouts);
-        } catch (Exception $e) {
+        } catch (Exception) {
             return 0;
         }
     }

@@ -88,6 +88,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         $this->defaultUnit = $defaultUnit;
     }
 
+    #[\Override]
     public function getUnique(): bool
     {
         return $this->unique;
@@ -142,6 +143,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return null;
     }
 
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {
@@ -153,12 +155,13 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
                 }
             }
 
-            return htmlspecialchars((string)$data->getValue() . $unit, ENT_QUOTES, 'UTF-8');
+            return htmlspecialchars($data->getValue() . $unit, ENT_QUOTES, 'UTF-8');
         }
 
         return '';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -222,6 +225,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return $obj;
     }
 
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         /** @var UnitConversionService $converter */
@@ -279,7 +283,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
     {
         $unitId = (string) $unitId;
         if (empty($unitId)) {
-            $unitId = '';
+            return '';
         }
 
         return $unitId;
@@ -297,6 +301,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return null;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {

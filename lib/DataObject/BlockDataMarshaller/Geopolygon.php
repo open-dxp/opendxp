@@ -31,9 +31,7 @@ class Geopolygon implements MarshallerInterface
                 $resultItems[] = [$p['latitude'], $p['longitude']];
             }
 
-            $result = ['value' => json_encode($resultItems)];
-
-            return $result;
+            return ['value' => json_encode($resultItems)];
         }
 
         return null;

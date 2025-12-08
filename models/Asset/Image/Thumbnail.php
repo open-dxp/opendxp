@@ -118,7 +118,7 @@ final class Thumbnail implements ThumbnailInterface
         $deferred = false;
         $generated = false;
 
-        if ($this->asset && empty($this->pathReference)) {
+        if ($this->asset && $this->pathReference === []) {
             // if no correct thumbnail config is given use the original image as thumbnail
             if (!$this->config) {
                 $this->pathReference = [
@@ -135,7 +135,7 @@ final class Thumbnail implements ThumbnailInterface
             }
         }
 
-        if (empty($this->pathReference)) {
+        if ($this->pathReference === []) {
             $this->pathReference = [
                 'type' => 'error',
                 'src' => '/bundles/opendxpadmin/img/filetype-not-supported.svg',
@@ -161,10 +161,8 @@ final class Thumbnail implements ThumbnailInterface
 
     private function addCacheBuster(string $path, array $options, Asset $asset): string
     {
-        if (isset($options['cacheBuster']) && $options['cacheBuster']) {
-            if (!str_starts_with($path, 'http')) {
-                $path = '/cache-buster-' . $asset->getVersionCount() . $path;
-            }
+        if (isset($options['cacheBuster']) && $options['cacheBuster'] && !str_starts_with($path, 'http')) {
+            return '/cache-buster-' . $asset->getVersionCount() . $path;
         }
 
         return $path;
@@ -252,7 +250,7 @@ final class Thumbnail implements ThumbnailInterface
         $html .= '</picture>' . "\n";
 
         if ($options['useDataSrc'] ?? false) {
-            $html = preg_replace('/ src(set)?=/i', ' data-src$1=', $html);
+            return preg_replace('/ src(set)?=/i', ' data-src$1=', $html);
         }
 
         return $html;
@@ -311,8 +309,8 @@ final class Thumbnail implements ThumbnailInterface
             }
         }
 
-        $altText = !empty($options['alt']) ? $options['alt'] : (!empty($attributes['alt']) ? $attributes['alt'] : '');
-        $titleText = !empty($options['title']) ? $options['title'] : (!empty($attributes['title']) ? $attributes['title'] : '');
+        $altText = empty($options['alt']) ? (empty($attributes['alt']) ? '' : $attributes['alt']) : ($options['alt']);
+        $titleText = empty($options['title']) ? (empty($attributes['title']) ? '' : $attributes['title']) : ($options['title']);
 
         if (empty($titleText) && (!isset($options['disableAutoTitle']) || !$options['disableAutoTitle'])) {
             $customTitle = OpenDxp\Config::getSystemConfiguration('assets')['metadata']['title'];
@@ -387,13 +385,11 @@ final class Thumbnail implements ThumbnailInterface
 
             $attributes[$srcsetAttribute] = $this->getSrcset($thumbConfig, $image, $options);
         }
-
-        $htmlImgTag = '';
         if (!empty($attributes)) {
-            $htmlImgTag = '<img ' . array_to_html_attribute_string($attributes) . ' />';
+            return '<img ' . array_to_html_attribute_string($attributes) . ' />';
         }
 
-        return $htmlImgTag;
+        return '';
     }
 
     /**
@@ -404,7 +400,7 @@ final class Thumbnail implements ThumbnailInterface
     public function getMedia(string $name, int $highRes = 1): ?ThumbnailInterface
     {
         $thumbConfig = $this->getConfig();
-        if ($thumbConfig === null) {
+        if (!$thumbConfig instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
             return null;
         }
 
@@ -435,7 +431,7 @@ final class Thumbnail implements ThumbnailInterface
     {
         $thumbnailConfig = Thumbnail\Config::getByAutoDetect($selector);
 
-        if (!empty($selector) && $thumbnailConfig === null) {
+        if (!empty($selector) && !$thumbnailConfig instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
             throw new NotFoundException('Thumbnail definition "' . (is_string($selector) ? $selector : '') . '" does not exist');
         }
 

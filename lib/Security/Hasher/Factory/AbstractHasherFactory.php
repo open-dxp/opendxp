@@ -26,12 +26,6 @@ use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 abstract class AbstractHasherFactory implements PasswordHasherFactoryInterface
 {
     /**
-     * Hasher class name to build
-     *
-     */
-    protected string $className;
-
-    /**
      * Arguments passed to hasher constructor
      *
      * @var array
@@ -40,10 +34,11 @@ abstract class AbstractHasherFactory implements PasswordHasherFactoryInterface
 
     protected ?ReflectionClass $reflector = null;
 
-    public function __construct(string $className, mixed $arguments = null)
+    public function __construct(/**
+     * Hasher class name to build
+     */
+    protected string $className, mixed $arguments = null)
     {
-        $this->className = $className;
-
         if ($arguments) {
             if (!is_array($arguments)) {
                 $arguments = [$arguments];
@@ -65,7 +60,7 @@ abstract class AbstractHasherFactory implements PasswordHasherFactoryInterface
 
     protected function getReflector(): ReflectionClass
     {
-        if (null === $this->reflector) {
+        if (!$this->reflector instanceof \ReflectionClass) {
             $this->reflector = new ReflectionClass($this->className);
         }
 

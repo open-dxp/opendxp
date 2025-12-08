@@ -48,13 +48,11 @@ class Configuration implements ConfigurationInterface
                             ->prototype('array')
                                 ->beforeNormalization()
                                     ->ifString()
-                                    ->then(function ($v) {
-                                        return [
-                                            'enabled' => true,
-                                            'generator_id' => $v,
-                                            'priority' => 0,
-                                        ];
-                                    })
+                                    ->then(fn($v) => [
+                                        'enabled' => true,
+                                        'generator_id' => $v,
+                                        'priority' => 0,
+                                    ])
                                 ->end()
                                 ->addDefaultsIfNotSet()
                                 ->canBeDisabled()

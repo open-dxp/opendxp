@@ -19,10 +19,10 @@ namespace OpenDxp\Extension\Document\Areabrick\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-final class AsAreabrick
+final readonly class AsAreabrick
 {
     public function __construct(
-        public readonly ?string $id = null,
+        public ?string $id = null,
     ) {
     }
 }

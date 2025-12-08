@@ -24,7 +24,7 @@ class DocumentResolver extends AbstractRequestResolver
 {
     public function getDocument(?Request $request = null): ?Document
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 

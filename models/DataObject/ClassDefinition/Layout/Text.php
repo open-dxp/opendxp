@@ -127,11 +127,7 @@ class Text extends Model\DataObject\ClassDefinition\Layout implements Model\Data
 
         try {
             $template = $twig->createTemplate($this->html);
-            $this->html = $template->render(array_merge($context,
-                [
-                    'object' => $object,
-                ]
-            ));
+            $this->html = $template->render([...$context, 'object' => $object]);
         } catch (SecurityError $e) {
             Logger::err((string) $e);
 

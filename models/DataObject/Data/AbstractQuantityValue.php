@@ -26,7 +26,7 @@ use OpenDxp\Model\DataObject\Traits\ObjectVarTrait;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Exception\NotFoundException;
 
-abstract class AbstractQuantityValue implements OwnerAwareFieldInterface
+abstract class AbstractQuantityValue implements OwnerAwareFieldInterface, \Stringable
 {
     use ObjectVarTrait;
     use OwnerAwareFieldTrait;

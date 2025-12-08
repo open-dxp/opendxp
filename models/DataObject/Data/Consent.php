@@ -24,16 +24,10 @@ class Consent implements OwnerAwareFieldInterface
 {
     use OwnerAwareFieldTrait;
 
-    protected bool $consent = false;
-
-    protected ?int $noteId = null;
-
     protected ?Note $note = null;
 
-    public function __construct(bool $consent = false, ?int $noteId = null)
+    public function __construct(protected bool $consent = false, protected ?int $noteId = null)
     {
-        $this->consent = $consent;
-        $this->noteId = $noteId;
         $this->markMeDirty();
     }
 
@@ -44,7 +38,7 @@ class Consent implements OwnerAwareFieldInterface
 
     public function setConsent(bool $consent): void
     {
-        if ($consent != $this->consent) {
+        if ($consent !== $this->consent) {
             $this->consent = $consent;
             $this->markMeDirty();
         }

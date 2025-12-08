@@ -37,7 +37,7 @@ class Cache
      */
     public static function getHandler(): CoreCacheHandler
     {
-        if (null === static::$handler) {
+        if (!static::$handler instanceof \OpenDxp\Cache\Core\CoreCacheHandler) {
             static::$handler = OpenDxp::getContainer()->get(CoreCacheHandler::class);
         }
 

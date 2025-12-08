@@ -44,8 +44,8 @@ trait RelationFilterConditionParser
 
             return $db->quoteIdentifier($name) . ' LIKE ' . $quotedValue . ' ';
         }, array_filter($values));
-        if (!empty($fieldConditions)) {
-            $result = '(' . implode(' AND ', $fieldConditions) . ')';
+        if ($fieldConditions !== []) {
+            return '(' . implode(' AND ', $fieldConditions) . ')';
         }
 
         return $result;

@@ -52,66 +52,22 @@ class EditableHandler implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    protected AreabrickManagerInterface $brickManager;
-
-    protected Environment $templating;
-
-    protected BundleLocatorInterface $bundleLocator;
-
-    protected WebPathResolver $webPathResolver;
-
-    protected RequestHelper $requestHelper;
-
-    protected TranslatorInterface $translator;
-
-    protected ResponseStack $responseStack;
-
     /**
      * @var array<string, string>
      */
     protected array $brickTemplateCache = [];
 
-    protected EditmodeResolver $editmodeResolver;
-
-    protected HttpKernelRuntime $httpKernelRuntime;
-
-    protected FragmentRendererInterface $fragmentRenderer;
-
-    protected RequestStack $requestStack;
-
     public const ATTRIBUTE_AREABRICK_INFO = '_opendxp_areabrick_info';
 
-    public function __construct(
-        AreabrickManagerInterface $brickManager,
-        Environment $templating,
-        BundleLocatorInterface $bundleLocator,
-        WebPathResolver $webPathResolver,
-        RequestHelper $requestHelper,
-        TranslatorInterface $translator,
-        ResponseStack $responseStack,
-        EditmodeResolver $editmodeResolver,
-        HttpKernelRuntime $httpKernelRuntime,
-        FragmentRendererInterface $fragmentRenderer,
-        RequestStack $requestStack
-    ) {
-        $this->brickManager = $brickManager;
-        $this->templating = $templating;
-        $this->bundleLocator = $bundleLocator;
-        $this->webPathResolver = $webPathResolver;
-        $this->requestHelper = $requestHelper;
-        $this->translator = $translator;
-        $this->responseStack = $responseStack;
-        $this->editmodeResolver = $editmodeResolver;
-        $this->httpKernelRuntime = $httpKernelRuntime;
-        $this->fragmentRenderer = $fragmentRenderer;
-        $this->requestStack = $requestStack;
+    public function __construct(protected AreabrickManagerInterface $brickManager, protected Environment $templating, protected BundleLocatorInterface $bundleLocator, protected WebPathResolver $webPathResolver, protected RequestHelper $requestHelper, protected TranslatorInterface $translator, protected ResponseStack $responseStack, protected EditmodeResolver $editmodeResolver, protected HttpKernelRuntime $httpKernelRuntime, protected FragmentRendererInterface $fragmentRenderer, protected RequestStack $requestStack)
+    {
     }
 
     public function getAvailableAreablockAreas(Editable\Areablock $editable, array $options): array
     {
         $areas = [];
         foreach ($this->brickManager->getBricks() as $brick) {
-            if (!(empty($options['allowed']) || in_array($brick->getId(), $options['allowed']))) {
+            if (!empty($options['allowed']) && !in_array($brick->getId(), $options['allowed'])) {
                 continue;
             }
 
@@ -136,7 +92,7 @@ class EditableHandler implements LoggerAwareInterface
                         // build URL to icon
                         $icon = $this->webPathResolver->getPath($bundle, 'areas/' . $brick->getId(), 'icon.png');
                     }
-                } catch (Exception $e) {
+                } catch (Exception) {
                     $icon = '';
                 }
             }
@@ -213,13 +169,7 @@ class EditableHandler implements LoggerAwareInterface
         // passing the engine interface is necessary otherwise rendering a
         // php template inside the twig template returns the content of the php file
         // instead of actually parsing the php template
-        $html = $this->templating->render('@OpenDxpCore/Areabrick/wrapper.html.twig', array_merge([
-            'brick' => $brick,
-            'info' => $info,
-            'editmode' => $editmode,
-            'viewTemplate' => $viewTemplate,
-            'viewParameters' => $params,
-        ], $templateParams));
+        $html = $this->templating->render('@OpenDxpCore/Areabrick/wrapper.html.twig', ['brick' => $brick, 'info' => $info, 'editmode' => $editmode, 'viewTemplate' => $viewTemplate, 'viewParameters' => $params, ...$templateParams]);
 
         if ($brickInfoRestoreValue === null) {
             $request->attributes->remove(self::ATTRIBUTE_AREABRICK_INFO);
@@ -325,15 +275,13 @@ class EditableHandler implements LoggerAwareInterface
 
         if ($this->requestHelper->hasCurrentRequest()) {
             return $this->httpKernelRuntime->renderFragment($uri, $attributes);
-        } else {
-            // this case could happen when rendering on CLI, e.g. search-reindex ...
-            $request = $this->requestHelper->createRequestWithContext();
-            $this->requestStack->push($request);
-            $response = $this->fragmentRenderer->render($uri, $request, $attributes);
-            $this->requestStack->pop();
-
-            return $response;
         }
+        // this case could happen when rendering on CLI, e.g. search-reindex ...
+        $request = $this->requestHelper->createRequestWithContext();
+        $this->requestStack->push($request);
+        $response = $this->fragmentRenderer->render($uri, $request, $attributes);
+        $this->requestStack->pop();
+        return $response;
     }
 
     public function addDocumentAttributes(PageSnippet $document, array $attributes = []): array

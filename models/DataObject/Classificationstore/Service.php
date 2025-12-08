@@ -42,7 +42,6 @@ class Service
 
     /**
      *
-     * @return EncryptedField|Data|null
      *
      * @throws Exception
      */
@@ -85,7 +84,7 @@ class Service
         $dataDefinition = $loader->build($type);
 
         $dataDefinition->setValues($definition);
-        $className = get_class($dataDefinition);
+        $className = $dataDefinition::class;
 
         $dataDefinition = $className::__set_state((array) $dataDefinition);
 

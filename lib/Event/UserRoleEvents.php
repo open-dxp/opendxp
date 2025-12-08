@@ -20,43 +20,31 @@ final class UserRoleEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const PRE_ADD = 'opendxp.user.preAdd';
+    const string PRE_ADD = 'opendxp.user.preAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const POST_ADD = 'opendxp.user.postAdd';
+    const string POST_ADD = 'opendxp.user.postAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const PRE_UPDATE = 'opendxp.user.preUpdate';
+    const string PRE_UPDATE = 'opendxp.user.preUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const POST_UPDATE = 'opendxp.user.postUpdate';
+    const string POST_UPDATE = 'opendxp.user.postUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.user.preDelete';
+    const string PRE_DELETE = 'opendxp.user.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\UserRoleEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.user.postDelete';
+    const string POST_DELETE = 'opendxp.user.postDelete';
 }

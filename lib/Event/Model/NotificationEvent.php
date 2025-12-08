@@ -24,15 +24,12 @@ class NotificationEvent extends Event
 {
     use ArgumentsAwareTrait;
 
-    protected Notification $notification;
-
     /**
      * DataObjectEvent constructor.
      *
      */
-    public function __construct(Notification $notification, array $arguments = [])
+    public function __construct(protected Notification $notification, array $arguments = [])
     {
-        $this->notification = $notification;
         $this->arguments = $arguments;
     }
 

@@ -150,9 +150,8 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
                 $result[] = $resultElement;
             }
         }
-        $result = Serialize::serialize($result);
 
-        return $result;
+        return Serialize::serialize($result);
     }
 
     /**
@@ -167,9 +166,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
 
             //Fix old serialized data protected properties with \0*\0 prefix
             if (str_contains($data, ':" * ')) {
-                $data = preg_replace_callback('!s:(\d+):" \* (.*?)";!', function ($match) {
-                    return ($match[1] == strlen($match[2])) ? $match[0] : 's:' . strlen($match[2]) .   ':"' . $match[2] . '";';
-                }, $data);
+                $data = preg_replace_callback('!s:(\d+):" \* (.*?)";!', fn($match) => ($match[1] == strlen($match[2])) ? $match[0] : 's:' . strlen($match[2]) .   ':"' . $match[2] . '";', $data);
             }
 
             $unserializedData = Serialize::unserialize($data);
@@ -353,8 +350,6 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     }
 
     /**
-     * @param DataObject\Concrete $object
-     *
      * @throws Exception
      */
     protected function getBlockDataFromContainer(Concrete $object, array $params = []): mixed
@@ -414,16 +409,19 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     /**
      * @see Data::getVersionPreview
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getDiffVersionPreview($data, $object, $params)['html'];
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -432,8 +430,6 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     /**
      * Generates a pretty version preview (similar to getVersionPreview) can be either HTML or
      * a image URL.
-     *
-     * @param DataObject\Concrete|null $object
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): array
     {
@@ -449,7 +445,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
                 $html .= '<tr><th><b>'.$index.'</b></th><th>&nbsp;</th><th>&nbsp;</th></tr>';
 
                 foreach ($this->getFieldDefinitions() as $fieldDefinition) {
-                    $title = !empty($fieldDefinition->title) ? $fieldDefinition->title : $fieldDefinition->getName();
+                    $title = empty($fieldDefinition->title) ? $fieldDefinition->getName() : $fieldDefinition->title;
                     $html .= '<tr><td>&nbsp;</td><td>'.$title.'</td><td>';
 
                     $blockElement = $item[$fieldDefinition->getName()] ?? null;
@@ -475,6 +471,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     /**
      * @param Model\DataObject\ClassDefinition\Data\Block $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->disallowAddRemove = $mainDefinition->disallowAddRemove;
@@ -483,6 +480,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $this->collapsed = $mainDefinition->collapsed;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return is_null($data) || count($data) === 0;
@@ -592,6 +590,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         return array_keys($vars);
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -611,13 +610,14 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
                 }
                 $elementData = $blockElement->getData();
 
-                $dependencies = array_merge($dependencies, $fd->resolveDependencies($elementData));
+                $dependencies = [...$dependencies, ...$fd->resolveDependencies($elementData)];
             }
         }
 
         return $dependencies;
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($this->getLazyLoading()) {
@@ -712,7 +712,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
 
                             // the localized field needs at least the containerType as this is important
                             // for lazy loading
-                            $context = $itemElementData->getContext() ? $itemElementData->getContext() : [];
+                            $context = $itemElementData->getContext() ?: [];
                             $context['containerType'] = 'block';
                             $context['containerKey'] = $this->getName();
                             $itemElementData->setContext($context);
@@ -849,70 +849,63 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $this->disallowReorder = $disallowReorder;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
-        if (!$omitMandatoryCheck) {
-            if (is_array($data)) {
-                $blockDefinitions = $this->getFieldDefinitions();
+        if (!$omitMandatoryCheck && is_array($data)) {
+            $blockDefinitions = $this->getFieldDefinitions();
+            $validationExceptions = [];
+            $idx = -1;
+            foreach ($data as $item) {
+                $idx++;
+                if (!is_array($item)) {
+                    continue;
+                }
 
-                $validationExceptions = [];
-
-                $idx = -1;
-                foreach ($data as $item) {
-                    $idx++;
-                    if (!is_array($item)) {
-                        continue;
-                    }
-
-                    foreach ($blockDefinitions as $fd) {
-                        try {
-                            $blockElement = $item[$fd->getName()] ?? null;
-                            if (!$blockElement) {
-                                if ($fd->getMandatory()) {
-                                    throw new Element\ValidationException('Block element empty [ ' . $fd->getName() . ' ]');
-                                } else {
-                                    continue;
-                                }
+                foreach ($blockDefinitions as $fd) {
+                    try {
+                        $blockElement = $item[$fd->getName()] ?? null;
+                        if (!$blockElement) {
+                            if ($fd->getMandatory()) {
+                                throw new Element\ValidationException('Block element empty [ ' . $fd->getName() . ' ]');
                             }
+                            continue;
+                        }
 
-                            $data = $blockElement->getData();
+                        $data = $blockElement->getData();
 
-                            if ($data instanceof DataObject\Localizedfield && $fd instanceof Localizedfields) {
-                                foreach ($data->getInternalData() as $language => $fields) {
-                                    foreach ($fields as $fieldName => $values) {
-                                        $lfd = $fd->getFieldDefinition($fieldName);
-                                        if ($lfd instanceof ManyToManyRelation || $lfd instanceof ManyToManyObjectRelation) {
-                                            if (!method_exists($lfd, 'getAllowMultipleAssignments') || !$lfd->getAllowMultipleAssignments()) {
-                                                $lfd->performMultipleAssignmentCheck($values);
-                                            }
-                                        }
+                        if ($data instanceof DataObject\Localizedfield && $fd instanceof Localizedfields) {
+                            foreach ($data->getInternalData() as $fields) {
+                                foreach ($fields as $fieldName => $values) {
+                                    $lfd = $fd->getFieldDefinition($fieldName);
+                                    if (($lfd instanceof ManyToManyRelation || $lfd instanceof ManyToManyObjectRelation) && (!method_exists($lfd, 'getAllowMultipleAssignments') || !$lfd->getAllowMultipleAssignments())) {
+                                        $lfd->performMultipleAssignmentCheck($values);
                                     }
                                 }
-                            } elseif ($fd instanceof ManyToManyRelation || $fd instanceof ManyToManyObjectRelation) {
-                                $fd->performMultipleAssignmentCheck($data);
                             }
-
-                            if ($fd instanceof Link) {
-                                $params['resetInvalidFields'] = true;
-                            }
-                            $fd->checkValidity($data, false, $params);
-                        } catch (Model\Element\ValidationException $ve) {
-                            $ve->addContext($this->getName() . '-' . $idx);
-                            $validationExceptions[] = $ve;
+                        } elseif ($fd instanceof ManyToManyRelation || $fd instanceof ManyToManyObjectRelation) {
+                            $fd->performMultipleAssignmentCheck($data);
                         }
+
+                        if ($fd instanceof Link) {
+                            $params['resetInvalidFields'] = true;
+                        }
+                        $fd->checkValidity($data, false, $params);
+                    } catch (Model\Element\ValidationException $ve) {
+                        $ve->addContext($this->getName() . '-' . $idx);
+                        $validationExceptions[] = $ve;
                     }
                 }
-
-                if ($validationExceptions) {
-                    $errors = [];
-                    /** @var Element\ValidationException $e */
-                    foreach ($validationExceptions as $e) {
-                        $errors[] = $e->getAggregatedMessage();
-                    }
-                    $message = implode(' / ', $errors);
-
-                    throw new Model\Element\ValidationException($message);
+            }
+            if ($validationExceptions) {
+                $errors = [];
+                /** @var Element\ValidationException $e */
+                foreach ($validationExceptions as $e) {
+                    $errors[] = $e->getAggregatedMessage();
                 }
+                $message = implode(' / ', $errors);
+
+                throw new Model\Element\ValidationException($message);
             }
         }
     }
@@ -925,12 +918,17 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $blockDefinitions = $this->getFieldDefinitions();
 
         foreach ($blockDefinitions as $field) {
-            if ($field instanceof LazyLoadingSupportInterface && $field->getLazyLoading()) {
-                // Lazy loading inside blocks isn't supported, turn it off if possible
-                if (method_exists($field, 'setLazyLoading')) {
-                    $field->setLazyLoading(false);
-                }
+            if (!$field instanceof LazyLoadingSupportInterface) {
+                continue;
             }
+            if (!$field->getLazyLoading()) {
+                continue;
+            }
+            // Lazy loading inside blocks isn't supported, turn it off if possible
+            if (!method_exists($field, 'setLazyLoading')) {
+                continue;
+            }
+            $field->setLazyLoading(false);
         }
     }
 
@@ -956,11 +954,9 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
             throw new Error('params contains owner but no fieldname');
         }
 
-        if ($params['owner'] instanceof DataObject\Localizedfield) {
-            //make sure that for a localized field parent the language param is set and not empty
-            if (($params['language'] ?? null) === null) {
-                throw new Error('language param missing');
-            }
+        //make sure that for a localized field parent the language param is set and not empty
+        if ($params['owner'] instanceof DataObject\Localizedfield && ($params['language'] ?? null) === null) {
+            throw new Error('language param missing');
         }
 
         $blockElement->_setOwner($params['owner']);
@@ -1016,7 +1012,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
             $result = [];
             $fieldDefinitions = $this->getFieldDefinitions();
 
-            foreach ($value as $idx => $blockItem) {
+            foreach ($value as $blockItem) {
                 $resultItem = [];
                 /**
                  * @var  string $key

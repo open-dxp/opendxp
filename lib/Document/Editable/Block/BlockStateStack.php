@@ -46,11 +46,11 @@ final class BlockStateStack implements Countable, JsonSerializable
      */
     public function push(?BlockState $blockState = null): void
     {
-        if (null === $blockState) {
+        if (!$blockState instanceof \OpenDxp\Document\Editable\Block\BlockState) {
             $blockState = new BlockState();
         }
 
-        array_push($this->states, $blockState);
+        $this->states[] = $blockState;
     }
 
     /**
@@ -72,7 +72,7 @@ final class BlockStateStack implements Countable, JsonSerializable
      */
     public function getCurrentState(): BlockState
     {
-        if (empty($this->states)) {
+        if ($this->states === []) {
             // this should never happen
             throw new RuntimeException('State stack is empty');
         }

@@ -33,6 +33,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
      */
     protected $model;
 
+    #[\Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -84,12 +85,10 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $list = new Listing();
         /** @var Model\DataObject\ClassDefinition\CustomLayout[] $definitions */
         $definitions = array_values(array_filter($list->getLayoutDefinitions(), function ($item) use ($name) {
-            $return = true;
-            if ($name && $item->getName() != $name) {
-                $return = false;
+            if ($name && $item->getName() !== $name) {
+                return false;
             }
-
-            return $return;
+            return true;
         }));
 
         if (count($definitions) && $definitions[0]->getId()) {
@@ -106,16 +105,14 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $list = new Listing();
         /** @var Model\DataObject\ClassDefinition\CustomLayout[] $definitions */
         $definitions = array_values(array_filter($list->getLayoutDefinitions(), function ($item) use ($id) {
-            $return = true;
             if ($id && $item->getId() != $id) {
-                $return = false;
+                return false;
             }
-
-            return $return;
+            return true;
         }));
 
         if (count($definitions) && $definitions[0]->getId()) {
-            $name = $definitions[0]->getName();
+            return $definitions[0]->getName();
         }
 
         return $name;
@@ -183,6 +180,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

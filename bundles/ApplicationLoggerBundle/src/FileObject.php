@@ -22,17 +22,10 @@ use League\Flysystem\UnableToWriteFile;
 use OpenDxp\Logger;
 use OpenDxp\Tool\Storage;
 
-final class FileObject
+final class FileObject implements \Stringable
 {
-    protected ?string $filename = null;
-
-    protected string $data;
-
-    public function __construct(string $data, ?string $filename = null)
+    public function __construct(protected string $data, protected ?string $filename = null)
     {
-        $this->data = $data;
-        $this->filename = $filename;
-
         if (!$this->filename) {
             $this->filename = date('/Y/m/d/') . uniqid('fileobject_', true);
         }

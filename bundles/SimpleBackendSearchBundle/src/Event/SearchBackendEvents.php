@@ -20,15 +20,11 @@ final class SearchBackendEvents
 {
     /**
      * @Event("OpenDxp\Bundle\SimpleBackendSearchBundle\Event\Model\SearchBackendEvent")
-     *
-     * @var string
      */
-    const PRE_SAVE = 'opendxp.search.backend.preSave';
+    const string PRE_SAVE = 'opendxp.search.backend.preSave';
 
     /**
      * @Event("OpenDxp\Bundle\SimpleBackendSearchBundle\Event\Model\SearchBackendEvent")
-     *
-     * @var string
      */
-    const POST_SAVE = 'opendxp.search.backend.postSave';
+    const string POST_SAVE = 'opendxp.search.backend.postSave';
 }

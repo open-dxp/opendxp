@@ -75,7 +75,7 @@ class Dao extends Model\Dao\AbstractDao
             $data = $this->castUserDataToBoolean($data);
             $this->assignVariablesToModel($data);
         } else {
-            throw new Model\Exception\NotFoundException(sprintf('Token does not match any user.'));
+            throw new Model\Exception\NotFoundException('Token does not match any user.');
         }
     }
 
@@ -136,7 +136,7 @@ class Dao extends Model\Dao\AbstractDao
                     if (is_array($value)) {
                         $value = implode(',', $value);
                     }
-                } elseif (in_array($key, ['twoFactorAuthentication'])) {
+                } elseif ($key == 'twoFactorAuthentication') {
                     $value = json_encode($value);
                 }
                 $data[$key] = $value;

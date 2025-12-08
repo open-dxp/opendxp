@@ -51,6 +51,7 @@ class Listing extends Model\Listing\AbstractListing
      */
     protected ?array $languages = null;
 
+    #[\Override]
     public function isValidOrderKey(string $key): bool
     {
         return in_array($key, ['key', 'type']) || in_array($key, $this->getLanguages());

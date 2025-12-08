@@ -40,12 +40,10 @@ class Dao extends Model\Dao\AbstractDao
     public function getNameById(string $id): ?string
     {
         try {
-            if (!empty($id)) {
-                if ($name = $this->db->fetchOne('SELECT name FROM classes WHERE id = ?', [$id])) {
-                    return $name;
-                }
+            if (!empty($id) && $name = $this->db->fetchOne('SELECT name FROM classes WHERE id = ?', [$id])) {
+                return $name;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         return null;
@@ -199,7 +197,7 @@ class Dao extends Model\Dao\AbstractDao
 
         // remove / cleanup unused relations
         foreach ($columnsToRemove as $value) {
-            if (!in_array(strtolower($value), array_map('strtolower', $protectedColumns))) {
+            if (!in_array(strtolower($value), array_map(strtolower(...), $protectedColumns))) {
                 $this->db->delete($objectDatastoreTableRelation, ['fieldname' => $value, 'ownertype' => 'object']);
                 // @TODO: remove localized fields and fieldcollections
             }
@@ -307,10 +305,11 @@ class Dao extends Model\Dao\AbstractDao
 
     public function getNameByIdIgnoreCase(string $id): ?string
     {
-        if ($id !== '') {
-            if ($name = $this->db->fetchOne('SELECT name FROM classes WHERE LOWER(id) = ?', [strtolower($id)])) {
-                return $name;
-            }
+        if ($id === '') {
+            return null;
+        }
+        if ($name = $this->db->fetchOne('SELECT name FROM classes WHERE LOWER(id) = ?', [strtolower($id)])) {
+            return $name;
         }
 
         return null;

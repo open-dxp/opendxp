@@ -80,13 +80,13 @@ class ImplementationLoader implements LoaderInterface, ClassNameLoaderInterface
 
     public function supports(string $name): bool
     {
-        return null !== $this->getLoader($name);
+        return $this->getLoader($name) instanceof \OpenDxp\Loader\ImplementationLoader\LoaderInterface;
     }
 
     public function build(string $name, array $params = []): mixed
     {
         $loader = $this->getLoader($name);
-        if (null === $loader) {
+        if (!$loader instanceof \OpenDxp\Loader\ImplementationLoader\LoaderInterface) {
             throw new UnsupportedException(sprintf('Loader for "%s" was not found', $name));
         }
 
@@ -97,7 +97,7 @@ class ImplementationLoader implements LoaderInterface, ClassNameLoaderInterface
     {
         $loader = $this->getLoader($name);
 
-        if (null === $loader || !$loader instanceof ClassNameLoaderInterface) {
+        if (!$loader instanceof \OpenDxp\Loader\ImplementationLoader\LoaderInterface || !$loader instanceof ClassNameLoaderInterface) {
             return false;
         }
 
@@ -107,14 +107,14 @@ class ImplementationLoader implements LoaderInterface, ClassNameLoaderInterface
     public function getClassNameFor(string $name): string
     {
         $loader = $this->getLoader($name);
-        if (null === $loader) {
+        if (!$loader instanceof \OpenDxp\Loader\ImplementationLoader\LoaderInterface) {
             throw new UnsupportedException(sprintf('Loader for "%s" was not found', $name));
         }
 
         if (!$loader instanceof ClassNameLoaderInterface) {
             throw new UnsupportedException(sprintf(
                 'Loader "%s" for "%s" does not support building a class name',
-                get_class($loader),
+                $loader::class,
                 $name
             ));
         }
@@ -123,7 +123,7 @@ class ImplementationLoader implements LoaderInterface, ClassNameLoaderInterface
             throw new UnsupportedException(sprintf(
                 'Building a class name for "%s" from loader "%s" is not supported',
                 $name,
-                get_class($loader)
+                $loader::class
             ));
         }
 

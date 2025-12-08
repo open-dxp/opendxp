@@ -80,6 +80,7 @@ class Dao extends AbstractDao
         return $this->db->fetchOne('SELECT COUNT(*) as amount FROM search_backend_data '  . $this->getCondition() . $this->getGroupBy() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
     }
 
+    #[\Override]
     protected function getCondition(): string
     {
         if ($cond = $this->model->getCondition()) {

@@ -20,43 +20,31 @@ final class WebsiteSettingEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const PRE_ADD = 'opendxp.websiteSetting.preAdd';
+    public const string PRE_ADD = 'opendxp.websiteSetting.preAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const POST_ADD = 'opendxp.websiteSetting.postAdd';
+    public const string POST_ADD = 'opendxp.websiteSetting.postAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const PRE_UPDATE = 'opendxp.websiteSetting.preUpdate';
+    public const string PRE_UPDATE = 'opendxp.websiteSetting.preUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const POST_UPDATE = 'opendxp.websiteSetting.postUpdate';
+    public const string POST_UPDATE = 'opendxp.websiteSetting.postUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const PRE_DELETE = 'opendxp.websiteSetting.preDelete';
+    public const string PRE_DELETE = 'opendxp.websiteSetting.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\WebsiteSettingEvent")
-     *
-     * @var string
      */
-    public const POST_DELETE = 'opendxp.websiteSetting.postDelete';
+    public const string POST_DELETE = 'opendxp.websiteSetting.postDelete';
 }

@@ -78,16 +78,11 @@ class Dao extends Model\Dao\AbstractDao
                 if ($fd instanceof CustomResourcePersistingInterface) {
                     // for fieldtypes which have their own save algorithm eg. relational data-types, ...
                     $fd->save($this->model,
-                        array_merge($params, [
-                            'context' => [
-                                'containerType' => 'objectbrick',
-                                'containerKey' => $this->model->getType(),
-                                'fieldname' => $this->model->getFieldname(),
-                            ],
-                            'isUpdate' => $isBrickUpdate,
-                            'owner' => $this->model,
-                            'fieldname' => $fieldName,
-                        ]));
+                        [...$params, 'context' => [
+                            'containerType' => 'objectbrick',
+                            'containerKey' => $this->model->getType(),
+                            'fieldname' => $this->model->getFieldname(),
+                        ], 'isUpdate' => $isBrickUpdate, 'owner' => $this->model, 'fieldname' => $fieldName]);
                 }
 
                 if ($fd instanceof ResourcePersistenceAwareInterface) {
@@ -103,7 +98,7 @@ class Dao extends Model\Dao\AbstractDao
                     ];
                     if (is_array($fd->getColumnType())) {
                         $insertDataArray = $fd->getDataForResource($this->model->$getter(), $object, $fieldDefinitionParams);
-                        $data = array_merge($data, $insertDataArray);
+                        $data = [...$data, ...$insertDataArray];
                         $this->model->set($fieldName, $fd->getDataFromResource($insertDataArray, $object, $fieldDefinitionParams));
                     } else {
                         $insertData = $fd->getDataForResource($this->model->$getter(), $object, $fieldDefinitionParams);
@@ -155,7 +150,7 @@ class Dao extends Model\Dao\AbstractDao
 
                     if (is_array($insertData)) {
                         $columnNames = array_keys($insertData);
-                        $data = array_merge($data, $insertData);
+                        $data = [...$data, ...$insertData];
                     } else {
                         $columnNames = [$key];
                         $data[$key] = $insertData;
@@ -210,26 +205,24 @@ class Dao extends Model\Dao\AbstractDao
                                     $this->inheritanceHelper->addRelationToCheck($key, $fd);
                                 }
                             }
-                        } else {
-                            if (is_array($insertData)) {
-                                foreach ($insertData as $insertDataKey => $insertDataValue) {
-                                    $oldDataValue = $oldData[$insertDataKey] ?? null;
-                                    $parentDataValue = $parentData[$insertDataKey] ?? null;
-                                    if ($isEmpty && $oldDataValue == $parentDataValue) {
-                                        // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                    } elseif ($oldDataValue != $insertDataValue) {
-                                        $this->inheritanceHelper->addFieldToCheck($insertDataKey, $fd);
-                                    }
-                                }
-                            } else {
-                                $oldDataValue = $oldData[$key] ?? null;
-                                $parentDataValue = $parentData[$key] ?? null;
+                        } elseif (is_array($insertData)) {
+                            foreach ($insertData as $insertDataKey => $insertDataValue) {
+                                $oldDataValue = $oldData[$insertDataKey] ?? null;
+                                $parentDataValue = $parentData[$insertDataKey] ?? null;
                                 if ($isEmpty && $oldDataValue == $parentDataValue) {
                                     // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                } elseif ($oldDataValue != $insertData) {
-                                    // data changed, do check and update
-                                    $this->inheritanceHelper->addFieldToCheck($key, $fd);
+                                } elseif ($oldDataValue != $insertDataValue) {
+                                    $this->inheritanceHelper->addFieldToCheck($insertDataKey, $fd);
                                 }
+                            }
+                        } else {
+                            $oldDataValue = $oldData[$key] ?? null;
+                            $parentDataValue = $parentData[$key] ?? null;
+                            if ($isEmpty && $oldDataValue == $parentDataValue) {
+                                // do nothing, ... value is still empty and parent data is equal to current data in query table
+                            } elseif ($oldDataValue != $insertData) {
+                                // data changed, do check and update
+                                $this->inheritanceHelper->addFieldToCheck($key, $fd);
                             }
                         }
                     }
@@ -327,11 +320,7 @@ class Dao extends Model\Dao\AbstractDao
     public function getRelationData(string $field, bool $forOwner, ?string $remoteClassId = null): array
     {
         $id = $this->model->getObject()->getId();
-        if ($remoteClassId) {
-            $classId = $remoteClassId;
-        } else {
-            $classId = $this->model->getObject()->getClassId();
-        }
+        $classId = $remoteClassId ?: $this->model->getObject()->getClassId();
 
         $params = [$field, $id, $field, $id, $field, $id];
 

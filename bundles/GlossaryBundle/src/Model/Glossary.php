@@ -96,7 +96,7 @@ class Glossary extends AbstractModel
             $glossary->getDao()->getById();
 
             return $glossary;
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }

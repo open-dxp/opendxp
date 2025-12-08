@@ -27,14 +27,8 @@ use SplFileInfo;
  */
 class HousekeepingTask implements TaskInterface
 {
-    protected int $tmpFileTime;
-
-    protected int $profilerTime;
-
-    public function __construct(int $tmpFileTime, int $profilerTime)
+    public function __construct(protected int $tmpFileTime, protected int $profilerTime)
     {
-        $this->tmpFileTime = $tmpFileTime;
-        $this->profilerTime = $profilerTime;
     }
 
     public function execute(): void

@@ -28,6 +28,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
  */
 final class OpenDxpInstallExtension extends ConfigurableExtension
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_install';
@@ -53,7 +54,7 @@ final class OpenDxpInstallExtension extends ConfigurableExtension
         $dbCredentials = $parameters['database_credentials'] ?? [];
         $dbCredentials = $this->normalizeDbCredentials($dbCredentials);
 
-        if (!empty($dbCredentials)) {
+        if ($dbCredentials !== []) {
             $definition->addMethodCall('setDbCredentials', [$dbCredentials]);
         }
     }

@@ -43,11 +43,8 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class BundleConfigLocator
 {
-    private KernelInterface $kernel;
-
-    public function __construct(KernelInterface $kernel)
+    public function __construct(private readonly KernelInterface $kernel)
     {
-        $this->kernel = $kernel;
     }
 
     /**

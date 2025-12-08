@@ -19,9 +19,9 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\CurrentMessage;
 /**
  * @internal
  */
-final class PlainMessage implements MessageInterface
+final readonly class PlainMessage implements MessageInterface
 {
-    public function __construct(private readonly string $message)
+    public function __construct(private string $message)
     {
     }
 

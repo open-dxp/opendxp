@@ -186,7 +186,7 @@ class EditmodeListener implements EventSubscriberInterface
         $endPosition = strripos($code, $search);
 
         if (false !== $endPosition) {
-            $code = substr_replace($code, $insert . "\n\n" . $search, $endPosition, 7);
+            return substr_replace($code, $insert . "\n\n" . $search, $endPosition, 7);
         }
 
         return $code;
@@ -245,9 +245,7 @@ class EditmodeListener implements EventSubscriberInterface
             var opendxp_document_id = ' . $document->getId() . ';
         </script>';
 
-        $headHtml .= "\n\n<!-- /opendxp editmode -->\n\n\n";
-
-        return $headHtml;
+        return $headHtml . "\n\n<!-- /opendxp editmode -->\n\n\n";
     }
 
     protected function getEditmodeLibraries(): array
@@ -263,58 +261,11 @@ class EditmodeListener implements EventSubscriberInterface
 
     protected function getEditmodeScripts(): array
     {
-        return array_merge(
-            [
-                '/bundles/fosjsrouting/js/router.js',
-                '/bundles/opendxpadmin/js/opendxp/functions.js',
-                '/bundles/opendxpadmin/js/opendxp/overrides.js',
-                '/bundles/opendxpadmin/js/opendxp/tool/milestoneslider.js',
-                '/bundles/opendxpadmin/js/opendxp/element/tag/imagehotspotmarkereditor.js',
-                '/bundles/opendxpadmin/js/opendxp/element/tag/imagecropper.js',
-                '/bundles/opendxpadmin/js/opendxp/document/edit/helper.js',
-                '/bundles/opendxpadmin/js/opendxp/elementservice.js',
-                '/bundles/opendxpadmin/js/opendxp/document/edit/dnd.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editable.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/block.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/scheduledblock.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/date.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/relation.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/relations.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/checkbox.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/image.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/input.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/link.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/select.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/snippet.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/textarea.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/numeric.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/wysiwyg.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/renderlet.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/table.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/video.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/multiselect.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/area_abstract.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/areablock.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/area.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/pdf.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/embed.js',
-                '/bundles/opendxpadmin/js/opendxp/document/editables/manager.js',
-                '/bundles/opendxpadmin/js/opendxp/document/edit/helper.js',
-            ],
-            $this->bundleManager->getEditmodeJsPaths()
-        );
+        return ['/bundles/fosjsrouting/js/router.js', '/bundles/opendxpadmin/js/opendxp/functions.js', '/bundles/opendxpadmin/js/opendxp/overrides.js', '/bundles/opendxpadmin/js/opendxp/tool/milestoneslider.js', '/bundles/opendxpadmin/js/opendxp/element/tag/imagehotspotmarkereditor.js', '/bundles/opendxpadmin/js/opendxp/element/tag/imagecropper.js', '/bundles/opendxpadmin/js/opendxp/document/edit/helper.js', '/bundles/opendxpadmin/js/opendxp/elementservice.js', '/bundles/opendxpadmin/js/opendxp/document/edit/dnd.js', '/bundles/opendxpadmin/js/opendxp/document/editable.js', '/bundles/opendxpadmin/js/opendxp/document/editables/block.js', '/bundles/opendxpadmin/js/opendxp/document/editables/scheduledblock.js', '/bundles/opendxpadmin/js/opendxp/document/editables/date.js', '/bundles/opendxpadmin/js/opendxp/document/editables/relation.js', '/bundles/opendxpadmin/js/opendxp/document/editables/relations.js', '/bundles/opendxpadmin/js/opendxp/document/editables/checkbox.js', '/bundles/opendxpadmin/js/opendxp/document/editables/image.js', '/bundles/opendxpadmin/js/opendxp/document/editables/input.js', '/bundles/opendxpadmin/js/opendxp/document/editables/link.js', '/bundles/opendxpadmin/js/opendxp/document/editables/select.js', '/bundles/opendxpadmin/js/opendxp/document/editables/snippet.js', '/bundles/opendxpadmin/js/opendxp/document/editables/textarea.js', '/bundles/opendxpadmin/js/opendxp/document/editables/numeric.js', '/bundles/opendxpadmin/js/opendxp/document/editables/wysiwyg.js', '/bundles/opendxpadmin/js/opendxp/document/editables/renderlet.js', '/bundles/opendxpadmin/js/opendxp/document/editables/table.js', '/bundles/opendxpadmin/js/opendxp/document/editables/video.js', '/bundles/opendxpadmin/js/opendxp/document/editables/multiselect.js', '/bundles/opendxpadmin/js/opendxp/document/editables/area_abstract.js', '/bundles/opendxpadmin/js/opendxp/document/editables/areablock.js', '/bundles/opendxpadmin/js/opendxp/document/editables/area.js', '/bundles/opendxpadmin/js/opendxp/document/editables/pdf.js', '/bundles/opendxpadmin/js/opendxp/document/editables/embed.js', '/bundles/opendxpadmin/js/opendxp/document/editables/manager.js', '/bundles/opendxpadmin/js/opendxp/document/edit/helper.js', ...$this->bundleManager->getEditmodeJsPaths()];
     }
 
     protected function getEditmodeStylesheets(): array
     {
-        return array_merge(
-            [
-                '/bundles/opendxpadmin/css/icons.css',
-                '/bundles/opendxpadmin/extjs/css/OpenDxpApp-all_1.css',
-                '/bundles/opendxpadmin/extjs/css/OpenDxpApp-all_2.css',
-                '/bundles/opendxpadmin/css/editmode.css?_dc=' . time(),
-            ],
-            $this->bundleManager->getEditmodeCssPaths()
-        );
+        return ['/bundles/opendxpadmin/css/icons.css', '/bundles/opendxpadmin/extjs/css/OpenDxpApp-all_1.css', '/bundles/opendxpadmin/extjs/css/OpenDxpApp-all_2.css', '/bundles/opendxpadmin/css/editmode.css?_dc=' . time(), ...$this->bundleManager->getEditmodeCssPaths()];
     }
 }

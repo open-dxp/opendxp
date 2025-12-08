@@ -30,14 +30,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ConsoleOutputDecorator implements OutputInterface, ConsoleOutputInterface
 {
-    private OutputInterface $output;
-
-    private OutputInterface $errorOutput;
-
-    public function __construct(OutputInterface $output, OutputInterface $errorOutput)
+    public function __construct(private readonly OutputInterface $output, private OutputInterface $errorOutput)
     {
-        $this->output = $output;
-        $this->errorOutput = $errorOutput;
     }
 
     public function write(string|iterable $messages, bool $newline = false, int $options = 0): void

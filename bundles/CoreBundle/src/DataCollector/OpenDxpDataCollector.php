@@ -43,6 +43,7 @@ class OpenDxpDataCollector extends DataCollector implements ResetInterface
         ];
     }
 
+    #[\Override]
     public function reset(): void
     {
         $this->data = [];

@@ -29,7 +29,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class UninstallCommand extends AbstractBundleCommand
 {
-    public function __construct(OpenDxpBundleManager $bundleManager, private PostStateChange $postStateChangeHelper)
+    public function __construct(OpenDxpBundleManager $bundleManager, private readonly PostStateChange $postStateChangeHelper)
     {
         parent::__construct($bundleManager);
     }

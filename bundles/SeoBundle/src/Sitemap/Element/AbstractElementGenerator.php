@@ -28,23 +28,11 @@ use Presta\SitemapBundle\Sitemap\Url\Url;
 abstract class AbstractElementGenerator implements GeneratorInterface
 {
     /**
-     * @var FilterInterface[]
-     */
-    private array $filters = [];
-
-    /**
-     * @var ProcessorInterface[]
-     */
-    private array $processors = [];
-
-    /**
      * @param FilterInterface[] $filters
      * @param ProcessorInterface[] $processors
      */
-    public function __construct(array $filters = [], array $processors = [])
+    public function __construct(private array $filters = [], private array $processors = [])
     {
-        $this->filters = $filters;
-        $this->processors = $processors;
     }
 
     public function addFilter(FilterInterface $filter): void

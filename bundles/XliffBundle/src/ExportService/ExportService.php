@@ -22,20 +22,12 @@ use OpenDxp\Bundle\XliffBundle\TranslationItemCollection\TranslationItemCollecti
 
 class ExportService implements ExportServiceInterface
 {
-    private ExportDataExtractorServiceInterface $exportDataExtractorService;
-
-    private ExporterInterface $translationExporter;
-
     /**
      * ExportService constructor.
      *
      */
-    public function __construct(
-        ExportDataExtractorServiceInterface $exportDataExtractorService,
-        ExporterInterface $translationExporter
-    ) {
-        $this->exportDataExtractorService = $exportDataExtractorService;
-        $this->translationExporter = $translationExporter;
+    public function __construct(private ExportDataExtractorServiceInterface $exportDataExtractorService, private ExporterInterface $translationExporter)
+    {
     }
 
     public function exportTranslationItems(TranslationItemCollection $translationItems, string $sourceLanguage, array $targetLanguages, ?string $exportId = null): string

@@ -42,33 +42,18 @@ final class RedirectHandler
 {
     use RecursionBlockingEventDispatchHelperTrait;
 
-    const RESPONSE_HEADER_NAME_ID = 'X-OpenDxp-Redirect-ID';
-
-    private LoggerInterface $logger;
-
-    private LoggerInterface $redirectLogger;
-
-    private RequestHelper $requestHelper;
-
-    private SiteResolver $siteResolver;
+    const string RESPONSE_HEADER_NAME_ID = 'X-OpenDxp-Redirect-ID';
 
     /**
      * @var Redirect[]|null
      */
     private ?array $redirects = null;
 
-    private Config $config;
-
     private ?LockInterface $lock = null;
 
-    public function __construct(RequestHelper $requestHelper, SiteResolver $siteResolver, Config $config, LockFactory $lockFactory, LoggerInterface $routingLogger, LoggerInterface $redirectLogger)
+    public function __construct(private RequestHelper $requestHelper, private SiteResolver $siteResolver, private Config $config, LockFactory $lockFactory, private LoggerInterface $logger, private LoggerInterface $redirectLogger)
     {
-        $this->requestHelper = $requestHelper;
-        $this->siteResolver = $siteResolver;
-        $this->config = $config;
         $this->lock = $lockFactory->createLock(self::class);
-        $this->logger = $routingLogger;
-        $this->redirectLogger = $redirectLogger;
     }
 
     /**
@@ -88,15 +73,13 @@ final class RedirectHandler
             $sourceSite = $this->siteResolver->getSite($request);
         }
 
-        if ($redirect = Redirect::getByExactMatch($request, $sourceSite, $override)) {
-            if (null !== $response = $this->buildRedirectResponse($redirect, $request)) {
-                return $response;
-            }
+        if ((($redirect = Redirect::getByExactMatch($request, $sourceSite, $override))) && ($response = $this->buildRedirectResponse($redirect, $request)) instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $response;
         }
 
         $partResolver = new RedirectUrlPartResolver($request);
         foreach ($this->getRegexFilteredRedirects($override) as $redirect) {
-            if (null !== $response = $this->matchRegexRedirect($redirect, $request, $partResolver, $sourceSite)) {
+            if (($response = $this->matchRegexRedirect($redirect, $request, $partResolver, $sourceSite)) instanceof \Symfony\Component\HttpFoundation\Response) {
                 return $response;
             }
         }
@@ -133,10 +116,8 @@ final class RedirectHandler
         }
 
         // check for a site
-        if ($redirect->getSourceSite() || $sourceSite) {
-            if (!$sourceSite || $sourceSite->getId() !== $redirect->getSourceSite()) {
-                return null;
-            }
+        if (($redirect->getSourceSite() || $sourceSite) && (!$sourceSite || $sourceSite->getId() !== $redirect->getSourceSite())) {
+            return null;
         }
 
         return $this->buildRedirectResponse($redirect, $request, $matches);
@@ -190,11 +171,7 @@ final class RedirectHandler
                 }
             } else {
                 $site = Site::getByDomain($request->getHost());
-                if ($site instanceof Site) {
-                    $redirectDomain = $request->getHost();
-                } else {
-                    $redirectDomain = $this->config['general']['domain'];
-                }
+                $redirectDomain = $site instanceof Site ? $request->getHost() : $this->config['general']['domain'];
 
                 if ($redirectDomain) {
                     // prepend the host and scheme to avoid infinite loops when using "domain" redirects
@@ -241,14 +218,14 @@ final class RedirectHandler
         $cacheKey = 'system_route_redirect';
         $valueFromCache = Cache::load($cacheKey);
         $this->redirects = $valueFromCache === false ? null : $valueFromCache;
-        if (!isset($this->redirects)) {
+        if ($this->redirects === null) {
             // acquire lock to avoid concurrent redirect cache warm-up
             $this->lock->acquire(true);
 
             //check again if redirects are cached to avoid re-warming cache
             $valueFromCache = Cache::load($cacheKey);
             $this->redirects = $valueFromCache === false ? null : $valueFromCache;
-            if (!isset($this->redirects)) {
+            if ($this->redirects === null) {
                 try {
                     $list = new Redirect\Listing();
                     $list->setCondition('active = 1 AND regex = 1');
@@ -258,7 +235,7 @@ final class RedirectHandler
                     $this->redirects = $list->load();
 
                     Cache::save($this->redirects, $cacheKey, ['system', 'redirect', 'route'], null, 998, true);
-                } catch (Exception $e) {
+                } catch (Exception) {
                     $this->logger->error('Failed to load redirects');
                 }
             }
@@ -293,9 +270,8 @@ final class RedirectHandler
             if ($override) {
                 // if override is true the priority has to be 99 which means that overriding is ok
                 return $redirect->getPriority() === 99;
-            } else {
-                return $redirect->getPriority() !== 99;
             }
+            return $redirect->getPriority() !== 99;
         });
     }
 }

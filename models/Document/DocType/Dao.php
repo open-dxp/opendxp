@@ -27,8 +27,9 @@ use Symfony\Component\Uid\Uuid as Uid;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'document_types';
+    private const string CONFIG_KEY = 'document_types';
 
+    #[\Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -101,6 +102,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

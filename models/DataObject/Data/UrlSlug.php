@@ -42,8 +42,6 @@ class UrlSlug implements OwnerAwareFieldInterface
 
     protected string $classId;
 
-    protected ?string $slug = null;
-
     protected ?int $siteId = null;
 
     protected string $fieldname;
@@ -60,9 +58,8 @@ class UrlSlug implements OwnerAwareFieldInterface
      * UrlSlug constructor.
      *
      */
-    public function __construct(?string $slug, ?int $siteId = 0)
+    public function __construct(protected ?string $slug, ?int $siteId = 0)
     {
-        $this->slug = $slug;
         $this->siteId = $siteId ?? 0;
     }
 
@@ -267,7 +264,7 @@ class UrlSlug implements OwnerAwareFieldInterface
                     $objectFieldname = explode('/', $objectFieldnameParts);
                     $objectFieldname = $objectFieldname[0];
 
-                    if ($type == 'objectbrick') {
+                    if ($type === 'objectbrick') {
                         $objectFieldDef = $classDefinition->getFieldDefinition($objectFieldname);
                         if ($objectFieldDef instanceof Objectbricks) {
                             $allowedBricks = $objectFieldDef->getAllowedTypes();
@@ -283,7 +280,7 @@ class UrlSlug implements OwnerAwareFieldInterface
                                 }
                             }
                         }
-                    } elseif ($type == 'fieldcollection') {
+                    } elseif ($type === 'fieldcollection') {
                         // note that for fieldcollections we need the object data for resolving the
                         // fieldcollection type. alternative: store the fc type as well (similar to class id)
                         $object = Concrete::getById($this->getObjectId());
@@ -294,12 +291,10 @@ class UrlSlug implements OwnerAwareFieldInterface
                                 $index = explode('/', $objectFieldnameParts);
                                 $index = (int) $index[1];
                                 $item = $fc->get($index);
-                                if ($item instanceof AbstractData) {
-                                    if ($colDef = Fieldcollection\Definition::getByKey($item->getType())) {
-                                        $lfDef = $colDef->getFieldDefinition('localizedfields');
-                                        if ($lfDef instanceof Localizedfields) {
-                                            $fd = $lfDef->getFieldDefinition($this->getFieldname());
-                                        }
+                                if ($item instanceof AbstractData && $colDef = Fieldcollection\Definition::getByKey($item->getType())) {
+                                    $lfDef = $colDef->getFieldDefinition('localizedfields');
+                                    if ($lfDef instanceof Localizedfields) {
+                                        $fd = $lfDef->getFieldDefinition($this->getFieldname());
                                     }
                                 }
                             }

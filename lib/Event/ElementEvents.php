@@ -28,8 +28,6 @@ final class ElementEvents
      *  - user | \OpenDxp\Model\User | user the permission is checked for
      *
      * @Event("OpenDxp\Event\Model\ElementEvent")
-     *
-     * @var string
      */
-    const ELEMENT_PERMISSION_IS_ALLOWED = 'opendxp.element.permissions.isAllowed';
+    const string ELEMENT_PERMISSION_IS_ALLOWED = 'opendxp.element.permissions.isAllowed';
 }

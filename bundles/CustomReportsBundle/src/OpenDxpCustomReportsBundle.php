@@ -28,6 +28,7 @@ class OpenDxpCustomReportsBundle extends AbstractOpenDxpBundle implements OpenDx
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -64,6 +65,7 @@ class OpenDxpCustomReportsBundle extends AbstractOpenDxpBundle implements OpenDx
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

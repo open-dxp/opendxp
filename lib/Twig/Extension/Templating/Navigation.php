@@ -39,14 +39,8 @@ class Navigation implements RuntimeExtensionInterface
 {
     use HelperCharsetTrait;
 
-    private Builder $builder;
-
-    private ContainerInterface $rendererLocator;
-
-    public function __construct(Builder $builder, ContainerInterface $rendererLocator)
+    public function __construct(private Builder $builder, private ContainerInterface $rendererLocator)
     {
-        $this->builder = $builder;
-        $this->rendererLocator = $rendererLocator;
     }
 
     /**
@@ -101,7 +95,7 @@ class Navigation implements RuntimeExtensionInterface
             throw new InvalidArgumentException(sprintf('Method "%s" does not exist on renderer "%s"', $renderMethod, $rendererName));
         }
 
-        $args = array_merge([$container], array_values($rendererArguments));
+        $args = [$container, ...array_values($rendererArguments)];
 
         return call_user_func_array([$renderer, $renderMethod], $args);
     }

@@ -105,9 +105,8 @@ class Dao extends Model\Dao\AbstractDao
     public function isBinaryHashInUse(?string $hash): bool
     {
         $count = $this->db->fetchOne('SELECT count(*) FROM versions WHERE binaryFileHash = ? AND cid = ?', [$hash, $this->model->getCid()]);
-        $returnValue = ($count > 1);
 
-        return $returnValue;
+        return $count > 1;
     }
 
     /**
@@ -126,7 +125,7 @@ class Dao extends Model\Dao\AbstractDao
 
         Logger::debug("ignore ID's: " . $ignoreIdsList);
 
-        if (!empty($elementTypes)) {
+        if ($elementTypes !== []) {
             $count = 0;
             $stop = false;
             foreach ($elementTypes as $elementType) {
@@ -134,7 +133,7 @@ class Dao extends Model\Dao\AbstractDao
                     // by days
                     $deadline = time() - ($elementType['days'] * 86400);
                     $tmpVersionIds = $this->db->fetchFirstColumn('SELECT id FROM versions as a WHERE ctype = ? AND date < ? AND public=0 AND id NOT IN (' . $ignoreIdsList . ')', [$elementType['elementType'], $deadline]);
-                    $versionIds = array_merge($versionIds, $tmpVersionIds);
+                    $versionIds = [...$versionIds, ...$tmpVersionIds];
                 } else {
                     // by steps
                     $versionData = $this->db->executeQuery('SELECT cid FROM versions WHERE ctype = ? AND public=0 AND id NOT IN (' . $ignoreIdsList . ') GROUP BY cid HAVING COUNT(*) > ? LIMIT 1000', [$elementType['elementType'], $elementType['steps'] + 1]);
@@ -142,12 +141,12 @@ class Dao extends Model\Dao\AbstractDao
                         $count++;
                         $elementVersions = $this->db->fetchFirstColumn('SELECT id FROM versions WHERE cid=? AND ctype = ? AND public=0 AND id NOT IN ('.$ignoreIdsList.') ORDER BY id DESC LIMIT '.($elementType['steps'] + 1).', '.PHP_INT_MAX, [$versionInfo['cid'], $elementType['elementType']]);
 
-                        $versionIds = array_merge($versionIds, $elementVersions);
+                        $versionIds = [...$versionIds, ...$elementVersions];
 
                         Logger::info($versionInfo['cid'].'(object '.$count.') Vcount '.count($versionIds));
 
                         // call the garbage collector if memory consumption is > 100MB
-                        if (memory_get_usage() > 100000000 && ($count % 100 == 0)) {
+                        if (memory_get_usage() > 100000000 && ($count % 100 === 0)) {
                             OpenDxp::collectGarbage();
                         }
 
@@ -166,6 +165,6 @@ class Dao extends Model\Dao\AbstractDao
         }
         Logger::info('return ' .  count($versionIds) . " ids\n");
 
-        return array_map('intval', $versionIds);
+        return array_map(intval(...), $versionIds);
     }
 }

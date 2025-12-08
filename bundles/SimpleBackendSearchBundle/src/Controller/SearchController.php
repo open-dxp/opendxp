@@ -64,13 +64,11 @@ class SearchController extends UserAwareController
     #[Route('/find', name: 'opendxp_bundle_search_search_find', methods: ['GET', 'POST'])]
     public function findAction(Request $request, EventDispatcherInterface $eventDispatcher, GridHelperService $gridHelperService): JsonResponse
     {
-        $allParams = array_merge($request->request->all(), $request->query->all());
+        $allParams = [...$request->request->all(), ...$request->query->all()];
 
         $requestedLanguage = $allParams['language'] ?? null;
-        if ($requestedLanguage) {
-            if ($requestedLanguage != 'default') {
-                $request->setLocale($requestedLanguage);
-            }
+        if ($requestedLanguage && $requestedLanguage != 'default') {
+            $request->setLocale($requestedLanguage);
         }
 
         $filterPrepareEvent = new GenericEvent($this, [
@@ -89,8 +87,8 @@ class SearchController extends UserAwareController
         $offset = (int)$allParams['start'];
         $limit = (int)$allParams['limit'];
 
-        $offset = $offset ? $offset : 0;
-        $limit = $limit ? $limit : 50;
+        $offset = $offset ?: 0;
+        $limit = $limit ?: 50;
 
         $searcherList = new Data\Listing();
         $conditionParts = [];
@@ -321,7 +319,7 @@ class SearchController extends UserAwareController
 
         try {
             $hits = $searcherList->load();
-        } catch (SyntaxErrorException $syntaxErrorException) {
+        } catch (SyntaxErrorException) {
             throw new InvalidArgumentException('Check your arguments.');
         }
 
@@ -347,11 +345,7 @@ class SearchController extends UserAwareController
         }
 
         // only get the real total-count when the limit parameter is given otherwise use the default limit
-        if ($allParams['limit']) {
-            $totalMatches = $searcherList->getTotalCount();
-        } else {
-            $totalMatches = count($elements);
-        }
+        $totalMatches = $allParams['limit'] ? $searcherList->getTotalCount() : count($elements);
 
         $result = ['data' => $elements, 'success' => true, 'total' => $totalMatches];
 
@@ -447,7 +441,7 @@ class SearchController extends UserAwareController
 
     protected function filterQueryParam(string $query): string
     {
-        if ($query == '*') {
+        if ($query === '*') {
             $query = '';
         }
 
@@ -474,7 +468,7 @@ class SearchController extends UserAwareController
         if (!preg_match('/[\+\-\*"]/', $query)) {
             // check for a boolean operator (which was not filtered by filterQueryParam()),
             // if present, do not add asterisk at the end of the query
-            $query = $query . '*';
+            $query .= '*';
         }
 
         $db = \OpenDxp\Db::get();
@@ -593,7 +587,7 @@ class SearchController extends UserAwareController
         }
 
         if (mb_strlen($shortPath) > 50) {
-            $shortPath = mb_substr($shortPath, 0, 49) . '…';
+            return mb_substr($shortPath, 0, 49) . '…';
         }
 
         return $shortPath;

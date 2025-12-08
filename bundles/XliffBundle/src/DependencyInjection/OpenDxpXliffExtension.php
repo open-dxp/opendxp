@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpXliffExtension extends ConfigurableExtension
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_xliff';

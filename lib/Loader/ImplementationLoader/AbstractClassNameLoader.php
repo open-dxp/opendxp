@@ -35,9 +35,8 @@ abstract class AbstractClassNameLoader implements LoaderInterface, ClassNameLoad
         $params = array_values($params);
 
         $className = $this->getClassName($name);
-        $instance = new $className(...$params);
 
-        return $instance;
+        return new $className(...$params);
     }
 
     public function supportsClassName(string $name): bool

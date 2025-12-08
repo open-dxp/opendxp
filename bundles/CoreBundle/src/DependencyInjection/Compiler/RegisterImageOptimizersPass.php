@@ -34,7 +34,7 @@ final class RegisterImageOptimizersPass implements CompilerPassInterface
 
         $definition = $container->getDefinition(Optimizer::class);
 
-        foreach ($container->findTaggedServiceIds('opendxp.image.optimizer') as $id => $tags) {
+        foreach (array_keys($container->findTaggedServiceIds('opendxp.image.optimizer')) as $id) {
             $definition->addMethodCall('registerOptimizer', [new Reference($id)]);
         }
     }

@@ -28,8 +28,6 @@ final class LongRunningHelper
 {
     use LoggerAwareTrait;
 
-    protected ConnectionRegistry $connectionRegistry;
-
     /**
      * @var string[]
      */
@@ -53,9 +51,8 @@ final class LongRunningHelper
      * LongRunningHelper constructor.
      *
      */
-    public function __construct(ConnectionRegistry $connectionRegistry)
+    public function __construct(protected ConnectionRegistry $connectionRegistry)
     {
-        $this->connectionRegistry = $connectionRegistry;
     }
 
     public function cleanUp(array $options = []): void
@@ -69,7 +66,7 @@ final class LongRunningHelper
     protected function cleanupDoctrine(): void
     {
         try {
-            foreach ($this->connectionRegistry->getConnections() as $name => $connection) {
+            foreach ($this->connectionRegistry->getConnections() as $connection) {
                 if (!($connection instanceof Connection)) {
                     throw new LogicException('Expected only instances of Connection');
                 }
@@ -77,7 +74,7 @@ final class LongRunningHelper
                     $connection->close();
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // connection couldn't be established, this is e.g. the case when OpenDxp isn't installed yet
         }
     }
@@ -97,7 +94,7 @@ final class LongRunningHelper
         $protectedItems = $this->openDxpRuntimeCacheProtectedItems;
 
         if (isset($options['keepItems']) && is_array($options['keepItems']) && count($options['keepItems']) > 0) {
-            $protectedItems = array_merge($protectedItems, $options['keepItems']);
+            $protectedItems = [...$protectedItems, ...$options['keepItems']];
         }
 
         RuntimeCache::clear($protectedItems);
@@ -105,11 +102,11 @@ final class LongRunningHelper
 
     public function addOpenDxpRuntimeCacheProtectedItems(array $items): void
     {
-        $this->openDxpRuntimeCacheProtectedItems = array_merge($this->openDxpRuntimeCacheProtectedItems, $items);
+        $this->openDxpRuntimeCacheProtectedItems = [...$this->openDxpRuntimeCacheProtectedItems, ...$items];
         $this->openDxpRuntimeCacheProtectedItems = array_unique($this->openDxpRuntimeCacheProtectedItems);
     }
 
-    public function removeOpenDxpRuntimeCacheProtectedItems(array $items): void
+    public function removeOpenDxpRuntimeCacheProtectedItems(): void
     {
         foreach ($this->openDxpRuntimeCacheProtectedItems as $item) {
             $key = array_search($item, $this->openDxpRuntimeCacheProtectedItems);
@@ -139,11 +136,8 @@ final class LongRunningHelper
     {
         $name = preg_replace('@[^\:]+\:\:cleanup@', '', $method);
         $name = lcfirst($name);
-        if (isset($options[$name])) {
-            return $options[$name];
-        }
 
-        return [];
+        return $options[$name] ?? [];
     }
 
     /**

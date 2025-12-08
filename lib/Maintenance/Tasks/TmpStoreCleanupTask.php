@@ -24,11 +24,8 @@ use OpenDxp\Maintenance\TaskInterface;
  */
 class TmpStoreCleanupTask implements TaskInterface
 {
-    private Connection $db;
-
-    public function __construct(Connection $db)
+    public function __construct(private readonly Connection $db)
     {
-        $this->db = $db;
     }
 
     public function execute(): void

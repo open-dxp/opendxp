@@ -82,7 +82,7 @@ class HtmlToImage
                 return rename(OPENDXP_SYSTEM_TEMP_DIRECTORY . '/' . $file, $outputFile);
             }
 
-        } catch (Exception $e) {
+        } catch (Exception) {
             // nothing to do
         }
 

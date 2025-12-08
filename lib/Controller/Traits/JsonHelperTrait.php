@@ -58,15 +58,9 @@ trait JsonHelperTrait
      */
     public function encodeJson(mixed $data, array $context = [], int $options = JsonResponse::DEFAULT_ENCODING_OPTIONS, bool $useOpenDxpSerializer = true): string
     {
-        if ($useOpenDxpSerializer) {
-            $serializer = $this->openDxpSerializer;
-        } else {
-            $serializer = $this->container->get('serializer');
-        }
+        $serializer = $useOpenDxpSerializer ? $this->openDxpSerializer : $this->container->get('serializer');
 
-        return $serializer->serialize($data, 'json', array_merge([
-            'json_encode_options' => $options,
-        ], $context));
+        return $serializer->serialize($data, 'json', ['json_encode_options' => $options, ...$context]);
     }
 
     /**
@@ -78,11 +72,7 @@ trait JsonHelperTrait
      */
     public function decodeJson(mixed $json, bool $associative = true, array $context = [], bool $useOpenDxpSerializer = true): mixed
     {
-        if ($useOpenDxpSerializer) {
-            $serializer = $this->openDxpSerializer;
-        } else {
-            $serializer = $this->container->get('serializer');
-        }
+        $serializer = $useOpenDxpSerializer ? $this->openDxpSerializer : $this->container->get('serializer');
 
         if ($associative) {
             $context['json_decode_associative'] = true;

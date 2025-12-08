@@ -19,18 +19,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class BundleSetupEvent extends Event
 {
-    private array $bundles;
-
-    private array $recommendations;
-
     private array $required = [];
 
     private array $excludeFromBundlesPhp = [];
 
-    public function __construct(array $bundles, array $recommendations)
+    public function __construct(private array $bundles, private array $recommendations)
     {
-        $this->bundles = $bundles;
-        $this->recommendations = $recommendations;
     }
 
     public function getBundles(): array
@@ -71,12 +65,12 @@ class BundleSetupEvent extends Event
     {
         // merge the required bundles and make sure they are unique
 
-        return array_unique(array_merge(array_keys($this->required), $bundles));
+        return array_unique([...array_keys($this->required), ...$bundles]);
     }
 
     public function getAvailableBundles(): array
     {
-        return array_unique(array_merge($this->required, $this->bundles));
+        return array_unique([...$this->required, ...$this->bundles]);
     }
 
     public function getExcludeBundlesFromPhpBundles(): array

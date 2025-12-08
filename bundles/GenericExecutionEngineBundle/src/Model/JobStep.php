@@ -18,14 +18,14 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Model;
 
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\SelectionProcessingMode;
 
-final class JobStep implements JobStepInterface
+final readonly class JobStep implements JobStepInterface
 {
     public function __construct(
-        private readonly string $name,
-        private readonly string $messageFQCN,
-        private readonly string $condition,
-        private readonly array $config,
-        private readonly SelectionProcessingMode $selectionProcessingMode = SelectionProcessingMode::FOR_EACH
+        private string $name,
+        private string $messageFQCN,
+        private string $condition,
+        private array $config,
+        private SelectionProcessingMode $selectionProcessingMode = SelectionProcessingMode::FOR_EACH
     ) {
     }
 

@@ -21,11 +21,8 @@ use stdClass;
 
 class DefaultCustomReportAdapterFactory implements CustomReportAdapterFactoryInterface
 {
-    private string $className;
-
-    public function __construct(string $className)
+    public function __construct(private readonly string $className)
     {
-        $this->className = $className;
     }
 
     public function create(stdClass $config, ?Config $fullConfig = null): CustomReportAdapterInterface

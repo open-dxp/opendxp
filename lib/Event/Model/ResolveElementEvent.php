@@ -23,18 +23,12 @@ class ResolveElementEvent extends Event
 {
     use ArgumentsAwareTrait;
 
-    protected string $id;
-
-    protected string $type;
-
     /**
      * ElementEvent constructor.
      *
      */
-    public function __construct(string $type, string $id, array $arguments = [])
+    public function __construct(protected string $type, protected string $id, array $arguments = [])
     {
-        $this->type = $type;
-        $this->id = $id;
         $this->arguments = $arguments;
     }
 

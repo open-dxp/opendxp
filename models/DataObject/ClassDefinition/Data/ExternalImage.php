@@ -88,7 +88,6 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
 
     /**
      *
-     * @return Model\DataObject\Data\ExternalImage
      *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      *
@@ -131,11 +130,6 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return null;
     }
 
-    /**
-     * @param Model\DataObject\Data\ExternalImage|null $data
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataForGrid(?DataObject\Data\ExternalImage $data, ?Concrete $object = null, array $params = []): ?string
     {
         return $this->getDataForEditmode($data, $object, $params);
@@ -143,7 +137,6 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
 
     /**
      *
-     * @return Model\DataObject\Data\ExternalImage
      *
      * @see Data::getDataFromEditmode
      */
@@ -152,11 +145,6 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return new Model\DataObject\Data\ExternalImage($data);
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     * @return Model\DataObject\Data\ExternalImage
-     */
     public function getDataFromGridEditor(?string $data, ?Concrete $object = null, array $params = []): DataObject\Data\ExternalImage
     {
         return $this->getDataFromEditmode($data, $object, $params);
@@ -168,6 +156,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Model\DataObject\Data\ExternalImage && $data->getUrl()) {
@@ -177,6 +166,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return '';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -187,6 +177,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return $return ?? '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -195,7 +186,6 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(string $data, ?Concrete $object = null, array $params = []): string
@@ -210,6 +200,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
     /**
      * @param Model\DataObject\ClassDefinition\Data\ExternalImage $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->previewHeight = $mainDefinition->previewHeight;
@@ -221,6 +212,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
      *
      * @throws Model\Element\ValidationException
      */
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($this->getMandatory() && !$omitMandatoryCheck && $this->isEmpty($data)) {
@@ -228,6 +220,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         }
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return !($data instanceof DataObject\Data\ExternalImage && $data->getUrl());
@@ -238,7 +231,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         $oldValue = $oldValue instanceof DataObject\Data\ExternalImage ? $oldValue->getUrl() : null;
         $newValue = $newValue instanceof DataObject\Data\ExternalImage ? $newValue->getUrl() : null;
 
-        return $oldValue == $newValue;
+        return $oldValue === $newValue;
     }
 
     public function getParameterTypeDeclaration(): ?string

@@ -34,9 +34,8 @@ class Text
     public static function removeLineBreaks(string $text = ''): string
     {
         $text = str_replace(["\r\n", "\n", "\r", "\t"], ' ', $text);
-        $text = preg_replace('#[ ]+#', ' ', $text);
 
-        return $text;
+        return preg_replace('#[ ]+#', ' ', $text);
     }
 
     public static function wysiwygText(?string $text, array $params = []): ?string
@@ -48,8 +47,9 @@ class Text
         $matches = self::getElementsTagsInWysiwyg($text);
 
         if (count($matches[2]) > 0) {
-            for ($i = 0; $i < count($matches[2]); $i++) {
-                preg_match('/[0-9]+/', $matches[2][$i], $idMatches);
+            $counter = count($matches[2]);
+            for ($i = 0; $i < $counter; $i++) {
+                preg_match('/\d+/', $matches[2][$i], $idMatches);
                 preg_match('/asset|object|document/', $matches[3][$i], $typeMatches);
 
                 $linkAttr = null;
@@ -81,10 +81,8 @@ class Text
                             }
 
                             $site = Frontend::getSiteForDocument($element);
-                            if ($site instanceof Site) {
-                                if (preg_match('~^' . preg_quote($site->getRootPath(), '~') . '~', $path)) {
-                                    $path = Tool::getRequestScheme() . '://' . $site->getMainDomain() . preg_replace('~^' . preg_quote($site->getRootPath(), '~') . '~', '', $path);
-                                }
+                            if ($site instanceof Site && preg_match('~^' . preg_quote($site->getRootPath(), '~') . '~', $path)) {
+                                $path = Tool::getRequestScheme() . '://' . $site->getMainDomain() . preg_replace('~^' . preg_quote($site->getRootPath(), '~') . '~', '', $path);
                             }
 
                         } elseif ($element instanceof Concrete) {
@@ -117,8 +115,8 @@ class Text
 
                         if ((isset($widthAttr[1]) && $widthAttr[1]) || (isset($heightAttr[1]) && $heightAttr[1])) {
                             $config = [
-                                'width' => (int)(isset($widthAttr[1]) ? $widthAttr[1] : null),
-                                'height' => (int)(isset($heightAttr[1]) ? $heightAttr[1] : null),
+                                'width' => (int)($widthAttr[1] ?? null),
+                                'height' => (int)($heightAttr[1] ?? null),
                             ];
                         }
 
@@ -151,7 +149,7 @@ class Text
                                 $alt = $altMatches[1] ?? '';
                                 $title = $titleMatches[1] ?? '';
 
-                                $pathHdpi = $element->getThumbnail(array_merge($config, ['highResolution' => 2]));
+                                $pathHdpi = $element->getThumbnail([...$config, 'highResolution' => 2]);
                                 $additionalAttributes = [
                                     'srcset' => $path . ' 1x, ' . $pathHdpi . ' 2x',
                                     'alt' => $alt,
@@ -173,7 +171,7 @@ class Text
                     if ($path) {
                         $pattern = '/' . $linkAttr . '="[^"]*"/';
                         $replacement = $linkAttr . '="' . $path . '"';
-                        if (!empty($additionalAttributes)) {
+                        if ($additionalAttributes !== []) {
                             $replacement .= ' ' . array_to_html_attribute_string($additionalAttributes);
                         }
 
@@ -243,7 +241,8 @@ class Text
         $results[1] = [];
         $results[2] = [];
         $results[3] = [];
-        for ($i = 0; $i < count($matches); $i++) {
+        $counter = count($matches);
+        for ($i = 0; $i < $counter; $i++) {
             $match = $matches[$i];
 
             $tag = $match[1] ?: $match[4];
@@ -270,8 +269,9 @@ class Text
         $matches = self::getElementsTagsInWysiwyg($text);
 
         if (count($matches[2]) > 0) {
-            for ($i = 0; $i < count($matches[2]); $i++) {
-                preg_match('/[0-9]+/', $matches[2][$i], $idMatches);
+            $counter = count($matches[2]);
+            for ($i = 0; $i < $counter; $i++) {
+                preg_match('/\d+/', $matches[2][$i], $idMatches);
                 preg_match('/asset|object|document/', $matches[3][$i], $typeMatches);
 
                 if (isset($idMatches[0], $typeMatches[0])) {
@@ -328,7 +328,7 @@ class Text
     {
         $encoding = self::detectEncoding($text);
         if ($encoding) {
-            $text = iconv($encoding, 'UTF-8', $text);
+            return iconv($encoding, 'UTF-8', $text);
         }
 
         return $text;
@@ -346,16 +346,20 @@ class Text
         $first2bytes = substr($text, 0, 2);
         $first3bytes = substr($text, 0, 3);
         $first4bytes = substr($text, 0, 3);
-
         if ($first3bytes === $utf8_bom) {
             return 'UTF-8';
-        } elseif ($first4bytes === $utf32_big_endian_bom) {
+        }
+        if ($first4bytes === $utf32_big_endian_bom) {
             return 'UTF-32BE';
-        } elseif ($first4bytes === $utf32_little_endian_bom) {
+        }
+        if ($first4bytes === $utf32_little_endian_bom) {
             return 'UTF-32LE';
-        } elseif ($first2bytes === $utf16_big_endian_bom) {
+        }
+        if ($first2bytes === $utf16_big_endian_bom) {
             return 'UTF-16BE';
-        } elseif ($first2bytes === $utf16_little_endian_bom) {
+        }
+
+        if ($first2bytes === $utf16_little_endian_bom) {
             return 'UTF-16LE';
         }
 
@@ -363,7 +367,7 @@ class Text
         $encoding = $detector->getEncoding($text);
 
         if (empty($encoding)) {
-            $encoding = 'UTF-8';
+            return 'UTF-8';
         }
 
         return $encoding;
@@ -375,9 +379,8 @@ class Text
         $string = str_replace("\n", ' ', $string);
         $string = str_replace("\r", ' ', $string);
         $string = str_replace("\t", '', $string);
-        $string = preg_replace('#[ ]+#', ' ', $string);
 
-        return $string;
+        return preg_replace('#[ ]+#', ' ', $string);
     }
 
     public static function cutStringRespectingWhitespace(string $string, int $length): string

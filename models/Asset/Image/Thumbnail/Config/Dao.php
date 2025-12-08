@@ -28,8 +28,9 @@ use OpenDxp\Model;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'image_thumbnails';
+    private const string CONFIG_KEY = 'image_thumbnails';
 
+    #[\Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -112,6 +113,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->clearDatabaseCache();
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

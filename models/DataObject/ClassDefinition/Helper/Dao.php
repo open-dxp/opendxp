@@ -40,7 +40,7 @@ trait Dao
             if ($enabled) {
                 if (is_array($columnType)) {
                     // multicolumn field
-                    foreach ($columnType as $fkey => $fvalue) {
+                    foreach (array_keys($columnType) as $fkey) {
                         $indexName = $field->getName().'__'.$fkey;
                         $columnName = '`' . $indexName . '`';
                         if ($unique) {
@@ -69,21 +69,19 @@ trait Dao
                         $this->db->executeQuery('ALTER TABLE `' . $table . '` ADD ' . $uniqueStr . 'INDEX `' . $prefix . $indexName . '` (' . $columnName . ');');
                     }
                 }
-            } else {
-                if (is_array($columnType)) {
-                    // multicolumn field
-                    foreach ($columnType as $fkey => $fvalue) {
-                        $indexName = $field->getName().'__'.$fkey;
-                        if ($this->indexExists($table, $prefix, $indexName)) {
-                            $this->db->executeQuery('ALTER TABLE `' . $table . '` DROP INDEX `' . $prefix . $indexName . '`;');
-                        }
-                    }
-                } else {
-                    // single -column field
-                    $indexName = $field->getName();
+            } elseif (is_array($columnType)) {
+                // multicolumn field
+                foreach (array_keys($columnType) as $fkey) {
+                    $indexName = $field->getName().'__'.$fkey;
                     if ($this->indexExists($table, $prefix, $indexName)) {
                         $this->db->executeQuery('ALTER TABLE `' . $table . '` DROP INDEX `' . $prefix . $indexName . '`;');
                     }
+                }
+            } else {
+                // single -column field
+                $indexName = $field->getName();
+                if ($this->indexExists($table, $prefix, $indexName)) {
+                    $this->db->executeQuery('ALTER TABLE `' . $table . '` DROP INDEX `' . $prefix . $indexName . '`;');
                 }
             }
         }
@@ -97,16 +95,14 @@ trait Dao
 
         // check for existing column case insensitive eg a rename from myInput to myinput
         $matchingExisting = preg_grep('/^' . preg_quote($colName, '/') . '$/i', $existingColumns);
-        if (is_array($matchingExisting) && !empty($matchingExisting)) {
+        if (is_array($matchingExisting) && $matchingExisting !== []) {
             $existingColName = current($matchingExisting);
         }
         if ($existingColName === null) {
             $this->db->executeQuery('ALTER TABLE `' . $table . '` ADD COLUMN `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
             $this->resetValidTableColumnsCache($table);
-        } else {
-            if (!DataObject\ClassDefinition\Service::skipColumn($this->tableDefinitions, $table, $colName, $type, $default, $null)) {
-                $this->db->executeQuery('ALTER TABLE `' . $table . '` CHANGE COLUMN `' . $existingColName . '` `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
-            }
+        } elseif (!DataObject\ClassDefinition\Service::skipColumn($this->tableDefinitions, $table, $colName, $type, $default, $null)) {
+            $this->db->executeQuery('ALTER TABLE `' . $table . '` CHANGE COLUMN `' . $existingColName . '` `' . $colName . '` ' . $type . $default . ' ' . $null . ';');
         }
     }
 
@@ -119,7 +115,7 @@ trait Dao
         $dropColumns = [];
         foreach ($columnsToRemove as $value) {
             //if (!in_array($value, $protectedColumns)) {
-            if (!in_array(strtolower($value), array_map('strtolower', $protectedColumns))) {
+            if (!in_array(strtolower($value), array_map(strtolower(...), $protectedColumns))) {
                 $dropColumns[] = 'DROP COLUMN `' . $value . '`';
                 $this->removeIndices($table, [$value], []);
             }
@@ -173,7 +169,7 @@ trait Dao
     protected function removeIndices(string $table, array $columnsToRemove, array $protectedColumns): void
     {
         if ($columnsToRemove) {
-            $lowerCaseColumns = array_map('strtolower', $protectedColumns);
+            $lowerCaseColumns = array_map(strtolower(...), $protectedColumns);
             foreach ($columnsToRemove as $value) {
                 if (!in_array(strtolower($value), $lowerCaseColumns) && $this->indexExists($table, 'u_index_', $value)) {
                     $this->db->executeQuery('ALTER TABLE `'.$table.'` DROP INDEX `u_index_'. $value . '`;');

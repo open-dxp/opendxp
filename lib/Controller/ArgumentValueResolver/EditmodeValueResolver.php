@@ -24,13 +24,10 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 /**
  * @internal
  */
-final class EditmodeValueResolver implements ValueResolverInterface
+final readonly class EditmodeValueResolver implements ValueResolverInterface
 {
-    private EditmodeResolver $editmodeResolver;
-
-    public function __construct(EditmodeResolver $editmodeResolver)
+    public function __construct(private EditmodeResolver $editmodeResolver)
     {
-        $this->editmodeResolver = $editmodeResolver;
     }
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable

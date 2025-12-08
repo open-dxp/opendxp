@@ -123,7 +123,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
                         return null;
                     }
 
-                    throw new Exception('could not load key');
+                    throw new Exception('could not load key', $e->getCode(), $e);
                 }
 
                 $rawBinary = (isset($params['asString']) && $params['asString']) ? false : true;
@@ -133,14 +133,14 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
                 }
 
                 if ($this->delegate instanceof AfterDecryptionUnmarshallerInterface || method_exists($this->delegate, 'unmarshalAfterDecryption')) {
-                    $data = $this->delegate->unmarshalAfterDecryption($data, $object, $params);
+                    return $this->delegate->unmarshalAfterDecryption($data, $object, $params);
                 }
 
                 return $data;
             } catch (Exception $e) {
                 Logger::error((string) $e);
                 if (self::isStrictMode()) {
-                    throw new Exception('encrypted field ' . $this->getName() . ' cannot be decoded');
+                    throw new Exception('encrypted field ' . $this->getName() . ' cannot be decoded', $e->getCode(), $e);
                 }
             }
         }
@@ -198,9 +198,8 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
 
         if ($fd) {
             $result = $fd->getDataFromEditmode($data, $object, $params);
-            $result = new Model\DataObject\Data\EncryptedField($this->delegate, $result);
 
-            return $result;
+            return new Model\DataObject\Data\EncryptedField($this->delegate, $result);
         }
 
         return null;
@@ -217,6 +216,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $data;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -226,6 +226,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         }
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -244,17 +245,15 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
     public function getDataForGrid(mixed $data, ?Model\DataObject\Concrete $object = null, array $params = []): mixed
     {
         $fd = $this->getDelegateDatatypeDefinition();
-        if ($fd) {
-            if (method_exists($fd, 'getDataForGrid')) {
-                $data = $data instanceof Model\DataObject\Data\EncryptedField ? $data->getPlain() : null;
-
-                return $fd->getDataForGrid($data, $object, $params);
-            }
+        if ($fd && method_exists($fd, 'getDataForGrid')) {
+            $data = $data instanceof Model\DataObject\Data\EncryptedField ? $data->getPlain() : null;
+            return $fd->getDataForGrid($data, $object, $params);
         }
 
         return $data;
     }
 
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -263,6 +262,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $fd->getVersionPreview($data, $object, $params);
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -280,6 +280,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
     /**
      * returns sql query statement to filter according to this data types value(s)
      */
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         return '';
@@ -308,13 +309,11 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         $this->delegate = null;
 
         $loader = OpenDxp::getContainer()->get('opendxp.implementation_loader.object.data');
-        if ($this->getDelegateDatatype()) {
-            if ($loader->supports($this->getDelegateDatatype())) {
-                $delegate = $loader->build($this->getDelegateDatatype());
-                $className = get_class($delegate);
-                $delegate = $className::__set_state($data);
-                $this->delegate = $delegate;
-            }
+        if ($this->getDelegateDatatype() && $loader->supports($this->getDelegateDatatype())) {
+            $delegate = $loader->build($this->getDelegateDatatype());
+            $className = $delegate::class;
+            $delegate = $className::__set_state($data);
+            $this->delegate = $delegate;
         }
     }
 
@@ -349,6 +348,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $this;
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         // encrypted data shouldn't be in search index
@@ -393,7 +393,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         if ($value instanceof Model\DataObject\Data\EncryptedField) {
             $plainValue = $value->getPlain();
             if ($this->delegate instanceof NormalizerInterface) {
-                $plainValue = $this->delegate->normalize($plainValue, $params);
+                return $this->delegate->normalize($plainValue, $params);
             }
 
             return $plainValue;
@@ -407,9 +407,8 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         if ($this->delegate instanceof NormalizerInterface) {
             $value = $this->delegate->denormalize($value, $params);
         }
-        $value = new Model\DataObject\Data\EncryptedField($this->delegate, $value);
 
-        return $value;
+        return new Model\DataObject\Data\EncryptedField($this->delegate, $value);
     }
 
     public function getColumnType(): string

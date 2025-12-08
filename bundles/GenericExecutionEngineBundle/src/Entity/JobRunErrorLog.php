@@ -34,28 +34,17 @@ class JobRunErrorLog
     #[ORM\Column]
     private int $id;
 
-    #[ORM\Column(type: 'integer')]
-    private int $jobRunId;
-
-    #[ORM\Column(type: 'integer')]
-    private int $stepNumber;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $elementId;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $errorMessage;
-
     public function __construct(
-        int $jobRunId,
-        int $stepNumber,
-        ?int $elementId = null,
-        ?string $errorMessage = null
-    ) {
-        $this->jobRunId = $jobRunId;
-        $this->stepNumber = $stepNumber;
-        $this->elementId = $elementId;
-        $this->errorMessage = $errorMessage;
+        #[ORM\Column(type: 'integer')]
+        private int $jobRunId,
+        #[ORM\Column(type: 'integer')]
+        private int $stepNumber,
+        #[ORM\Column(type: 'integer', nullable: true)]
+        private ?int $elementId = null,
+        #[ORM\Column(type: 'text', nullable: true)]
+        private ?string $errorMessage = null
+    )
+    {
     }
 
     public function getId(): int

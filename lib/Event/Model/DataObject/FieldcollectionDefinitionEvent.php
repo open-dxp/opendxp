@@ -21,11 +21,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class FieldcollectionDefinitionEvent extends Event
 {
-    protected Definition $fieldcollectionDefinition;
-
-    public function __construct(Definition $fieldcollectionDefinition)
+    public function __construct(protected Definition $fieldcollectionDefinition)
     {
-        $this->fieldcollectionDefinition = $fieldcollectionDefinition;
     }
 
     public function getFieldcollectionDefinition(): Definition

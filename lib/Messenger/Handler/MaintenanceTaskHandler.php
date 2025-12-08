@@ -25,7 +25,7 @@ use OpenDxp\Messenger\MaintenanceTaskMessage;
 class MaintenanceTaskHandler
 {
     public function __construct(
-        private ExecutorInterface $maintenanceExecutor
+        private readonly ExecutorInterface $maintenanceExecutor
     ) {
     }
 

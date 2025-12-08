@@ -24,22 +24,15 @@ class LocaleService implements LocaleServiceInterface
 {
     protected ?string $locale = null;
 
-    protected ?RequestStack $requestStack = null;
-
-    protected ?Translator $translator = null;
-
-    public function __construct(?RequestStack $requestStack = null, ?Translator $translator = null)
+    public function __construct(protected ?RequestStack $requestStack = null, protected ?Translator $translator = null)
     {
-        $this->requestStack = $requestStack;
-        $this->translator = $translator;
     }
 
     public function isLocale(string $locale): bool
     {
         $locales = array_flip($this->getLocaleList());
-        $exists = isset($locales[$locale]);
 
-        return $exists;
+        return isset($locales[$locale]);
     }
 
     public function findLocale(): string
@@ -82,12 +75,10 @@ class LocaleService implements LocaleServiceInterface
 
         $dataPath = OPENDXP_COMPOSER_PATH . '/umpirsky/country-list/data/';
         if (file_exists($dataPath . $locale . '/country.php')) {
-            $regions = include($dataPath . $locale . '/country.php');
-        } else {
-            $regions = include($dataPath . 'en/country.php');
+            return include($dataPath . $locale . '/country.php');
         }
 
-        return $regions;
+        return include($dataPath . 'en/country.php');
     }
 
     public function getLocale(): ?string

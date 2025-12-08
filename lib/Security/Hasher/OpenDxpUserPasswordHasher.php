@@ -32,6 +32,7 @@ class OpenDxpUserPasswordHasher extends AbstractUserAwarePasswordHasher
 {
     use CheckPasswordLengthTrait;
 
+    #[\Override]
     public function hash(string $plainPassword, ?string $salt = null): string
     {
         if ($this->isPasswordTooLong($plainPassword)) {
@@ -41,6 +42,7 @@ class OpenDxpUserPasswordHasher extends AbstractUserAwarePasswordHasher
         return Authentication::getPasswordHash($this->getUser()->getUserIdentifier(), $plainPassword);
     }
 
+    #[\Override]
     public function verify(string $hashedPassword, string $plainPassword, ?string $salt = null): bool
     {
         if ($this->isPasswordTooLong($hashedPassword)) {

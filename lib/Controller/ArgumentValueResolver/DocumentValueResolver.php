@@ -29,11 +29,8 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
  */
 final class DocumentValueResolver implements ValueResolverInterface
 {
-    protected DocumentResolver $documentResolver;
-
-    public function __construct(DocumentResolver $documentResolver)
+    public function __construct(protected DocumentResolver $documentResolver)
     {
-        $this->documentResolver = $documentResolver;
     }
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable

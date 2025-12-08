@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class StoreConfigEvent extends Event
 {
-    protected StoreConfig $storeConfig;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(StoreConfig $storeConfig)
+    public function __construct(protected StoreConfig $storeConfig)
     {
-        $this->storeConfig = $storeConfig;
     }
 
     public function getStoreConfig(): StoreConfig

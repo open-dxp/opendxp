@@ -24,14 +24,11 @@ class RedirectEvent extends Event
 {
     use ArgumentsAwareTrait;
 
-    protected Redirect $redirect;
-
     /**
      * @param array $arguments additional parameters (e.g. "versionNote" for the version note)
      */
-    public function __construct(Redirect $redirect, array $arguments = [])
+    public function __construct(protected Redirect $redirect, array $arguments = [])
     {
-        $this->redirect = $redirect;
         $this->arguments = $arguments;
     }
 

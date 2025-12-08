@@ -20,7 +20,7 @@ use Exception;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 
-class StructuredTable implements OwnerAwareFieldInterface
+class StructuredTable implements OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
 
@@ -59,7 +59,7 @@ class StructuredTable implements OwnerAwareFieldInterface
             $key = strtolower(substr($name, 3, strlen($name) - 3));
 
             $parts = explode('__', $key);
-            if (count($parts) == 2) {
+            if (count($parts) === 2) {
                 $row = $parts[0];
                 $col = $parts[1];
 
@@ -80,7 +80,7 @@ class StructuredTable implements OwnerAwareFieldInterface
             $key = strtolower(substr($name, 3, strlen($name) - 3));
 
             $parts = explode('__', $key);
-            if (count($parts) == 2) {
+            if (count($parts) === 2) {
                 $row = $parts[0];
                 $col = $parts[1];
 
@@ -128,9 +128,7 @@ class StructuredTable implements OwnerAwareFieldInterface
             $string .= '</tr>';
         }
 
-        $string .= '</table>';
-
-        return $string;
+        return $string . '</table>';
     }
 
     public function getHtmlTable(array $rowDefs, array $colDefs): string
@@ -155,8 +153,6 @@ class StructuredTable implements OwnerAwareFieldInterface
             $string .= '</tr>';
         }
 
-        $string .= '</table>';
-
-        return $string;
+        return $string . '</table>';
     }
 }

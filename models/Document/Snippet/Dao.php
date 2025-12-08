@@ -30,6 +30,7 @@ class Dao extends Model\Document\PageSnippet\Dao
      *
      * @throws Model\Exception\NotFoundException
      */
+    #[\Override]
     public function getById(?int $id = null): void
     {
         if ($id != null) {
@@ -49,6 +50,7 @@ class Dao extends Model\Document\PageSnippet\Dao
         }
     }
 
+    #[\Override]
     public function create(): void
     {
         parent::create();

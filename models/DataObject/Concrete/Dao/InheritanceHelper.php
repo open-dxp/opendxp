@@ -48,8 +48,6 @@ class InheritanceHelper
 
     protected array $fieldDefinitions = [];
 
-    protected string $classId;
-
     protected static bool $useRuntimeCache = false;
 
     protected bool $childFound = false;
@@ -66,40 +64,14 @@ class InheritanceHelper
 
     protected ?string $queryIdField = null;
 
-    public function __construct(string $classId, ?string $idField = null, ?string $storetable = null, ?string $querytable = null, ?string $relationtable = null, ?string $queryIdField = null)
+    public function __construct(protected string $classId, ?string $idField = null, ?string $storetable = null, ?string $querytable = null, ?string $relationtable = null, ?string $queryIdField = null)
     {
         $this->db = \OpenDxp\Db::get();
-        $this->classId = $classId;
-
-        if ($storetable === null) {
-            $this->storetable = self::STORE_TABLE . $classId;
-        } else {
-            $this->storetable = $storetable;
-        }
-
-        if ($querytable === null) {
-            $this->querytable = self::QUERY_TABLE . $classId;
-        } else {
-            $this->querytable = $querytable;
-        }
-
-        if ($relationtable === null) {
-            $this->relationtable = self::RELATION_TABLE . $classId;
-        } else {
-            $this->relationtable = $relationtable;
-        }
-
-        if ($idField === null) {
-            $this->idField = self::ID_FIELD;
-        } else {
-            $this->idField = $idField;
-        }
-
-        if ($queryIdField === null) {
-            $this->queryIdField = self::DEFAULT_QUERY_ID_COLUMN;
-        } else {
-            $this->queryIdField = $queryIdField;
-        }
+        $this->storetable = $storetable ?? self::STORE_TABLE . $this->classId;
+        $this->querytable = $querytable ?? self::QUERY_TABLE . $this->classId;
+        $this->relationtable = $relationtable ?? self::RELATION_TABLE . $this->classId;
+        $this->idField = $idField ?? self::ID_FIELD;
+        $this->queryIdField = $queryIdField ?? self::DEFAULT_QUERY_ID_COLUMN;
     }
 
     /**
@@ -138,11 +110,7 @@ class InheritanceHelper
 
     public function addRelationToCheck(string $fieldname, DataObject\ClassDefinition\Data $fieldDefinition, ?array $queryfields = null): void
     {
-        if ($queryfields === null) {
-            $this->relations[$fieldname] = $fieldname;
-        } else {
-            $this->relations[$fieldname] = $queryfields;
-        }
+        $this->relations[$fieldname] = $queryfields ?? $fieldname;
 
         $this->fieldIds[$fieldname] = [];
         $this->fieldDefinitions[$fieldname] = $fieldDefinition;
@@ -154,12 +122,12 @@ class InheritanceHelper
      */
     public function doUpdate(int $oo_id, bool $createMissingChildrenRows = false, array $params = []): void
     {
-        if (empty($this->fields) && empty($this->relations) && !$createMissingChildrenRows) {
+        if ($this->fields === [] && $this->relations === [] && !$createMissingChildrenRows) {
             return;
         }
 
         // only build the tree if there are fields to check
-        if (!empty($this->fields) || !empty($this->relations)) {
+        if ($this->fields !== [] || $this->relations !== []) {
             $fields = implode('`,`', $this->fields);
             if (!empty($fields)) {
                 $fields = ', `' . $fields . '`';
@@ -173,34 +141,30 @@ class InheritanceHelper
 
             $o['children'] = $this->buildTree($result['id'], $fields, null, $params);
 
-            if (!empty($this->fields)) {
-                foreach ($this->fields as $fieldname) {
-                    foreach ($o['children'] as $c) {
-                        $this->getIdsToUpdateForValuefields($c, $fieldname);
-                    }
-
-                    $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $fieldname);
-                    // not needed anymore
-                    unset($this->fieldIds[$fieldname]);
+            foreach ($this->fields as $fieldname) {
+                foreach ($o['children'] as $c) {
+                    $this->getIdsToUpdateForValuefields($c, $fieldname);
                 }
+
+                $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $fieldname);
+                // not needed anymore
+                unset($this->fieldIds[$fieldname]);
             }
 
-            if (!empty($this->relations)) {
-                foreach ($this->relations as $fieldname => $fields) {
-                    foreach ($o['children'] as $c) {
-                        $this->getIdsToUpdateForRelationfields($c, $fieldname, $params);
-                    }
-
-                    if (is_array($fields)) {
-                        foreach ($fields as $f) {
-                            $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $f);
-                        }
-                    } else {
-                        $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $fieldname);
-                    }
-                    // not needed anymore
-                    unset($this->fieldIds[$fieldname]);
+            foreach ($this->relations as $fieldname => $fields) {
+                foreach ($o['children'] as $c) {
+                    $this->getIdsToUpdateForRelationfields($c, $fieldname, $params);
                 }
+
+                if (is_array($fields)) {
+                    foreach ($fields as $f) {
+                        $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $f);
+                    }
+                } else {
+                    $this->updateQueryTable($oo_id, $this->fieldIds[$fieldname], $fieldname);
+                }
+                // not needed anymore
+                unset($this->fieldIds[$fieldname]);
             }
         }
 
@@ -208,15 +172,13 @@ class InheritanceHelper
         // this happens especially in the following case:
         // parent object has no brick, add child to parent, add brick to parent & click save
         // without this code there will not be an entry in the query table for the child object
-        if ($createMissingChildrenRows) {
-            // if we have a tree (which is the case if either fields or relations is configured) then
-            // rely on the childFound flag
-            // without a tree we have to do the select anyway
-            if ($this->childFound || (empty($this->fields) && empty($this->relations))) {
-                $object = DataObject\Concrete::getById($oo_id);
-                $classId = $object->getClassId();
-
-                $query = "
+        // if we have a tree (which is the case if either fields or relations is configured) then
+        // rely on the childFound flag
+        // without a tree we have to do the select anyway
+        if ($createMissingChildrenRows && ($this->childFound || $this->fields === [] && $this->relations === [])) {
+            $object = DataObject\Concrete::getById($oo_id);
+            $classId = $object->getClassId();
+            $query = "
                     WITH RECURSIVE cte(id, classId) as (
                         SELECT c.id AS id, c.classId AS classId
                         FROM objects c
@@ -231,16 +193,12 @@ class InheritanceHelper
                     where x.classId = {$this->db->quote($classId)}
                     AND l.{$this->queryIdField} is null;
                 ";
-
-                $missingIds = $this->db->fetchFirstColumn($query);
-
-                // create entries for children that don't have an entry yet
-                $originalEntry = Helper::quoteDataIdentifiers($this->db, $this->db->fetchAssociative('SELECT * FROM ' . $this->querytable . ' WHERE ' . $this->idField . ' = ?', [$oo_id]));
-
-                foreach ($missingIds as $id) {
-                    $originalEntry[$this->db->quoteIdentifier($this->idField)] = $id;
-                    $this->db->insert($this->db->quoteIdentifier($this->querytable), $originalEntry);
-                }
+            $missingIds = $this->db->fetchFirstColumn($query);
+            // create entries for children that don't have an entry yet
+            $originalEntry = Helper::quoteDataIdentifiers($this->db, $this->db->fetchAssociative('SELECT * FROM ' . $this->querytable . ' WHERE ' . $this->idField . ' = ?', [$oo_id]));
+            foreach ($missingIds as $id) {
+                $originalEntry[$this->db->quoteIdentifier($this->idField)] = $id;
+                $this->db->insert($this->db->quoteIdentifier($this->querytable), $originalEntry);
             }
         }
     }
@@ -267,25 +225,21 @@ class InheritanceHelper
             'children' => $this->buildTree($objectId, $fields, null, $params),
         ];
 
-        if (!empty($this->fields)) {
-            foreach ($this->fields as $fieldname) {
-                foreach ($o['children'] as $c) {
-                    $this->getIdsToCheckForDeletionForValuefields($c, $fieldname);
-                }
-                if (isset($this->deletionFieldIds[$fieldname])) {
-                    $this->updateQueryTableOnDelete($objectId, $this->deletionFieldIds[$fieldname], $fieldname);
-                }
+        foreach ($this->fields as $fieldname) {
+            foreach ($o['children'] as $c) {
+                $this->getIdsToCheckForDeletionForValuefields($c, $fieldname);
+            }
+            if (isset($this->deletionFieldIds[$fieldname])) {
+                $this->updateQueryTableOnDelete($objectId, $this->deletionFieldIds[$fieldname], $fieldname);
             }
         }
 
-        if (!empty($this->relations)) {
-            foreach ($this->relations as $fieldname => $fields) {
-                foreach ($o['children'] as $c) {
-                    $this->getIdsToCheckForDeletionForRelationfields($c, $fieldname);
-                }
-                if (isset($this->deletionFieldIds[$fieldname])) {
-                    $this->updateQueryTableOnDelete($objectId, $this->deletionFieldIds[$fieldname], $fieldname);
-                }
+        foreach (array_keys($this->relations) as $fieldname) {
+            foreach ($o['children'] as $c) {
+                $this->getIdsToCheckForDeletionForRelationfields($c, $fieldname);
+            }
+            if (isset($this->deletionFieldIds[$fieldname])) {
+                $this->updateQueryTableOnDelete($objectId, $this->deletionFieldIds[$fieldname], $fieldname);
             }
         }
 
@@ -315,18 +269,17 @@ class InheritanceHelper
             foreach ($currentQueryItems as $queryItem) {
                 $toBeRemoved = true;
                 foreach ($queryItem as $fieldname => $value) {
-                    if (!in_array($fieldname, $systemFields)) {
-                        if (!is_null($value)) {
-                            $toBeRemoved = false;
-
-                            break;
-                        }
+                    if (in_array($fieldname, $systemFields)) {
+                        continue;
                     }
+                    if (is_null($value)) {
+                        continue;
+                    }
+                    $toBeRemoved = false;
+                    break;
                 }
-                if ($toBeRemoved) {
-                    if (!in_array($queryItem['id'], $objectsWithBrickIds)) {
-                        $toBeRemovedItemIds[] = $queryItem['id'];
-                    }
+                if ($toBeRemoved && !in_array($queryItem['id'], $objectsWithBrickIds)) {
+                    $toBeRemovedItemIds[] = $queryItem['id'];
                 }
             }
         }
@@ -466,7 +419,7 @@ class InheritanceHelper
             $condition = implode(' AND ', $parts);
         }
         if (count($parts) > 0) {
-            $condition = $condition . ' AND ';
+            return $condition . ' AND ';
         }
 
         return $condition;
@@ -491,7 +444,7 @@ class InheritanceHelper
         }
 
         $objectRelations = [];
-        if (!empty($objectRelationsResult)) {
+        if ($objectRelationsResult !== []) {
             foreach ($objectRelationsResult as $orr) {
                 if ($orr['COUNT'] > 0) {
                     $objectRelations[$orr['fieldname']] = $orr['fieldname'];
@@ -538,11 +491,7 @@ class InheritanceHelper
     protected function getIdsToCheckForDeletionForRelationfields(array $currentNode, string $fieldname): void
     {
         $this->getRelationsForNode($currentNode);
-        if (isset($currentNode['relations'][$fieldname])) {
-            $value = $currentNode['relations'][$fieldname];
-        } else {
-            $value = null;
-        }
+        $value = $currentNode['relations'][$fieldname] ?? null;
         if (!$this->fieldDefinitions[$fieldname]->isEmpty($value)) {
             return;
         }
@@ -558,11 +507,7 @@ class InheritanceHelper
     protected function getIdsToUpdateForRelationfields(array $currentNode, string $fieldname, array $params = []): void
     {
         $this->getRelationsForNode($currentNode, $params);
-        if (isset($currentNode['relations'][$fieldname])) {
-            $value = $currentNode['relations'][$fieldname];
-        } else {
-            $value = null;
-        }
+        $value = $currentNode['relations'][$fieldname] ?? null;
         if ($this->fieldDefinitions[$fieldname]->isEmpty($value)) {
             $this->fieldIds[$fieldname][] = $currentNode['id'];
             if (!empty($currentNode['children'])) {
@@ -579,7 +524,7 @@ class InheritanceHelper
      */
     protected function updateQueryTable(int $oo_id, array $ids, string $fieldname): void
     {
-        if (!empty($ids)) {
+        if ($ids !== []) {
             $value = $this->db->fetchOne("SELECT `$fieldname` FROM " . $this->querytable . ' WHERE ' . $this->idField . ' = ?', [$oo_id]);
             $this->db->executeStatement('UPDATE ' . $this->querytable .' SET ' . $this->db->quoteIdentifier($fieldname) . '=? WHERE ' . $this->db->quoteIdentifier($this->idField) . ' IN (' . implode(',', $ids) . ')', [$value]);
         }
@@ -587,7 +532,7 @@ class InheritanceHelper
 
     protected function updateQueryTableOnDelete(int $oo_id, array $ids, string $fieldname): void
     {
-        if (!empty($ids)) {
+        if ($ids !== []) {
             $value = null;
             $this->db->executeStatement('UPDATE ' . $this->querytable .' SET ' . $this->db->quoteIdentifier($fieldname) . '=? WHERE ' . $this->db->quoteIdentifier($this->idField) . ' IN (' . implode(',', $ids) . ')', [$value]);
         }

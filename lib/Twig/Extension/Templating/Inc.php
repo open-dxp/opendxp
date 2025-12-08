@@ -26,14 +26,8 @@ class Inc implements RuntimeExtensionInterface
 {
     use HelperCharsetTrait;
 
-    protected IncludeRenderer $includeRenderer;
-
-    protected EditmodeResolver $editmodeResolver;
-
-    public function __construct(IncludeRenderer $includeRenderer, EditmodeResolver $editmodeResolver)
+    public function __construct(protected IncludeRenderer $includeRenderer, protected EditmodeResolver $editmodeResolver)
     {
-        $this->includeRenderer = $includeRenderer;
-        $this->editmodeResolver = $editmodeResolver;
     }
 
     public function __invoke(int|string|PageSnippet $include, array $params = [], bool $cacheEnabled = true, ?bool $editmode = null): string

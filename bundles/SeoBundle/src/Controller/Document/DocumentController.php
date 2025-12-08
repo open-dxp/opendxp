@@ -37,7 +37,7 @@ class DocumentController extends UserAwareController
     use JsonHelperTrait;
     use DocumentTreeConfigTrait;
 
-    private const DOCUMENT_ROOT_ID = 1;
+    private const int DOCUMENT_ROOT_ID = 1;
 
     #[Route('/seopanel-tree-root', name: 'opendxp_bundle_seo_document_document_seopaneltreeroot', methods: ['GET'])]
     public function seopanelTreeRootAction(DocumentRouteHandler $documentRouteHandler): JsonResponse

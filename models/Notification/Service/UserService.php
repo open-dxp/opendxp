@@ -49,7 +49,7 @@ class UserService
         $userListing->load();
         $users = $userListing->getUsers();
 
-        return array_merge($users, $roles);
+        return [...$users, ...$roles];
     }
 
     public function filterUsersWithPermission(array $users): array

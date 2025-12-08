@@ -33,10 +33,10 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
             'dest_id' => $this->model->getElement()->getId(),
             'fieldname' => $this->model->getFieldname(),
             'ownertype' => $ownertype,
-            'ownername' => $ownername ? $ownername : '',
-            'index' => $index ? $index : '0',
-            'position' => $position ? $position : '0',
-            'type' => $type ? $type : 'object', ];
+            'ownername' => $ownername ?: '',
+            'index' => $index ?: '0',
+            'position' => $position ?: '0',
+            'type' => $type ?: 'object', ];
 
         foreach ($this->model->getColumns() as $column) {
             $getter = 'get' . ucfirst($column);
@@ -49,7 +49,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
 
     public function load(DataObject\Concrete $source, int $destinationId, string $fieldname, string $ownertype, string $ownername, string $position, int $index, string $destinationType = 'object'): ?DataObject\Data\ElementMetadata
     {
-        if ($destinationType == 'object') {
+        if ($destinationType === 'object') {
             $typeQuery = " AND (`type` = 'object' or `type` = '')";
         } else {
             $typeQuery = ' AND `type` = ' . $this->db->quote($destinationType);
@@ -57,7 +57,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
 
         $dataRaw = $this->db->fetchAllAssociative('SELECT * FROM ' .
             $this->getTablename($source) . ' WHERE ' . $this->getTablename($source) .'.id = ? AND dest_id = ? AND fieldname = ? AND ownertype = ? AND ownername = ? and position = ? and `index` = ? ' . $typeQuery, [$source->getId(), $destinationId, $fieldname, $ownertype, $ownername, $position, $index]);
-        if (!empty($dataRaw)) {
+        if ($dataRaw !== []) {
             $this->model->setElementTypeAndId($destinationType, $destinationId);
             $this->model->setFieldname($fieldname);
             $columns = $this->model->getColumns();
@@ -69,8 +69,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
             }
 
             return $this->model;
-        } else {
-            return null;
         }
+        return null;
     }
 }

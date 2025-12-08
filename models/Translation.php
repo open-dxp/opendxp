@@ -41,9 +41,9 @@ final class Translation extends AbstractModel
 {
     use RecursionBlockingEventDispatchHelperTrait;
 
-    const DOMAIN_DEFAULT = 'messages';
+    const string DOMAIN_DEFAULT = 'messages';
 
-    const DOMAIN_ADMIN = 'admin';
+    const string DOMAIN_ADMIN = 'admin';
 
     protected ?string $key = null;
 
@@ -89,7 +89,7 @@ final class Translation extends AbstractModel
 
     public static function IsAValidLanguage(string $domain, string $locale): bool
     {
-        return in_array($locale, static::getValidLanguages($domain));
+        return in_array($locale, self::getValidLanguages($domain));
     }
 
     public function getKey(): ?string
@@ -174,7 +174,7 @@ final class Translation extends AbstractModel
 
     public function setDomain(string $domain): void
     {
-        $this->domain = !empty($domain) ? $domain : self::DOMAIN_DEFAULT;
+        $this->domain = empty($domain) ? self::DOMAIN_DEFAULT : $domain;
     }
 
     public function getUserOwner(): ?int
@@ -204,7 +204,7 @@ final class Translation extends AbstractModel
      */
     public static function getValidLanguages(string $domain = self::DOMAIN_DEFAULT): array
     {
-        if ($domain == self::DOMAIN_ADMIN) {
+        if ($domain === self::DOMAIN_ADMIN) {
             return \OpenDxp\Tool\Admin::getLanguages();
         }
 
@@ -250,10 +250,10 @@ final class Translation extends AbstractModel
             return RuntimeCache::get($cacheKey);
         }
 
-        $translation = new static();
+        $translation = new self();
         $translation->setDomain($domain);
         $idOriginal = $id;
-        $languages = $languages ? array_intersect(static::getValidLanguages($domain), $languages) : static::getValidLanguages($domain);
+        $languages = $languages ? array_intersect(self::getValidLanguages($domain), $languages) : self::getValidLanguages($domain);
 
         try {
             $translation->getDao()->getByKey($id, $languages);
@@ -310,7 +310,7 @@ final class Translation extends AbstractModel
      */
     public static function getByKeyLocalized(string $id, string $domain = self::DOMAIN_DEFAULT, bool $create = false, bool $returnIdIfEmpty = false, ?string $language = null): ?string
     {
-        if ($domain == self::DOMAIN_ADMIN) {
+        if ($domain === self::DOMAIN_ADMIN) {
             if ($user = Tool\Admin::getCurrentUser()) {
                 $language = $user->getLanguage();
             } elseif ($user = Tool\Authentication::authenticateSession()) {
@@ -344,7 +344,7 @@ final class Translation extends AbstractModel
 
     public static function isAValidDomain(string $domain): bool
     {
-        $translation = new static();
+        $translation = new self();
 
         return $translation->getDao()->isAValidDomain($domain);
     }
@@ -387,7 +387,7 @@ final class Translation extends AbstractModel
 
         if (is_readable($file)) {
             if (!$languages) {
-                $languages = static::getValidLanguages($domain);
+                $languages = self::getValidLanguages($domain);
             }
 
             //read import data
@@ -425,21 +425,20 @@ final class Translation extends AbstractModel
             if (count($data) > 1) {
                 $keys = $data[0];
                 // remove wrong quotes in some export/import constellations
-                $keys = array_map(function ($value) {
-                    return trim($value, '﻿""');
-                }, $keys);
+                $keys = array_map(fn($value) => trim($value, '﻿""'), $keys);
                 $data = array_slice($data, 1);
                 foreach ($data as $row) {
                     $keyValueArray = [];
                     $row = Service::unEscapeCsvRecord($row);
-                    for ($counter = 0; $counter < count($row); $counter++) {
+                    $rowCounter = count($row);
+                    for ($counter = 0; $counter < $rowCounter; $counter++) {
                         $rd = str_replace('&quot;', '"', $row[$counter]);
                         $keyValueArray[$keys[$counter]] = $rd;
                     }
 
                     $textKey = $keyValueArray['key'] ?? null;
                     if ($textKey) {
-                        $t = static::getByKey($textKey, $domain, true);
+                        $t = self::getByKey($textKey, $domain, true);
                         $dirty = false;
                         foreach ($keyValueArray as $key => $value) {
                             if (in_array($key, $languages)) {
@@ -449,21 +448,19 @@ final class Translation extends AbstractModel
                                     if ($currentTranslation != $value) {
                                         $dirty = true;
                                     }
-                                } else {
-                                    if (!$currentTranslation) {
-                                        $t->addTranslation($key, $value);
-                                        if ($currentTranslation != $value) {
-                                            $dirty = true;
-                                        }
-                                    } elseif ($currentTranslation != $value && $value) {
-                                        $delta[] =
-                                            [
-                                                'lg' => $key,
-                                                'key' => $textKey,
-                                                'text' => $t->getTranslation($key),
-                                                'csv' => $value,
-                                            ];
+                                } elseif (!$currentTranslation) {
+                                    $t->addTranslation($key, $value);
+                                    if ($currentTranslation != $value) {
+                                        $dirty = true;
                                     }
+                                } elseif ($currentTranslation != $value && $value) {
+                                    $delta[] =
+                                        [
+                                            'lg' => $key,
+                                            'key' => $textKey,
+                                            'text' => $t->getTranslation($key),
+                                            'csv' => $value,
+                                        ];
                                 }
                             }
                         }
@@ -482,7 +479,7 @@ final class Translation extends AbstractModel
                         OpenDxp::collectGarbage();
                     }
                 }
-                static::clearDependentCache();
+                self::clearDependentCache();
             } else {
                 throw new Exception('less than 2 rows of data - nothing to import');
             }

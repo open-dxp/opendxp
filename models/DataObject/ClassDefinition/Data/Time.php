@@ -55,11 +55,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
 
     public function setMinValue(?string $minValue): void
     {
-        if (is_string($minValue) && strlen($minValue)) {
-            $this->minValue = $this->toTime($minValue);
-        } else {
-            $this->minValue = null;
-        }
+        $this->minValue = is_string($minValue) && strlen($minValue) ? $this->toTime($minValue) : null;
     }
 
     public function getMaxValue(): ?string
@@ -69,19 +65,16 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
 
     public function setMaxValue(?string $maxValue): void
     {
-        if (is_string($maxValue) && strlen($maxValue)) {
-            $this->maxValue = $this->toTime($maxValue);
-        } else {
-            $this->maxValue = null;
-        }
+        $this->maxValue = is_string($maxValue) && strlen($maxValue) ? $this->toTime($maxValue) : null;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         parent::checkValidity($data, $omitMandatoryCheck);
 
         if (is_string($data)) {
-            if (!preg_match('/^(2[0-3]|[01][0-9]):[0-5][0-9]$/', $data) && $data !== '') {
+            if (!preg_match('/^(2[0-3]|[01]\d):[0-5]\d$/', $data) && $data !== '') {
                 throw new Model\Element\ValidationException('Wrong time format given must be a 5 digit string (eg: 06:49) [ '.$this->getName().' ]');
             }
         } elseif (!empty($data)) {
@@ -103,14 +96,16 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         }
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
-        return !is_string($data) || !preg_match('/^(2[0-3]|[01][0-9]):[0-5][0-9]$/', $data);
+        return !is_string($data) || !preg_match('/^(2[0-3]|[01]\d):[0-5]\d$/', $data);
     }
 
     /**
@@ -166,6 +161,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         return $this->toTimestamp($subject, $baseTs) < $this->toTimestamp($comparison, $baseTs);
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
@@ -181,6 +177,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         $this->increment = $increment;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'time';

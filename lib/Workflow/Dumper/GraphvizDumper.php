@@ -43,11 +43,8 @@ class GraphvizDumper implements DumperInterface
         'edge' => ['fontsize' => 9, 'fontname' => 'Arial', 'color' => '#333333', 'arrowhead' => 'normal', 'arrowsize' => 0.5],
     ];
 
-    private Manager $workflowManager;
-
-    public function __construct(Manager $workflowManager)
+    public function __construct(private readonly Manager $workflowManager)
     {
-        $this->workflowManager = $workflowManager;
     }
 
     /**

@@ -28,6 +28,7 @@ class OpenDxpStaticRoutesBundle extends AbstractOpenDxpBundle implements OpenDxp
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -57,6 +58,7 @@ class OpenDxpStaticRoutesBundle extends AbstractOpenDxpBundle implements OpenDxp
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

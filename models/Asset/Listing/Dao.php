@@ -40,11 +40,13 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $assetsData = $this->db->fetchAllAssociative($queryBuilder->getSQL(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
         foreach ($assetsData as $assetData) {
-            if ($assetData['type']) {
-                if ($asset = Model\Asset::getById((int) $assetData['id'])) {
-                    $assets[] = $asset;
-                }
+            if (!$assetData['type']) {
+                continue;
             }
+            if (!$asset = Model\Asset::getById((int) $assetData['id'])) {
+                continue;
+            }
+            $assets[] = $asset;
         }
 
         $this->model->setAssets($assets);
@@ -76,18 +78,16 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $queryBuilder = $this->getQueryBuilder('assets.id');
         $assetIds = $this->db->fetchFirstColumn($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
-        return array_map('intval', $assetIds);
+        return array_map(intval(...), $assetIds);
     }
 
     public function getCount(): int
     {
         if ($this->model->isLoaded()) {
             return count($this->model->getAssets());
-        } else {
-            $idList = $this->loadIdList();
-
-            return count($idList);
         }
+        $idList = $this->loadIdList();
+        return count($idList);
     }
 
     public function getTotalCount(): int
@@ -95,8 +95,6 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $queryBuilder = $this->getQueryBuilder();
         $this->prepareQueryBuilderForTotalCount($queryBuilder, 'assets.id');
 
-        $amount = (int) $this->db->fetchOne($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
-
-        return $amount;
+        return (int) $this->db->fetchOne($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
     }
 }

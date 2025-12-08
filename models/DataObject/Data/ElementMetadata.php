@@ -24,7 +24,7 @@ use OpenDxp\Model\DataObject;
 /**
  * @method \OpenDxp\Model\DataObject\Data\ElementMetadata\Dao getDao()
  */
-class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwareFieldInterface
+class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwareFieldInterface, \Stringable
 {
     use DataObject\Traits\OwnerAwareFieldTrait;
 
@@ -32,20 +32,14 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
 
     protected ?int $elementId = null;
 
-    protected ?string $fieldname = null;
-
-    protected array $columns = [];
-
     protected array $data = [];
 
     /**
      *
      * @throws Exception
      */
-    public function __construct(?string $fieldname = null, array $columns = [], ?Model\Element\ElementInterface $element = null)
+    public function __construct(protected ?string $fieldname = null, protected array $columns = [], ?Model\Element\ElementInterface $element = null)
     {
-        $this->fieldname = $fieldname;
-        $this->columns = $columns;
         $this->setElement($element);
     }
 
@@ -62,6 +56,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
      *
      * @throws Exception
      */
+    #[\Override]
     public function __call(string $method, array $args)
     {
         if (str_starts_with($method, 'get')) {
@@ -71,7 +66,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
             if ($idx !== false) {
                 $correctedKey = $this->columns[$idx];
 
-                return isset($this->data[$correctedKey]) ? $this->data[$correctedKey] : null;
+                return $this->data[$correctedKey] ?? null;
             }
 
             throw new Exception("Requested data $key not available");

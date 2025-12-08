@@ -35,6 +35,7 @@ class Video extends Model\Asset
 
     protected string $type = 'video';
 
+    #[\Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {
@@ -50,6 +51,7 @@ class Video extends Model\Asset
         parent::update($params);
     }
 
+    #[\Override]
     public function clearThumbnails(bool $force = false): void
     {
         if ($this->getDataChanged() || $force) {
@@ -71,7 +73,7 @@ class Video extends Model\Asset
         if (is_string($config)) {
             $thumbnail = Video\Thumbnail\Config::getByName($config);
 
-            if ($thumbnail === null) {
+            if (!$thumbnail instanceof \OpenDxp\Model\Asset\Video\Thumbnail\Config) {
                 throw new Model\Exception\NotFoundException('Video Thumbnail definition "' . $config . '" does not exist');
             }
         } elseif ($config instanceof Video\Thumbnail\Config) {
@@ -325,7 +327,7 @@ class Video extends Model\Asset
 
         // remove namespace prefixes if possible
         $resultData = [];
-        array_walk($data, function ($value, $key) use (&$resultData) {
+        array_walk($data, function ($value, $key) use (&$resultData): void {
             $parts = explode('____', $key);
             $length = count($parts);
             if ($length > 1) {

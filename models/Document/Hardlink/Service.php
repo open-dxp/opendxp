@@ -18,7 +18,6 @@ namespace OpenDxp\Model\Document\Hardlink;
 
 use Exception;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Document\Hardlink\Wrapper\Hardlink;
 use OpenDxp\Tool\Serialize;
 
 class Service
@@ -34,7 +33,7 @@ class Service
                 $destDoc = self::upperCastDocument($sourceDoc);
                 $destDoc->setKey($doc->getKey());
                 $destDoc->setPath($doc->getRealPath());
-                $destDoc->initDao(get_class($sourceDoc), true);
+                $destDoc->initDao($sourceDoc::class, true);
                 $destDoc->setHardLinkSource($doc);
                 $destDoc->setSourceDocument($sourceDoc);
 
@@ -42,7 +41,7 @@ class Service
             }
         } else {
             $destDoc = self::upperCastDocument($doc);
-            $destDoc->initDao(get_class($doc), true);
+            $destDoc->initDao($doc::class, true);
             $destDoc->setSourceDocument($doc);
 
             return $destDoc;
@@ -53,15 +52,13 @@ class Service
 
     /**
      * @internal
-     *
-     * @return Document\Hardlink\Wrapper\WrapperInterface
      */
     public static function upperCastDocument(Document $doc): Wrapper\WrapperInterface
     {
         $to_class = 'OpenDxp\\Model\\Document\\Hardlink\\Wrapper\\' . ucfirst($doc->getType());
 
-        $old_serialized_prefix = 'O:'.strlen(get_class($doc));
-        $old_serialized_prefix .= ':"'.get_class($doc).'":';
+        $old_serialized_prefix = 'O:'.strlen($doc::class);
+        $old_serialized_prefix .= ':"'.$doc::class.'":';
 
         // unset eventually existing children, because of performance reasons when serializing the document
         $doc->setChildren(null);
@@ -70,9 +67,7 @@ class Service
         $new_serialized_object = 'O:'.strlen($to_class).':"'.$to_class . '":';
         $new_serialized_object .= substr($old_serialized_object, strlen($old_serialized_prefix));
 
-        $document = Serialize::unserialize($new_serialized_object);
-
-        return $document;
+        return Serialize::unserialize($new_serialized_object);
     }
 
     /**
@@ -93,9 +88,9 @@ class Service
                 $hardLinkedDocument = self::wrap($hardLinkedDocument);
                 $hardLinkedDocument->setHardLinkSource($hardlink);
 
-                $_path = $path != '/' ? $_path = dirname($path) : $path;
+                $_path = $path !== '/' ? dirname($path) : $path;
                 $_path = str_replace('\\', '/', $_path); // windows patch
-                $_path .= $_path != '/' ? '/' : '';
+                $_path .= $_path !== '/' ? '/' : '';
 
                 $hardLinkedDocument->setPath($_path);
 
@@ -134,9 +129,9 @@ class Service
                     $hardLinkedDocument = self::wrap($hardLinkedDocument);
                     $hardLinkedDocument->setHardLinkSource($hardlink);
 
-                    $_path = $path != '/' ? $_path = dirname($p) : $p;
+                    $_path = $path !== '/' ? dirname($p) : $p;
                     $_path = str_replace('\\', '/', $_path); // windows patch
-                    $_path .= $_path != '/' ? '/' : '';
+                    $_path .= $_path !== '/' ? '/' : '';
 
                     $_path = preg_replace('@^' . preg_quote($hardlink->getSourceDocument()->getRealPath(), '@') . '@', $hardlink->getRealPath(), $_path);
 

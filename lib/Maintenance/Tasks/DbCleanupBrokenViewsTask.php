@@ -26,14 +26,8 @@ use Psr\Log\LoggerInterface;
  */
 class DbCleanupBrokenViewsTask implements TaskInterface
 {
-    private Connection $db;
-
-    private LoggerInterface $logger;
-
-    public function __construct(Connection $db, LoggerInterface $logger)
+    public function __construct(private readonly Connection $db, private readonly LoggerInterface $logger)
     {
-        $this->db = $db;
-        $this->logger = $logger;
     }
 
     public function execute(): void

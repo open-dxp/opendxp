@@ -21,8 +21,6 @@ final class UrlSlugEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
-     *
-     * @var string
      */
-    const POST_SAVE = 'opendxp.model.dataobject.classdefinition.urlslug.postsave';
+    const string POST_SAVE = 'opendxp.model.dataobject.classdefinition.urlslug.postsave';
 }

@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 class LazyLoadedItem extends AbstractItem
 {
-    private string $className;
+    private readonly string $className;
 
     private ?BundleInterface $bundle = null;
 
@@ -56,7 +56,7 @@ class LazyLoadedItem extends AbstractItem
 
     public function getBundle(): BundleInterface
     {
-        if (null === $this->bundle) {
+        if (!$this->bundle instanceof \Symfony\Component\HttpKernel\Bundle\BundleInterface) {
             $className = $this->className;
 
             $this->bundle = new $className;
@@ -67,24 +67,24 @@ class LazyLoadedItem extends AbstractItem
 
     public function isOpenDxpBundle(): bool
     {
-        if (null !== $this->bundle) {
+        if ($this->bundle instanceof \Symfony\Component\HttpKernel\Bundle\BundleInterface) {
             return $this->bundle instanceof OpenDxpBundleInterface;
         }
 
         // do not initialize bundle - check class instead
-        return self::implementsInterface($this->className, OpenDxpBundleInterface::class);
+        return $this->implementsInterface($this->className, OpenDxpBundleInterface::class);
     }
 
     public function registerDependencies(BundleCollection $collection): void
     {
-        if (self::implementsInterface($this->className, DependentBundleInterface::class)) {
+        if ($this->implementsInterface($this->className, DependentBundleInterface::class)) {
             /** @var class-string<DependentBundleInterface> $className */
             $className = $this->className;
             $className::registerDependentBundles($collection);
         }
     }
 
-    private static function implementsInterface(string $className, string $interfaceName): bool
+    private function implementsInterface(string $className, string $interfaceName): bool
     {
         if (!isset(self::$classImplementsCache[$className])) {
             self::$classImplementsCache[$className] = class_implements($className);

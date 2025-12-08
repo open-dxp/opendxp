@@ -32,7 +32,7 @@ class SelectOptionsOptionsProvider implements SelectOptionsProviderInterface
 
         $configurationId = $fieldDefinition->getOptionsProviderData();
         $selectOptionsConfiguration = Config::getById($configurationId);
-        if ($selectOptionsConfiguration === null) {
+        if (!$selectOptionsConfiguration instanceof \OpenDxp\Model\DataObject\SelectOptions\Config) {
             throw new Exception('Missing select options configuration ' . $configurationId, 1677137682677);
         }
 

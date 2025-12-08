@@ -242,7 +242,7 @@ class Breadcrumbs extends AbstractRenderer
 
         $pages = $this->getPages($container);
 
-        return $this->templatingEngine->render($partial, compact('pages'));
+        return $this->templatingEngine->render($partial, ['pages' => $pages]);
     }
 
     /**
@@ -259,8 +259,7 @@ class Breadcrumbs extends AbstractRenderer
     {
         if ($partial = $this->getTemplate()) {
             return $this->renderPartial($container, $partial);
-        } else {
-            return $this->renderStraight($container);
         }
+        return $this->renderStraight($container);
     }
 }

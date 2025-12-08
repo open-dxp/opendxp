@@ -35,7 +35,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class StorageCommand extends AbstractCommand
 {
-    public function __construct(private ContainerInterface $locator)
+    public function __construct(private readonly ContainerInterface $locator)
     {
         parent::__construct();
     }

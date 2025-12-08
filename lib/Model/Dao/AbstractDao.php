@@ -107,7 +107,7 @@ abstract class AbstractDao implements DaoInterface
     {
         $fkName = 'fk_'.$table.'__'.$column;
         if (strlen($fkName) > 64) {
-            $fkName = substr($fkName, 0, 55) . '_' . hash('crc32', $fkName);
+            return substr($fkName, 0, 55) . '_' . hash('crc32', $fkName);
         }
 
         return $fkName;

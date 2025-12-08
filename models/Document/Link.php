@@ -77,6 +77,7 @@ class Link extends Model\Document
      */
     protected string $href = '';
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $dependencies = parent::resolveDependencies();
@@ -97,16 +98,15 @@ class Link extends Model\Document
         return $dependencies;
     }
 
+    #[\Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
 
         if ($this->getLinktype() === 'internal') {
             $element = $this->getElement();
-            if ($element instanceof Document || $element instanceof Asset) {
-                if ($element->getId() != $this->getId() && !array_key_exists($element->getCacheTag(), $tags)) {
-                    $tags = $element->getCacheTags($tags);
-                }
+            if (($element instanceof Document || $element instanceof Asset) && ($element->getId() !== $this->getId() && !array_key_exists($element->getCacheTag(), $tags))) {
+                $tags = $element->getCacheTags($tags);
             }
         }
 
@@ -124,17 +124,15 @@ class Link extends Model\Document
             $element = $this->getElement();
             if ($element instanceof Document || $element instanceof Asset) {
                 $path = $element->getFullPath();
-            } else {
-                if ($element instanceof Model\DataObject\Concrete) {
-                    if ($linkGenerator = $element->getClass()->getLinkGenerator()) {
-                        $path = $linkGenerator->generate(
-                            $element,
-                            [
-                                'document' => $this,
-                                'context' => $this,
-                            ]
-                        );
-                    }
+            } elseif ($element instanceof Model\DataObject\Concrete) {
+                if ($linkGenerator = $element->getClass()->getLinkGenerator()) {
+                    $path = $linkGenerator->generate(
+                        $element,
+                        [
+                            'document' => $this,
+                            'context' => $this,
+                        ]
+                    );
                 }
             }
         } else {
@@ -178,12 +176,12 @@ class Link extends Model\Document
         $path = $this->getHref();
 
         $parameters = $this->getProperty('navigation_parameters');
-        if (is_string($parameters) && strlen($parameters) > 0) {
+        if (is_string($parameters) && $parameters !== '') {
             $path .= '?' . str_replace('?', '', $parameters);
         }
 
         $anchor = $this->getProperty('navigation_anchor');
-        if (is_string($anchor) && strlen($anchor) > 0) {
+        if (is_string($anchor) && $anchor !== '') {
             $path .= '#' . str_replace('#', '', $anchor);
         }
 
@@ -332,6 +330,7 @@ class Link extends Model\Document
         return '<a href="' . $link . '" ' . implode(' ', $attribs) . '>' . htmlspecialchars($this->getProperty('navigation_name')) . '</a>';
     }
 
+    #[\Override]
     protected function update(array $params = []): void
     {
         parent::update($params);
@@ -339,6 +338,7 @@ class Link extends Model\Document
         $this->saveScheduledTasks();
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $finalVars = [];

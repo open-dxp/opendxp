@@ -24,15 +24,12 @@ class TagEvent extends Event
 {
     use ArgumentsAwareTrait;
 
-    protected Tag $tag;
-
     /**
      * TagEvent constructor.
      *
      */
-    public function __construct(Tag $tag, array $arguments = [])
+    public function __construct(protected Tag $tag, array $arguments = [])
     {
-        $this->tag = $tag;
         $this->arguments = $arguments;
     }
 

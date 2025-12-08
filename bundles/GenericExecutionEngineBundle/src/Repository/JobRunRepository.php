@@ -32,16 +32,16 @@ use OpenDxp\Model\Exception\NotFoundException;
 use OpenDxp\Translation\Translator;
 use Psr\Log\LoggerInterface;
 
-final class JobRunRepository implements JobRunRepositoryInterface
+final readonly class JobRunRepository implements JobRunRepositoryInterface
 {
     public function __construct(
-        private readonly Connection $db,
-        private readonly CurrentMessageProviderInterface $currentMessageProvider,
-        private readonly EntityManagerInterface $openDxpEntityManager,
-        private readonly ExecutionContextInterface $executionContext,
-        private readonly LoggerInterface $genericExecutionEngineLogger,
-        private readonly PermissionServiceInterface $permissionService,
-        private readonly Translator $translator,
+        private Connection $db,
+        private CurrentMessageProviderInterface $currentMessageProvider,
+        private EntityManagerInterface $openDxpEntityManager,
+        private ExecutionContextInterface $executionContext,
+        private LoggerInterface $genericExecutionEngineLogger,
+        private PermissionServiceInterface $permissionService,
+        private Translator $translator,
     ) {
     }
 

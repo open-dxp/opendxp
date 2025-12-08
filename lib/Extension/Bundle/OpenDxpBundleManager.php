@@ -37,14 +37,6 @@ class OpenDxpBundleManager
 {
     private static ?OptionsResolver $optionsResolver = null;
 
-    protected OpenDxpBundleLocator $bundleLocator;
-
-    protected Kernel $kernel;
-
-    protected EventDispatcherInterface $dispatcher;
-
-    protected RouterInterface $router;
-
     /**
      * @var string[]|null
      */
@@ -55,16 +47,8 @@ class OpenDxpBundleManager
      */
     protected ?array $manuallyRegisteredBundles = null;
 
-    public function __construct(
-        OpenDxpBundleLocator $bundleLocator,
-        Kernel $kernel,
-        EventDispatcherInterface $dispatcher,
-        RouterInterface $router
-    ) {
-        $this->bundleLocator = $bundleLocator;
-        $this->kernel = $kernel;
-        $this->dispatcher = $dispatcher;
-        $this->router = $router;
+    public function __construct(protected OpenDxpBundleLocator $bundleLocator, protected Kernel $kernel, protected EventDispatcherInterface $dispatcher, protected RouterInterface $router)
+    {
     }
 
     /**
@@ -83,7 +67,7 @@ class OpenDxpBundleManager
                     continue;
                 }
 
-                $bundles[get_class($bundle)] = $bundle;
+                $bundles[$bundle::class] = $bundle;
             }
         }
 
@@ -180,7 +164,7 @@ class OpenDxpBundleManager
                     continue;
                 }
 
-                $bundles[$item->getBundleIdentifier()] = self::getOptionsResolver()->resolve([
+                $bundles[$item->getBundleIdentifier()] = $this->getOptionsResolver()->resolve([
                     'enabled' => in_array($item->getBundleIdentifier(), $enabledBundles),
                     'priority' => $item->getPriority(),
                     'environments' => $item->getEnvironments(),
@@ -193,9 +177,9 @@ class OpenDxpBundleManager
         return $this->manuallyRegisteredBundles;
     }
 
-    private static function getOptionsResolver(): OptionsResolver
+    private function getOptionsResolver(): OptionsResolver
     {
-        if (null !== self::$optionsResolver) {
+        if (self::$optionsResolver instanceof \Symfony\Component\OptionsResolver\OptionsResolver) {
             return self::$optionsResolver;
         }
 
@@ -242,20 +226,15 @@ class OpenDxpBundleManager
 
     public function getBundleIdentifier(string|OpenDxpBundleInterface $bundle): string
     {
-        $identifier = $bundle;
         if ($bundle instanceof OpenDxpBundleInterface) {
-            $identifier = get_class($bundle);
+            return $bundle::class;
         }
-
-        return $identifier;
+        return $bundle;
     }
 
     protected function isValidBundleIdentifier(string $identifier): bool
     {
-        $validNames = array_merge(
-            array_keys($this->getActiveBundles(false)),
-            $this->getAvailableBundles()
-        );
+        $validNames = [...array_keys($this->getActiveBundles(false)), ...$this->getAvailableBundles()];
 
         return in_array($identifier, $validNames);
     }
@@ -287,7 +266,7 @@ class OpenDxpBundleManager
 
     protected function loadBundleInstaller(OpenDxpBundleInterface $bundle, bool $throwException = false): ?Installer\InstallerInterface
     {
-        if (null === $installer = $bundle->getInstaller()) {
+        if (!($installer = $bundle->getInstaller()) instanceof \OpenDxp\Extension\Bundle\Installer\InstallerInterface) {
             if ($throwException) {
                 throw new InstallationException(sprintf('Bundle %s does not a define an installer', $bundle->getName()));
             }
@@ -349,7 +328,7 @@ class OpenDxpBundleManager
      */
     public function canBeInstalled(OpenDxpBundleInterface $bundle): bool
     {
-        if (null === $installer = $this->loadBundleInstaller($bundle)) {
+        if (!($installer = $this->loadBundleInstaller($bundle)) instanceof \OpenDxp\Extension\Bundle\Installer\InstallerInterface) {
             return false;
         }
 
@@ -363,7 +342,7 @@ class OpenDxpBundleManager
      */
     public function canBeUninstalled(OpenDxpBundleInterface $bundle): bool
     {
-        if (null === $installer = $this->loadBundleInstaller($bundle)) {
+        if (!($installer = $this->loadBundleInstaller($bundle)) instanceof \OpenDxp\Extension\Bundle\Installer\InstallerInterface) {
             return false;
         }
 
@@ -377,7 +356,7 @@ class OpenDxpBundleManager
      */
     public function isInstalled(OpenDxpBundleInterface $bundle): bool
     {
-        if (null === $installer = $bundle->getInstaller()) {
+        if (!($installer = $bundle->getInstaller()) instanceof \OpenDxp\Extension\Bundle\Installer\InstallerInterface) {
             // bundle has no dedicated installer, so we can treat it as installed
             return true;
         }
@@ -392,7 +371,7 @@ class OpenDxpBundleManager
      */
     public function needsReloadAfterInstall(OpenDxpBundleInterface $bundle): bool
     {
-        if (null === $installer = $bundle->getInstaller()) {
+        if (!($installer = $bundle->getInstaller()) instanceof \OpenDxp\Extension\Bundle\Installer\InstallerInterface) {
             // bundle has no dedicated installer
             return false;
         }
@@ -458,11 +437,7 @@ class OpenDxpBundleManager
     {
         $type = ucfirst($type);
 
-        if (null !== $mode) {
-            $mode = ucfirst($mode);
-        } else {
-            $mode = '';
-        }
+        $mode = null !== $mode ? ucfirst($mode) : '';
 
         // getJsPaths, getEditmodeJsPaths
         $getter = sprintf('get%s%sPaths', $mode, $type);

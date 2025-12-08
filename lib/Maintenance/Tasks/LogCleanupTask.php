@@ -40,7 +40,7 @@ class LogCleanupTask implements TaskInterface
                 continue;
             }
 
-            if (file_exists($log) && date('Y-m-d', $lastTime) != date('Y-m-d')) {
+            if (file_exists($log) && date('Y-m-d', $lastTime) !== date('Y-m-d')) {
                 // archive log (will be cleaned up by maintenance)
                 $archiveFilename = preg_replace('/\.log$/', '', $log).'-archive-'.date('Y-m-d', $lastTime).'.log';
                 rename($log, $archiveFilename);
@@ -54,11 +54,11 @@ class LogCleanupTask implements TaskInterface
         $files = [];
         $logFiles = glob(OPENDXP_LOG_DIRECTORY.'/*-archive-*.log');
         if (is_array($logFiles)) {
-            $files = array_merge($files, $logFiles);
+            $files = [...$files, ...$logFiles];
         }
         $archivedLogFiles = glob(OPENDXP_LOG_DIRECTORY.'/*-archive-*.log.gz');
         if (is_array($archivedLogFiles)) {
-            $files = array_merge($files, $archivedLogFiles);
+            $files = [...$files, ...$archivedLogFiles];
         }
 
         foreach ($files as $file) {

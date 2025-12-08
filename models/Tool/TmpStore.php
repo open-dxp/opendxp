@@ -128,9 +128,8 @@ final class TmpStore extends Model\AbstractModel
     public static function getIdsByTag(string $tag): array
     {
         $instance = self::getInstance();
-        $items = $instance->getDao()->getIdsByTag($tag);
 
-        return $items;
+        return $instance->getDao()->getIdsByTag($tag);
     }
 
     public function getId(): string

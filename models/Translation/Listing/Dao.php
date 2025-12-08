@@ -102,9 +102,8 @@ class Dao extends Model\Listing\Dao\AbstractDao
     public function loadRaw(): array
     {
         $queryBuilder = $this->getQueryBuilder('*');
-        $translationsData = $this->db->fetchAllAssociative($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
-        return $translationsData;
+        return $this->db->fetchAllAssociative($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
     }
 
     public function load(): array
@@ -139,11 +138,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     {
         $count = $this->db->fetchOne('SELECT COUNT(*) FROM ' . $this->getDatabaseTableName());
         $cacheLimit = Model\Translation\Listing::getCacheLimit();
-        if ($count > $cacheLimit) {
-            return false;
-        }
-
-        return true;
+        return $count <= $cacheLimit;
     }
 
     public function cleanup(): void

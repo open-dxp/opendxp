@@ -36,12 +36,6 @@ use Symfony\Component\Routing\RouteCollection;
  */
 final class DocumentRouteHandler implements DynamicRouteHandlerInterface
 {
-    private Document\Service $documentService;
-
-    private SiteResolver $siteResolver;
-
-    private RequestHelper $requestHelper;
-
     /**
      * Determines if unpublished documents should be matched, even when not in admin mode. This
      * is mainly needed for maintencance jobs/scripts.
@@ -51,22 +45,8 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
 
     private array $directRouteDocumentTypes = [];
 
-    private Config $config;
-
-    private StaticPageResolver $staticPageResolver;
-
-    public function __construct(
-        Document\Service $documentService,
-        SiteResolver $siteResolver,
-        RequestHelper $requestHelper,
-        Config $config,
-        StaticPageResolver $staticPageResolver
-    ) {
-        $this->documentService = $documentService;
-        $this->siteResolver = $siteResolver;
-        $this->requestHelper = $requestHelper;
-        $this->config = $config;
-        $this->staticPageResolver = $staticPageResolver;
+    public function __construct(private readonly Document\Service $documentService, private readonly SiteResolver $siteResolver, private readonly RequestHelper $requestHelper, private Config $config, private readonly StaticPageResolver $staticPageResolver)
+    {
     }
 
     public function setForceHandleUnpublishedDocuments(bool $handle): void
@@ -76,7 +56,7 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
 
     public function getDirectRouteDocumentTypes(): array
     {
-        if (empty($this->directRouteDocumentTypes)) {
+        if ($this->directRouteDocumentTypes === []) {
             $documentConfig = \OpenDxp\Config::getSystemConfiguration('documents');
             foreach ($documentConfig['type_definitions']['map'] as $type => $config) {
                 if (isset($config['direct_route']) && $config['direct_route']) {
@@ -119,33 +99,26 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         // check for a pretty url inside a site
         if (!$document && $this->siteResolver->isSiteRequest($context->getRequest())) {
             $sitePrettyDocId = $this->documentService->getDao()->getDocumentIdByPrettyUrlInSite($site, $context->getOriginalPath());
-            if ($sitePrettyDocId) {
-                if ($sitePrettyDoc = Document::getById($sitePrettyDocId)) {
-                    $document = $sitePrettyDoc;
-
-                    // TODO set pretty path via siteResolver?
-                    // undo the modification of the path by the site detection (prefixing with site root path)
-                    // this is not necessary when using pretty-urls and will cause problems when validating the
-                    // prettyUrl later (redirecting to the prettyUrl in the case the page was called by the real path)
-                    $context->setPath($context->getOriginalPath());
-                }
+            if ($sitePrettyDocId && $sitePrettyDoc = Document::getById($sitePrettyDocId)) {
+                $document = $sitePrettyDoc;
+                // TODO set pretty path via siteResolver?
+                // undo the modification of the path by the site detection (prefixing with site root path)
+                // this is not necessary when using pretty-urls and will cause problems when validating the
+                // prettyUrl later (redirecting to the prettyUrl in the case the page was called by the real path)
+                $context->setPath($context->getOriginalPath());
             }
         }
 
         // check for a parent hardlink with children
         if (!$document instanceof Document) {
             $hardlinkedParentDocument = $this->documentService->getNearestDocumentByPath($context->getPath(), true);
-            if ($hardlinkedParentDocument instanceof Document\Hardlink) {
-                if ($hardLinkedDocument = Document\Hardlink\Service::getChildByPath($hardlinkedParentDocument, $context->getPath())) {
-                    $document = $hardLinkedDocument;
-                }
+            if ($hardlinkedParentDocument instanceof Document\Hardlink && $hardLinkedDocument = Document\Hardlink\Service::getChildByPath($hardlinkedParentDocument, $context->getPath())) {
+                $document = $hardLinkedDocument;
             }
         }
 
-        if ($document && $document instanceof Document) {
-            if ($route = $this->buildRouteForDocument($document, $context)) {
-                $collection->add($route->getRouteKey(), $route);
-            }
+        if ($document && $document instanceof Document && $route = $this->buildRouteForDocument($document, $context)) {
+            $collection->add($route->getRouteKey(), $route);
         }
     }
 
@@ -169,7 +142,7 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         $route->setOption('utf8', true);
 
         // coming from matching -> set route path the currently matched one
-        if (null !== $context) {
+        if ($context instanceof \OpenDxp\Routing\Dynamic\DynamicRequestContext) {
             $route->setPath($context->getOriginalPath());
         }
 
@@ -211,20 +184,18 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         try {
             $request = $context ? $context->getRequest() : $this->requestHelper->getMainRequest();
             $isAdminRequest = $this->requestHelper->isFrontendRequestByAdmin($request);
-        } catch (LogicException $e) {
+        } catch (LogicException) {
             // catch logic exception here - when the exception fires, it is no admin request
             $isAdminRequest = false;
         }
 
         // abort if document is not published and the request is no admin request
         // and matching unpublished documents was not forced
-        if (!$document->isPublished()) {
-            if (!($isAdminRequest || $this->forceHandleUnpublishedDocuments)) {
-                return null;
-            }
+        if (!$document->isPublished() && (!$isAdminRequest && !$this->forceHandleUnpublishedDocuments)) {
+            return null;
         }
 
-        if (!$isAdminRequest && null !== $context) {
+        if (!$isAdminRequest && $context instanceof \OpenDxp\Routing\Dynamic\DynamicRequestContext) {
             // check for redirects (pretty URL, SEO) when not in admin mode and while matching (not generating route)
             if ($redirectRoute = $this->handleDirectRouteRedirect($document, $route, $context)) {
                 return $redirectRoute;
@@ -263,12 +234,8 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         $redirectTargetUrl = $context->getOriginalPath();
 
         // check for a pretty url, and if the document is called by that, otherwise redirect to pretty url
-        if ($document instanceof Document\Page && !$document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            if ($prettyUrl = $document->getPrettyUrl()) {
-                if (rtrim(strtolower($prettyUrl), ' /') !== rtrim(strtolower($context->getOriginalPath()), '/')) {
-                    $redirectTargetUrl = $prettyUrl;
-                }
-            }
+        if ($document instanceof Document\Page && !$document instanceof Document\Hardlink\Wrapper\WrapperInterface && ($prettyUrl = $document->getPrettyUrl()) && rtrim(strtolower($prettyUrl), ' /') !== rtrim(strtolower($context->getOriginalPath()), '/')) {
+            $redirectTargetUrl = $prettyUrl;
         }
 
         // check for a trailing slash in path, if exists, redirect to this page without the slash
@@ -276,10 +243,8 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         // use $originalPath because of the sites
         // only do redirecting with GET requests
         if ($context->getRequest()->getMethod() === 'GET') {
-            if (($this->config['documents']['allow_trailing_slash'] ?? null) === 'no') {
-                if ($redirectTargetUrl !== '/' && str_ends_with($redirectTargetUrl, '/')) {
-                    $redirectTargetUrl = rtrim($redirectTargetUrl, '/');
-                }
+            if (($this->config['documents']['allow_trailing_slash'] ?? null) === 'no' && ($redirectTargetUrl !== '/' && str_ends_with($redirectTargetUrl, '/'))) {
+                $redirectTargetUrl = rtrim($redirectTargetUrl, '/');
             }
 
             // only allow the original key of a document to be the URL (lowercase/uppercase)
@@ -318,12 +283,10 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
      */
     private function isDirectRouteDocument(?Document $document): bool
     {
-        if ($document instanceof Document\PageSnippet) {
-            if (in_array($document->getType(), $this->getDirectRouteDocumentTypes())) {
-                return true;
-            }
+        if (!$document instanceof Document\PageSnippet) {
+            return false;
         }
 
-        return false;
+        return in_array($document->getType(), $this->getDirectRouteDocumentTypes());
     }
 }

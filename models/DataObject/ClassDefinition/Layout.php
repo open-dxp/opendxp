@@ -79,7 +79,7 @@ class Layout implements Model\DataObject\ClassDefinition\Data\VarExporterInterfa
     /**
      * @internal
      */
-    public array|string|null $permissions;
+    public array|string|null $permissions = null;
 
     /**
      * @internal
@@ -244,11 +244,7 @@ class Layout implements Model\DataObject\ClassDefinition\Data\VarExporterInterfa
 
     public function hasChildren(): bool
     {
-        if (count($this->children) > 0) {
-            return true;
-        }
-
-        return false;
+        return count($this->children) > 0;
     }
 
     /**

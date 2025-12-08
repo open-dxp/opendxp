@@ -25,29 +25,17 @@ use Twig\TwigFunction;
 /**
  * @internal
  */
-class ImageThumbnailExtension extends AbstractExtension
+class ImageThumbnailExtension
 {
-    public function getFilters(): array
-    {
-        return [
-            new TwigFilter('opendxp_image_thumbnail', [$this, 'getImageThumbnail'], ['is_safe' => ['html']]),
-            new TwigFilter('opendxp_image_thumbnail_html', [$this, 'getImageThumbnailHtml'], ['is_safe' => ['html']]),
-        ];
-    }
-
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('opendxp_image_thumbnail', [$this, 'getImageThumbnail'], ['is_safe' => ['html']]),
-            new TwigFunction('opendxp_image_thumbnail_html', [$this, 'getImageThumbnailHtml'], ['is_safe' => ['html']]),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFilter('opendxp_image_thumbnail', isSafe: ['html'])]
+    #[\Twig\Attribute\AsTwigFunction('opendxp_image_thumbnail', isSafe: ['html'])]
     public function getImageThumbnail(Image $image, string $thumbnail, bool $deferred = true): Image\ThumbnailInterface
     {
         return $image->getThumbnail($thumbnail, $deferred);
     }
 
+    #[\Twig\Attribute\AsTwigFilter('opendxp_image_thumbnail_html', isSafe: ['html'])]
+    #[\Twig\Attribute\AsTwigFunction('opendxp_image_thumbnail_html', isSafe: ['html'])]
     public function getImageThumbnailHtml(
         Image $image,
         string $thumbnail,

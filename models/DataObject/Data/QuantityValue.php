@@ -24,11 +24,8 @@ use OpenDxp\Model\DataObject\QuantityValue\Unit;
 
 class QuantityValue extends AbstractQuantityValue
 {
-    protected float|int|string|null $value = null;
-
-    public function __construct(float|int|string|null $value = null, Unit|string|null $unit = null)
+    public function __construct(protected float|int|string|null $value = null, Unit|string|null $unit = null)
     {
-        $this->value = $value;
         parent::__construct($unit);
     }
 

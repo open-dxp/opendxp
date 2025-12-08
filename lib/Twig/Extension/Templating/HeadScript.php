@@ -172,6 +172,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
      *
      * @throws Exception if too few arguments or invalid method
      */
+    #[\Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(?P<mode>File|Script)$/', $method, $matches)) {
@@ -257,15 +258,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
      */
     protected function _isValid(mixed $value): bool
     {
-        if (
-            !$value instanceof stdClass ||
-            !isset($value->type) ||
-            (!isset($value->source) && !isset($value->attributes))
-        ) {
-            return false;
-        }
-
-        return true;
+        return !(!$value instanceof stdClass || !isset($value->type) || !isset($value->source) && !isset($value->attributes));
     }
 
     /**
@@ -315,6 +308,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
      *
      * @param  string|int $offset
      */
+    #[\Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -359,13 +353,12 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
         if (!empty($item->attributes)) {
             foreach ($item->attributes as $key => $value) {
 
-                if (
-                    (!$this->arbitraryAttributesAllowed() && !in_array($key, $this->_optionalAttributes)) ||
-                    in_array($key, ['conditional', 'noescape'])
-                ) {
+                if (!$this->arbitraryAttributesAllowed() && !in_array($key, $this->_optionalAttributes)) {
                     continue;
                 }
-
+                if (in_array($key, ['conditional', 'noescape'])) {
+                    continue;
+                }
                 if ('defer' === $key) {
                     $value = 'defer';
                 }
@@ -412,17 +405,16 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
             if (str_replace(' ', '', $item->attributes['conditional']) === '!IE') {
                 $html = '<!-->' . $html . '<!--';
             }
-            $html = $indent . '<!--[if ' . $item->attributes['conditional'] . ']>' . $html . '<![endif]-->';
-        } else {
-            $html = $indent . $html;
+            return $indent . '<!--[if ' . $item->attributes['conditional'] . ']>' . $html . '<![endif]-->';
         }
 
-        return $html;
+        return $indent . $html;
     }
 
     /**
      * Retrieve string representation
      */
+    #[\Override]
     public function toString(int|string|null $indent = null): string
     {
         $this->prepareEntries();
@@ -431,7 +423,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
             ? $this->getWhitespace($indent)
             : $this->getIndent();
 
-        $useCdata = $this->useCdata ? true : false;
+        $useCdata = $this->useCdata;
         $escapeStart = ($useCdata) ? '//<![CDATA[' : '//<!--';
         $escapeEnd = ($useCdata) ? '//]]>' : '//-->';
 
@@ -455,15 +447,11 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
                 continue;
             }
 
-            if ($this->isCacheBuster()) {
-                // adds the automatic cache buster functionality
-                if (is_array($item->attributes)) {
-                    if (isset($item->attributes['src'])) {
-                        $realFile = OPENDXP_WEB_ROOT . $item->attributes['src'];
-                        if (file_exists($realFile)) {
-                            $item->attributes['src'] = '/cache-buster-' . filemtime($realFile) . $item->attributes['src'];
-                        }
-                    }
+            // adds the automatic cache buster functionality
+            if ($this->isCacheBuster() && is_array($item->attributes) && isset($item->attributes['src'])) {
+                $realFile = OPENDXP_WEB_ROOT . $item->attributes['src'];
+                if (file_exists($realFile)) {
+                    $item->attributes['src'] = '/cache-buster-' . filemtime($realFile) . $item->attributes['src'];
                 }
             }
 

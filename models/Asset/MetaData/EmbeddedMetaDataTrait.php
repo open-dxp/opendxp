@@ -86,7 +86,7 @@ trait EmbeddedMetaDataTrait
 
                 $iptc = $this->flattenArray($this->getIPTCData($filePath));
                 $exif = $this->flattenArray($this->getEXIFData($filePath));
-                $embeddedMetaData = array_merge(array_merge($xmp, $exif), $iptc);
+                $embeddedMetaData = [...[...$xmp, ...$exif], ...$iptc];
             }
         } catch (Exception $e) {
             Logger::error($e->getMessage());
@@ -100,7 +100,7 @@ trait EmbeddedMetaDataTrait
 
     private function flattenArray(array $tempArray): array
     {
-        array_walk($tempArray, function (&$value) {
+        array_walk($tempArray, function (&$value): void {
             if (is_array($value)) {
                 $value = implode_recursive($value, ' | ');
             }
@@ -183,19 +183,16 @@ trait EmbeddedMetaDataTrait
                 if ($position === false) {
                     // this would mean the open tag was found, but the close tag was not.  Maybe file corruption?
                     throw new RuntimeException('No close tag found.  Possibly corrupted file.');
-                } else {
-                    $buffer = substr($buffer, 0, $position + $tagLength);
                 }
+                $buffer = substr($buffer, 0, $position + $tagLength);
 
                 $buffer = preg_replace('/xmlns[^=]*="[^"]*"/i', '', $buffer);
                 $buffer = preg_replace('@<(/)?([a-zA-Z]+):([a-zA-Z]+)@', '<$1$2____$3', $buffer);
 
                 $xml = @simplexml_load_string($buffer);
-                if ($xml) {
-                    if ($xml->rdf____RDF->rdf____Description) {
-                        foreach ($xml->rdf____RDF->rdf____Description as $description) {
-                            $data = array_merge($data, object2array($description));
-                        }
+                if ($xml && $xml->rdf____RDF->rdf____Description) {
+                    foreach ($xml->rdf____RDF->rdf____Description as $description) {
+                        $data = [...$data, ...object2array($description)];
                     }
                 }
 
@@ -209,7 +206,7 @@ trait EmbeddedMetaDataTrait
 
         // remove namespace prefixes if possible
         $resultData = [];
-        array_walk($data, function ($value, $key) use (&$resultData) {
+        array_walk($data, function ($value, $key) use (&$resultData): void {
             $parts = explode('____', $key);
             $length = count($parts);
             if ($length > 1) {

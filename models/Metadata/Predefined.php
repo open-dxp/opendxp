@@ -62,7 +62,7 @@ final class Predefined extends Model\AbstractModel
             $metadata->getDao()->getById($id);
 
             return $metadata;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -78,16 +78,14 @@ final class Predefined extends Model\AbstractModel
             $metadata->getDao()->getByNameAndLanguage($name, $language);
 
             return $metadata;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
 
     public static function create(): Predefined
     {
-        $type = new self();
-
-        return $type;
+        return new self();
     }
 
     public function getName(): ?string
@@ -262,7 +260,7 @@ final class Predefined extends Model\AbstractModel
             /** @var Model\Asset\MetaData\ClassDefinition\Data\Data $instance */
             $instance = $loader->build($this->type);
             $this->data = $instance->getDataFromEditMode($this->data);
-        } catch (UnsupportedException $e) {
+        } catch (UnsupportedException) {
             Logger::error('could not resolve asset metadata implementation for ' . $this->type);
         }
     }
@@ -274,11 +272,12 @@ final class Predefined extends Model\AbstractModel
             /** @var Model\Asset\MetaData\ClassDefinition\Data\Data $instance */
             $instance = $loader->build($this->type);
             $this->data = $instance->getDataForEditmode($this->data);
-        } catch (UnsupportedException $e) {
+        } catch (UnsupportedException) {
             Logger::error('could not resolve asset metadata implementation for ' . $this->type);
         }
     }
 
+    #[\Override]
     public function __clone(): void
     {
         if ($this->dao) {

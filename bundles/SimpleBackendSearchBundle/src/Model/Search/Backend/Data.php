@@ -361,10 +361,12 @@ class Data extends AbstractModel
                 $editables = $element->getEditables();
                 foreach ($editables as $editable) {
                     // areabrick elements are handled by getElementTypes()/getElements() as they return area elements as well
-                    if ($editable instanceof Document\Editable\Area || $editable instanceof Document\Editable\Areablock) {
+                    if ($editable instanceof Document\Editable\Area) {
                         continue;
                     }
-
+                    if ($editable instanceof Document\Editable\Areablock) {
+                        continue;
+                    }
                     ob_start();
                     $this->data .= strip_tags((string) $editable->frontend()).' ';
                     $this->data .= ob_get_clean();
@@ -387,7 +389,7 @@ class Data extends AbstractModel
                         if ($dataForSearchIndex) {
                             $this->data .= ' ' . $dataForSearchIndex;
                         }
-                    } catch (UnsupportedException $e) {
+                    } catch (UnsupportedException) {
                         Logger::error('asset metadata type ' . $md['type'] . ' could not be resolved');
                     }
                 }
@@ -420,7 +422,7 @@ class Data extends AbstractModel
                 }
             } elseif ($element instanceof Asset\Image) {
                 try {
-                    $metaData = array_merge($element->getEXIFData(), $element->getIPTCData());
+                    $metaData = [...$element->getEXIFData(), ...$element->getIPTCData()];
                     foreach ($metaData as $key => $value) {
                         if (is_array($value)) {
                             $this->data .= ' ' . $key . ' : ' . implode(' - ', $value);
@@ -440,7 +442,7 @@ class Data extends AbstractModel
                 DataObject::setGetInheritedValues(true);
 
                 $this->published = $element->isPublished();
-                foreach ($element->getClass()->getFieldDefinitions() as $key => $value) {
+                foreach ($element->getClass()->getFieldDefinitions() as $value) {
                     $this->data .= ' ' . $value->getDataForSearchIndex($element);
                 }
 
@@ -493,9 +495,7 @@ class Data extends AbstractModel
             }
         }
 
-        $data = implode(' ', $words);
-
-        return $data;
+        return implode(' ', $words);
     }
 
     public static function getForElement(Element\ElementInterface $element): self
@@ -540,7 +540,7 @@ class Data extends AbstractModel
                     // we try to start the transaction $maxRetries times again (deadlocks, ...)
                     if ($e instanceof DeadlockException && $retries < ($maxRetries - 1)) {
                         $run = $retries + 1;
-                        $waitTime = rand(1, 5) * 100000; // microseconds
+                        $waitTime = random_int(1, 5) * 100000; // microseconds
                         Logger::warn('Unable to finish transaction (' . $run . ". run) because of the following reason '" . $e->getMessage() . "'. --> Retrying in " . $waitTime . ' microseconds ... (' . ($run + 1) . ' of ' . $maxRetries . ')');
 
                         usleep($waitTime); // wait specified time until we restart the transaction

@@ -31,7 +31,7 @@ trait SimpleComparisonTrait
         $array1 = array_filter(is_array($array1) ? $array1 : []);
         $array2 = array_filter(is_array($array2) ? $array2 : []);
 
-        if (count($array1) != count($array2)) {
+        if (count($array1) !== count($array2)) {
             return false;
         }
 

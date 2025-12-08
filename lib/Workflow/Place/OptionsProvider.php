@@ -29,14 +29,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OptionsProvider implements SelectOptionsProviderInterface
 {
-    private Manager $workflowManager;
-
-    private TranslatorInterface $translator;
-
-    public function __construct(Manager $workflowManager, TranslatorInterface $translator)
+    public function __construct(private readonly Manager $workflowManager, private readonly TranslatorInterface $translator)
     {
-        $this->workflowManager = $workflowManager;
-        $this->translator = $translator;
     }
 
     /**

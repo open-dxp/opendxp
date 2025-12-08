@@ -25,11 +25,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 abstract class AbstractRequestResolver
 {
-    protected RequestStack $requestStack;
-
-    public function __construct(RequestStack $requestStack)
+    public function __construct(protected RequestStack $requestStack)
     {
-        $this->requestStack = $requestStack;
     }
 
     protected function getCurrentRequest(): Request

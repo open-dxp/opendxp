@@ -33,14 +33,13 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 final class Configuration implements ConfigurationInterface
 {
-    private PlaceholderProcessor $placeholderProcessor;
+    private readonly PlaceholderProcessor $placeholderProcessor;
 
     private array $placeholders = [];
 
     public function __construct()
     {
         $this->placeholderProcessor = new PlaceholderProcessor();
-        $this->placeholders = [];
     }
 
     public function getConfigTreeBuilder(): TreeBuilder
@@ -209,9 +208,7 @@ final class Configuration implements ConfigurationInterface
                 ->booleanNode('redirect_to_maindomain')
                     ->beforeNormalization()
                         ->ifString()
-                        ->then(function ($v) {
-                            return (bool)$v;
-                        })
+                        ->then(fn($v) => (bool)$v)
                     ->end()
                     ->defaultFalse()
                 ->end()
@@ -236,9 +233,7 @@ final class Configuration implements ConfigurationInterface
                     ->performNoDeepMerging()
                     ->beforeNormalization()
                     ->ifArray()
-                        ->then(function ($v) {
-                            return $v;
-                        })
+                        ->then(fn($v) => $v)
                     ->end()
                     ->prototype('scalar')
                     ->end()
@@ -249,9 +244,7 @@ final class Configuration implements ConfigurationInterface
                 ->booleanNode('disable_usage_statistics')
                     ->beforeNormalization()
                         ->ifString()
-                        ->then(function ($v) {
-                            return (bool)$v;
-                        })
+                        ->then(fn($v) => (bool)$v)
                     ->end()
                     ->defaultFalse()
                 ->end()
@@ -259,9 +252,7 @@ final class Configuration implements ConfigurationInterface
                     ->info('Debug Admin-Translations (text in UI will be displayed wrapped in +)')
                     ->beforeNormalization()
                         ->ifString()
-                        ->then(function ($v) {
-                            return (bool)$v;
-                        })
+                        ->then(fn($v) => (bool)$v)
                     ->end()
                     ->defaultFalse()
                 ->end()
@@ -321,9 +312,7 @@ final class Configuration implements ConfigurationInterface
                                     ->info('Send log summary via email')
                                     ->beforeNormalization()
                                         ->ifString()
-                                        ->then(function ($v) {
-                                            return (bool)$v;
-                                        })
+                                        ->then(fn($v) => (bool)$v)
                                     ->end()
                                     ->defaultFalse()
                                 ->end()
@@ -476,9 +465,7 @@ final class Configuration implements ConfigurationInterface
                                         ->info('Try to detect and use clipping paths and masks in images when generating thumbnails.')
                                         ->beforeNormalization()
                                             ->ifString()
-                                            ->then(function ($v) {
-                                                return (bool)$v;
-                                            })
+                                            ->then(fn($v) => (bool)$v)
                                         ->end()
                                         ->defaultTrue()
                                     ->end()
@@ -512,9 +499,7 @@ final class Configuration implements ConfigurationInterface
                                         ->info('Automatically delete all image thumbnail files any time an image or its metadata is updated.')
                                         ->beforeNormalization()
                                             ->ifString()
-                                            ->then(function ($v) {
-                                                return (bool)$v;
-                                            })
+                                            ->then(fn($v) => (bool)$v)
                                         ->end()
                                         ->defaultTrue()
                                     ->end()
@@ -618,18 +603,14 @@ final class Configuration implements ConfigurationInterface
                             ->booleanNode('use_hardlinks')
                                 ->beforeNormalization()
                                     ->ifString()
-                                    ->then(function ($v) {
-                                        return (bool)$v;
-                                    })
+                                    ->then(fn($v) => (bool)$v)
                                 ->end()
                                 ->defaultTrue()
                             ->end()
                             ->booleanNode('disable_stack_trace')
                                 ->beforeNormalization()
                                     ->ifString()
-                                    ->then(function ($v) {
-                                        return (bool)$v;
-                                    })
+                                    ->then(fn($v) => (bool)$v)
                                 ->end()
                                 ->defaultFalse()
                             ->end()
@@ -680,9 +661,7 @@ final class Configuration implements ConfigurationInterface
                                             ->booleanNode('inheritable')
                                                 ->beforeNormalization()
                                                 ->ifString()
-                                                ->then(function ($v) {
-                                                    return (bool)$v;
-                                                })
+                                                ->then(fn($v) => (bool)$v)
                                                 ->end()
                                             ->end()
                                             ->integerNode('creationDate')->end()
@@ -725,9 +704,7 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('ignore_localized_query_fallback')
                             ->beforeNormalization()
                             ->ifString()
-                                ->then(function ($v) {
-                                    return (bool)$v;
-                                })
+                                ->then(fn($v) => (bool)$v)
                                 ->end()
                             ->defaultFalse()
                         ->end()
@@ -744,9 +721,7 @@ final class Configuration implements ConfigurationInterface
                                 ->booleanNode('disable_stack_trace')
                                     ->beforeNormalization()
                                     ->ifString()
-                                        ->then(function ($v) {
-                                            return (bool)$v;
-                                        })
+                                        ->then(fn($v) => (bool)$v)
                                     ->end()
                                     ->defaultFalse()
                                 ->end()
@@ -767,9 +742,7 @@ final class Configuration implements ConfigurationInterface
                                             ->integerNode('userOwner')->end()
                                             ->integerNode('userModification')
                                                 ->beforeNormalization()
-                                                    ->ifNull()->then(function () {
-                                                        return 0;
-                                                    })->end()
+                                                    ->ifNull()->then(fn() => 0)->end()
                                                 ->end()
                                             ->scalarNode('classId')->end()
                                             ->integerNode('default')->end()
@@ -860,9 +833,7 @@ final class Configuration implements ConfigurationInterface
                                     ->booleanNode('staticGeneratorEnabled')
                                         ->beforeNormalization()
                                             ->always()
-                                            ->then(function ($v) {
-                                                return (bool)$v;
-                                            })
+                                            ->then(fn($v) => (bool)$v)
                                         ->end()
                                         ->defaultFalse()
                                     ->end()
@@ -882,9 +853,7 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('disable_stack_trace')
                             ->beforeNormalization()
                             ->ifString()
-                                ->then(function ($v) {
-                                    return (bool)$v;
-                                })
+                                ->then(fn($v) => (bool)$v)
                             ->end()
                             ->defaultFalse()
                         ->end()
@@ -902,9 +871,7 @@ final class Configuration implements ConfigurationInterface
                             ->performNoDeepMerging()
                             ->beforeNormalization()
                                 ->ifArray()
-                                    ->then(function ($v) {
-                                        return $v;
-                                    })
+                                    ->then(fn($v) => $v)
                             ->end()
                             ->prototype('scalar')
                             ->end()
@@ -917,9 +884,7 @@ final class Configuration implements ConfigurationInterface
                 ->booleanNode('generate_preview')
                     ->beforeNormalization()
                         ->ifString()
-                        ->then(function ($v) {
-                            return (bool)$v;
-                        })
+                        ->then(fn($v) => (bool)$v)
                     ->end()
                     ->defaultFalse()
                 ->end()
@@ -947,9 +912,7 @@ final class Configuration implements ConfigurationInterface
                         ->booleanNode('autoload')
                             ->beforeNormalization()
                                 ->ifString()
-                                ->then(function ($v) {
-                                    return (bool)$v;
-                                })
+                                ->then(fn($v) => (bool)$v)
                             ->end()
                             ->defaultTrue()
                         ->end()
@@ -1160,9 +1123,7 @@ final class Configuration implements ConfigurationInterface
                             ])
                             ->useAttributeAsKey('class')
                             ->prototype('array')
-                            ->beforeNormalization()->ifString()->then(function ($v) {
-                                return ['id' => $v];
-                            })->end()
+                            ->beforeNormalization()->ifString()->then(fn($v) => ['id' => $v])->end()
                             ->children()
                                 ->scalarNode('id')->end()
                             ->end()
@@ -1178,9 +1139,7 @@ final class Configuration implements ConfigurationInterface
                             ])
                             ->useAttributeAsKey('class')
                             ->prototype('array')
-                            ->beforeNormalization()->ifString()->then(function ($v) {
-                                return ['id' => $v];
-                            })->end()
+                            ->beforeNormalization()->ifString()->then(fn($v) => ['id' => $v])->end()
                             ->children()
                             ->scalarNode('id')->end()
                             ->end()
@@ -1224,9 +1183,7 @@ final class Configuration implements ConfigurationInterface
         $prototype = $node->prototype('array');
         $prototype
             ->beforeNormalization()
-                ->ifNull()->then(function () {
-                    return [];
-                })
+                ->ifNull()->then(fn() => [])
             ->end()
             ->children()
                 ->scalarNode('path')->defaultFalse()->end()
@@ -1371,8 +1328,8 @@ final class Configuration implements ConfigurationInterface
                                                     if (is_string($arguments)) {
                                                         $arguments = [$arguments];
                                                     }
-                                                    if (!empty($this->placeholders)) {
-                                                        $arguments = $this->placeholderProcessor->mergePlaceholders($arguments, $this->placeholders);
+                                                    if ($this->placeholders !== []) {
+                                                        return $this->placeholderProcessor->mergePlaceholders($arguments, $this->placeholders);
                                                     }
 
                                                     return $arguments;
@@ -1388,24 +1345,18 @@ final class Configuration implements ConfigurationInterface
                                     ->end()
                                     ->info('Handles the way how the state/place is stored. If not defined "state_table" will be used as default. Take a look at @TODO for a description of the different types.')
                                     ->validate()
-                                        ->ifTrue(function ($v) {
-                                            return isset($v['type']) && isset($v['service']);
-                                        })
+                                        ->ifTrue(fn($v) => isset($v['type']) && isset($v['service']))
                                         ->thenInvalid('"type" and "service" cannot be used together.')
                                     ->end()
                                     ->validate()
-                                        ->ifTrue(function ($v) {
-                                            return !empty($v['arguments']) && isset($v['service']);
-                                        })
+                                        ->ifTrue(fn($v) => !empty($v['arguments']) && isset($v['service']))
                                         ->thenInvalid('"arguments" and "service" cannot be used together.')
                                     ->end()
                                 ->end()
                                 ->arrayNode('supports')
                                     ->beforeNormalization()
                                         ->ifString()
-                                        ->then(function ($v) {
-                                            return [$v];
-                                        })
+                                        ->then(fn($v) => [$v])
                                     ->end()
                                     ->prototype('scalar')
                                         ->cannotBeEmpty()
@@ -1423,9 +1374,7 @@ final class Configuration implements ConfigurationInterface
                                         ->arrayNode('arguments')
                                             ->beforeNormalization()
                                                 ->ifString()
-                                                ->then(function ($v) {
-                                                    return [$v];
-                                                })
+                                                ->then(fn($v) => [$v])
                                             ->end()
                                             ->requiresAtLeastOneElement()
                                             ->prototype('variable')
@@ -1437,15 +1386,11 @@ final class Configuration implements ConfigurationInterface
                                         ->end()
                                     ->end()
                                     ->validate()
-                                        ->ifTrue(function ($v) {
-                                            return isset($v['type']) && isset($v['service']);
-                                        })
+                                        ->ifTrue(fn($v) => isset($v['type']) && isset($v['service']))
                                         ->thenInvalid('"type" and "service" cannot be used together.')
                                     ->end()
                                     ->validate()
-                                        ->ifTrue(function ($v) {
-                                            return !empty($v['arguments']) && isset($v['service']);
-                                        })
+                                        ->ifTrue(fn($v) => !empty($v['arguments']) && isset($v['service']))
                                         ->thenInvalid('"arguments" and "service" cannot be used together.')
                                     ->end()
                                     ->info('Can be used to implement a special logic which subjects are supported by the workflow. For example only products matching certain criteria.')
@@ -1461,9 +1406,7 @@ final class Configuration implements ConfigurationInterface
                                     ->info('Can be used to set the initial places (markings) for a workflow. Note that this option is Symfony 4.3+ only')
                                     ->beforeNormalization()
                                         ->ifString()
-                                            ->then(function ($v) {
-                                                return [$v];
-                                            })
+                                            ->then(fn($v) => [$v])
                                         ->end()
                                         ->requiresAtLeastOneElement()
                                         ->prototype('scalar')
@@ -1502,7 +1445,7 @@ final class Configuration implements ConfigurationInterface
                                     ->beforeNormalization()
                                         ->always()
                                         ->then(function ($places) {
-                                            if (!empty($this->placeholders)) {
+                                            if ($this->placeholders !== []) {
                                                 foreach ($places as $name => $place) {
                                                     $places[$name] = $this->placeholderProcessor->mergePlaceholders($place, $this->placeholders);
                                                 }
@@ -1566,9 +1509,7 @@ final class Configuration implements ConfigurationInterface
                                             ->arrayNode('from')
                                                 ->beforeNormalization()
                                                     ->ifString()
-                                                    ->then(function ($v) {
-                                                        return [$v];
-                                                    })
+                                                    ->then(fn($v) => [$v])
                                                 ->end()
                                                 ->requiresAtLeastOneElement()
                                                 ->prototype('scalar')
@@ -1578,9 +1519,7 @@ final class Configuration implements ConfigurationInterface
                                             ->arrayNode('to')
                                                 ->beforeNormalization()
                                                     ->ifString()
-                                                    ->then(function ($v) {
-                                                        return [$v];
-                                                    })
+                                                    ->then(fn($v) => [$v])
                                                 ->end()
                                                 ->requiresAtLeastOneElement()
                                                 ->prototype('scalar')
@@ -1746,9 +1685,7 @@ final class Configuration implements ConfigurationInterface
                                             ->arrayNode('to')
                                                 ->beforeNormalization()
                                                     ->ifString()
-                                                    ->then(function ($v) {
-                                                        return [$v];
-                                                    })
+                                                    ->then(fn($v) => [$v])
                                                 ->end()
                                                 ->requiresAtLeastOneElement()
                                                 ->prototype('scalar')
@@ -1805,15 +1742,11 @@ final class Configuration implements ConfigurationInterface
                                 ->end()
                             ->end()
                             ->validate()
-                                ->ifTrue(function ($v) {
-                                    return $v['supports'] && isset($v['support_strategy']);
-                                })
+                                ->ifTrue(fn($v) => $v['supports'] && isset($v['support_strategy']))
                                 ->thenInvalid('"supports" and "support_strategy" cannot be used together.')
                             ->end()
                             ->validate()
-                                ->ifTrue(function ($v) {
-                                    return !$v['supports'] && !isset($v['support_strategy']);
-                                })
+                                ->ifTrue(fn($v) => !$v['supports'] && !isset($v['support_strategy']))
                                 ->thenInvalid('"supports" or "support_strategy" should be configured.')
                             ->end()
                             ->validate()
@@ -1873,9 +1806,7 @@ final class Configuration implements ConfigurationInterface
                                 ->booleanNode('inheritable')
                                     ->beforeNormalization()
                                         ->ifString()
-                                        ->then(function ($v) {
-                                            return (bool)$v;
-                                        })
+                                        ->then(fn($v) => (bool)$v)
                                         ->end()
                                 ->end()
                                 ->integerNode('creationDate')->end()

@@ -28,6 +28,7 @@ class OpenDxpApplicationLoggerBundle extends AbstractOpenDxpBundle implements Op
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
+    #[\Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -58,6 +59,7 @@ class OpenDxpApplicationLoggerBundle extends AbstractOpenDxpBundle implements Op
         return $this->container->get(Installer::class);
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

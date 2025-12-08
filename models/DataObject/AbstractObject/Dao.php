@@ -104,7 +104,7 @@ class Dao extends Model\Element\Dao
         $checkColumns = ['type', 'classId', 'className'];
         $existingData = $this->db->fetchAssociative('SELECT ' . implode(',', $checkColumns) . ' FROM objects WHERE id = ?', [$this->model->getId()]);
         foreach ($checkColumns as $column) {
-            if ($column == 'type' && in_array($data[$column], [DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_OBJECT]) && (isset($existingData[$column]) && in_array($existingData[$column], [DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_OBJECT]))) {
+            if ($column === 'type' && in_array($data[$column], [DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_OBJECT]) && (isset($existingData[$column]) && in_array($existingData[$column], [DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_OBJECT]))) {
                 // type conversion variant <=> object should be possible
                 continue;
             }
@@ -232,9 +232,7 @@ class Dao extends Model\Element\Dao
         );
 
         // because this should be faster than mysql
-        usort($propertiesRaw, function ($left, $right) {
-            return strcmp((string)$left['cpath'], (string)$right['cpath']);
-        });
+        usort($propertiesRaw, fn($left, $right) => strcmp((string)$left['cpath'], (string)$right['cpath']));
 
         foreach ($propertiesRaw as $propertyRaw) {
             try {
@@ -293,7 +291,7 @@ class Dao extends Model\Element\Dao
         if ($user && !$user->isAdmin()) {
             $roleIds = $user->getRoles();
             $currentUserId = $user->getId();
-            $permissionIds = array_merge($roleIds, [$currentUserId]);
+            $permissionIds = [...$roleIds, $currentUserId];
 
             //gets the permission of the ancestors, since it would be the same for each row with same parentId, it is done once outside the query to avoid extra subquery.
             $inheritedPermission = $this->isInheritingPermission('list', $permissionIds);
@@ -393,7 +391,7 @@ class Dao extends Model\Element\Dao
         if ($user && !$user->isAdmin()) {
             $roleIds = $user->getRoles();
             $currentUserId = $user->getId();
-            $permissionIds = array_merge($roleIds, [$currentUserId]);
+            $permissionIds = [...$roleIds, $currentUserId];
 
             $inheritedPermission = $this->isInheritingPermission('list', $permissionIds);
 
@@ -432,12 +430,7 @@ class Dao extends Model\Element\Dao
 
         $parentIds = $this->getParentIds();
         $inhertitedLocks = $this->db->fetchOne('SELECT id FROM tree_locks WHERE id IN (' . implode(',', $parentIds) . ") AND `type`='object' AND locked = 'propagate' LIMIT 1");
-
-        if ($inhertitedLocks > 0) {
-            return true;
-        }
-
-        return false;
+        return $inhertitedLocks > 0;
     }
 
     public function unlockPropagate(): array
@@ -521,7 +514,7 @@ class Dao extends Model\Element\Dao
                     return true;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             Logger::warn('Unable to get permission ' . $type . ' for object ' . $this->model->getId());
         }
 
@@ -546,11 +539,7 @@ class Dao extends Model\Element\Dao
         $userIds[] = $user->getId();
 
         try {
-            if ($type && $quote) {
-                $queryType = '`' . $type . '`';
-            } else {
-                $queryType = '*';
-            }
+            $queryType = $type && $quote ? '`' . $type . '`' : '*';
 
             $commaSeparated = in_array($type, ['lView', 'lEdit', 'layouts']);
 
@@ -560,7 +549,7 @@ class Dao extends Model\Element\Dao
                     return null;
                 }
 
-                if (count($allPermissions) == 1) {
+                if (count($allPermissions) === 1) {
                     return $allPermissions[0];
                 }
 
@@ -596,7 +585,7 @@ class Dao extends Model\Element\Dao
             $permissions = $this->db->fetchAssociative('SELECT ' . $queryType . ' FROM users_workspaces_object WHERE cid IN (' . implode(',', $parentIds) . ') AND userId IN (' . implode(',', $userIds) . ') ORDER BY LENGTH(cpath) DESC, FIELD(userId, ' . $user->getId() . ') DESC' . $orderByType . ' LIMIT 1');
 
             return $permissions ?: null;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             Logger::warn('Unable to get permission ' . $type . ' for object ' . $this->model->getId());
         }
 
@@ -610,16 +599,12 @@ class Dao extends Model\Element\Dao
         $permissions = [];
 
         try {
-            if ($type && $quote) {
-                $type = '`' . $type . '`';
-            } else {
-                $type = '*';
-            }
+            $type = $type && $quote ? '`' . $type . '`' : '*';
 
             $cid = $this->model->getId();
             $sql = 'SELECT ' . $type . ' FROM users_workspaces_object WHERE cid != ' . $cid . ' AND cpath LIKE ' . $this->db->quote(Helper::escapeLike($this->model->getRealFullPath()) . '%') . ' AND userId IN (' . implode(',', $userIds) . ') ORDER BY LENGTH(cpath) DESC';
             $permissions = $this->db->fetchAllAssociative($sql);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             Logger::warn('Unable to get permission ' . $type . ' for object ' . $this->model->getId());
         }
 

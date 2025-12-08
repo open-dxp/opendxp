@@ -25,16 +25,17 @@ class Item extends AbstractBlockItem
         return 'block';
     }
 
+    #[\Override]
     public function __call(string $func, array $args): ?Document\Editable
     {
         $element = $this->getEditable($args[0]);
         $class = 'OpenDxp\\Model\\Document\\Editable\\' . str_replace('get', '', $func);
 
-        if ($element === null) {
+        if (!$element instanceof \OpenDxp\Model\Document\Editable) {
             return new $class;
         }
 
-        if (!strcasecmp(get_class($element), $class)) {
+        if (!strcasecmp($element::class, $class)) {
             return $element;
         }
 

@@ -32,17 +32,8 @@ class NotificationEmailService extends AbstractNotificationService
 {
     const MAIL_PATH_LANGUAGE_PLACEHOLDER = '%_locale%';
 
-    private Environment $template;
-
-    private RouterInterface $router;
-
-    protected TranslatorInterface $translator;
-
-    public function __construct(Environment $template, RouterInterface $router, TranslatorInterface $translator)
+    public function __construct(private readonly Environment $template, private readonly RouterInterface $router, protected TranslatorInterface $translator)
     {
-        $this->template = $template;
-        $this->translator = $translator;
-        $this->router = $router;
     }
 
     /**
@@ -110,7 +101,7 @@ class NotificationEmailService extends AbstractNotificationService
                 }
             }
         } catch (Exception $e) {
-            \OpenDxp\Logger::error('Error sending Workflow change notification email: ' . (string)$e);
+            \OpenDxp\Logger::error('Error sending Workflow change notification email: ' . $e);
         }
     }
 

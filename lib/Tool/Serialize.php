@@ -31,7 +31,7 @@ final class Serialize
     public static function unserialize(?string $data = null): mixed
     {
         if ($data) {
-            $data = unserialize($data);
+            return unserialize($data);
         }
 
         return $data;
@@ -73,11 +73,11 @@ final class Serialize
             try {
                 $clone = clone $element; // do not modify the original object
             } catch (Throwable $e) {
-                return sprintf('"* NON-CLONEABLE (%s): %s *"', get_class($element), $e->getMessage());
+                return sprintf('"* NON-CLONEABLE (%s): %s *"', $element::class, $e->getMessage());
             }
 
             if (in_array($element, self::$loopFilterProcessedObjects, true)) {
-                return '"* RECURSION (' . get_class($element) . ') *"';
+                return '"* RECURSION (' . $element::class . ') *"';
             }
 
             self::$loopFilterProcessedObjects[] = $element;
@@ -85,7 +85,7 @@ final class Serialize
             $propCollection = get_object_vars($clone);
 
             foreach ($propCollection as $name => $propValue) {
-                if (!str_starts_with((string) $name, "\0")) {
+                if (!str_starts_with($name, "\0")) {
                     $clone->$name = self::loopFilterCycles($propValue);
                 }
             }

@@ -42,7 +42,7 @@ namespace OpenDxp\Navigation;
 use Exception;
 use OpenDxp\Navigation\Page\Url;
 
-abstract class Page extends Container
+abstract class Page extends Container implements \Stringable
 {
     /**
      * Page label
@@ -164,39 +164,30 @@ abstract class Page extends Container
             $type = $options['type'];
         }
 
-        if (isset($type)) {
-            if (is_string($type) && !empty($type)) {
-                switch (strtolower($type)) {
-                    case 'uri':
-                        $type = '\OpenDxp\Navigation\Page\Url';
-
-                        break;
-                }
-
-                $page = new $type($options);
-                if (!$page instanceof self) {
-                    throw new Exception(sprintf(
-                        'Invalid argument: Detected type "%s", which is not an instance of Page',
-                        $type
-                    ));
-                }
-
-                return $page;
+        if (isset($type) && (is_string($type) && !empty($type))) {
+            if (strtolower($type) === 'uri') {
+                $type = \OpenDxp\Navigation\Page\Url::class;
             }
+            $page = new $type($options);
+            if (!$page instanceof self) {
+                throw new Exception(sprintf(
+                    'Invalid argument: Detected type "%s", which is not an instance of Page',
+                    $type
+                ));
+            }
+            return $page;
         }
 
         $hasUri = isset($options['uri']);
 
         if ($hasUri) {
             return new Url($options);
-        } else {
-            $message = 'Invalid argument: Unable to determine class to instantiate';
-            if (isset($options['label'])) {
-                $message .= ' (Page label: ' . $options['label'] . ')';
-            }
-
-            throw new Exception($message);
         }
+        $message = 'Invalid argument: Unable to determine class to instantiate';
+        if (isset($options['label'])) {
+            $message .= ' (Page label: ' . $options['label'] . ')';
+        }
+        throw new Exception($message);
     }
 
     /**
@@ -728,12 +719,15 @@ abstract class Page extends Container
      */
     public function isVisible(bool $recursive = false): bool
     {
-        if ($recursive && isset($this->_parent) && $this->_parent instanceof self) {
-            if (!$this->_parent->isVisible(true)) {
-                return false;
-            }
+        if (!($recursive && isset($this->_parent))) {
+            return $this->_visible;
         }
-
+        if (!$this->_parent instanceof self) {
+            return $this->_visible;
+        }
+        if (!$this->_parent->isVisible(true)) {
+            return false;
+        }
         return $this->_visible;
     }
 
@@ -772,7 +766,7 @@ abstract class Page extends Container
         }
 
         // remove from old parent
-        if (null !== $this->_parent) {
+        if ($this->_parent instanceof \OpenDxp\Navigation\Container) {
             $this->_parent->removePage($this);
         }
 
@@ -780,7 +774,7 @@ abstract class Page extends Container
         $this->_parent = $parent;
 
         // add to parent if page and not already a child
-        if (null !== $this->_parent && !$this->_parent->hasPage($this, false)) {
+        if ($this->_parent instanceof \OpenDxp\Navigation\Container && !$this->_parent->hasPage($this, false)) {
             $this->_parent->addPage($this);
         }
 
@@ -851,11 +845,8 @@ abstract class Page extends Container
         if (method_exists($this, $method)) {
             return $this->$method();
         }
-        if (isset($this->_properties[$property])) {
-            return $this->_properties[$property];
-        }
 
-        return null;
+        return $this->_properties[$property] ?? null;
     }
 
     // Magic overloads:
@@ -1048,28 +1039,10 @@ abstract class Page extends Container
         return spl_object_id($this);
     }
 
+    #[\Override]
     public function toArray(): array
     {
-        return array_merge(
-            $this->getCustomProperties(),
-            [
-                'label' => $this->getlabel(),
-                'fragment' => $this->getFragment(),
-                'id' => $this->getId(),
-                'class' => $this->getClass(),
-                'title' => $this->getTitle(),
-                'target' => $this->getTarget(),
-                'accesskey' => $this->getAccesskey(),
-                'rel' => $this->getRel(),
-                'rev' => $this->getRev(),
-                'customHtmlAttribs' => $this->getCustomHtmlAttribs(),
-                'order' => $this->getOrder(),
-                'active' => $this->isActive(),
-                'visible' => $this->isVisible(),
-                'type' => get_class($this),
-                'pages' => parent::toArray(),
-            ]
-        );
+        return [...$this->getCustomProperties(), 'label' => $this->getlabel(), 'fragment' => $this->getFragment(), 'id' => $this->getId(), 'class' => $this->getClass(), 'title' => $this->getTitle(), 'target' => $this->getTarget(), 'accesskey' => $this->getAccesskey(), 'rel' => $this->getRel(), 'rev' => $this->getRev(), 'customHtmlAttribs' => $this->getCustomHtmlAttribs(), 'order' => $this->getOrder(), 'active' => $this->isActive(), 'visible' => $this->isVisible(), 'type' => static::class, 'pages' => parent::toArray()];
     }
 
     /**

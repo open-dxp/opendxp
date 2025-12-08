@@ -57,7 +57,7 @@ class Listing
     {
         $filenames = [];
 
-        $fieldCollectionFolders = array_filter(array_unique(array_map('realpath', [
+        $fieldCollectionFolders = array_filter(array_unique(array_map(realpath(...), [
             OPENDXP_CLASS_DEFINITION_DIRECTORY . '/fieldcollections',
             OPENDXP_CUSTOM_CONFIGURATION_CLASS_DEFINITION_DIRECTORY . '/fieldcollections',
         ])));

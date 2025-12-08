@@ -69,11 +69,7 @@ class ResetPasswordCommand extends AbstractCommand
             exit;
         }
 
-        if ($input->getOption('password')) {
-            $plainPassword = $input->getOption('password');
-        } else {
-            $plainPassword = $this->askForPassword($input, $output);
-        }
+        $plainPassword = $input->getOption('password') ?: $this->askForPassword($input, $output);
 
         $password = Authentication::getPasswordHash($user->getName(), $plainPassword);
         $user->setPassword($password);

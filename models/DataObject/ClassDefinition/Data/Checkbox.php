@@ -52,7 +52,6 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
     }
 
     /**
-     * @param null|DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataForResource
      *
@@ -73,7 +72,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
     public function getDataFromResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?bool
     {
         if (!is_null($data)) {
-            $data = (bool) $data;
+            return (bool) $data;
         }
 
         return $data;
@@ -111,11 +110,13 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return (string)$data;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && $data === null) {
@@ -128,6 +129,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
         }*/
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params) ?? '';
@@ -135,6 +137,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
         return (string)$data;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -143,6 +146,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
     /**
      * @param DataObject\ClassDefinition\Data\Checkbox $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->defaultValue = $mainDefinition->defaultValue;
@@ -154,6 +158,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
      *
      *
      */
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -171,6 +176,7 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
      * @param array $params optional params used to change the behavior
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();
@@ -182,16 +188,19 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
         return 'IFNULL(' . $brickPrefix . $key . ', 0) = ' . $value . ' ';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return $data === null;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;

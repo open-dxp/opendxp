@@ -45,11 +45,8 @@ class CodeInjector
         self::REPLACE,
     ];
 
-    private ResponseHelper $responseHelper;
-
-    public function __construct(ResponseHelper $responseHelper)
+    public function __construct(private readonly ResponseHelper $responseHelper)
     {
-        $this->responseHelper = $responseHelper;
     }
 
     public function inject(Response $response, string $code, string $selector = self::SELECTOR_BODY, string $position = self::POSITION_END): void
@@ -84,9 +81,8 @@ class CodeInjector
 
         if (in_array($selector, self::$presetSelectors, true)) {
             return $this->injectIntoPresetSelector($html, $code, $selector, $position);
-        } else {
-            return $this->injectIntoDomSelector($html, $code, $selector, $position, $charset);
         }
+        return $this->injectIntoDomSelector($html, $code, $selector, $position);
     }
 
     private function injectIntoPresetSelector(string $html, string $code, string $selector, string $position): string
@@ -123,7 +119,7 @@ class CodeInjector
         return $html;
     }
 
-    private function injectIntoDomSelector(string $html, string $code, string $selector, string $position, string $charset): string
+    private function injectIntoDomSelector(string $html, string $code, string $selector, string $position): string
     {
         $dom = new DomCrawler($html);
         $element = $dom->filter($selector)->eq(0);

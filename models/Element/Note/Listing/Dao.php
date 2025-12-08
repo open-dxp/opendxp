@@ -61,7 +61,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
             $this->model->getConditionVariableTypes()
         );
 
-        return array_map('intval', $notesIds);
+        return array_map(intval(...), $notesIds);
     }
 
     public function getTotalCount(): int
@@ -72,7 +72,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
                 $this->model->getConditionVariables(),
                 $this->model->getConditionVariableTypes()
             );
-        } catch (Exception $e) {
+        } catch (Exception) {
             return 0;
         }
     }

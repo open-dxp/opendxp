@@ -87,13 +87,10 @@ class ClassUtils
                 }
             }
 
-            if ($gettingClass) {
-                if (is_array($token) && $token[0] === T_STRING) {
-                    $class = $token[1];
-
-                    // all done
-                    break;
-                }
+            if ($gettingClass && (is_array($token) && $token[0] === T_STRING)) {
+                $class = $token[1];
+                // all done
+                break;
             }
         }
 

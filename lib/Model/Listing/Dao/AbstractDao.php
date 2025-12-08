@@ -49,7 +49,7 @@ abstract class AbstractDao extends Model\Dao\AbstractDao
                 $c++;
             }
 
-            if (!empty($parts)) {
+            if ($parts !== []) {
                 return ' ORDER BY ' . implode(', ', $parts);
             }
         }

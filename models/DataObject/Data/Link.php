@@ -26,7 +26,7 @@ use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
 
-class Link implements OwnerAwareFieldInterface
+class Link implements OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
     use ObjectVarTrait;
@@ -359,10 +359,10 @@ class Link implements OwnerAwareFieldInterface
             $path = $this->getDirect() ?? '';
         }
 
-        if (strlen($this->getParameters()) > 0) {
+        if ($this->getParameters() !== '') {
             $path .= '?' . str_replace('?', '', $this->getParameters());
         }
-        if (strlen($this->getAnchor()) > 0) {
+        if ($this->getAnchor() !== '') {
             $path .= '#' . str_replace('#', '', $this->getAnchor());
         }
 

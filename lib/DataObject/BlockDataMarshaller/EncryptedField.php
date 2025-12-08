@@ -31,15 +31,12 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\BeforeEncryptionMarshallerInte
  */
 class EncryptedField implements MarshallerInterface
 {
-    protected MarshallerService $marshallerService;
-
     /**
      * EncryptedField constructor.
      *
      */
-    public function __construct(MarshallerService $marshallerService)
+    public function __construct(protected MarshallerService $marshallerService)
     {
-        $this->marshallerService = $marshallerService;
     }
 
     public function marshal(mixed $value, array $params = []): mixed
@@ -52,9 +49,8 @@ class EncryptedField implements MarshallerInterface
                 $marshaller = $this->marshallerService->buildFieldefinitionMarshaller('block', $delegateFd->getFieldtype());
                 $value = $marshaller->marshal($value, ['fieldDefinition' => $delegateFd, 'format' => 'block']);
             }
-            $encryptedValue = $this->encrypt($value, $params);
 
-            return $encryptedValue;
+            return $this->encrypt($value, $params);
         }
 
         return null;
@@ -95,7 +91,7 @@ class EncryptedField implements MarshallerInterface
 
             try {
                 $key = Key::loadFromAsciiSafeString($key);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 throw new Exception('could not load key');
             }
             // store it in raw binary mode to preserve space
@@ -131,7 +127,7 @@ class EncryptedField implements MarshallerInterface
                 try {
                     $key = Key::loadFromAsciiSafeString($key);
                 } catch (Exception $e) {
-                    throw new Exception('could not load key');
+                    throw new Exception('could not load key', $e->getCode(), $e);
                 }
 
                 if (!(isset($params['skipDecryption']) && $params['skipDecryption'])) {
@@ -139,14 +135,14 @@ class EncryptedField implements MarshallerInterface
                 }
 
                 if ($delegateFd instanceof AfterDecryptionUnmarshallerInterface) {
-                    $data = $delegateFd->unmarshalAfterDecryption($data, $object, $params);
+                    return $delegateFd->unmarshalAfterDecryption($data, $object, $params);
                 }
 
                 return $data;
             } catch (Exception $e) {
                 Logger::error((string) $e);
 
-                throw new Exception('encrypted field ' . $delegateFd->getName() . ' cannot be decoded');
+                throw new Exception('encrypted field ' . $delegateFd->getName() . ' cannot be decoded', $e->getCode(), $e);
             }
         }
 

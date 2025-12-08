@@ -50,16 +50,15 @@ class Service extends Model\Element\Service
     /**
      * @internal
      */
-    protected ?Model\User $_user;
-
-    /**
-     * @internal
-     */
     protected array $_copyRecursiveIds = [];
 
-    public function __construct(?Model\User $user = null)
+    public function __construct(
+        /**
+         * @internal
+         */
+        protected ?Model\User $_user = null
+    )
     {
-        $this->_user = $user;
     }
 
     /**
@@ -175,7 +174,7 @@ class Service extends Model\Element\Service
     public function copyContents(Asset $target, Asset $source): Asset
     {
         // check if the type is the same
-        if (get_class($source) != get_class($target)) {
+        if ($source::class !== $target::class) {
             throw new Exception('Source and target have to be the same type');
         }
 
@@ -198,6 +197,7 @@ class Service extends Model\Element\Service
         return $target;
     }
 
+    #[\Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -214,7 +214,7 @@ class Service extends Model\Element\Service
 
                 return true;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         return false;
@@ -223,6 +223,7 @@ class Service extends Model\Element\Service
     /**
      * @internal
      */
+    #[\Override]
     public static function loadAllFields(Element\ElementInterface $element): Element\ElementInterface
     {
         $element->getProperties();
@@ -268,14 +269,14 @@ class Service extends Model\Element\Service
                 /** @var Data $instance */
                 $instance = $loader->build($item['type']);
 
-                if ($mode == 'grid') {
+                if ($mode === 'grid') {
                     $transformedData = $instance->getDataFromListfolderGrid($item['data'] ?? null, $item);
                 } else {
                     $transformedData = $instance->getDataFromEditMode($item['data'] ?? null, $item);
                 }
 
                 $item['data'] = $transformedData;
-            } catch (UnsupportedException $e) {
+            } catch (UnsupportedException) {
             }
 
             $result[] = $item;
@@ -298,7 +299,7 @@ class Service extends Model\Element\Service
                 /** @var Data $instance */
                 $instance = $loader->build($item['type']);
                 $transformedData = $instance->getDataForEditMode($item['data'], $item);
-            } catch (UnsupportedException $e) {
+            } catch (UnsupportedException) {
             }
 
             $item['data'] = $transformedData;
@@ -315,6 +316,7 @@ class Service extends Model\Element\Service
         return $result;
     }
 
+    #[\Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -323,7 +325,7 @@ class Service extends Model\Element\Service
             throw new Exception('No item key set.');
         }
         if ($nr) {
-            if ($element->getType() == 'folder') {
+            if ($element->getType() === 'folder') {
                 $key = $key . '_' . $nr;
             } else {
                 $keypart = substr($key, 0, strrpos($key, '.'));
@@ -404,34 +406,32 @@ class Service extends Model\Element\Service
                 }
                 $thumbnailConfig->setFormat($formatOverride);
             }
-
             if ($asset instanceof Asset\Video) {
                 if ($config['type'] === 'video') {
                     //for video thumbnails of videos, it returns an array
                     return $asset->getThumbnail($config['thumbnail_name'], [$config['file_extension']]);
-                } else {
-                    $time = 1;
-                    if (preg_match("|~\-~time\-(\d+)\.|", $config['filename'], $matchesThumbs)) {
-                        $time = (int)$matchesThumbs[1];
-                    }
-
-                    return $asset->getImageThumbnail($thumbnailConfig, $time);
                 }
-            } elseif ($asset instanceof Asset\Document) {
+                $time = 1;
+                if (preg_match("|~\-~time\-(\d+)\.|", $config['filename'], $matchesThumbs)) {
+                    $time = (int)$matchesThumbs[1];
+                }
+                return $asset->getImageThumbnail($thumbnailConfig, $time);
+            }
+            if ($asset instanceof Asset\Document) {
                 $page = 1;
                 if (preg_match("|~\-~page\-(\d+)(@[0-9.]+x)?\.|", $config['filename'], $matchesThumbs)) {
                     $page = (int)$matchesThumbs[1];
                 }
-
                 $thumbnailConfig->setName(preg_replace("/\-[\d]+/", '', $thumbnailConfig->getName()));
                 $thumbnailConfig->setName(str_replace('document_', '', $thumbnailConfig->getName()));
-
                 return $asset->getImageThumbnail($thumbnailConfig, $page);
-            } elseif ($asset instanceof Asset\Image) {
+            }
+
+            if ($asset instanceof Asset\Image) {
                 // Throw exception if the requested thumbnail format is disabled from the config
                 $thumbnailFormats = ThumbnailConfig::getAutoFormats();
                 if (!in_array($config['file_extension'], ['jpg', 'jpeg'])) {
-                    if (empty($thumbnailFormats)) {
+                    if ($thumbnailFormats === []) {
                         throw new NotFoundHttpException('Requested thumbnail format is disabled');
                     }
                     foreach ($thumbnailFormats as $autoFormat => $autoFormatConfig) {
@@ -444,25 +444,19 @@ class Service extends Model\Element\Service
                         $thumbnailConfig->setQuality($thumbnailFormats[$config['file_extension']]['quality']);
                     }
                 }
-
                 //check if high res image is called
-
                 preg_match("@([^\@]+)(\@[0-9.]+x)?\.?([^\.]+)?\.([a-zA-Z]{2,5})@", $config['filename'], $matches);
-
-                if (empty($matches) || !isset($matches[1])) {
+                if ($matches === [] || !isset($matches[1])) {
                     return null;
                 }
-
                 if (array_key_exists(2, $matches) && $matches[2]) {
                     $highResFactor = (float)str_replace(['@', 'x'], '', $matches[2]);
                     $thumbnailConfig->setHighResolution($highResFactor);
                 }
-
                 // check if a media query thumbnail was requested
                 if (preg_match("#~\-~media\-\-(.*)\-\-query#", $matches[1], $mediaQueryResult)) {
                     $thumbnailConfig->selectMedia($mediaQueryResult[1]);
                 }
-
                 return $asset->getThumbnail($thumbnailConfig);
             }
         }
@@ -528,7 +522,7 @@ class Service extends Model\Element\Service
         $headers[AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER] = true;
 
         if ($thumbnailStream) {
-            return new StreamedResponse(function () use ($thumbnailStream) {
+            return new StreamedResponse(function () use ($thumbnailStream): void {
                 fpassthru($thumbnailStream);
             }, 200, $headers);
         }
@@ -571,7 +565,7 @@ class Service extends Model\Element\Service
 
             $lifetime = 86400 * 7; // 1 week lifetime, same as direct delivery in .htaccess
 
-            return new StreamedResponse(function () use ($stream) {
+            return new StreamedResponse(function () use ($stream): void {
                 fpassthru($stream);
             }, 200, [
                 'Cache-Control' => 'public, max-age=' . $lifetime,
@@ -579,11 +573,10 @@ class Service extends Model\Element\Service
                 'Content-Type' => $storage->mimeType($storagePath),
                 'Content-Length' => $storage->fileSize($storagePath),
             ]);
-        } else {
-            $thumbnail = Asset\Service::getImageThumbnailByArrayConfig($config);
-            if ($thumbnail) {
-                return Asset\Service::getStreamedResponseFromImageThumbnail($thumbnail, $config);
-            }
+        }
+        $thumbnail = Asset\Service::getImageThumbnailByArrayConfig($config);
+        if ($thumbnail) {
+            return Asset\Service::getStreamedResponseFromImageThumbnail($thumbnail, $config);
         }
 
         return null;
@@ -612,8 +605,7 @@ class Service extends Model\Element\Service
                 'thumbnail_name' => $matches[4],
                 'filename' => $matches[5],
             ];
-        } else {
-            throw new Exception(sprintf('Uri `%s` is not valid and could not be parsed', $uri));
         }
+        throw new Exception(sprintf('Uri `%s` is not valid and could not be parsed', $uri));
     }
 }

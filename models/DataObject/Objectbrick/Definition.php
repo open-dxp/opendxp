@@ -62,6 +62,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         return $this->classDefinitions;
     }
 
+    #[\Override]
     public static function getByKey(string $key): ?Definition
     {
         $brick = null;
@@ -100,7 +101,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         if (!$this->getFieldDefinitions()) {
             return;
         }
-        $isLocalized = $this->getFieldDefinition('localizedfields') ? true : false;
+        $isLocalized = (bool) $this->getFieldDefinition('localizedfields');
 
         $classDefinitions = $this->getClassDefinitions();
         $validLanguages = Tool::getValidLanguages();
@@ -126,7 +127,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         }
 
         if ($tables) {
-            $tablesLen = array_map('strlen', $tables);
+            $tablesLen = array_map(strlen(...), $tables);
             array_multisort($tablesLen, $tables);
             $longestTablename = end($tables);
 
@@ -140,6 +141,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @throws Exception
      */
+    #[\Override]
     public function save(bool $saveDefinitionFile = true): void
     {
         if (!$this->getKey()) {
@@ -240,6 +242,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         $this->enforceBlockRules($fds);
     }
 
+    #[\Override]
     protected function generateClassFiles(bool $generateDefinitionFile = true): void
     {
         if ($generateDefinitionFile && !$this->isWritable()) {
@@ -290,8 +293,8 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
      */
     private function getClassesToCleanup(Definition $oldObject): array
     {
-        $oldDefinitions = $oldObject->getClassDefinitions() ? $oldObject->getClassDefinitions() : [];
-        $newDefinitions = $this->getClassDefinitions() ? $this->getClassDefinitions() : [];
+        $oldDefinitions = $oldObject->getClassDefinitions() ?: [];
+        $newDefinitions = $this->getClassDefinitions() ?: [];
 
         $old = $this->buildClassList($oldDefinitions);
         $new = $this->buildClassList($newDefinitions);
@@ -299,7 +302,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         $diff1 = array_diff($old, $new);
         $diff2 = array_diff($new, $old);
 
-        $diff = array_merge($diff1, $diff2);
+        $diff = [...$diff1, ...$diff2];
         $result = [];
         foreach ($diff as $item) {
             $parts = explode('-', $item);
@@ -350,37 +353,33 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     private function updateDatabase(): void
     {
         $processedClasses = [];
-        if (!empty($this->classDefinitions)) {
-            foreach ($this->classDefinitions as $cl) {
-                unset($this->oldClassDefinitions[$cl['classname']]);
+        foreach ($this->classDefinitions as $cl) {
+            unset($this->oldClassDefinitions[$cl['classname']]);
 
-                if (empty($processedClasses[$cl['classname']])) {
-                    $class = DataObject\ClassDefinition::getByName($cl['classname']);
-                    $this->getDao()->createUpdateTable($class);
-                    $processedClasses[$cl['classname']] = true;
-                }
+            if (empty($processedClasses[$cl['classname']])) {
+                $class = DataObject\ClassDefinition::getByName($cl['classname']);
+                $this->getDao()->createUpdateTable($class);
+                $processedClasses[$cl['classname']] = true;
             }
         }
 
-        if (!empty($this->oldClassDefinitions)) {
-            foreach ($this->oldClassDefinitions as $cl) {
-                $class = DataObject\ClassDefinition::getByName($cl);
-                if ($class) {
-                    $this->getDao()->delete($class);
+        foreach ($this->oldClassDefinitions as $cl) {
+            $class = DataObject\ClassDefinition::getByName($cl);
+            if ($class) {
+                $this->getDao()->delete($class);
 
-                    foreach ($class->getFieldDefinitions() as $fieldDef) {
-                        if ($fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
-                            $allowedTypes = $fieldDef->getAllowedTypes();
-                            $idx = array_search($this->getKey(), $allowedTypes);
-                            if ($idx !== false) {
-                                array_splice($allowedTypes, $idx, 1);
-                            }
-                            $fieldDef->setAllowedTypes($allowedTypes);
+                foreach ($class->getFieldDefinitions() as $fieldDef) {
+                    if ($fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
+                        $allowedTypes = $fieldDef->getAllowedTypes();
+                        $idx = array_search($this->getKey(), $allowedTypes);
+                        if ($idx !== false) {
+                            array_splice($allowedTypes, $idx, 1);
                         }
+                        $fieldDef->setAllowedTypes($allowedTypes);
                     }
-
-                    $class->save();
                 }
+
+                $class->save();
             }
         }
     }
@@ -397,7 +396,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
                 continue;
             }
 
-            $allowedTypes = $fd->getAllowedTypes() ? $fd->getAllowedTypes() : [];
+            $allowedTypes = $fd->getAllowedTypes() ?: [];
             foreach ($allowedTypes as $allowedType) {
                 $result[] = $fd->getName() . '-' . $allowedType;
             }
@@ -411,41 +410,36 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
      */
     private function createContainerClasses(): void
     {
-        $containerDefinition = [];
+        foreach ($this->classDefinitions as $cl) {
+            $class = DataObject\ClassDefinition::getByName($cl['classname']);
+            if (!$class) {
+                throw new Exception('Could not load class ' . $cl['classname']);
+            }
 
-        if (!empty($this->classDefinitions)) {
-            foreach ($this->classDefinitions as $cl) {
-                $class = DataObject\ClassDefinition::getByName($cl['classname']);
-                if (!$class) {
-                    throw new Exception('Could not load class ' . $cl['classname']);
-                }
+            $fd = $class->getFieldDefinition($cl['fieldname']);
+            if (!$fd instanceof DataObject\ClassDefinition\Data\Objectbricks) {
+                throw new Exception('Could not resolve field definition for ' . $cl['fieldname']);
+            }
 
-                $fd = $class->getFieldDefinition($cl['fieldname']);
-                if (!$fd instanceof DataObject\ClassDefinition\Data\Objectbricks) {
-                    throw new Exception('Could not resolve field definition for ' . $cl['fieldname']);
-                }
+            $old = $this->getAllowedTypesWithFieldname($class);
 
-                $old = $this->getAllowedTypesWithFieldname($class);
+            $allowedTypes = $fd->getAllowedTypes() ?: [];
 
-                $allowedTypes = $fd->getAllowedTypes() ?: [];
+            if (!in_array($this->key, $allowedTypes)) {
+                $allowedTypes[] = $this->key;
+            }
 
-                if (!in_array($this->key, $allowedTypes)) {
-                    $allowedTypes[] = $this->key;
-                }
+            $fd->setAllowedTypes($allowedTypes);
+            $new = $this->getAllowedTypesWithFieldname($class);
 
-                $fd->setAllowedTypes($allowedTypes);
-                $new = $this->getAllowedTypesWithFieldname($class);
-
-                if (array_diff($new, $old) || array_diff($old, $new)) {
-                    $class->save();
-                } else {
-                    // still, the brick fields definitions could have changed.
-                    Cache::clearTag('class_'.$class->getId());
-                    Logger::debug('Objectbrick ' . $this->getKey() . ', no change for class ' . $class->getName());
-                }
+            if (array_diff($new, $old) || array_diff($old, $new)) {
+                $class->save();
+            } else {
+                // still, the brick fields definitions could have changed.
+                Cache::clearTag('class_'.$class->getId());
+                Logger::debug('Objectbrick ' . $this->getKey() . ', no change for class ' . $class->getName());
             }
         }
-
         OpenDxp::getContainer()->get(PHPObjectBrickContainerClassDumperInterface::class)->dumpContainerClasses($this);
     }
 
@@ -478,6 +472,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
      *
      * @throws DataObject\Exception\DefinitionWriteException
      */
+    #[\Override]
     public function delete(): void
     {
         if (!$this->isWritable() && file_exists($this->getDefinitionFile())) {
@@ -488,29 +483,27 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         @unlink($this->getPhpClassFile());
 
         $processedClasses = [];
-        if (!empty($this->classDefinitions)) {
-            foreach ($this->classDefinitions as $cl) {
-                unset($this->oldClassDefinitions[$cl['classname']]);
+        foreach ($this->classDefinitions as $cl) {
+            unset($this->oldClassDefinitions[$cl['classname']]);
 
-                if (!isset($processedClasses[$cl['classname']])) {
-                    $processedClasses[$cl['classname']] = true;
-                    $class = DataObject\ClassDefinition::getByName($cl['classname']);
-                    if ($class instanceof DataObject\ClassDefinition) {
-                        $this->getDao()->delete($class);
+            if (!isset($processedClasses[$cl['classname']])) {
+                $processedClasses[$cl['classname']] = true;
+                $class = DataObject\ClassDefinition::getByName($cl['classname']);
+                if ($class instanceof DataObject\ClassDefinition) {
+                    $this->getDao()->delete($class);
 
-                        foreach ($class->getFieldDefinitions() as $fieldDef) {
-                            if ($fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
-                                $allowedTypes = $fieldDef->getAllowedTypes();
-                                $idx = array_search($this->getKey(), $allowedTypes);
-                                if ($idx !== false) {
-                                    array_splice($allowedTypes, $idx, 1);
-                                }
-                                $fieldDef->setAllowedTypes($allowedTypes);
+                    foreach ($class->getFieldDefinitions() as $fieldDef) {
+                        if ($fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
+                            $allowedTypes = $fieldDef->getAllowedTypes();
+                            $idx = array_search($this->getKey(), $allowedTypes);
+                            if ($idx !== false) {
+                                array_splice($allowedTypes, $idx, 1);
                             }
+                            $fieldDef->setAllowedTypes($allowedTypes);
                         }
-
-                        $class->save();
                     }
+
+                    $class->save();
                 }
             }
         }
@@ -520,17 +513,20 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         $classes = $classList->load();
         foreach ($classes as $class) {
             foreach ($class->getFieldDefinitions() as $fieldDef) {
-                if ($fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
-                    if (in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
-                        break;
-                    }
+                if (!$fieldDef instanceof DataObject\ClassDefinition\Data\Objectbricks) {
+                    continue;
                 }
+                if (!in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
+                    continue;
+                }
+                break;
             }
         }
 
         $this->dispatchEvent(new ObjectbrickDefinitionEvent($this), ObjectbrickDefinitionEvents::POST_DELETE);
     }
 
+    #[\Override]
     protected function doEnrichFieldDefinition(Data $fieldDefinition, array $context = []): Data
     {
         if ($fieldDefinition instanceof FieldDefinitionEnrichmentInterface) {
@@ -545,6 +541,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
+    #[\Override]
     public function isWritable(): bool
     {
         return (bool) ($_SERVER['OPENDXP_CLASS_DEFINITION_WRITABLE'] ?? !str_starts_with($this->getDefinitionFile(), OPENDXP_CUSTOM_CONFIGURATION_DIRECTORY));
@@ -553,6 +550,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
+    #[\Override]
     public function getDefinitionFile(?string $key = null): string
     {
         return $this->locateDefinitionFile($key ?? $this->getKey(), 'objectbricks/%s.php');
@@ -561,6 +559,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
+    #[\Override]
     public function getPhpClassFile(): string
     {
         return $this->locateFile(ucfirst($this->getKey()), 'DataObject/Objectbrick/Data/%s.php');

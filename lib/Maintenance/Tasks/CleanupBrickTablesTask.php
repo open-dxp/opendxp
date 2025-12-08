@@ -24,7 +24,7 @@ use OpenDxp\Maintenance\Tasks\DataObject\ConcreteTaskHelperInterface;
  */
 class CleanupBrickTablesTask implements TaskInterface
 {
-    public function __construct(private ConcreteTaskHelperInterface $helper)
+    public function __construct(private readonly ConcreteTaskHelperInterface $helper)
     {
     }
 

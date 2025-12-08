@@ -22,20 +22,8 @@ use Symfony\Component\Workflow\WorkflowInterface;
 
 class PlaceConfig
 {
-    private string $place;
-
-    private array $placeConfigArray;
-
-    private ExpressionService $expressionService;
-
-    private string $workflowName;
-
-    public function __construct(string $place, array $placeConfigArray, ExpressionService $expressionService, string $workflowName)
+    public function __construct(private readonly string $place, private array $placeConfigArray, private readonly ExpressionService $expressionService, private readonly string $workflowName)
     {
-        $this->place = $place;
-        $this->placeConfigArray = $placeConfigArray;
-        $this->expressionService = $expressionService;
-        $this->workflowName = $workflowName;
     }
 
     public function getLabel(): string

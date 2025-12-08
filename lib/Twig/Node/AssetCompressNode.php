@@ -30,6 +30,7 @@ class AssetCompressNode extends Node
         parent::__construct(['body' => $body], [], $lineno, $tag);
     }
 
+    #[\Override]
     public function compile(Compiler $compiler): void
     {
         $compiler

@@ -26,15 +26,9 @@ use Twig\TwigFunction;
 /**
  * @internal
  */
-class DumpExtension extends AbstractExtension
+class DumpExtension
 {
-    public function getFunctions(): array
-    {
-        return [
-            new TwigFunction('opendxp_dump', [$this, 'dump'], ['is_safe' => ['html']]),
-        ];
-    }
-
+    #[\Twig\Attribute\AsTwigFunction('opendxp_dump', isSafe: ['html'])]
     public function dump(mixed $value): ?string
     {
         $cloner = new VarCloner();

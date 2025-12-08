@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class SearchBackendEvent extends Event
 {
-    protected Data $data;
-
     /**
      * Data constructor.
      *
      */
-    public function __construct(Data $data)
+    public function __construct(protected Data $data)
     {
-        $this->data = $data;
     }
 
     public function getData(): Data

@@ -27,8 +27,9 @@ use Symfony\Component\Uid\Uuid as Uid;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'predefined_properties';
+    private const string CONFIG_KEY = 'predefined_properties';
 
+    #[\Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -81,9 +82,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 
         $list = new Listing();
         /** @var Model\Property\Predefined[] $properties */
-        $properties = array_values(array_filter($list->getProperties(), function ($item) use ($key) {
-            return $item->getKey() == $key;
-        }
+        $properties = array_values(array_filter($list->getProperties(), fn($item) => $item->getKey() == $key
         ));
 
         if (count($properties) && $properties[0]->getId()) {
@@ -131,6 +130,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

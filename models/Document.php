@@ -90,13 +90,14 @@ class Document extends Element\AbstractElement
      */
     protected array $siblings = [];
 
+    #[\Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['versions', 'scheduledTasks', 'fullPathCache'];
 
         if (!$this->isInDumpState()) {
             // this is if we want to cache the object
-            $blockedVars = array_merge($blockedVars, ['children', 'properties']);
+            return [...$blockedVars, 'children', 'properties'];
         }
 
         return $blockedVars;
@@ -115,7 +116,7 @@ class Document extends Element\AbstractElement
 
         // remove unused class value
         return array_map(function ($item) {
-            if (key_exists('class', $item)) {
+            if (array_key_exists('class', $item)) {
                 unset($item['class']);
             }
 
@@ -156,7 +157,7 @@ class Document extends Element\AbstractElement
             $helperDoc->getDao()->getByPath($path);
             $doc = static::getById($helperDoc->getId(), $params);
             RuntimeCache::set($cacheKey, $doc);
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             $doc = null;
         }
 
@@ -171,13 +172,11 @@ class Document extends Element\AbstractElement
     protected static function typeMatch(Document $document): bool
     {
         $staticType = static::class;
-        if ($staticType !== Document::class) {
-            if (!$document instanceof $staticType) {
-                return false;
-            }
+        if ($staticType === Document::class) {
+            return true;
         }
 
-        return true;
+        return $document instanceof $staticType;
     }
 
     public static function getById(int $id, array $params = []): ?static
@@ -198,15 +197,11 @@ class Document extends Element\AbstractElement
 
         if ($params['force'] || !($document = \OpenDxp\Cache::load($cacheKey))) {
             $reflectionClass = new ReflectionClass(static::class);
-            if ($reflectionClass->isAbstract()) {
-                $document = new Document();
-            } else {
-                $document = new static();
-            }
+            $document = $reflectionClass->isAbstract() ? new Document() : new static();
 
             try {
                 $document->getDao()->getById($id);
-            } catch (NotFoundException $e) {
+            } catch (NotFoundException) {
                 return null;
             }
 
@@ -216,7 +211,7 @@ class Document extends Element\AbstractElement
             /** @var Document $newDocument */
             $newDocument = self::getModelFactory()->build($className);
 
-            if (get_class($document) !== get_class($newDocument)) {
+            if ($document::class !== $newDocument::class) {
                 $document = $newDocument;
                 $document->getDao()->getById($id);
             }
@@ -342,7 +337,7 @@ class Document extends Element\AbstractElement
                     // we try to start the transaction $maxRetries times again (deadlocks, ...)
                     if ($e instanceof DeadlockException && $retries < ($maxRetries - 1)) {
                         $run = $retries + 1;
-                        $waitTime = rand(1, 5) * 100000; // microseconds
+                        $waitTime = random_int(1, 5) * 100000; // microseconds
                         Logger::warn('Unable to finish transaction (' . $run . ". run) because of the following reason '" . $e->getMessage() . "'. --> Retrying in " . $waitTime . ' microseconds ... (' . ($run + 1) . ' of ' . $maxRetries . ')');
 
                         usleep($waitTime); // wait specified time until we restart the transaction
@@ -439,7 +434,7 @@ class Document extends Element\AbstractElement
 
         if (Document\Service::pathExists($this->getRealFullPath())) {
             $duplicate = Document::getByPath($this->getRealFullPath());
-            if ($duplicate instanceof Document && $duplicate->getId() != $this->getId()) {
+            if ($duplicate instanceof Document && $duplicate->getId() !== $this->getId()) {
                 $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ ' . $this->getRealFullPath() . ' ] - cannot save document');
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
@@ -505,7 +500,7 @@ class Document extends Element\AbstractElement
     {
         try {
             $tags = [$this->getCacheTag(), 'document_properties', 'output'];
-            $tags = array_merge($tags, $additionalTags);
+            $tags = [...$tags, ...$additionalTags];
 
             \OpenDxp\Cache::clearTags($tags);
         } catch (Exception $e) {
@@ -521,7 +516,7 @@ class Document extends Element\AbstractElement
      */
     public function setChildren(?Listing $children, bool $includingUnpublished = false): static
     {
-        if ($children === null) {
+        if (!$children instanceof \OpenDxp\Model\Document\Listing) {
             // unset all cached children
             $this->children = [];
         } else {
@@ -685,7 +680,7 @@ class Document extends Element\AbstractElement
         try {
             if (!$link && Tool::isFrontend() && Site::isSiteRequest()) {
                 $site = Site::getCurrentSite();
-                if ($site->getRootDocument()->getId() == $this->getId()) {
+                if ($site->getRootDocument()->getId() === $this->getId()) {
                     $link = '/';
                 }
             }
@@ -715,21 +710,17 @@ class Document extends Element\AbstractElement
 
             if ((Site::isSiteRequest() && !FrontendTool::isDocumentInCurrentSite($this))
                 || $differentDomain) {
-                if ($mainRequest && ($mainDocument = $mainRequest->get(DynamicRouter::CONTENT_KEY))) {
-                    if ($mainDocument instanceof WrapperInterface) {
-                        $hardlinkPath = '';
-                        $hardlink = $mainDocument->getHardLinkSource();
-                        $hardlinkTarget = $hardlink->getSourceDocument();
+                if ($mainRequest && ($mainDocument = $mainRequest->get(DynamicRouter::CONTENT_KEY)) && $mainDocument instanceof WrapperInterface) {
+                    $hardlinkPath = '';
+                    $hardlink = $mainDocument->getHardLinkSource();
+                    $hardlinkTarget = $hardlink->getSourceDocument();
+                    if ($hardlinkTarget) {
+                        $hardlinkPath = preg_replace('@^' . preg_quote(Site::getCurrentSite()->getRootPath(), '@') . '@', '', $hardlink->getRealFullPath());
 
-                        if ($hardlinkTarget) {
-                            $hardlinkPath = preg_replace('@^' . preg_quote(Site::getCurrentSite()->getRootPath(), '@') . '@', '', $hardlink->getRealFullPath());
-
-                            $link = preg_replace('@^' . preg_quote($hardlinkTarget->getRealFullPath(), '@') . '@', $hardlinkPath, $this->getRealFullPath());
-                        }
-
-                        if (!str_contains($link, $hardlinkPath) && !str_contains($this->getRealFullPath(), Site::getCurrentSite()->getRootDocument()->getRealFullPath())) {
-                            $link = null;
-                        }
+                        $link = preg_replace('@^' . preg_quote($hardlinkTarget->getRealFullPath(), '@') . '@', $hardlinkPath, $this->getRealFullPath());
+                    }
+                    if (!str_contains($link, $hardlinkPath) && !str_contains($this->getRealFullPath(), Site::getCurrentSite()->getRootDocument()->getRealFullPath())) {
+                        $link = null;
                     }
                 }
 
@@ -740,15 +731,13 @@ class Document extends Element\AbstractElement
                         $scheme = $request->getScheme() . '://';
                     }
 
-                    if ($site) {
-                        if ($site->getMainDomain()) {
-                            // check if current document is the root of the different site, if so, preg_replace below doesn't work, so just return /
-                            if ($site->getRootDocument()->getId() == $this->getId()) {
-                                $link = $scheme . $site->getMainDomain() . '/';
-                            } else {
-                                $link = $scheme . $site->getMainDomain() .
-                                    preg_replace('@^' . $site->getRootPath() . '/@', '/', $this->getRealFullPath());
-                            }
+                    if ($site && $site->getMainDomain()) {
+                        // check if current document is the root of the different site, if so, preg_replace below doesn't work, so just return /
+                        if ($site->getRootDocument()->getId() === $this->getId()) {
+                            $link = $scheme . $site->getMainDomain() . '/';
+                        } else {
+                            $link = $scheme . $site->getMainDomain() .
+                                preg_replace('@^' . $site->getRootPath() . '/@', '/', $this->getRealFullPath());
                         }
                     }
 
@@ -792,6 +781,7 @@ class Document extends Element\AbstractElement
         return $this->key;
     }
 
+    #[\Override]
     public function getPath(): ?string
     {
         // check for site, if so rewrite the path for output
@@ -832,6 +822,7 @@ class Document extends Element\AbstractElement
     /**
      * Set the parent id of the document.
      */
+    #[\Override]
     public function setParentId(?int $id): static
     {
         parent::setParentId($id);
@@ -896,6 +887,7 @@ class Document extends Element\AbstractElement
         return $this;
     }
 
+    #[\Override]
     public function getParent(): ?Document
     {
         $parent = parent::getParent();
@@ -943,6 +935,7 @@ class Document extends Element\AbstractElement
         return 'document_list_' . ($includingUnpublished ? '1' : '0');
     }
 
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();

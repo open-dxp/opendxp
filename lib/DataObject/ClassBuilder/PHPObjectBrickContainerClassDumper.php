@@ -29,7 +29,7 @@ class PHPObjectBrickContainerClassDumper implements PHPObjectBrickContainerClass
 
     public function dumpContainerClasses(Definition $definition): void
     {
-        $objectClassesFolders = array_filter(array_unique(array_map('realpath', [
+        $objectClassesFolders = array_filter(array_unique(array_map(realpath(...), [
             OPENDXP_CLASS_DEFINITION_DIRECTORY,
             OPENDXP_CUSTOM_CONFIGURATION_CLASS_DEFINITION_DIRECTORY,
         ])));

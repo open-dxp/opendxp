@@ -20,11 +20,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class TranslationXliffEvent extends Event
 {
-    protected AttributeSet $attributeSet;
-
-    public function __construct(AttributeSet $attributeSet)
+    public function __construct(protected AttributeSet $attributeSet)
     {
-        $this->attributeSet = $attributeSet;
     }
 
     public function getAttributeSet(): AttributeSet

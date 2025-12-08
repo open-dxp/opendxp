@@ -57,7 +57,7 @@ class Listing
     {
         $filenames = [];
 
-        $objectBricksFolders = array_filter(array_unique(array_map('realpath', [
+        $objectBricksFolders = array_filter(array_unique(array_map(realpath(...), [
             OPENDXP_CLASS_DEFINITION_DIRECTORY . '/objectbricks',
             OPENDXP_CUSTOM_CONFIGURATION_CLASS_DEFINITION_DIRECTORY . '/objectbricks',
         ])));

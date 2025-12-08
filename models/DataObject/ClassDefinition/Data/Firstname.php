@@ -20,6 +20,7 @@ use OpenDxp\Model;
 
 class Firstname extends Model\DataObject\ClassDefinition\Data\Input
 {
+    #[\Override]
     public function getFieldType(): string
     {
         return 'firstname';

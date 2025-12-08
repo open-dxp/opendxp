@@ -43,58 +43,45 @@ class SettingsController extends UserAwareController
             $data = $this->decodeJson($request->request->getString('data'));
 
             Cache::clearTag('glossary');
-
             if ($request->query->getString('xaction') === 'destroy') {
                 $id = $data['id'];
                 $glossary = Glossary::getById($id);
                 $glossary->delete();
 
                 return $this->jsonResponse(['success' => true, 'data' => []]);
-            } elseif ($request->query->getString('xaction') === 'update') {
+            }
+            if ($request->query->getString('xaction') === 'update') {
                 // save glossary
                 $glossary = Glossary::getById($data['id']);
-
-                if (!empty($data['link'])) {
-                    if ($doc = Document::getByPath($data['link'])) {
-                        $data['link'] = $doc->getId();
-                    }
+                if (!empty($data['link']) && $doc = Document::getByPath($data['link'])) {
+                    $data['link'] = $doc->getId();
                 }
 
                 $glossary->setValues($data);
-
                 $glossary->save();
 
-                if ($link = $glossary->getLink()) {
-                    if ((int)$link > 0) {
-                        if ($doc = Document::getById((int)$link)) {
-                            $glossary->setLink($doc->getRealFullPath());
-                        }
-                    }
+                $link = $glossary->getLink();
+                if (!empty($link) && (int) $link > 0 && $doc = Document::getById((int)$link)) {
+                    $glossary->setLink($doc->getRealFullPath());
                 }
 
                 return $this->jsonResponse(['data' => $glossary, 'success' => true]);
-            } elseif ($request->query->getString('xaction') == 'create') {
-                unset($data['id']);
+            }
 
+            if ($request->query->getString('xaction') === 'create') {
+                unset($data['id']);
                 // save glossary
                 $glossary = new Glossary();
-
-                if (!empty($data['link'])) {
-                    if ($doc = Document::getByPath($data['link'])) {
-                        $data['link'] = $doc->getId();
-                    }
+                if (!empty($data['link']) && $doc = Document::getByPath($data['link'])) {
+                    $data['link'] = $doc->getId();
                 }
 
                 $glossary->setValues($data);
-
                 $glossary->save();
 
-                if ($link = $glossary->getLink()) {
-                    if ((int)$link > 0) {
-                        if ($doc = Document::getById((int)$link)) {
-                            $glossary->setLink($doc->getRealFullPath());
-                        }
-                    }
+                $link = $glossary->getLink();
+                if (!empty($link) && (int) $link > 0 && $doc = Document::getById((int)$link)) {
+                    $glossary->setLink($doc->getRealFullPath());
                 }
 
                 return $this->jsonResponse(['data' => $glossary->getObjectVars(), 'success' => true]);
@@ -104,7 +91,7 @@ class SettingsController extends UserAwareController
             $list->setLimit($request->request->getInt('limit', 50));
             $list->setOffset($request->request->getInt('start'));
 
-            $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings(array_merge($request->request->all(), $request->query->all()));
+            $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
             if ($sortingSettings['orderKey']) {
                 $list->setOrderKey($sortingSettings['orderKey']);
                 $list->setOrder($sortingSettings['order']);
@@ -118,12 +105,9 @@ class SettingsController extends UserAwareController
 
             $glossaries = [];
             foreach ($list->getGlossary() as $glossary) {
-                if ($link = $glossary->getLink()) {
-                    if ((int)$link > 0) {
-                        if ($doc = Document::getById((int)$link)) {
-                            $glossary->setLink($doc->getRealFullPath());
-                        }
-                    }
+                $link = $glossary->getLink();
+                if (!empty($link) && (int) $link > 0 && $doc = Document::getById((int)$link)) {
+                    $glossary->setLink($doc->getRealFullPath());
                 }
 
                 $glossaries[] = $glossary->getObjectVars();

@@ -32,8 +32,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Builder
 {
-    private RequestHelper $requestHelper;
-
     /**
      * @internal
      */
@@ -48,12 +46,10 @@ class Builder
 
     private array $navCacheTags = [];
 
-    private OptionsResolver $optionsResolver;
+    private readonly OptionsResolver $optionsResolver;
 
-    public function __construct(RequestHelper $requestHelper, ?string $pageClass = null)
+    public function __construct(private readonly RequestHelper $requestHelper, ?string $pageClass = null)
     {
-        $this->requestHelper = $requestHelper;
-
         if (null !== $pageClass) {
             $this->pageClass = $pageClass;
         }
@@ -133,7 +129,7 @@ class Builder
         $cacheKey = null;
         if ($cacheEnabled) {
             // the cache key consists out of the ID and the class name (eg. for hardlinks) of the root document and the optional html prefix
-            $cacheKeys = ['root_id__' . $navigationRootDocument->getId(), $htmlMenuIdPrefix, get_class($navigationRootDocument)];
+            $cacheKeys = ['root_id__' . $navigationRootDocument->getId(), $htmlMenuIdPrefix, $navigationRootDocument::class];
 
             if (Site::isSiteRequest()) {
                 $site = Site::getCurrentSite();
@@ -197,19 +193,19 @@ class Builder
             // try to find a page matching exactly the request uri
             $activePages = $this->findActivePages($navigation, 'uri', $request->getRequestUri());
 
-            if (empty($activePages)) {
+            if ($activePages === []) {
                 // try to find a page matching the path info
                 $activePages = $this->findActivePages($navigation, 'uri', $request->getPathInfo());
             }
         }
 
         if ($activeDocument) {
-            if (empty($activePages)) {
+            if ($activePages === []) {
                 // use the provided opendxp document
                 $activePages = $this->findActivePages($navigation, 'realFullPath', $activeDocument->getRealFullPath());
             }
 
-            if (empty($activePages)) {
+            if ($activePages === []) {
                 // find by link target
                 $activePages = $this->findActivePages($navigation, 'uri', $activeDocument->getFullPath());
             }
@@ -237,10 +233,12 @@ class Builder
             $allPages = new RecursiveIteratorIterator($navigation, RecursiveIteratorIterator::SELF_FIRST);
 
             foreach ($allPages as $page) {
-                if (!$page instanceof Url || !$page->getUri()) {
+                if (!$page instanceof Url) {
                     continue;
                 }
-
+                if (!$page->getUri()) {
+                    continue;
+                }
                 $uri = $page->getUri() . '/';
                 $isActive = str_starts_with($activeDocument->getRealFullPath(), $uri)
                     || ($isLink($page) && str_starts_with($activeDocument->getFullPath(), $uri));

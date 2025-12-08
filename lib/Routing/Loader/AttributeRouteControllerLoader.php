@@ -27,6 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader as Bas
  */
 class AttributeRouteControllerLoader extends BaseAttributeRouteControllerLoader
 {
+    #[\Override]
     protected function getDefaultRouteName(ReflectionClass $class, ReflectionMethod $method): string
     {
         $routeName = parent::getDefaultRouteName($class, $method);
@@ -35,12 +36,10 @@ class AttributeRouteControllerLoader extends BaseAttributeRouteControllerLoader
             'opendxp_admin_admin_' => 'opendxp_admin_',
         ];
 
-        $routeName = str_replace(
+        return str_replace(
             array_keys($replacements),
             array_values($replacements),
             $routeName
         );
-
-        return $routeName;
     }
 }

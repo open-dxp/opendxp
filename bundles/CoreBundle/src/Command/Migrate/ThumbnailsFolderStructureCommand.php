@@ -78,12 +78,10 @@ class ThumbnailsFolderStructureCommand extends AbstractCommand
 
             if (!$storage->fileExists($targetPath)) {
                 $storage->move($thumbnailFile->path(), $targetPath);
+            } elseif ($thumbnailFile->isDir()) {
+                $storage->deleteDirectory($thumbnailFile->path());
             } else {
-                if ($thumbnailFile->isDir()) {
-                    $storage->deleteDirectory($thumbnailFile->path());
-                } else {
-                    $storage->delete($thumbnailFile->path());
-                }
+                $storage->delete($thumbnailFile->path());
             }
 
             $progressBar->advance();

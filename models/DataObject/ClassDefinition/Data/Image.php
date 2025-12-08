@@ -30,7 +30,6 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     use Data\Extension\RelationFilterConditionParser;
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataForResource
      *
@@ -45,8 +44,6 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
-     *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      */
     public function getDataFromResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?Asset
@@ -59,8 +56,6 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
-     *
      * @see QueryResourcePersistenceAwareInterface::getDataForQueryResource
      */
     public function getDataForQueryResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?int
@@ -92,8 +87,6 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
-     *
      * @see Data::getDataFromEditmode
      */
     public function getDataFromEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?Asset\Image
@@ -109,6 +102,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
      *
      * @throws Element\ValidationException
      */
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && !$data instanceof Asset\Image) {
@@ -119,21 +113,17 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         }
     }
 
-    /**
-     * @param null|Model\DataObject\Concrete $object
-     *
-     */
     public function getDataFromGridEditor(?array $data, ?Concrete $object = null, array $params = []): Asset\Image|null
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Asset\Image) {
@@ -143,6 +133,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -153,22 +144,23 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
-        if ($data instanceof Asset\Image) {
-            if (!array_key_exists($data->getCacheTag(), $tags)) {
-                $tags = $data->getCacheTags($tags);
-            }
+        if ($data instanceof Asset\Image && !array_key_exists($data->getCacheTag(), $tags)) {
+            return $data->getCacheTags($tags);
         }
 
         return $tags;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -183,6 +175,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $dependencies;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -191,7 +184,6 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param Model\DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?Asset\Image $data, ?Concrete $object = null, array $params = []): array|string
@@ -202,23 +194,19 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         }
 
         if ($versionPreview) {
-            $value = [];
-            $value['src'] = $versionPreview;
-            $value['type'] = 'img';
-
-            return $value;
-        } else {
-            return '';
+            return ['src' => $versionPreview, 'type' => 'img'];
         }
+        return '';
     }
 
     public function rewriteIds(mixed $container, array $idMapping, array $params = []): mixed
     {
         $data = $this->getDataFromObjectParam($container, $params);
-        if ($data instanceof Asset\Image) {
-            if (array_key_exists('asset', $idMapping) && array_key_exists($data->getId(), $idMapping['asset'])) {
-                return Asset::getById((int) $idMapping['asset'][$data->getId()]);
-            }
+        if (!$data instanceof Asset\Image) {
+            return $data;
+        }
+        if (array_key_exists('asset', $idMapping) && array_key_exists($data->getId(), $idMapping['asset'])) {
+            return Asset::getById((int) $idMapping['asset'][$data->getId()]);
         }
 
         return $data;
@@ -227,11 +215,13 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     /**
      * @param Model\DataObject\ClassDefinition\Data\Image $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->uploadPath = $mainDefinition->uploadPath;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -291,6 +281,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
      *
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $name = $params['name'] ?: $this->name;

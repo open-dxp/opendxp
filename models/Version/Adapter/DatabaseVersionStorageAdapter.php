@@ -32,8 +32,8 @@ class DatabaseVersionStorageAdapter implements VersionStorageAdapterInterface
 
     public function save(Version $version, string $metaData, mixed $binaryDataStream): void
     {
-        if (isset($binaryDataStream) === true &&
-            empty($version->getBinaryFileId()) === true) {
+        if (isset($binaryDataStream) &&
+            empty($version->getBinaryFileId())) {
             $contents = stream_get_contents($binaryDataStream);
         }
 

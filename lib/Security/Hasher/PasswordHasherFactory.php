@@ -68,7 +68,7 @@ class PasswordHasherFactory implements PasswordHasherFactoryInterface
 
             $factoryKey = $factoryName;
         } else {
-            foreach ($this->passwordHasherFactories as $class => $factory) {
+            foreach (array_keys($this->passwordHasherFactories) as $class) {
 
                 if (is_a($user, $class, true)) {
                     $factoryKey = $class;

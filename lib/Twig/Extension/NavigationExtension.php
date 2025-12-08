@@ -26,21 +26,19 @@ use Twig\TwigFunction;
  */
 class NavigationExtension extends AbstractExtension
 {
-    private Navigation $navigationExtension;
-
-    public function __construct(Navigation $navigationExtension)
+    public function __construct(private readonly Navigation $navigationExtension)
     {
-        $this->navigationExtension = $navigationExtension;
     }
 
+    #[\Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('opendxp_build_nav', [$this->navigationExtension, 'build']),
-            new TwigFunction('opendxp_render_nav', [$this->navigationExtension, 'render'], [
+            new TwigFunction('opendxp_build_nav', $this->navigationExtension->build(...)),
+            new TwigFunction('opendxp_render_nav', $this->navigationExtension->render(...), [
                 'is_safe' => ['html'],
             ]),
-            new TwigFunction('opendxp_nav_renderer', [$this->navigationExtension, 'getRenderer']),
+            new TwigFunction('opendxp_nav_renderer', $this->navigationExtension->getRenderer(...)),
         ];
     }
 }

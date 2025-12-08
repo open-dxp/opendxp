@@ -48,12 +48,6 @@ class CoreCacheHandler implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    protected EventDispatcherInterface $dispatcher;
-
-    protected TagAwareAdapterInterface $pool;
-
-    protected WriteLock $writeLock;
-
     /**
      * Actually write/load to/from cache?
      *
@@ -127,11 +121,8 @@ class CoreCacheHandler implements LoggerAwareInterface
 
     protected Closure $emptyCacheItemClosure;
 
-    public function __construct(TagAwareAdapterInterface $adapter, WriteLock $writeLock, EventDispatcherInterface $dispatcher)
+    public function __construct(protected TagAwareAdapterInterface $pool, protected WriteLock $writeLock, protected EventDispatcherInterface $dispatcher)
     {
-        $this->pool = $adapter;
-        $this->dispatcher = $dispatcher;
-        $this->writeLock = $writeLock;
     }
 
     /**
@@ -252,9 +243,7 @@ class CoreCacheHandler implements LoggerAwareInterface
         $item = $this->getItem($key);
 
         if ($item->isHit()) {
-            $data = $item->get();
-
-            return $data;
+            return $item->get();
         }
 
         return false;
@@ -296,15 +285,12 @@ class CoreCacheHandler implements LoggerAwareInterface
             return false;
         }
 
-        if ($this->isCli()) {
-            if (!$this->handleCli && !$force) {
-                $this->logger->debug(
-                    'Not saving {key} to cache as process is running in CLI mode (pass force to override or set handleCli to true)',
-                    ['key' => $key]
-                );
-
-                return false;
-            }
+        if ($this->isCli() && (!$this->handleCli && !$force)) {
+            $this->logger->debug(
+                'Not saving {key} to cache as process is running in CLI mode (pass force to override or set handleCli to true)',
+                ['key' => $key]
+            );
+            return false;
         }
 
         if ($force || $this->forceImmediateWrite) {
@@ -321,11 +307,9 @@ class CoreCacheHandler implements LoggerAwareInterface
             }
 
             return $this->storeCacheData($key, $data, $tags, $lifetime, $force);
-        } else {
-            $cacheQueueItem = new CacheQueueItem($key, $data, $tags, $lifetime, $priority, $force);
-
-            return $this->addToSaveQueue($cacheQueueItem);
         }
+        $cacheQueueItem = new CacheQueueItem($key, $data, $tags, $lifetime, $priority, $force);
+        return $this->addToSaveQueue($cacheQueueItem);
     }
 
     /**
@@ -355,9 +339,7 @@ class CoreCacheHandler implements LoggerAwareInterface
     public function cleanupQueue(): void
     {
         // order by priority
-        uasort($this->saveQueue, function (CacheQueueItem $a, CacheQueueItem $b) {
-            return $b->getPriority() <=> $a->getPriority();
-        });
+        uasort($this->saveQueue, fn(CacheQueueItem $a, CacheQueueItem $b) => $b->getPriority() <=> $a->getPriority());
 
         // remove overrun
         array_splice($this->saveQueue, $this->maxWriteToCacheItems);
@@ -376,11 +358,9 @@ class CoreCacheHandler implements LoggerAwareInterface
         }
 
         // clean up and prepare models
-        if ($data instanceof ElementInterface) {
-            // check for corrupt data
-            if (!$data->getId()) {
-                return null;
-            }
+        // check for corrupt data
+        if ($data instanceof ElementInterface && !$data->getId()) {
+            return null;
         }
 
         return $data;
@@ -403,7 +383,7 @@ class CoreCacheHandler implements LoggerAwareInterface
             $this->logger->debug(
                 'Prepared {class} {id} for data cache',
                 [
-                    'class' => get_class($data),
+                    'class' => $data::class,
                     'id' => $data->getId(),
                     'tags' => $tags,
                 ]
@@ -500,9 +480,7 @@ class CoreCacheHandler implements LoggerAwareInterface
                 new \DeepCopy\TypeFilter\ReplaceFilter(
                     function ($currentValue) {
                         if ($currentValue instanceof CacheMarshallerInterface) {
-                            $marshalledValue = $currentValue->marshalForCache();
-
-                            return $marshalledValue;
+                            return $currentValue->marshalForCache();
                         }
 
                         return $currentValue;
@@ -529,7 +507,7 @@ class CoreCacheHandler implements LoggerAwareInterface
                     $itemData = serialize($itemData);
                 }
                 $itemSizeText = formatBytes(mb_strlen((string) $itemData));
-            } catch (Throwable $e) {
+            } catch (Throwable) {
                 $itemSizeText = 'unknown';
             }
 
@@ -627,7 +605,7 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function clearTagsOnShutdown(): bool
     {
-        if (empty($this->tagsClearedOnShutdown)) {
+        if ($this->tagsClearedOnShutdown === []) {
             return true;
         }
 
@@ -667,9 +645,7 @@ class CoreCacheHandler implements LoggerAwareInterface
         $tags = array_unique($tags);
 
         // don't clear tags in ignore array
-        $tags = array_filter($tags, function ($tag) use ($blocklist) {
-            return !in_array($tag, $blocklist);
-        });
+        $tags = array_filter($tags, fn($tag) => !in_array($tag, $blocklist));
 
         return $tags;
     }
@@ -733,9 +709,7 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function removeTagIgnoredOnSave(string $tag): static
     {
-        $this->tagsIgnoredOnSave = array_filter($this->tagsIgnoredOnSave, function ($t) use ($tag) {
-            return $t !== $tag;
-        });
+        $this->tagsIgnoredOnSave = array_filter($this->tagsIgnoredOnSave, fn($t) => $t !== $tag);
 
         return $this;
     }
@@ -762,9 +736,7 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function removeTagIgnoredOnClear(string $tag): static
     {
-        $this->tagsIgnoredOnClear = array_filter($this->tagsIgnoredOnClear, function ($t) use ($tag) {
-            return $t !== $tag;
-        });
+        $this->tagsIgnoredOnClear = array_filter($this->tagsIgnoredOnClear, fn($t) => $t !== $tag);
 
         return $this;
     }
@@ -853,17 +825,14 @@ class CoreCacheHandler implements LoggerAwareInterface
         // writes make only sense for HTTP(S)
         // CLI are normally longer running scripts that tend to produce race conditions
         // so CLI scripts are not writing to the cache at all
-        if ($this->isCli()) {
-            if (!($this->handleCli || $forceWrite)) {
-                $doWrite = false;
-
-                $queueCount = count($this->saveQueue);
-                if ($queueCount > 0) {
-                    $this->logger->debug(
-                        'Not writing save queue to cache as process is running in CLI mode. Save queue contains {saveQueueCount} items.',
-                        ['saveQueueCount' => count($this->saveQueue)]
-                    );
-                }
+        if ($this->isCli() && (!$this->handleCli && !$forceWrite)) {
+            $doWrite = false;
+            $queueCount = count($this->saveQueue);
+            if ($queueCount > 0) {
+                $this->logger->debug(
+                    'Not writing save queue to cache as process is running in CLI mode. Save queue contains {saveQueueCount} items.',
+                    ['saveQueueCount' => count($this->saveQueue)]
+                );
             }
         }
 

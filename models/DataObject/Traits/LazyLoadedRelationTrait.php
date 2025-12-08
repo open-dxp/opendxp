@@ -41,9 +41,7 @@ trait LazyLoadedRelationTrait
             return true;
         }
 
-        $isset = isset($this->loadedLazyKeys[$key]);
-
-        return $isset;
+        return isset($this->loadedLazyKeys[$key]);
     }
 
     public function buildLazyKey(string $name, string $language): string

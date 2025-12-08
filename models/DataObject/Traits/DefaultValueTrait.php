@@ -52,11 +52,11 @@ trait DefaultValueTrait
         $owner = $params['owner'] ?? null;
 
         // 3. if we have an object and a default value generator, use this to create a default value.
-        if ($object !== null && !empty($this->defaultValueGenerator)) {
+        if ($object instanceof \OpenDxp\Model\DataObject\Concrete && !empty($this->defaultValueGenerator)) {
             $defaultValueGenerator = DefaultValueGeneratorResolver::resolveGenerator($this->defaultValueGenerator);
 
             if ($defaultValueGenerator instanceof DefaultValueGeneratorInterface) {
-                $context = array_merge($params['context'] ?? [], match (true) {
+                $context = [...$params['context'] ?? [], ...match (true) {
                     $owner instanceof Concrete => [
                         'ownerType' => 'object',
                         'fieldname' => $this->getName(),
@@ -80,7 +80,7 @@ trait DefaultValueTrait
                         'index' => $owner->getType(),
                     ],
                     default => [],
-                });
+                }];
 
                 return $defaultValueGenerator->getValue($object, $this, $context);
             }

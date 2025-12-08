@@ -32,6 +32,7 @@ class LibreOffice extends Ghostscript
 {
     use GetTextConversionHelperTrait;
 
+    #[\Override]
     public function isAvailable(): bool
     {
         try {
@@ -46,14 +47,11 @@ class LibreOffice extends Ghostscript
         return false;
     }
 
+    #[\Override]
     public function isFileTypeSupported(string $fileType): bool
     {
         // it's also possible to pass a path or filename
-        if (preg_match("/\.?(pdf|doc|docx|odt|xls|xlsx|ods|ppt|pptx|odp)$/i", $fileType)) {
-            return true;
-        }
-
-        return false;
+        return (bool) preg_match("/\.?(pdf|doc|docx|odt|xls|xlsx|ods|ppt|pptx|odp)$/i", $fileType);
     }
 
     /**
@@ -65,6 +63,7 @@ class LibreOffice extends Ghostscript
         return Console::getExecutable('soffice', true);
     }
 
+    #[\Override]
     public function load(Asset\Document $asset): static
     {
         // avoid timeouts
@@ -84,15 +83,14 @@ class LibreOffice extends Ghostscript
 
         // first we have to create a pdf out of the document (if it isn't already one), so that we can pass it to ghostscript
         // unfortunately there isn't any other way at the moment
-        if (!preg_match("/\.?pdf$/i", $asset->getFilename())) {
-            if (!parent::isFileTypeSupported($asset->getFilename())) {
-                $this->getPdf();
-            }
+        if (!preg_match("/\.?pdf$/i", $asset->getFilename()) && !parent::isFileTypeSupported($asset->getFilename())) {
+            $this->getPdf();
         }
 
         return $this;
     }
 
+    #[\Override]
     public function getPdf(?Asset\Document $asset = null)
     {
         if (!$asset && $this->asset) {
@@ -104,7 +102,7 @@ class LibreOffice extends Ghostscript
             if (parent::isFileTypeSupported($asset->getFilename())) {
                 return parent::getPdf($asset);
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // nothing to do, delegate to libreoffice
         }
 
@@ -133,7 +131,7 @@ class LibreOffice extends Ghostscript
 
             $logFile = OPENDXP_LOG_DIRECTORY . '/libreoffice-pdf-convert.log';
             $tmpHandle = fopen($logFile, 'a');
-            $process->wait(function ($type, $buffer) use ($tmpHandle) {
+            $process->wait(function ($type, $buffer) use ($tmpHandle): void {
                 fwrite($tmpHandle, $buffer);
             });
             fclose($tmpHandle);

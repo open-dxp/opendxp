@@ -22,9 +22,10 @@ use OpenDxp\Model;
 
 class Email extends Model\DataObject\ClassDefinition\Data\Input
 {
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
-        if (!$omitMandatoryCheck && is_string($data) && strlen($data) > 0) {
+        if (!$omitMandatoryCheck && is_string($data) && $data !== '') {
             $validator = new EmailValidator();
             if (!$validator->isValid($data, new RFCValidation())) {
                 throw new Model\Element\ValidationException('Value in field [ ' . $this->getName() . " ] isn't a valid email address");
@@ -34,6 +35,7 @@ class Email extends Model\DataObject\ClassDefinition\Data\Input
         parent::checkValidity($data, $omitMandatoryCheck);
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'email';

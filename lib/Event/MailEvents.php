@@ -23,10 +23,8 @@ final class MailEvents
      *  - mailer | \OpenDxp\Mail\Mailer | contains the mailer object. Modify (or unset) this parameter if you want to implement a custom mail sending method
      *
      * @Event("OpenDxp\Event\Model\MailEvent")
-     *
-     * @var string
      */
-    const PRE_SEND = 'opendxp.mail.preSend';
+    const string PRE_SEND = 'opendxp.mail.preSend';
 
-    const PRE_LOG = 'opendxp.mail.preLog';
+    const string PRE_LOG = 'opendxp.mail.preLog';
 }

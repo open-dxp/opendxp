@@ -47,13 +47,9 @@ class ObjectUserProvider implements UserProviderInterface
      */
     protected string $className;
 
-    protected string $usernameField = 'username';
-
-    public function __construct(string $className, string $usernameField = 'username')
+    public function __construct(string $className, protected string $usernameField = 'username')
     {
         $this->setClassName($className);
-
-        $this->usernameField = $usernameField;
     }
 
     protected function setClassName(string $className): void
@@ -93,9 +89,7 @@ class ObjectUserProvider implements UserProviderInterface
             throw new UnsupportedUserException();
         }
 
-        $refreshedUser = call_user_func_array([$this->className, 'getById'], [$user->getId()]);
-
-        return $refreshedUser;
+        return call_user_func_array([$this->className, 'getById'], [$user->getId()]);
     }
 
     public function supportsClass(string $class): bool

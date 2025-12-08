@@ -30,8 +30,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class TranslationDebugListener implements EventSubscriberInterface
 {
     public function __construct(
-        private Translator $translator,
-        private string $parameterName
+        private readonly Translator $translator,
+        private readonly string $parameterName
     ) {
     }
 
@@ -52,10 +52,8 @@ class TranslationDebugListener implements EventSubscriberInterface
             return;
         }
 
-        if ($event->getRequest()->query->get($this->parameterName)) {
-            if (OpenDxp::inDebugMode() || Authentication::authenticateSession($event->getRequest())) {
-                $this->translator->setDisableTranslations(true);
-            }
+        if ($event->getRequest()->query->get($this->parameterName) && (OpenDxp::inDebugMode() || Authentication::authenticateSession($event->getRequest()))) {
+            $this->translator->setDisableTranslations(true);
         }
     }
 }

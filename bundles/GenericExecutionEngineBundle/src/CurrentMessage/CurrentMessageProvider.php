@@ -23,10 +23,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @internal
  */
-final class CurrentMessageProvider implements CurrentMessageProviderInterface
+final readonly class CurrentMessageProvider implements CurrentMessageProviderInterface
 {
     public function __construct(
-        private readonly TranslatorInterface $translator
+        private TranslatorInterface $translator
     ) {
     }
 

@@ -47,6 +47,7 @@ final class ManualBlockNode extends Node
         );
     }
 
+    #[\Override]
     public function compile(Compiler $compiler): void
     {
 

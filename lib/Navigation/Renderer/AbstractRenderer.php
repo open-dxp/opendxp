@@ -46,8 +46,6 @@ use Twig\Environment;
 
 abstract class AbstractRenderer implements RendererInterface
 {
-    protected Environment $templatingEngine;
-
     /**
      * The minimum depth a page must have to be included when rendering
      *
@@ -84,9 +82,8 @@ abstract class AbstractRenderer implements RendererInterface
      */
     protected bool $_renderInvisible = false;
 
-    public function __construct(Environment $templatingEngine)
+    public function __construct(protected Environment $templatingEngine)
     {
-        $this->templatingEngine = $templatingEngine;
     }
 
     // Accessors:
@@ -162,7 +159,7 @@ abstract class AbstractRenderer implements RendererInterface
     public function getPrefixForId(): ?string
     {
         if (null === $this->_prefixForId) {
-            $prefix = get_class($this);
+            $prefix = static::class;
             $this->_prefixForId = str_replace('\\', '-', strtolower(
                 trim(substr($prefix, (int) strrpos($prefix, '_')), '_')
             )) . '-';
@@ -219,7 +216,11 @@ abstract class AbstractRenderer implements RendererInterface
 
         foreach ($iterator as $page) {
             $currDepth = $iterator->getDepth();
-            if ($currDepth < $minDepth || !$this->accept($page)) {
+            if ($currDepth < $minDepth) {
+                // page is not accepted
+                continue;
+            }
+            if (!$this->accept($page)) {
                 // page is not accepted
                 continue;
             }
@@ -250,9 +251,8 @@ abstract class AbstractRenderer implements RendererInterface
 
         if ($found) {
             return ['page' => $found, 'depth' => $foundDepth];
-        } else {
-            return [];
         }
+        return [];
     }
 
     /**
@@ -268,16 +268,7 @@ abstract class AbstractRenderer implements RendererInterface
         $title = $page->getTitle();
 
         // get attribs for anchor element
-        $attribs = array_merge(
-            [
-                'id' => $page->getId(),
-                'title' => $title,
-                'class' => $page->getClass(),
-                'href' => $page->getHref(),
-                'target' => $page->getTarget(),
-            ],
-            $page->getCustomHtmlAttribs()
-        );
+        $attribs = ['id' => $page->getId(), 'title' => $title, 'class' => $page->getClass(), 'href' => $page->getHref(), 'target' => $page->getTarget(), ...$page->getCustomHtmlAttribs()];
 
         return '<a' . $this->_htmlAttribs($attribs) . '>'
              . htmlspecialchars($label, ENT_COMPAT, 'UTF-8')
@@ -327,10 +318,10 @@ abstract class AbstractRenderer implements RendererInterface
     protected function _getWhitespace(int|string $indent): string
     {
         if (is_int($indent)) {
-            $indent = str_repeat(' ', $indent);
+            return str_repeat(' ', $indent);
         }
 
-        return (string) $indent;
+        return $indent;
     }
 
     /**
@@ -369,7 +360,7 @@ abstract class AbstractRenderer implements RendererInterface
                 $val = htmlspecialchars($val, ENT_COMPAT, 'UTF-8');
             }
 
-            if ('id' == $key) {
+            if ('id' === $key) {
                 $val = $this->_normalizeId($val);
             }
 

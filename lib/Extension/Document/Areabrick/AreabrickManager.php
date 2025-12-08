@@ -26,8 +26,6 @@ use Psr\Container\ContainerInterface;
  */
 class AreabrickManager implements AreabrickManagerInterface
 {
-    protected ContainerInterface $container;
-
     /**
      * @var AreabrickInterface[]
      */
@@ -35,9 +33,8 @@ class AreabrickManager implements AreabrickManagerInterface
 
     protected array $brickServiceIds = [];
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(protected ContainerInterface $container)
     {
-        $this->container = $container;
     }
 
     public function register(string $id, AreabrickInterface $brick): void
@@ -46,8 +43,8 @@ class AreabrickManager implements AreabrickManagerInterface
             throw new ConfigurationException(sprintf(
                 'Areabrick %s is already registered as %s (trying to add %s)',
                 $id,
-                get_class($this->bricks[$id]),
-                get_class($brick)
+                $this->bricks[$id]::class,
+                $brick::class
             ));
         }
 
@@ -56,7 +53,7 @@ class AreabrickManager implements AreabrickManagerInterface
                 'Areabrick %s is already registered as service %s (trying to add %s)',
                 $id,
                 $this->brickServiceIds[$id],
-                get_class($brick)
+                $brick::class
             ));
         }
 
@@ -71,7 +68,7 @@ class AreabrickManager implements AreabrickManagerInterface
             throw new ConfigurationException(sprintf(
                 'Areabrick %s is already registered as %s (trying to add service %s)',
                 $id,
-                get_class($this->bricks[$id]),
+                $this->bricks[$id]::class,
                 $serviceId
             ));
         }
@@ -90,13 +87,7 @@ class AreabrickManager implements AreabrickManagerInterface
 
     public function getBrick(string $id): AreabrickInterface
     {
-        $brick = null;
-        if (isset($this->bricks[$id])) {
-            $brick = $this->bricks[$id];
-        } else {
-            $brick = $this->loadServiceBrick($id);
-        }
-
+        $brick = $this->bricks[$id] ?? $this->loadServiceBrick($id);
         if (null === $brick) {
             throw new BrickNotFoundException(sprintf('Areabrick %s is not registered', $id));
         }
@@ -115,12 +106,7 @@ class AreabrickManager implements AreabrickManagerInterface
 
     public function getBrickIds(): array
     {
-        $ids = array_merge(
-            array_keys($this->bricks),
-            array_keys($this->brickServiceIds)
-        );
-
-        return $ids;
+        return [...array_keys($this->bricks), ...array_keys($this->brickServiceIds)];
     }
 
     /**
@@ -149,7 +135,7 @@ class AreabrickManager implements AreabrickManagerInterface
                 'Definition for areabrick %s (defined as service %s) does not implement AreabrickInterface (got %s)',
                 $id,
                 $serviceId,
-                is_object($brick) ? get_class($brick) : gettype($brick)
+                get_debug_type($brick)
             ));
         }
 
@@ -167,7 +153,7 @@ class AreabrickManager implements AreabrickManagerInterface
      */
     protected function loadServiceBricks(): void
     {
-        foreach ($this->brickServiceIds as $id => $serviceId) {
+        foreach (array_keys($this->brickServiceIds) as $id) {
             $this->loadServiceBrick($id);
         }
     }

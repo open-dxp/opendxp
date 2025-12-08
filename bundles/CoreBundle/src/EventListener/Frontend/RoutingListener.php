@@ -91,7 +91,6 @@ class RoutingListener implements EventSubscriberInterface
         // redirect to the main domain if specified
         $this->handleMainDomainRedirect($event);
         if ($event->hasResponse()) {
-            return;
         }
     }
 
@@ -155,17 +154,13 @@ class RoutingListener implements EventSubscriberInterface
 
         if ($adminContext) {
             $hostRedirect = $this->resolveConfigDomainRedirectHost($request);
-        } else {
-            if (Site::isSiteRequest()) {
-                $site = Site::getCurrentSite();
-                if ($site->getRedirectToMainDomain() && $site->getMainDomain() != $request->getHost()) {
-                    $hostRedirect = $site->getMainDomain();
-                }
-            } else {
-                if (!$this->requestHelper->isFrontendRequestByAdmin()) {
-                    $hostRedirect = $this->resolveConfigDomainRedirectHost($request);
-                }
+        } elseif (Site::isSiteRequest()) {
+            $site = Site::getCurrentSite();
+            if ($site->getRedirectToMainDomain() && $site->getMainDomain() !== $request->getHost()) {
+                $hostRedirect = $site->getMainDomain();
             }
+        } elseif (!$this->requestHelper->isFrontendRequestByAdmin()) {
+            $hostRedirect = $this->resolveConfigDomainRedirectHost($request);
         }
 
         if ($hostRedirect && !$request->query->has('opendxp_disable_host_redirect')) {
@@ -190,7 +185,7 @@ class RoutingListener implements EventSubscriberInterface
         $systemConfig = SystemSettingsConfig::get();
         $gc = $systemConfig['general'];
         if (isset($gc['redirect_to_maindomain']) && $gc['redirect_to_maindomain'] === true && isset($gc['domain']) && $gc['domain'] !== $request->getHost()) {
-            $hostRedirect = $gc['domain'];
+            return $gc['domain'];
         }
 
         return $hostRedirect;

@@ -45,7 +45,7 @@ class Dao extends Model\Dao\AbstractDao
             ], $this->getPrimaryKey('tmp_store'));
 
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }
@@ -75,8 +75,6 @@ class Dao extends Model\Dao\AbstractDao
 
     public function getIdsByTag(string $tag): array
     {
-        $items = $this->db->fetchFirstColumn('SELECT id FROM tmp_store WHERE tag = ?', [$tag]);
-
-        return $items;
+        return $this->db->fetchFirstColumn('SELECT id FROM tmp_store WHERE tag = ?', [$tag]);
     }
 }

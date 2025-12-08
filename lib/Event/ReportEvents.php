@@ -22,8 +22,6 @@ final class ReportEvents
      * The SAVE_SETTINGS event is triggered when reports settings are saved
      *
      * @Event("OpenDxp\Event\Report\SettingsEvent")
-     *
-     * @var string
      */
-    const SAVE_SETTINGS = 'opendxp.reports.save_settings';
+    const string SAVE_SETTINGS = 'opendxp.reports.save_settings';
 }

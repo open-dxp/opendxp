@@ -22,91 +22,71 @@ final class SystemEvents
      * This event is fired on shutdown (register_shutdown_function)
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SHUTDOWN = 'opendxp.system.shutdown';
+    const string SHUTDOWN = 'opendxp.system.shutdown';
 
     /**
      * 	See Console / CLI | allow to register console commands (e.g. through plugins)
      *
      * @Event("OpenDxp\Event\System\ConsoleEvent")
-     *
-     * @var string
      */
-    const CONSOLE_INIT = 'opendxp.system.console.init';
+    const string CONSOLE_INIT = 'opendxp.system.console.init';
 
     /**
      * This event is fired on maintenance mode activation
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const MAINTENANCE_MODE_ACTIVATE = 'opendxp.system.maintenance_mode.activate';
+    const string MAINTENANCE_MODE_ACTIVATE = 'opendxp.system.maintenance_mode.activate';
 
     /**
      * This event is fired on maintenance mode deactivation
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const MAINTENANCE_MODE_DEACTIVATE = 'opendxp.system.maintenance_mode.deactivate';
+    const string MAINTENANCE_MODE_DEACTIVATE = 'opendxp.system.maintenance_mode.deactivate';
 
     /**
      * This event is fired when maintenance mode is scheduled for the next login
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const MAINTENANCE_MODE_SCHEDULE_LOGIN = 'opendxp.system.maintenance_mode.schedule_login';
+    const string MAINTENANCE_MODE_SCHEDULE_LOGIN = 'opendxp.system.maintenance_mode.schedule_login';
 
     /**
      * This event is fired when maintenance mode is unscheduled
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const MAINTENANCE_MODE_UNSCHEDULE_LOGIN = 'opendxp.system.maintenance_mode.unschedule_login';
+    const string MAINTENANCE_MODE_UNSCHEDULE_LOGIN = 'opendxp.system.maintenance_mode.unschedule_login';
 
     /**
      * This event is fired on Full-Page Cache clear
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const CACHE_CLEAR_FULLPAGE_CACHE = 'opendxp.system.cache.clearFullpageCache';
+    const string CACHE_CLEAR_FULLPAGE_CACHE = 'opendxp.system.cache.clearFullpageCache';
 
     /**
      * This event is fired on Cache clear
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const CACHE_CLEAR = 'opendxp.system.cache.clear';
+    const string CACHE_CLEAR = 'opendxp.system.cache.clear';
 
     /**
      * This event is fired on Temporary Files clear
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const CACHE_CLEAR_TEMPORARY_FILES = 'opendxp.system.cache.clearTemporaryFiles';
+    const string CACHE_CLEAR_TEMPORARY_FILES = 'opendxp.system.cache.clearTemporaryFiles';
 
     /**
      * This event is fired before OpenDxp adjusts element keys to generic rules
      *
      * @Event("\Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SERVICE_PRE_GET_VALID_KEY = 'opendxp.system.service.preGetValidKey';
+    const string SERVICE_PRE_GET_VALID_KEY = 'opendxp.system.service.preGetValidKey';
 
     /**
      * This event is fired before element service returns deep copy instance
@@ -117,26 +97,20 @@ final class SystemEvents
      *  - context | context info array i.e. 'source' => calling method, 'conversion' => 'marshal'/'unmarshal', 'defaultFilter' => true/false
      *
      * @Event("\Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SERVICE_PRE_GET_DEEP_COPY = 'opendxp.system.service.preGetDeepCopy';
+    const string SERVICE_PRE_GET_DEEP_COPY = 'opendxp.system.service.preGetDeepCopy';
 
     /**
      * The SAVE_SYSTEM_SETTINGS event is triggered when the system settings are saved.
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SAVE_ACTION_SYSTEM_SETTINGS = 'opendxp.system.settings.saveAction';
+    const string SAVE_ACTION_SYSTEM_SETTINGS = 'opendxp.system.settings.saveAction';
 
     /**
      * The GET_SYSTEM_CONFIGURATION event is triggered when the system configuration is requested.
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const GET_SYSTEM_CONFIGURATION = 'opendxp.system.configuration.get';
+    const string GET_SYSTEM_CONFIGURATION = 'opendxp.system.configuration.get';
 }

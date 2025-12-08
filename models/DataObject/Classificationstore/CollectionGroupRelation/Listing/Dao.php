@@ -33,11 +33,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     public function load(): array
     {
         $condition = $this->getCondition();
-        if ($condition) {
-            $condition = $condition . ' AND ';
-        } else {
-            $condition = ' where ';
-        }
+        $condition = $condition ? $condition . ' AND ' : ' where ';
         $condition .= DataObject\Classificationstore\CollectionGroupRelation\Dao::TABLE_NAME_RELATIONS
             . '.groupId = ' . DataObject\Classificationstore\GroupConfig\Dao::TABLE_NAME_GROUPS . '.id';
 
@@ -70,7 +66,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     {
         try {
             return (int) $this->db->fetchOne('SELECT COUNT(*) FROM ' . DataObject\Classificationstore\CollectionGroupRelation\Dao::TABLE_NAME_RELATIONS . ' '. $this->getCondition(), $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
-        } catch (Exception $e) {
+        } catch (Exception) {
             return 0;
         }
     }

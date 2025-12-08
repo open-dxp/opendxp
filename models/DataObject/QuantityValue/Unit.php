@@ -24,7 +24,7 @@ use OpenDxp\Model;
 /**
  * @method \OpenDxp\Model\DataObject\QuantityValue\Unit\Dao getDao()
  */
-class Unit extends Model\AbstractModel
+class Unit extends Model\AbstractModel implements \Stringable
 {
     use RecursionBlockingEventDispatchHelperTrait;
 
@@ -55,7 +55,7 @@ class Unit extends Model\AbstractModel
             $unit->getDao()->getByAbbreviation($abbreviation);
 
             return $unit;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -67,7 +67,7 @@ class Unit extends Model\AbstractModel
             $unit->getDao()->getByReference($reference);
 
             return $unit;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }

@@ -69,7 +69,7 @@ class Processor
         $storage = Storage::get('thumbnail');
 
         $instance = new self();
-        $formats = empty($onlyFormats) ? ['mp4'] : $onlyFormats;
+        $formats = $onlyFormats === [] ? ['mp4'] : $onlyFormats;
         $instance->setProcessId(uniqid());
         $instance->setAssetId($asset->getId());
         $instance->setConfig($config);
@@ -100,7 +100,7 @@ class Processor
                     }
                 }
 
-                if (!empty($formatsToConvert)) {
+                if ($formatsToConvert !== []) {
                     $formats = $formatsToConvert;
                 } else {
                     return null;
@@ -182,7 +182,7 @@ class Processor
                 }
 
                 ksort($arguments);
-                if (count($mapping) == count($arguments)) {
+                if (count($mapping) === count($arguments)) {
                     call_user_func_array([$converter, $transformation['method']], $arguments);
                 } else {
                     $message = 'Video Transform failed: cannot call method `' . $transformation['method'] . '´ with arguments `' . implode(',', $arguments) . '´ because there are too few arguments';
@@ -297,7 +297,7 @@ class Processor
             if (array_key_exists($instance->getConfig()->getName(), $customSetting)
                 && array_key_exists('formats', $customSetting[$instance->getConfig()->getName()])
                 && is_array($customSetting[$instance->getConfig()->getName()]['formats'])) {
-                $formats = array_merge($customSetting[$instance->getConfig()->getName()]['formats'], $formats);
+                $formats = [...$customSetting[$instance->getConfig()->getName()]['formats'], ...$formats];
             }
 
             $customSetting[$instance->getConfig()->getName()] = [

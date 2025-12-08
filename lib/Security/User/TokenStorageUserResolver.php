@@ -24,11 +24,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class TokenStorageUserResolver
 {
-    protected TokenStorageInterface $tokenStorage;
-
-    public function __construct(TokenStorageInterface $tokenStorage)
+    public function __construct(protected TokenStorageInterface $tokenStorage)
     {
-        $this->tokenStorage = $tokenStorage;
     }
 
     public function getUser(): ?User
@@ -48,7 +45,7 @@ class TokenStorageUserResolver
      */
     public function getUserProxy(): ?\OpenDxp\Security\User\User
     {
-        if (null === $token = $this->tokenStorage->getToken()) {
+        if (!($token = $this->tokenStorage->getToken()) instanceof \Symfony\Component\Security\Core\Authentication\Token\TokenInterface) {
             return null;
         }
 

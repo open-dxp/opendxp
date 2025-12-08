@@ -37,9 +37,8 @@ class HtmlUtils
             if (null === $value) {
                 if ($omitNullValues) {
                     continue;
-                } else {
-                    $parts[] = $key;
                 }
+                $parts[] = $key;
             } else {
                 $parts[] = sprintf('%s="%s"', $key, $value);
             }

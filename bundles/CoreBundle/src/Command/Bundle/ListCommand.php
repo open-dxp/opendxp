@@ -84,7 +84,7 @@ class ListCommand extends AbstractBundleCommand
                 $row[] = $this->bundleManager->canBeInstalled($bundle);
                 $row[] = $this->bundleManager->canBeUninstalled($bundle);
                 $row[] = $this->bundleManager->getManuallyRegisteredBundleState($bundleClass)['priority'];
-            } catch (BundleNotFoundException $e) {
+            } catch (BundleNotFoundException) {
                 if ($details) {
                     $row[] = '';
                     $row[] = '';
@@ -139,11 +139,10 @@ class ListCommand extends AbstractBundleCommand
                 '<fg=green>%s</>',
                 $decorated ? "\xE2\x9C\x94" : 'yes'
             );
-        } else {
-            return sprintf(
-                '<fg=red>%s</>',
-                $decorated ? "\xE2\x9D\x8C" : 'no'
-            );
         }
+        return sprintf(
+            '<fg=red>%s</>',
+            $decorated ? "\xE2\x9D\x8C" : 'no'
+        );
     }
 }

@@ -36,7 +36,6 @@ class RgbaColor extends Data implements
     use DataObject\Traits\DataWidthTrait;
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataForResource
      *
@@ -60,7 +59,6 @@ class RgbaColor extends Data implements
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see ResourcePersistenceAwareInterface::getDataFromResource
      *
@@ -87,8 +85,6 @@ class RgbaColor extends Data implements
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
-     *
      * @see QueryResourcePersistenceAwareInterface::getDataForQueryResource
      */
     public function getDataForQueryResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
@@ -97,7 +93,6 @@ class RgbaColor extends Data implements
     }
 
     /**
-     * @param null|Model\DataObject\Concrete $object
      *
      * @see Data::getDataForEditmode
      *
@@ -105,9 +100,7 @@ class RgbaColor extends Data implements
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         if ($data instanceof  Model\DataObject\Data\RgbaColor) {
-            $rgba = sprintf('#%02x%02x%02x%02x', $data->getR(), $data->getG(), $data->getB(), $data->getA());
-
-            return $rgba;
+            return sprintf('#%02x%02x%02x%02x', $data->getR(), $data->getG(), $data->getB(), $data->getA());
         }
 
         return null;
@@ -123,23 +116,19 @@ class RgbaColor extends Data implements
         if ($data) {
             $data = trim($data, '# ');
             [$r, $g, $b, $a] = sscanf($data, '%02x%02x%02x%02x');
-            $color = new Model\DataObject\Data\RgbaColor($r, $g, $b, $a);
 
-            return $color;
+            return new Model\DataObject\Data\RgbaColor($r, $g, $b, $a);
         }
 
         return null;
     }
 
-    /**
-     * @param Model\DataObject\Concrete|null $object
-     *
-     */
     public function getDataFromGridEditor(?string $data, ?Concrete $object = null, array $params = []): ?Model\DataObject\Data\RgbaColor
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         parent::checkValidity($data, $omitMandatoryCheck);
@@ -157,21 +146,21 @@ class RgbaColor extends Data implements
      */
     private function checkColorComponent(?int $color): void
     {
-        if (!is_null($color)) {
-            if (!($color >= 0 && $color <= 255)) {
-                throw new Model\Element\ValidationException('Color component out of range');
-            }
+        if (!is_null($color) && !($color >= 0 && $color <= 255)) {
+            throw new Model\Element\ValidationException('Color component out of range');
         }
     }
 
     /**
      * @param Model\DataObject\ClassDefinition\Data\RgbaColor $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->width = $mainDefinition->width;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         return $data === null;
@@ -185,14 +174,14 @@ class RgbaColor extends Data implements
         return $this->getDataForEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function getVersionPreview(mixed $data, ?Concrete $object = null, array $params = []): string
     {
         if ($data instanceof  Model\DataObject\Data\RgbaColor) {
             $value = $data->getHex(true, true);
-            $result = '<div style="float: left;"><div style="float: left; margin-right: 5px; background-image: ' . ' url(/bundles/opendxpadmin/img/ext/colorpicker/checkerboard.png);">'
-                        . '<div style="background-color: ' . $value . '; width:15px; height:15px;"></div></div>' . $value . '</div>';
 
-            return $result;
+            return '<div style="float: left;"><div style="float: left; margin-right: 5px; background-image: ' . ' url(/bundles/opendxpadmin/img/ext/colorpicker/checkerboard.png);">'
+                        . '<div style="background-color: ' . $value . '; width:15px; height:15px;"></div></div>' . $value . '</div>';
         }
 
         return '';
@@ -227,6 +216,7 @@ class RgbaColor extends Data implements
         return null;
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -240,6 +230,7 @@ class RgbaColor extends Data implements
      *
      *
      */
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -257,10 +248,11 @@ class RgbaColor extends Data implements
      * @param array $params optional params used to change the behavior
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();
-        $name = $key = $params['name'] ? $params['name'] : $this->name;
+        $name = $key = $params['name'] ?: $this->name;
 
         if (!str_starts_with($name, 'cskey_')) {
             $key = 'concat(' . $db->quoteIdentifier($name  . '__rgb') .' ,'
@@ -274,11 +266,7 @@ class RgbaColor extends Data implements
                 $operator = 'IS NOT';
             }
         } elseif (!is_array($value) && !is_object($value)) {
-            if ($operator === 'LIKE') {
-                $value = $db->quote('%' . $value . '%');
-            } else {
-                $value = $db->quote($value);
-            }
+            $value = $operator === 'LIKE' ? $db->quote('%' . $value . '%') : $db->quote($value);
         }
 
         return $key . ' ' . $operator . ' ' . $value . ' ';

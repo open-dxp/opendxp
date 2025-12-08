@@ -28,14 +28,8 @@ use Psr\Log\LoggerInterface;
  */
 class StaticPagesGenerationTask implements TaskInterface
 {
-    private StaticPageGenerator $generator;
-
-    private LoggerInterface $logger;
-
-    public function __construct(StaticPageGenerator $generator, LoggerInterface $logger)
+    public function __construct(private readonly StaticPageGenerator $generator, private readonly LoggerInterface $logger)
     {
-        $this->generator = $generator;
-        $this->logger = $logger;
     }
 
     public function execute(): void

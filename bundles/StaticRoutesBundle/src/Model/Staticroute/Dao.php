@@ -29,8 +29,9 @@ use Symfony\Component\Uid\Uuid as Uid;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'staticroutes';
+    private const string CONFIG_KEY = 'staticroutes';
 
+    #[\Override]
     public function configure(): void
     {
         $config = OpenDxp::getContainer()->getParameter('opendxp_static_routes.config_location');
@@ -97,22 +98,14 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $totalList = $listing->load();
 
         $data = array_filter($totalList, function (Staticroute $row) use ($name, $siteId) {
-            if ($row->getName() == $name) {
-                if (empty($row->getSiteId()) || in_array($siteId, $row->getSiteId())) {
-                    return true;
-                }
+            if ($row->getName() != $name) {
+                return false;
             }
 
-            return false;
+            return empty($row->getSiteId()) || in_array($siteId, $row->getSiteId());
         });
 
-        usort($data, function (Staticroute $a, Staticroute $b) {
-            if ($a->getSiteId() == $b->getSiteId()) {
-                return 0;
-            }
-
-            return ($a->getSiteId() < $b->getSiteId()) ? 1 : -1;
-        });
+        usort($data, fn(Staticroute $a, Staticroute $b) => $b->getSiteId() <=> $a->getSiteId());
 
         if (count($data) && $data[0]->getId()) {
             $this->assignVariablesToModel($data[0]->getObjectVars());
@@ -124,6 +117,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         }
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

@@ -97,19 +97,11 @@ class Video implements OwnerAwareFieldInterface
     {
         if ($this->data instanceof ElementDescriptor) {
             $asset = Service::getElementById($this->data->getType(), $this->data->getId());
-            if ($asset instanceof Asset) {
-                $this->data = $asset;
-            } else {
-                $this->data = null;
-            }
+            $this->data = $asset instanceof Asset ? $asset : null;
         }
         if ($this->poster instanceof ElementDescriptor) {
             $asset = Service::getElementById($this->poster->getType(), $this->poster->getId());
-            if ($asset instanceof Asset) {
-                $this->poster = $asset;
-            } else {
-                $this->poster = null;
-            }
+            $this->poster = $asset instanceof Asset ? $asset : null;
         }
     }
 }

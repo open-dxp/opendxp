@@ -34,15 +34,9 @@ use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Version\SetDumpStateFilter;
 use ReflectionProperty;
 
-class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, CacheMarshallerInterface
+class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, CacheMarshallerInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
-
-    protected string $name;
-
-    protected string $type;
-
-    protected mixed $data = null;
 
     /**
      * @internal
@@ -54,11 +48,8 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
      * BlockElement constructor.
      *
      */
-    public function __construct(string $name, string $type, mixed $data)
+    public function __construct(protected string $name, protected string $type, protected mixed $data)
     {
-        $this->name = $name;
-        $this->type = $type;
-        $this->data = $data;
         $this->markMeDirty();
     }
 
@@ -69,7 +60,7 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
 
     public function setName(string $name): void
     {
-        if ($name != $this->name) {
+        if ($name !== $this->name) {
             $this->name = $name;
             $this->markMeDirty();
         }
@@ -82,7 +73,7 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
 
     public function setType(string $type): void
     {
-        if ($type != $this->type) {
+        if ($type !== $this->type) {
             $this->type = $type;
             $this->markMeDirty();
         }
@@ -123,9 +114,7 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
                             RuntimeCache::save(true, $cacheKeyRenewed);
                         }
 
-                        $renewedElement = Service::getElementById($currentValue->getType(), $currentValue->getId());
-
-                        return $renewedElement;
+                        return Service::getElementById($currentValue->getType(), $currentValue->getId());
                     }
 
                     return $currentValue;
@@ -221,9 +210,8 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
                 function ($currentValue) {
                     if ($currentValue instanceof ElementInterface) {
                         $elementType = Service::getElementType($currentValue);
-                        $descriptor = new ElementDescriptor($elementType, $currentValue->getId());
 
-                        return $descriptor;
+                        return new ElementDescriptor($elementType, $currentValue->getId());
                     }
 
                     return $currentValue;
@@ -233,8 +221,6 @@ class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, Ca
         );
         $copier->addFilter(new SetNullFilter(), new PropertyNameMatcher('_owner'));
 
-        $data = $copier->copy($this);
-
-        return $data;
+        return $copier->copy($this);
     }
 }

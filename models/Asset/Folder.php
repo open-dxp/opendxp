@@ -34,8 +34,6 @@ class Folder extends Model\Asset
 
     /**
      * @internal
-     *
-     * @var Asset\Listing|null
      */
     protected ?Listing $children = null;
 
@@ -52,9 +50,10 @@ class Folder extends Model\Asset
         return $this;
     }
 
+    #[\Override]
     public function getChildren(): Listing
     {
-        if ($this->children === null) {
+        if (!$this->children instanceof \OpenDxp\Model\Asset\Listing) {
             if ($this->getId()) {
                 $list = new Asset\Listing();
                 $list->setCondition('parentId = ?', $this->getId());
@@ -72,6 +71,7 @@ class Folder extends Model\Asset
         return $this->children;
     }
 
+    #[\Override]
     public function hasChildren(): bool
     {
         return $this->getDao()->hasChildren();

@@ -28,6 +28,7 @@ class Installer extends SettingsStoreAwareInstaller
         'http_errors',
     ];
 
+    #[\Override]
     public function install(): void
     {
         $this->installDatabaseTable();
@@ -35,6 +36,7 @@ class Installer extends SettingsStoreAwareInstaller
         parent::install();
     }
 
+    #[\Override]
     public function uninstall(): void
     {
         $this->uninstallDatabaseTable();

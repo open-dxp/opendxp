@@ -35,7 +35,7 @@ trait SelectionProviderTrait
             $mode
         );
         if ($optionsProvider) {
-            $context['object'] = $context['object'] ?? $object;
+            $context['object'] ??= $object;
             if ($object) {
                 $context['class'] = $object->getClass();
             }

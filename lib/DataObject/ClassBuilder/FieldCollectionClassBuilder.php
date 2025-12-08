@@ -87,8 +87,7 @@ class FieldCollectionClassBuilder implements FieldCollectionClassBuilderInterfac
         }
 
         $cd .= "}\n";
-        $cd .= "\n";
 
-        return $cd;
+        return $cd . "\n";
     }
 }

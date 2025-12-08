@@ -40,8 +40,6 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
 {
     use LoggerAwareTrait;
 
-    protected RequestContext $context;
-
     /**
      * @var Staticroute[]|null
      */
@@ -58,12 +56,8 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
      */
     protected array $localeParams = [];
 
-    protected Config $config;
-
-    public function __construct(RequestContext $context, Config $config)
+    public function __construct(protected RequestContext $context, protected Config $config)
     {
-        $this->context = $context;
-        $this->config = $config;
     }
 
     public function setContext(RequestContext $context): void
@@ -130,10 +124,8 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
                         'route' => $name,
                     ]);
                 }
-            } else {
-                if ($needsHostname && !empty($this->config['general']['domain'])) {
-                    $hostname = $this->config['general']['domain'];
-                }
+            } elseif ($needsHostname && !empty($this->config['general']['domain'])) {
+                $hostname = $this->config['general']['domain'];
             }
         }
 
@@ -160,12 +152,10 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
 
             if ($needsHostname) {
                 $url = $schemeAuthority.$this->context->getBaseUrl().$url;
+            } elseif (self::RELATIVE_PATH === $referenceType) {
+                $url = UrlGenerator::getRelativePath($this->context->getPathInfo(), $url);
             } else {
-                if (self::RELATIVE_PATH === $referenceType) {
-                    $url = UrlGenerator::getRelativePath($this->context->getPathInfo(), $url);
-                } else {
-                    $url = $this->context->getBaseUrl().$url;
-                }
+                $url = $this->context->getBaseUrl().$url;
             }
 
             return $url;
@@ -194,7 +184,7 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
         $params = $this->context->getParameters();
 
         foreach ($this->getStaticRoutes() as $route) {
-            if (null !== $request && 0 !== count($route->getMethods())) {
+            if ($request instanceof \Symfony\Component\HttpFoundation\Request && 0 !== count($route->getMethods())) {
                 $method = $request->getMethod();
 
                 if (!in_array($method, $route->getMethods(), true)) {
@@ -270,12 +260,7 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
                 if (!$a->getSiteId() && $b->getSiteId()) {
                     return 1;
                 }
-
-                if ($a->getPriority() == $b->getPriority()) {
-                    return 0;
-                }
-
-                return ($a->getPriority() < $b->getPriority()) ? 1 : -1;
+                return $b->getPriority() <=> $a->getPriority();
             });
 
             $this->staticRoutes = $list->load();

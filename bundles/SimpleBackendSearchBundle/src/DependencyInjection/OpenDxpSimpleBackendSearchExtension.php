@@ -24,6 +24,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class OpenDxpSimpleBackendSearchExtension extends Extension implements PrependExtensionInterface
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_simple_backend_search';

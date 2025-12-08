@@ -35,7 +35,7 @@ class AssetCompressParser extends AbstractTokenParser
         $lineno = $token->getLine();
 
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
-        $body = $this->parser->subparse([$this, 'decideAssetCompressEnd'], true);
+        $body = $this->parser->subparse($this->decideAssetCompressEnd(...), true);
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
 
         return new AssetCompressNode($body, $lineno, $this->getTag());

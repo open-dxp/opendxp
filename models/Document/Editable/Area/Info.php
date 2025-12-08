@@ -100,11 +100,7 @@ class Info
 
     public function getParam(string $name): mixed
     {
-        if (isset($this->params[$name])) {
-            return $this->params[$name];
-        }
-
-        return null;
+        return $this->params[$name] ?? null;
     }
 
     public function setParam(string $name, mixed $value): static

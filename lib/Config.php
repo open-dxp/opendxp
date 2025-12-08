@@ -129,9 +129,9 @@ final class Config implements ArrayAccess
     {
         if (null !== $offset) {
             self::getSystemConfiguration();
-            static::$systemConfig[$offset] = $configuration;
+            self::$systemConfig[$offset] = $configuration;
         } else {
-            static::$systemConfig = $configuration;
+            self::$systemConfig = $configuration;
         }
     }
 
@@ -142,7 +142,7 @@ final class Config implements ArrayAccess
      */
     public static function getSystemConfiguration(?string $offset = null): ?array
     {
-        if (null === static::$systemConfig && $container = OpenDxp::getContainer()) {
+        if (null === self::$systemConfig && $container = OpenDxp::getContainer()) {
 
             $settings = $container->getParameter('opendxp.config');
 
@@ -153,14 +153,14 @@ final class Config implements ArrayAccess
             $eventDispatcher->dispatch($saveSettingsEvent, SystemEvents::GET_SYSTEM_CONFIGURATION);
             $settings = $saveSettingsEvent->getArgument('settings');
 
-            static::$systemConfig = $settings;
+            self::$systemConfig = $settings;
         }
 
         if (null !== $offset) {
-            return static::$systemConfig[$offset] ?? null;
+            return self::$systemConfig[$offset] ?? null;
         }
 
-        return static::$systemConfig;
+        return self::$systemConfig;
     }
 
     /**
@@ -237,26 +237,12 @@ final class Config implements ArrayAccess
                         continue;
                     }
 
-                    switch ($item->getType()) {
-                        case 'document':
-                        case 'asset':
-                        case 'object':
-                            $s = $item->getData();
-
-                            break;
-                        case 'bool':
-                            $s = (bool) $item->getData();
-
-                            break;
-                        case 'text':
-                            $s = (string) $item->getData();
-
-                            break;
-                        default:
-                            $s = null;
-
-                            break;
-                    }
+                    $s = match ($item->getType()) {
+                        'document', 'asset', 'object' => $item->getData(),
+                        'bool' => (bool) $item->getData(),
+                        'text' => (string) $item->getData(),
+                        default => null,
+                    };
 
                     if ($s instanceof Model\Element\ElementInterface) {
                         $elementCacheKey = $s->getCacheTag();
@@ -271,7 +257,7 @@ final class Config implements ArrayAccess
                 //TODO resolve for all langs, current lang first, then no lang
                 Cache::save($config, $cacheKey, $cacheTags, null, 998);
             } elseif (is_array($config)) {
-                foreach ($config as $key => $setting) {
+                foreach ($config as $setting) {
                     if ($setting instanceof ElementInterface) {
                         $elementCacheKey = $setting->getCacheTag();
                         if (!RuntimeCache::isRegistered($elementCacheKey)) {
@@ -335,7 +321,7 @@ final class Config implements ArrayAccess
                 if ($configJson) {
                     $config = json_decode($configJson->getData(), true);
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // nothing to do
             }
         }
@@ -377,8 +363,9 @@ final class Config implements ArrayAccess
         }
         $parts = explode('.', $key);
         $menuItems = $runtimeConfig['toolbar'];
+        $counter = count($parts);
 
-        for ($i = 0; $i < count($parts); $i++) {
+        for ($i = 0; $i < $counter; $i++) {
             $part = $parts[$i];
 
             if (!isset($menuItems[$part])) {
@@ -420,11 +407,7 @@ final class Config implements ArrayAccess
     {
         $fileType = pathinfo($file, PATHINFO_EXTENSION);
         if (file_exists($file)) {
-            if ($fileType == 'yaml') {
-                $content = Yaml::parseFile($file);
-            } else {
-                $content = include($file);
-            }
+            $content = $fileType == 'yaml' ? Yaml::parseFile($file) : include($file);
 
             if (is_array($content)) {
                 return $content;

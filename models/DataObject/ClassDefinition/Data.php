@@ -108,10 +108,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $isEmpty = true;
 
         // this is to do not treated "0" as empty
-        if (is_string($data) || is_numeric($data)) {
-            if (strlen($data) > 0) {
-                $isEmpty = false;
-            }
+        if ((is_string($data) || is_numeric($data)) && (string) $data !== '') {
+            $isEmpty = false;
         }
 
         if (!empty($data)) {
@@ -374,7 +372,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
      */
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
-        if (is_array($value) && empty($value)) {
+        if ($value === []) {
             return '';
         }
 
@@ -428,11 +426,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
                     $operator = 'IS NOT';
                 }
             } elseif (!is_array($value) && !is_object($value)) {
-                if ($operator === 'LIKE') {
-                    $value = $db->quote('%' . $value . '%');
-                } else {
-                    $value = $db->quote($value);
-                }
+                $value = $operator === 'LIKE' ? $db->quote('%' . $value . '%') : $db->quote($value);
             }
         }
 
@@ -443,10 +437,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
                 $trailer = ' OR ' . $key . ' IS NULL';
             }
 
-            if (str_contains($name, 'cskey') && is_array($value) && !empty($value)) {
-                $values = array_map(static function ($val) use ($db) {
-                    return $db->quote(Helper::escapeLike($val));
-                }, $value);
+            if (str_contains($name, 'cskey') && is_array($value) && $value !== []) {
+                $values = array_map(static fn($val) => $db->quote(Helper::escapeLike($val)), $value);
 
                 return $key . ' ' . $operator . ' ' . implode(' OR ' . $key . ' ' . $operator . ' ', $values) . $trailer;
             }
@@ -464,9 +456,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= "\t\t" . 'if ($preValue !== null) {' . "\n";
         $code .= "\t\t\t" . 'return $preValue;' . "\n";
         $code .= "\t\t" . '}' . "\n";
-        $code .= "\t" . '}' . "\n\n";
 
-        return $code;
+        return $code . ("\t" . '}' . "\n\n");
     }
 
     /**
@@ -476,11 +467,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* Get ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -513,9 +500,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= "\t" . '}' . "\n\n";
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -525,11 +511,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getParameterTypeDeclaration()) {
-            $typeDeclaration = $this->getParameterTypeDeclaration() . ' ';
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getParameterTypeDeclaration() ? $this->getParameterTypeDeclaration() . ' ' : '';
 
         $code = '/**' . "\n";
         $code .= '* Set ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -549,14 +531,12 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $code .= "\t" . '$fd = $this->getClass()->getFieldDefinition("' . $key . '");' . "\n";
         }
 
-        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField) {
-            if ($this->getDelegate()) {
-                $code .= "\t" . '$encryptedFd = $this->getClass()->getFieldDefinition("' . $key . '");' . "\n";
-                $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
-                $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
-                $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
-                $code .= "\t" . '}' . "\n";
-            }
+        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField && $this->getDelegate()) {
+            $code .= "\t" . '$encryptedFd = $this->getClass()->getFieldDefinition("' . $key . '");' . "\n";
+            $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
+            $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
+            $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
+            $code .= "\t" . '}' . "\n";
         }
 
         if ($this->supportsDirtyDetection()) {
@@ -591,9 +571,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         }
 
         $code .= "\t" . 'return $this;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -603,11 +582,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '';
         $code .= '/**' . "\n";
@@ -638,9 +613,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= "\t" . '}' . "\n\n";
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -650,11 +624,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getParameterTypeDeclaration()) {
-            $typeDeclaration = $this->getParameterTypeDeclaration() . ' ';
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getParameterTypeDeclaration() ? $this->getParameterTypeDeclaration() . ' ' : '';
 
         $code = '/**' . "\n";
         $code .= '* Set ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -674,15 +644,13 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $code .= "\t" . '$fd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
         }
 
-        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField) {
-            if ($this->getDelegate()) {
-                $code .= "\t" . '/** @var \\' . static::class . ' $encryptedFd */' . "\n";
-                $code .= "\t" . '$encryptedFd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
-                $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
-                $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
-                $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
-                $code .= "\t" . '}' . "\n";
-            }
+        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField && $this->getDelegate()) {
+            $code .= "\t" . '/** @var \\' . static::class . ' $encryptedFd */' . "\n";
+            $code .= "\t" . '$encryptedFd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
+            $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
+            $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
+            $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
+            $code .= "\t" . '}' . "\n";
         }
 
         if ($this->supportsDirtyDetection()) {
@@ -719,9 +687,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         }
 
         $code .= "\t" . 'return $this;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -731,11 +698,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* Get ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -758,9 +721,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= "\t" . '}' . "\n\n";
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -770,11 +732,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getParameterTypeDeclaration()) {
-            $typeDeclaration = $this->getParameterTypeDeclaration() . ' ';
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getParameterTypeDeclaration() ? $this->getParameterTypeDeclaration() . ' ' : '';
 
         $code = '/**' . "\n";
         $code .= '* Set ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -794,15 +752,13 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $code .= "\t" . '$fd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
         }
 
-        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField) {
-            if ($this->getDelegate()) {
-                $code .= "\t" . '/** @var \\' . static::class . ' $encryptedFd */' . "\n";
-                $code .= "\t" . '$encryptedFd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
-                $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
-                $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
-                $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
-                $code .= "\t" . '}' . "\n";
-            }
+        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField && $this->getDelegate()) {
+            $code .= "\t" . '/** @var \\' . static::class . ' $encryptedFd */' . "\n";
+            $code .= "\t" . '$encryptedFd = $this->getDefinition()->getFieldDefinition("' . $key . '");' . "\n";
+            $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
+            $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
+            $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
+            $code .= "\t" . '}' . "\n";
         }
 
         if ($this->supportsDirtyDetection()) {
@@ -828,9 +784,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         }
 
         $code .= "\t" . 'return $this;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -840,11 +795,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* Get ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -866,9 +817,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         // we don't need to consider preGetData, because this is already managed directly by the localized fields within getLocalizedValue()
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -885,11 +835,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $containerGetter = 'getClass';
         }
 
-        if ($this->getParameterTypeDeclaration()) {
-            $typeDeclaration = $this->getParameterTypeDeclaration() . ' ';
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getParameterTypeDeclaration() ? $this->getParameterTypeDeclaration() . ' ' : '';
 
         $code = '/**' . "\n";
         $code .= '* Set ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -903,14 +849,12 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $code .= "\t" . '$fd = $this->' . $containerGetter . '()->getFieldDefinition("localizedfields")->getFieldDefinition("' . $key . '");' . "\n";
         }
 
-        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField) {
-            if ($this->getDelegate()) {
-                $code .= "\t" . '$encryptedFd = $this->getClass()->getFieldDefinition("' . $key . '");' . "\n";
-                $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
-                $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
-                $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
-                $code .= "\t" . '}' . "\n";
-            }
+        if ($this instanceof DataObject\ClassDefinition\Data\EncryptedField && $this->getDelegate()) {
+            $code .= "\t" . '$encryptedFd = $this->getClass()->getFieldDefinition("' . $key . '");' . "\n";
+            $code .= "\t" . '$delegate = $encryptedFd->getDelegate();' . "\n";
+            $code .= "\t" . 'if ($delegate && !($' . $key . ' instanceof \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField)) {' . "\n";
+            $code .= "\t\t" . '$' . $key . ' = new \\OpenDxp\\Model\\DataObject\\Data\\EncryptedField($delegate, $' . $key . ');' . "\n";
+            $code .= "\t" . '}' . "\n";
         }
 
         if ($this->supportsDirtyDetection()) {
@@ -942,9 +886,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= "\t" . '$this->getLocalizedfields()->setLocalizedValue("' . $key . '", $' . $key . ', $language, !$isEqual)' . ";\n\n";
 
         $code .= "\t" . 'return $this;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -978,9 +921,8 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         $code .= '{' . "\n";
         $code .= "\t" . '$this->getClass()->getFieldDefinition("' . $key . '")->addListingFilter($this, $data, $operator);' . "\n";
         $code .= "\treturn " . '$this' . ";\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
@@ -1039,7 +981,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             $value = $this->getVersionPreview($data, $object, $params);
         }
 
-        $diffdata['title'] = !empty($this->title) ? $this->title : $this->name;
+        $diffdata['title'] = empty($this->title) ? $this->name : $this->title;
         $diffdata['value'] = $value;
 
         $result = [];
@@ -1075,14 +1017,12 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
                     if ($object instanceof DataObject\Concrete) {
                         $containerGetter = 'get' . ucfirst($fieldname);
                         $container = $object->$containerGetter();
-                        if (!$container && $context['containerType'] === 'block') {
-                            // no data, so check if inheritance is enabled + there is parent value
-                            if ($object->getClass()->getAllowInherit()) {
-                                try {
-                                    $container = $object->getValueFromParent($fieldname);
-                                } catch (InheritanceParentNotFoundException $e) {
-                                    //nothing to do here - just no parent data available
-                                }
+                        // no data, so check if inheritance is enabled + there is parent value
+                        if (!$container && $context['containerType'] === 'block' && $object->getClass()->getAllowInherit()) {
+                            try {
+                                $container = $object->getValueFromParent($fieldname);
+                            } catch (InheritanceParentNotFoundException) {
+                                //nothing to do here - just no parent data available
                             }
                         }
 
@@ -1091,11 +1031,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
 
                             // field collection or block items
                             if ($originalIndex !== null) {
-                                if ($context['containerType'] === 'block') {
-                                    $items = $container;
-                                } else {
-                                    $items = $container->getItems();
-                                }
+                                $items = $context['containerType'] === 'block' ? $container : $container->getItems();
 
                                 if ($items && (count($items) > $originalIndex || count($items) > --$originalIndex)) {
                                     $item = $items[$originalIndex];

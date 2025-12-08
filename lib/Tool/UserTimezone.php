@@ -44,7 +44,7 @@ final class UserTimezone
     public static function applyTimezone(DateTimeInterface $date): DateTimeInterface
     {
         if (self::getUserTimezone() && method_exists($date, 'setTimezone')) {
-            $date = $date->setTimezone(new DateTimeZone(self::getUserTimezone()));
+            return $date->setTimezone(new DateTimeZone(self::getUserTimezone()));
         }
 
         return $date;

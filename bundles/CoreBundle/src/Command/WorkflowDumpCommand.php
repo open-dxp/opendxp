@@ -29,11 +29,13 @@ use Symfony\Component\Workflow\Marking;
 /**
  * @internal
  */
-#[AsCommand(
-    name: 'opendxp:workflow:dump',
-    description: 'Dump a workflow'
+#[AsCommand(name: 'opendxp:workflow:dump', description: 'Dump a workflow', help: <<<'TXT'
+The <info>%command.name%</info> command dumps the graphical representation of a
+workflow in DOT format
 
-)]
+    %command.full_name% <workflow name> | dot -Tpng > workflow.png
+
+TXT)]
 class WorkflowDumpCommand extends AbstractCommand
 {
     protected function configure(): void
@@ -43,14 +45,6 @@ class WorkflowDumpCommand extends AbstractCommand
                 new InputArgument('name', InputArgument::REQUIRED, 'A workflow name'),
                 new InputArgument('marking', InputArgument::IS_ARRAY, 'A marking (a list of places)'),
             ])
-            ->setHelp(<<<'EOF'
-The <info>%command.name%</info> command dumps the graphical representation of a
-workflow in DOT format
-
-    %command.full_name% <workflow name> | dot -Tpng > workflow.png
-
-EOF
-            )
         ;
     }
 

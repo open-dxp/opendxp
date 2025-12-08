@@ -26,7 +26,7 @@ class TemplateResolver extends AbstractRequestResolver
 {
     public function getTemplate(?Request $request = null): ?string
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 

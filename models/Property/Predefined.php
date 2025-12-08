@@ -59,7 +59,7 @@ final class Predefined extends Model\AbstractModel
             $property->getDao()->getById($id);
 
             return $property;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -73,12 +73,12 @@ final class Predefined extends Model\AbstractModel
             if (!$property) {
                 throw new Exception('Predefined property in registry is null');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $property = new self();
                 $property->getDao()->getByKey($key);
                 \OpenDxp\Cache\RuntimeCache::set($cacheKey, $property);
-            } catch (Model\Exception\NotFoundException $e) {
+            } catch (Model\Exception\NotFoundException) {
                 return null;
             }
         }
@@ -259,6 +259,7 @@ final class Predefined extends Model\AbstractModel
         return $this->modificationDate;
     }
 
+    #[\Override]
     public function __clone(): void
     {
         if ($this->dao) {

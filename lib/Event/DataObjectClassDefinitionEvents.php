@@ -20,43 +20,31 @@ final class DataObjectClassDefinitionEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_ADD = 'opendxp.class.preAdd';
+    const string PRE_ADD = 'opendxp.class.preAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_ADD = 'opendxp.class.postAdd';
+    const string POST_ADD = 'opendxp.class.postAdd';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_UPDATE = 'opendxp.class.preUpdate';
+    const string PRE_UPDATE = 'opendxp.class.preUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_UPDATE = 'opendxp.class.postUpdate';
+    const string POST_UPDATE = 'opendxp.class.postUpdate';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.class.preDelete';
+    const string PRE_DELETE = 'opendxp.class.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\DataObject\ClassDefinitionEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.class.postDelete';
+    const string POST_DELETE = 'opendxp.class.postDelete';
 }

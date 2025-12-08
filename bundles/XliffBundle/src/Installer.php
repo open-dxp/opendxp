@@ -29,12 +29,14 @@ class Installer extends SettingsStoreAwareInstaller
         'xliff_import_export',
     ];
 
+    #[\Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
+    #[\Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

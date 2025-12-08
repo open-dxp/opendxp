@@ -24,18 +24,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OpenDxpNotificationService extends AbstractNotificationService
 {
-    protected NotificationService $notificationService;
-
-    protected TranslatorInterface $translator;
-
     /**
      * OpenDxpNotificationService constructor.
      *
      */
-    public function __construct(NotificationService $notificationService, TranslatorInterface $translator)
+    public function __construct(protected NotificationService $notificationService, protected TranslatorInterface $translator)
     {
-        $this->notificationService = $notificationService;
-        $this->translator = $translator;
     }
 
     public function sendOpenDxpNotification(array $users, array $roles, WorkflowInterface $workflow, string $subjectType, ElementInterface $subject, string $action): void
@@ -71,7 +65,7 @@ class OpenDxpNotificationService extends AbstractNotificationService
                     $this->notificationService->sendToUser($recipient->getId(), 0, $title, $message, $subject);
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             \OpenDxp\Logger::error('Error sending Workflow change notification.');
         }
     }

@@ -171,13 +171,14 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
+    #[\Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['scheduledTasks', 'versions', 'stream'];
 
         if (!$this->isInDumpState()) {
             // for caching asset
-            $blockedVars = array_merge($blockedVars, ['children', 'properties']);
+            $blockedVars = [...$blockedVars, 'children', 'properties'];
 
             if ($this->customSettingsCanBeCached === false) {
                 $blockedVars[] = 'customSettings';
@@ -187,6 +188,7 @@ class Asset extends Element\AbstractElement
         return $blockedVars;
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $blockedVars = parent::__sleep();
@@ -228,7 +230,7 @@ class Asset extends Element\AbstractElement
                 $asset->getId(),
                 Service::prepareGetByIdParams($params)
             );
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }
@@ -241,13 +243,11 @@ class Asset extends Element\AbstractElement
     protected static function typeMatch(Asset $asset): bool
     {
         $staticType = static::class;
-        if ($staticType !== Asset::class) {
-            if (!$asset instanceof $staticType) {
-                return false;
-            }
+        if ($staticType === Asset::class) {
+            return true;
         }
 
-        return true;
+        return $asset instanceof $staticType;
     }
 
     public static function getById(int $id, array $params = []): ?static
@@ -277,7 +277,7 @@ class Asset extends Element\AbstractElement
                 /** @var Asset $newAsset */
                 $newAsset = self::getModelFactory()->build($className);
 
-                if (get_class($asset) !== get_class($newAsset)) {
+                if ($asset::class !== $newAsset::class) {
                     $asset = $newAsset;
                     $asset->getDao()->getById($id);
                 }
@@ -290,7 +290,7 @@ class Asset extends Element\AbstractElement
                 $asset->resetDirtyMap();
 
                 Cache::save($asset, $cacheKey);
-            } catch (NotFoundException|UnsupportedException $e) {
+            } catch (NotFoundException|UnsupportedException) {
                 $asset = null;
             }
         } else {
@@ -409,7 +409,7 @@ class Asset extends Element\AbstractElement
         // this is the more efficient way
         $maxPixels = (int)Config::getSystemConfiguration('assets')['image']['max_pixels'];
         if ($maxPixels && $size = @getimagesize($localPath)) {
-            $imagePixels = (int)($size[0] * $size[1]);
+            $imagePixels = $size[0] * $size[1];
             if ($imagePixels > $maxPixels) {
                 Logger::error("Image to be created {$localPath} (temp. path) exceeds max pixel size of {$maxPixels}, you can change the value in config opendxp.assets.image.max_pixels");
 
@@ -451,7 +451,7 @@ class Asset extends Element\AbstractElement
      */
     public static function getTypeFromMimeMapping(string $mimeType, string $filename): string
     {
-        if ($mimeType == 'directory') {
+        if ($mimeType === 'directory') {
             return 'folder';
         }
 
@@ -474,7 +474,7 @@ class Asset extends Element\AbstractElement
         }
 
         if (!$type) {
-            $type = 'unknown';
+            return 'unknown';
         }
 
         return $type;
@@ -540,7 +540,7 @@ class Asset extends Element\AbstractElement
                         // on potentially a remote service.
                         try {
                             $storage->move($oldPath, $this->getRealFullPath());
-                        } catch (UnableToMoveFile $e) {
+                        } catch (UnableToMoveFile) {
                             //update children, if unable to move parent
                             $this->updateChildPaths($storage, $oldPath);
                         }
@@ -549,7 +549,7 @@ class Asset extends Element\AbstractElement
                     // lastly create a new version if necessary
                     // this has to be after the registry update and the DB update, otherwise this would cause problem in the
                     // $this->__wakeUp() method which is called by $version->save(); (path correction for version restore)
-                    if ($this->getType() != 'folder') {
+                    if ($this->getType() !== 'folder') {
                         $this->saveVersion(false, false, $parameters['versionNote'] ?? null);
                     }
 
@@ -567,12 +567,12 @@ class Asset extends Element\AbstractElement
                     // we try to start the transaction $maxRetries times again (deadlocks, ...)
                     if ($e instanceof DeadlockException && $retries < ($maxRetries - 1)) {
                         $run = $retries + 1;
-                        $waitTime = rand(1, 5) * 100000; // microseconds
+                        $waitTime = random_int(1, 5) * 100000; // microseconds
                         Logger::warn('Unable to finish transaction (' . $run . ". run) because of the following reason '" . $e->getMessage() . "'. --> Retrying in " . $waitTime . ' microseconds ... (' . ($run + 1) . ' of ' . $maxRetries . ')');
 
                         usleep($waitTime); // wait specified time until we restart the transaction
                     } else {
-                        Logger::error('Unable to save Asset: ' . (string) $e);
+                        Logger::error('Unable to save Asset: ' . $e);
 
                         // if the transaction still fail after $maxRetries retries, we throw out the exception
                         throw $e;
@@ -688,7 +688,7 @@ class Asset extends Element\AbstractElement
 
         if (Asset\Service::pathExists($this->getRealFullPath())) {
             $duplicate = Asset::getByPath($this->getRealFullPath());
-            if ($duplicate instanceof Asset && $duplicate->getId() != $this->getId()) {
+            if ($duplicate instanceof Asset && $duplicate->getId() !== $this->getId()) {
                 $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ ' . $this->getRealFullPath() . ' ] - cannot save asset');
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
@@ -715,7 +715,7 @@ class Asset extends Element\AbstractElement
         $path = $this->getRealFullPath();
         $typeChanged = false;
 
-        if ($this->getType() != 'folder') {
+        if ($this->getType() !== 'folder') {
             if ($this->getDataChanged()) {
                 $src = $this->getStream();
 
@@ -752,14 +752,14 @@ class Asset extends Element\AbstractElement
 
                 try {
                     $mimeType = $storage->mimeType($path);
-                } catch (UnableToRetrieveMetadata $e) {
+                } catch (UnableToRetrieveMetadata) {
                     $mimeType = 'application/octet-stream';
                 }
                 $this->setMimeType($mimeType);
 
                 // set type
                 $type = self::getTypeFromMimeMapping($mimeType, $this->getFilename());
-                if ($type != $this->getType()) {
+                if ($type !== $this->getType()) {
                     $this->setType($type);
                     $typeChanged = true;
                 }
@@ -919,14 +919,12 @@ class Asset extends Element\AbstractElement
 
     public function getRealFullPath(): string
     {
-        $path = $this->getRealPath() . $this->getFilename();
-
-        return $path;
+        return $this->getRealPath() . $this->getFilename();
     }
 
     public function getSiblings(): Listing
     {
-        if ($this->siblings === null) {
+        if (!$this->siblings instanceof \OpenDxp\Model\Asset\Listing) {
             if ($this->getParentId()) {
                 $list = new Asset\Listing();
                 $list->addConditionParam('parentId = ?', $this->getParentId());
@@ -967,7 +965,7 @@ class Asset extends Element\AbstractElement
     private function deletePhysicalFile(): void
     {
         $storage = Storage::get('asset');
-        if ($this->getType() != 'folder') {
+        if ($this->getType() !== 'folder') {
             $storage->delete($this->getRealFullPath());
         } else {
             $storage->deleteDirectory($this->getRealFullPath());
@@ -1017,7 +1015,7 @@ class Asset extends Element\AbstractElement
             // remove file on filesystem
             if (!$isNested) {
                 $fullPath = $this->getRealFullPath();
-                if ($fullPath != '/..' && !strpos($fullPath,
+                if ($fullPath !== '/..' && !strpos($fullPath,
                     '/../') && $this->getKey() !== '.' && $this->getKey() !== '..') {
                     $this->deletePhysicalFile();
                 }
@@ -1057,7 +1055,7 @@ class Asset extends Element\AbstractElement
     {
         try {
             $tags = [$this->getCacheTag(), 'asset_properties', 'output'];
-            $tags = array_merge($tags, $additionalTags);
+            $tags = [...$tags, ...$additionalTags];
 
             Cache::clearTags($tags);
         } catch (Exception $e) {
@@ -1143,7 +1141,7 @@ class Asset extends Element\AbstractElement
         if (!$this->stream && $this->getType() !== 'folder') {
             try {
                 $this->stream = Storage::get('asset')->readStream($this->getRealFullPath());
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $this->stream = tmpfile();
             }
         }
@@ -1233,6 +1231,7 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
+    #[\Override]
     public function getVersions(): array
     {
         if ($this->versions === null) {
@@ -1278,7 +1277,7 @@ class Asset extends Element\AbstractElement
 
     private function refreshCustomSettings(): void
     {
-        if ($this->customSettingsNeedRefresh === true) {
+        if ($this->customSettingsNeedRefresh) {
             $customSettings = $this->getDao()->getCustomSettings();
             $this->setCustomSettings($customSettings);
             $this->customSettingsNeedRefresh = false;
@@ -1384,11 +1383,9 @@ class Asset extends Element\AbstractElement
     {
         $this->metadata = [];
         $this->setHasMetaData(false);
-        if (!empty($metadata)) {
-            foreach ($metadata as $metaItem) {
-                $metaItem = (array)$metaItem; // also allow object with appropriate keys
-                $this->addMetadata($metaItem['name'], $metaItem['type'], $metaItem['data'] ?? null, $metaItem['language'] ?? null);
-            }
+        foreach ($metadata as $metaItem) {
+            $metaItem = (array)$metaItem; // also allow object with appropriate keys
+            $this->addMetadata($metaItem['name'], $metaItem['type'], $metaItem['data'] ?? null, $metaItem['language'] ?? null);
         }
 
         return $this;
@@ -1440,7 +1437,7 @@ class Asset extends Element\AbstractElement
                 $instance = $loader->build($item['type']);
                 $transformedData = $instance->transformSetterData($data, $item);
                 $item['data'] = $transformedData;
-            } catch (UnsupportedException $e) {
+            } catch (UnsupportedException) {
             }
 
             $tmp[] = $item;
@@ -1469,7 +1466,7 @@ class Asset extends Element\AbstractElement
             }
 
             $this->metadata = $tmp;
-            $this->setHasMetaData(!empty($this->metadata));
+            $this->setHasMetaData($this->metadata !== []);
         }
 
         return $this;
@@ -1551,17 +1548,18 @@ class Asset extends Element\AbstractElement
         }
 
         foreach ($this->metadata as $md) {
-            if ($md['name'] == $name) {
-                if ($language == $md['language'] || (empty($md['language']) && !$strictMatchLanguage)) {
-                    $data = $md;
+            if ($md['name'] != $name) {
+                continue;
+            }
+            if ($language == $md['language'] || empty($md['language']) && !$strictMatchLanguage) {
+                $data = $md;
 
-                    break;
-                }
+                break;
             }
         }
 
         if ($data) {
-            $result = $raw ? $data : $this->transformMetadata($data);
+            return $raw ? $data : $this->transformMetadata($data);
         }
 
         return $result;
@@ -1571,7 +1569,7 @@ class Asset extends Element\AbstractElement
     {
         try {
             $bytes = Storage::get('asset')->fileSize($this->getRealFullPath());
-        } catch (Exception $e) {
+        } catch (Exception) {
             $bytes = 0;
         }
 
@@ -1582,6 +1580,7 @@ class Asset extends Element\AbstractElement
         return $bytes;
     }
 
+    #[\Override]
     public function getParent(): ?Asset
     {
         $parent = parent::getParent();
@@ -1600,6 +1599,7 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
+    #[\Override]
     public function __wakeup(): void
     {
         if ($this->isInDumpState()) {
@@ -1628,6 +1628,7 @@ class Asset extends Element\AbstractElement
         $this->closeStream();
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         if (!Config::getSystemConfiguration()['dependency']['enabled']) {
@@ -1658,6 +1659,7 @@ class Asset extends Element\AbstractElement
         return array_merge(...$dependencies);
     }
 
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();
@@ -1771,7 +1773,7 @@ class Asset extends Element\AbstractElement
 
                 try {
                     $storage->move($oldThumbnailsPath, $newThumbnailsPath);
-                } catch (UnableToMoveFile $e) {
+                } catch (UnableToMoveFile) {
                     //update children, if unable to move parent
                     //if there is an error, we can ignore it
                     $this->updateChildPaths($storage, $oldPath, null, true);
@@ -1788,7 +1790,7 @@ class Asset extends Element\AbstractElement
             }
 
             $asset = $asset->getParent();
-        } while ($asset !== null);
+        } while ($asset instanceof \OpenDxp\Model\Asset);
     }
 
     public function clearThumbnail(string $name): void
@@ -1796,7 +1798,7 @@ class Asset extends Element\AbstractElement
         try {
             Storage::get('thumbnail')->deleteDirectory($this->getRealPath().'/'.$this->getId().'/image-thumb__'.$this->getId().'__'.$name);
             $this->getDao()->deleteFromThumbnailCache($name);
-        } catch (Exception $e) {
+        } catch (Exception) {
             // noting to do
         }
     }
@@ -1839,7 +1841,7 @@ class Asset extends Element\AbstractElement
     {
         $path = $this->getFullPath();
         if (!preg_match('@^(https?|data):@', $path)) {
-            $path = \OpenDxp\Tool::getHostUrl() . $path;
+            return \OpenDxp\Tool::getHostUrl() . $path;
         }
 
         return $path;
@@ -1852,6 +1854,8 @@ class Asset extends Element\AbstractElement
      */
     public function addThumbnailFileToCache(string $localFile, string $filename, ThumbnailConfig $config): void
     {
+        $dimensions = [];
+
         //try to get the dimensions with getimagesize because it is much faster than e.g. the Imagick-Adapter
         if ($imageSize = @getimagesize($localFile)) {
             $dimensions = [
@@ -1869,14 +1873,16 @@ class Asset extends Element\AbstractElement
             }
         }
 
-        if (!empty($dimensions)) {
-            $this->getDao()->addToThumbnailCache(
-                $config->getName(),
-                $filename,
-                filesize($localFile),
-                $dimensions['width'],
-                $dimensions['height']
-            );
+        if ($dimensions === []) {
+            return;
         }
+
+        $this->getDao()->addToThumbnailCache(
+            $config->getName(),
+            $filename,
+            filesize($localFile),
+            $dimensions['width'],
+            $dimensions['height']
+        );
     }
 }

@@ -23,14 +23,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class PrepareResponseEvent extends Event
 {
-    private Request $request;
-
-    private Response $response;
-
-    public function __construct(Request $request, Response $response)
+    public function __construct(private readonly Request $request, private readonly Response $response)
     {
-        $this->request = $request;
-        $this->response = $response;
     }
 
     public function getRequest(): Request

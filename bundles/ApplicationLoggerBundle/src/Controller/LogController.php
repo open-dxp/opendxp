@@ -202,7 +202,7 @@ class LogController extends UserAwareController implements KernelControllerEvent
         if ($storage->fileExists($filePath)) {
             $fileData = $storage->readStream($filePath);
             $response = new StreamedResponse(
-                static function () use ($fileData) {
+                static function () use ($fileData): void {
                     echo stream_get_contents($fileData);
                 }
             );

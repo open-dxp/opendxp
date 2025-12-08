@@ -25,6 +25,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Layout;
  */
 final class LayoutLoader extends ImplementationLoader implements LayoutLoaderInterface
 {
+    #[\Override]
     public function build(string $name, array $params = []): Layout
     {
         return parent::build($name, $params);

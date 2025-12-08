@@ -164,7 +164,10 @@ class NumericRange extends Data implements
 
     private function isDecimalType(): bool
     {
-        return null !== $this->getDecimalSize() || null !== $this->getDecimalPrecision();
+        if (null !== $this->getDecimalSize()) {
+            return true;
+        }
+        return null !== $this->getDecimalPrecision();
     }
 
     private function buildDecimalColumnType(): array
@@ -182,11 +185,11 @@ class NumericRange extends Data implements
         $scale = self::DECIMAL_PRECISION_DEFAULT;
 
         if (null !== $this->decimalSize) {
-            $precision = (int) $this->decimalSize;
+            $precision = $this->decimalSize;
         }
 
         if (null !== $this->decimalPrecision) {
-            $scale = (int) $this->decimalPrecision;
+            $scale = $this->decimalPrecision;
         }
 
         if ($precision < 1 || $precision > 65) {
@@ -266,8 +269,6 @@ class NumericRange extends Data implements
     }
 
     /**
-     * @param null|DataObject\Concrete $object
-     *
      * @see QueryResourcePersistenceAwareInterface::getDataForQueryResource
      */
     public function getDataForQueryResource(mixed $data, ?Concrete $object = null, array $params = []): array
@@ -318,6 +319,7 @@ class NumericRange extends Data implements
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\NumericRange) {
@@ -332,6 +334,7 @@ class NumericRange extends Data implements
      *
      * @throws Exception
      */
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -343,11 +346,13 @@ class NumericRange extends Data implements
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -379,6 +384,7 @@ class NumericRange extends Data implements
         return $this->getDataForEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $isEmpty = true;
@@ -393,7 +399,7 @@ class NumericRange extends Data implements
 
         $fieldName = $this->getName();
 
-        if (true === $isEmpty && false === $omitMandatoryCheck && $this->getMandatory()) {
+        if ($isEmpty && false === $omitMandatoryCheck && $this->getMandatory()) {
             throw new ValidationException(sprintf('Empty mandatory field [ %s ]', $fieldName));
         }
 

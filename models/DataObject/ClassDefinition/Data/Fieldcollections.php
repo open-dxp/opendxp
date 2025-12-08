@@ -117,13 +117,11 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
                     $calculatedChildren = [];
                     self::collectCalculatedValueItems($collectionDef->getFieldDefinitions(), $calculatedChildren);
 
-                    if ($calculatedChildren) {
-                        foreach ($calculatedChildren as $fd) {
-                            $data = new DataObject\Data\CalculatedValue($fd->getName());
-                            $data->setContextualData('fieldcollection', $this->getName(), $idx, null, null, null, $fd);
-                            $data = $fd->getDataForEditmode($data, $object, $params);
-                            $collectionData[$fd->getName()] = $data;
-                        }
+                    foreach ($calculatedChildren as $fd) {
+                        $data = new DataObject\Data\CalculatedValue($fd->getName());
+                        $data->setContextualData('fieldcollection', $this->getName(), $idx, null, null, null, $fd);
+                        $data = $fd->getDataForEditmode($data, $object, $params);
+                        $collectionData[$fd->getName()] = $data;
                     }
 
                     $editmodeData[] = [
@@ -208,9 +206,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
             }
         }
 
-        $container = new DataObject\Fieldcollection($values, $this->getName());
-
-        return $container;
+        return new DataObject\Fieldcollection($values, $this->getName());
     }
 
     /**
@@ -219,16 +215,19 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getDiffVersionPreview($data, $object, $params)['html'];
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return 'NOT SUPPORTED';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $dataString = '';
@@ -306,7 +305,8 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         }
 
         if (is_array($allowedTypes)) {
-            for ($i = 0; $i < count($allowedTypes); $i++) {
+            $counter = count($allowedTypes);
+            for ($i = 0; $i < $counter; $i++) {
                 if (!DataObject\Fieldcollection\Definition::getByKey($allowedTypes[$i])) {
                     Logger::warn("Removed unknown allowed type [ $allowedTypes[$i] ] from allowed types of field collection");
                     unset($allowedTypes[$i]);
@@ -320,6 +320,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $this;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -333,7 +334,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
                 if ($collectionDef = DataObject\Fieldcollection\Definition::getByKey($item->getType())) {
                     foreach ($collectionDef->getFieldDefinitions() as $fd) {
                         $getter = 'get' . ucfirst($fd->getName());
-                        $dependencies = array_merge($dependencies, $fd->resolveDependencies($item->$getter()));
+                        $dependencies = [...$dependencies, ...$fd->resolveDependencies($item->$getter())];
                     }
                 }
             }
@@ -342,6 +343,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $dependencies;
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Fieldcollection) {
@@ -362,6 +364,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $tags;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data instanceof DataObject\Fieldcollection) {
@@ -379,18 +382,16 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
                     throw new Model\Element\ValidationException('Maximum limit reached for items in field collection: ' . $this->getName());
                 }
 
-                if (!$omitMandatoryCheck) {
-                    if ($collectionDef = DataObject\Fieldcollection\Definition::getByKey($item->getType())) {
-                        foreach ($collectionDef->getFieldDefinitions() as $fd) {
-                            try {
-                                $getter = 'get' . ucfirst($fd->getName());
-                                if (!$fd instanceof CalculatedValue) {
-                                    $fd->checkValidity($item->$getter(), false, $params);
-                                }
-                            } catch (Model\Element\ValidationException $ve) {
-                                $ve->addContext($this->getName() . '-' . $idx);
-                                $validationExceptions[] = $ve;
+                if (!$omitMandatoryCheck && $collectionDef = DataObject\Fieldcollection\Definition::getByKey($item->getType())) {
+                    foreach ($collectionDef->getFieldDefinitions() as $fd) {
+                        try {
+                            $getter = 'get' . ucfirst($fd->getName());
+                            if (!$fd instanceof CalculatedValue) {
+                                $fd->checkValidity($item->$getter(), false, $params);
                             }
+                        } catch (Model\Element\ValidationException $ve) {
+                            $ve->addContext($this->getName() . '-' . $idx);
+                            $validationExceptions[] = $ve;
                         }
                     }
                 }
@@ -445,7 +446,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
 
     public function getDataForGrid(?DataObject\Fieldcollection $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
-        if (null === $data) {
+        if (!$data instanceof \OpenDxp\Model\DataObject\Fieldcollection) {
             return null;
         }
 
@@ -487,16 +488,13 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $dataForGrid;
     }
 
+    #[\Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         // getter, no inheritance here, that's the only difference
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* @return ' . $this->getPhpdocReturnType() . "\n";
@@ -514,9 +512,8 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         //        }
 
         $code .= "\t" . 'return $data;' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     /**
@@ -534,6 +531,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $this->maxItems;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -541,8 +539,6 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
 
     /** Generates a pretty version preview (similar to getVersionPreview) can be either HTML or
      * a image URL.
-     *
-     * @param DataObject\Concrete|null $object
      */
     public function getDiffVersionPreview(?DataObject\Fieldcollection $data, ?Concrete $object = null, array $params = []): array
     {
@@ -559,7 +555,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
 
                 if ($collectionDef = DataObject\Fieldcollection\Definition::getByKey($item->getType())) {
                     foreach ($collectionDef->getFieldDefinitions() as $fd) {
-                        $title = !empty($fd->title) ? $fd->title : $fd->getName();
+                        $title = empty($fd->title) ? $fd->getName() : $fd->title;
                         $html .= '<tr><td>&nbsp;</td><td>' . $title . '</td><td>';
                         $html .= $fd->getVersionPreview($item->getObjectVar($fd->getName()), $object, $params);
                         $html .= '</td></tr>';
@@ -605,6 +601,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
     /**
      * @param DataObject\ClassDefinition\Data\Fieldcollections $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->allowedTypes = $mainDefinition->allowedTypes;
@@ -696,14 +693,13 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         foreach ($container as $childDef) {
             if ($childDef instanceof Model\DataObject\ClassDefinition\Data\CalculatedValue) {
                 $list[] = $childDef;
-            } else {
-                if (method_exists($childDef, 'getFieldDefinitions')) {
-                    self::collectCalculatedValueItems($childDef->getFieldDefinitions(), $list);
-                }
+            } elseif (method_exists($childDef, 'getFieldDefinitions')) {
+                self::collectCalculatedValueItems($childDef->getFieldDefinitions(), $list);
             }
         }
     }
 
+    #[\Override]
     public function supportsInheritance(): bool
     {
         return false;

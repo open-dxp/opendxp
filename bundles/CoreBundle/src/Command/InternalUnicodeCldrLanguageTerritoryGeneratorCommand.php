@@ -33,7 +33,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class InternalUnicodeCldrLanguageTerritoryGeneratorCommand extends AbstractCommand
 {
-    public function __construct(private LocaleServiceInterface $localeService)
+    public function __construct(private readonly LocaleServiceInterface $localeService)
     {
         parent::__construct();
     }
@@ -69,13 +69,7 @@ class InternalUnicodeCldrLanguageTerritoryGeneratorCommand extends AbstractComma
         $finalData = [];
 
         foreach ($languageRawData as $languageCode => $rawLanguage) {
-            usort($rawLanguage, function ($a, $b) {
-                if ($a['population'] == $b['population']) {
-                    return 0;
-                }
-
-                return ($a['population'] > $b['population']) ? -1 : 1;
-            });
+            usort($rawLanguage, fn($a, $b) => $b['population'] <=> $a['population']);
 
             $finalData[$languageCode] = [];
             foreach ($rawLanguage as $territory) {

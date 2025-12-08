@@ -21,11 +21,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class WebsiteSettingEvent extends Event
 {
-    private WebsiteSetting $websiteSetting;
-
-    public function __construct(WebsiteSetting $websiteSetting)
+    public function __construct(private readonly WebsiteSetting $websiteSetting)
     {
-        $this->websiteSetting = $websiteSetting;
     }
 
     public function getWebsiteSetting(): WebsiteSetting

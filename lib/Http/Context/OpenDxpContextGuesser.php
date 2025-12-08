@@ -29,11 +29,8 @@ class OpenDxpContextGuesser
 
     private ?array $matchers = null;
 
-    private RequestMatcherFactory $requestMatcherFactory;
-
-    public function __construct(RequestMatcherFactory $factory)
+    public function __construct(private readonly RequestMatcherFactory $requestMatcherFactory)
     {
-        $this->requestMatcherFactory = $factory;
     }
 
     /**

@@ -19,19 +19,12 @@ namespace OpenDxp\Model\DataObject\Data;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 
-class NumericRange implements OwnerAwareFieldInterface
+class NumericRange implements OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
 
-    protected int|null|float $minimum = null;
-
-    protected int|null|float $maximum = null;
-
-    public function __construct(float|int|null $minimum, float|int|null $maximum)
+    public function __construct(protected int|null|float $minimum, protected int|null|float $maximum)
     {
-        $this->minimum = $minimum;
-        $this->maximum = $maximum;
-
         $this->markMeDirty();
     }
 

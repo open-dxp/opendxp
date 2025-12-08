@@ -117,15 +117,13 @@ abstract class AbstractRelations extends Data implements
 
         $context = $params['context'];
 
-        if (!DataObject::isDirtyDetectionDisabled()) {
-            if (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection') {
-                if ($object instanceof DataObject\Localizedfield) {
-                    if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
-                        return null;
-                    }
-                } elseif ($this->supportsDirtyDetection() && !$object->isFieldDirty($this->getName())) {
+        if (!DataObject::isDirtyDetectionDisabled() && (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection')) {
+            if ($object instanceof DataObject\Localizedfield) {
+                if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
                     return null;
                 }
+            } elseif ($this->supportsDirtyDetection() && !$object->isFieldDirty($this->getName())) {
+                return null;
             }
         }
 
@@ -176,7 +174,7 @@ abstract class AbstractRelations extends Data implements
                 return null;
             }
 
-            if (is_array($relations) && !empty($relations)) {
+            if (is_array($relations) && $relations !== []) {
                 foreach ($relations as $relation) {
                     $this->enrichDataRow($object, $params, $ignoreClassId, $relation);
 
@@ -253,15 +251,13 @@ abstract class AbstractRelations extends Data implements
             $object instanceof \OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData => $object->getObject()->getClassId(),
         };
 
-        if (!DataObject::isDirtyDetectionDisabled()) {
-            if (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection') {
-                if ($object instanceof DataObject\Localizedfield) {
-                    if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
-                        return;
-                    }
-                } elseif ($this->supportsDirtyDetection() && !$object->isFieldDirty($this->getName())) {
+        if (!DataObject::isDirtyDetectionDisabled() && (!isset($context['containerType']) || $context['containerType'] !== 'fieldcollection')) {
+            if ($object instanceof DataObject\Localizedfield) {
+                if ($object->getObject() instanceof Element\DirtyIndicatorInterface && !$object->hasDirtyFields()) {
                     return;
                 }
+            } elseif ($this->supportsDirtyDetection() && !$object->isFieldDirty($this->getName())) {
+                return;
             }
         }
 
@@ -343,8 +339,6 @@ abstract class AbstractRelations extends Data implements
     abstract protected function loadData(array $data, Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): mixed;
 
     /**
-     * @param array|ElementInterface $data
-     * @param Localizedfield|AbstractData|DataObject\Objectbrick\Data\AbstractData|Concrete|null $object
      *
      * @internal
      */
@@ -395,11 +389,13 @@ abstract class AbstractRelations extends Data implements
         $this->pathFormatterClass = $pathFormatterClass;
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function appendData(?array $existingData, array $additionalData): ?array
     {
         $newData = [];
@@ -425,6 +421,7 @@ abstract class AbstractRelations extends Data implements
         return $newData;
     }
 
+    #[\Override]
     public function removeData(?array $existingData, array $removeData): array
     {
         $newData = [];
@@ -476,7 +473,7 @@ abstract class AbstractRelations extends Data implements
         $array2 = array_filter(is_array($array2) ? $array2 : []);
         $count1 = count($array1);
         $count2 = count($array2);
-        if ($count1 != $count2) {
+        if ($count1 !== $count2) {
             return false;
         }
 
@@ -497,6 +494,7 @@ abstract class AbstractRelations extends Data implements
         return true;
     }
 
+    #[\Override]
     public function supportsDirtyDetection(): bool
     {
         return true;
@@ -552,35 +550,34 @@ abstract class AbstractRelations extends Data implements
      */
     public function performMultipleAssignmentCheck(?array $data): void
     {
-        if (is_array($data)) {
-            if (!method_exists($this, 'getAllowMultipleAssignments') || !$this->getAllowMultipleAssignments()) {
-                $relationItems = [];
-                $fieldName = $this->getName();
+        if (is_array($data) && (!method_exists($this, 'getAllowMultipleAssignments') || !$this->getAllowMultipleAssignments())) {
+            $relationItems = [];
+            $fieldName = $this->getName();
+            foreach ($data as $item) {
+                $elementHash = null;
+                if ($item instanceof DataObject\Data\ObjectMetadata || $item instanceof DataObject\Data\ElementMetadata) {
+                    if ($item->getElement() instanceof Element\ElementInterface) {
+                        $elementHash = Element\Service::getElementHash($item->getElement());
+                    }
+                } elseif ($item instanceof Element\ElementInterface) {
+                    $elementHash = Element\Service::getElementHash($item);
+                }
+                if ($elementHash === null) {
+                    throw new Element\ValidationException('Passing relations without ID or type not allowed anymore!');
+                }
 
-                foreach ($data as $item) {
-                    $elementHash = null;
-                    if ($item instanceof DataObject\Data\ObjectMetadata || $item instanceof DataObject\Data\ElementMetadata) {
-                        if ($item->getElement() instanceof Element\ElementInterface) {
-                            $elementHash = Element\Service::getElementHash($item->getElement());
-                        }
-                    } elseif ($item instanceof Element\ElementInterface) {
-                        $elementHash = Element\Service::getElementHash($item);
+                if (!isset($relationItems[$elementHash])) {
+                    $relationItems[$elementHash] = $item;
+                }
+                else {
+                    $message = 'Passing relations multiple times not allowed anymore: ' . $elementHash
+                        . ' multiple times in field ' . $fieldName;
+
+                    if (method_exists($this, 'getAllowMultipleAssignments')) {
+                        $message .= ", Reason: 'Allow Multiple Assignments' setting is disabled in class definition. ";
                     }
 
-                    if ($elementHash === null) {
-                        throw new Element\ValidationException('Passing relations without ID or type not allowed anymore!');
-                    } elseif (!isset($relationItems[$elementHash])) {
-                        $relationItems[$elementHash] = $item;
-                    } else {
-                        $message = 'Passing relations multiple times not allowed anymore: ' . $elementHash
-                            . ' multiple times in field ' . $fieldName;
-
-                        if (method_exists($this, 'getAllowMultipleAssignments')) {
-                            $message .= ", Reason: 'Allow Multiple Assignments' setting is disabled in class definition. ";
-                        }
-
-                        throw new Element\ValidationException($message);
-                    }
+                    throw new Element\ValidationException($message);
                 }
             }
         }

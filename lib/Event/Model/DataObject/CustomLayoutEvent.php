@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class CustomLayoutEvent extends Event
 {
-    protected ClassDefinition\CustomLayout $customLayout;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(ClassDefinition\CustomLayout $customLayout)
+    public function __construct(protected ClassDefinition\CustomLayout $customLayout)
     {
-        $this->customLayout = $customLayout;
     }
 
     public function getCustomLayout(): ClassDefinition\CustomLayout

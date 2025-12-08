@@ -30,8 +30,6 @@ use Symfony\Component\Routing\RouteCollection;
  */
 final class DynamicRouteProvider implements RouteProviderInterface
 {
-    protected SiteResolver $siteResolver;
-
     /**
      * @var DynamicRouteHandlerInterface[]
      */
@@ -40,10 +38,8 @@ final class DynamicRouteProvider implements RouteProviderInterface
     /**
      * @param DynamicRouteHandlerInterface[] $handlers
      */
-    public function __construct(SiteResolver $siteResolver, array $handlers = [])
+    public function __construct(protected SiteResolver $siteResolver, array $handlers = [])
     {
-        $this->siteResolver = $siteResolver;
-
         foreach ($handlers as $handler) {
             $this->addHandler($handler);
         }
@@ -83,7 +79,7 @@ final class DynamicRouteProvider implements RouteProviderInterface
         foreach ($this->handlers as $handler) {
             try {
                 return $handler->getRouteByName($name);
-            } catch (RouteNotFoundException $e) {
+            } catch (RouteNotFoundException) {
                 // noop
             }
         }
@@ -102,7 +98,7 @@ final class DynamicRouteProvider implements RouteProviderInterface
                 try {
                     $route = $this->getRouteByName($name);
                     $routes[] = $route;
-                } catch (RouteNotFoundException $e) {
+                } catch (RouteNotFoundException) {
                     // noop
                 }
             }

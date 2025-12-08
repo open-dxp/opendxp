@@ -36,15 +36,15 @@ final class Redirect extends AbstractModel
 {
     use RecursionBlockingEventDispatchHelperTrait;
 
-    const TYPE_ENTIRE_URI = 'entire_uri';
+    const string TYPE_ENTIRE_URI = 'entire_uri';
 
-    const TYPE_PATH_QUERY = 'path_query';
+    const string TYPE_PATH_QUERY = 'path_query';
 
-    const TYPE_PATH = 'path';
+    const string TYPE_PATH = 'path';
 
-    const TYPE_AUTO_CREATE = 'auto_create';
+    const string TYPE_AUTO_CREATE = 'auto_create';
 
-    const TYPES = [
+    const array TYPES = [
         self::TYPE_ENTIRE_URI,
         self::TYPE_PATH_QUERY,
         self::TYPE_PATH,
@@ -97,7 +97,7 @@ final class Redirect extends AbstractModel
             $redirect->getDao()->getById($id);
 
             return $redirect;
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }
@@ -114,7 +114,7 @@ final class Redirect extends AbstractModel
             $redirect->getDao()->getByExactMatch($request, $site, $override);
 
             return $redirect;
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }
@@ -250,7 +250,7 @@ final class Redirect extends AbstractModel
             $statusCode = '301';
         }
 
-        return 'HTTP/1.1 ' . $statusCode . ' ' . $this->getStatusCodes()[$statusCode];
+        return 'HTTP/1.1 ' . $statusCode . ' ' . self::getStatusCodes()[$statusCode];
     }
 
     public function clearDependentCache(): void

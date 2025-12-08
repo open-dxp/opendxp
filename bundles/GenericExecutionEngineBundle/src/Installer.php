@@ -49,6 +49,7 @@ final class Installer extends SettingsStoreAwareInstaller
     /**
      * @throws SchemaException|Exception
      */
+    #[\Override]
     public function install(): void
     {
         $this->installBundle();
@@ -58,6 +59,7 @@ final class Installer extends SettingsStoreAwareInstaller
     /**
      * @throws Exception
      */
+    #[\Override]
     public function uninstall(): void
     {
         $this->uninstallBundle();

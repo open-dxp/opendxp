@@ -41,10 +41,8 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         $options = [];
 
         foreach ($locales as $short => $translation) {
-            if ($this->getOnlySystemLanguages()) {
-                if (!in_array($short, $validLanguages)) {
-                    continue;
-                }
+            if ($this->getOnlySystemLanguages() && !in_array($short, $validLanguages)) {
+                continue;
             }
 
             $options[] = [
@@ -82,6 +80,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return $obj;
     }
 
+    #[\Override]
     public function jsonSerialize(): mixed
     {
         if (Service::doRemoveDynamicOptions()) {
@@ -91,6 +90,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return parent::jsonSerialize();
     }
 
+    #[\Override]
     public function resolveBlockedVars(): array
     {
         $blockedVars = parent::resolveBlockedVars();
@@ -99,6 +99,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return $blockedVars;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'languagemultiselect';

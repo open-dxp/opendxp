@@ -32,9 +32,9 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 class PostStateChange
 {
     public function __construct(
-        private CacheClearer $cacheClearer,
-        private AssetsInstaller $assetsInstaller,
-        private EventDispatcherInterface $eventDispatcher
+        private readonly CacheClearer $cacheClearer,
+        private readonly AssetsInstaller $assetsInstaller,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {
     }
 
@@ -70,14 +70,14 @@ class PostStateChange
             return;
         }
 
-        $runAssetsInstall = $input->getOption('no-assets-install') ? false : true;
-        $runCacheClear = $input->getOption('no-cache-clear') ? false : true;
+        $runAssetsInstall = !(bool) $input->getOption('no-assets-install');
+        $runCacheClear = !(bool) $input->getOption('no-cache-clear');
 
         if (!$runAssetsInstall && !$runCacheClear) {
             return;
         }
 
-        $runCallback = function ($type, $buffer) use ($io) {
+        $runCallback = function ($type, $buffer) use ($io): void {
             $io->write($buffer);
         };
 
@@ -93,7 +93,7 @@ class PostStateChange
                     'env' => $environment,
                     'ansi' => $io->isDecorated(),
                 ]);
-            } catch (ProcessFailedException $e) {
+            } catch (ProcessFailedException) {
                 // noop - output should be enough
             }
         }
@@ -111,7 +111,7 @@ class PostStateChange
                 $this->cacheClearer->clear($environment, [
                     'ansi' => $io->isDecorated(),
                 ]);
-            } catch (ProcessFailedException $e) {
+            } catch (ProcessFailedException) {
                 // noop - output should be enough
             }
         }

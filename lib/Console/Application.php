@@ -35,8 +35,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
- * The console application
- *
  * @internal
  */
 final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Application
@@ -65,7 +63,7 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         $this->setDispatcher($dispatcher);
 
         $maintenanceModeHelper = $kernel->getContainer()->get(MaintenanceModeHelperInterface::class);
-        $dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) use ($kernel, $maintenanceModeHelper) {
+        $dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) use ($kernel, $maintenanceModeHelper): void {
             // skip if maintenance mode is on and the flag is not set
             if (($maintenanceModeHelper->isActive()) &&
                 !$event->getInput()->getOption('ignore-maintenance-mode')
@@ -105,7 +103,7 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
             }
         });
 
-        $dispatcher->addListener(ConsoleEvents::TERMINATE, function (ConsoleTerminateEvent $event) use ($maintenanceModeHelper) {
+        $dispatcher->addListener(ConsoleEvents::TERMINATE, function (ConsoleTerminateEvent $event) use ($maintenanceModeHelper): void {
             if ($event->getInput()->getOption('maintenance-mode')) {
                 $event->getOutput()->writeln('Deactivating maintenance mode...');
                 $maintenanceModeHelper->deactivate();
@@ -113,10 +111,7 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         });
     }
 
-    /**
-     * Gets the default input definition.
-     *
-     */
+    #[\Override]
     protected function getDefaultInputDefinition(): InputDefinition
     {
         $inputDefinition = parent::getDefaultInputDefinition();
@@ -126,7 +121,8 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         return $inputDefinition;
     }
 
-    public function add(Command $command): ?Command
+    #[\Override]
+    public function addCommand(callable|Command $command): ?Command
     {
         if ($command instanceof LazyCommand && str_starts_with($command->getName(), 'doctrine:')) {
             $command = $command->getCommand();
@@ -144,6 +140,6 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
             ));
         }
 
-        return parent::add($command);
+        return parent::addCommand($command);
     }
 }

@@ -72,7 +72,7 @@ class Item extends Model\AbstractModel
             $item->getDao()->getById($id);
 
             return $item;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -106,7 +106,7 @@ class Item extends Model\AbstractModel
             // create an empty object first and clone it
             // see https://github.com/pimcore/pimcore/issues/4219
             Model\Version::disable();
-            $className = get_class($element);
+            $className = $element::class;
             /** @var Document|Asset|AbstractObject $dummy */
             $dummy = OpenDxp::getContainer()->get('opendxp.model.factory')->build($className);
             $dummy->setId($element->getId());
@@ -169,10 +169,10 @@ class Item extends Model\AbstractModel
         $storage = Storage::get('recycle_bin');
         $storage->write($this->getStorageFile(), $data);
 
-        $saveBinaryData = function ($element, $rec, self $scope) use ($storage) {
+        $saveBinaryData = function ($element, $rec, self $scope) use ($storage): void {
             // assets are kind of special because they can contain massive amount of binary data which isn't serialized, we create separate files for them
             if ($element instanceof Asset) {
-                if ($element->getType() != 'folder') {
+                if ($element->getType() !== 'folder') {
                     $storage->writeStream($scope->getStorageFileBinary($element), $element->getStream());
                 }
 
@@ -191,9 +191,7 @@ class Item extends Model\AbstractModel
         $storage = Storage::get('recycle_bin');
         $storage->delete($this->getStorageFile());
 
-        $files = $storage->listContents($this->getType())->filter(function (StorageAttributes $item) {
-            return (bool) strpos($item->path(), '/' . $this->getId() . '_');
-        });
+        $files = $storage->listContents($this->getType())->filter(fn(StorageAttributes $item) => (bool) strpos($item->path(), '/' . $this->getId() . '_'));
 
         /** @var StorageAttributes $item */
         foreach ($files as $item) {
@@ -243,7 +241,7 @@ class Item extends Model\AbstractModel
     protected function doRecursiveRestore(Element\ElementInterface $element): void
     {
         $storage = Storage::get('recycle_bin');
-        $restoreBinaryData = function (Element\ElementInterface $element, self $scope) use ($storage) {
+        $restoreBinaryData = function (Element\ElementInterface $element, self $scope) use ($storage): void {
             // assets are kinda special because they can contain massive amount of binary data which isn't serialized, we create separate files for them
             if ($element instanceof Asset) {
                 $binFile = $scope->getStorageFileBinary($element);
@@ -290,9 +288,8 @@ class Item extends Model\AbstractModel
             new \DeepCopy\TypeFilter\ReplaceFilter(
                 function ($currentValue) {
                     $elementType = Element\Service::getElementType($currentValue);
-                    $descriptor = new Element\ElementDescriptor($elementType, $currentValue->getId());
 
-                    return $descriptor;
+                    return new Element\ElementDescriptor($elementType, $currentValue->getId());
                 }
             ),
             new class((string)$this->element) extends TypeMatcher {

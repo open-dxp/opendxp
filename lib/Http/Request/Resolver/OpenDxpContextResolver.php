@@ -33,12 +33,8 @@ class OpenDxpContextResolver extends AbstractRequestResolver
 
     const CONTEXT_DEFAULT = 'default';
 
-    protected OpenDxpContextGuesser $guesser;
-
-    public function __construct(RequestStack $requestStack, OpenDxpContextGuesser $guesser)
+    public function __construct(RequestStack $requestStack, protected OpenDxpContextGuesser $guesser)
     {
-        $this->guesser = $guesser;
-
         parent::__construct($requestStack);
     }
 
@@ -49,7 +45,7 @@ class OpenDxpContextResolver extends AbstractRequestResolver
      */
     public function getOpenDxpContext(?Request $request = null): ?string
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 
@@ -81,14 +77,10 @@ class OpenDxpContextResolver extends AbstractRequestResolver
     public function matchesOpenDxpContext(Request $request, array|string $context): bool
     {
         if (!is_array($context)) {
-            if (!empty($context)) {
-                $context = [$context];
-            } else {
-                $context = [];
-            }
+            $context = empty($context) ? [] : [$context];
         }
 
-        if (empty($context)) {
+        if ($context === []) {
             throw new InvalidArgumentException('Can\'t match against empty opendxp context');
         }
 
@@ -97,13 +89,6 @@ class OpenDxpContextResolver extends AbstractRequestResolver
             // no context available to match -> false
             return false;
         }
-
-        foreach ($context as $ctx) {
-            if ($ctx === $resolvedContext) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($resolvedContext, $context, true);
     }
 }

@@ -52,15 +52,12 @@ class Dao extends Model\Dao\AbstractDao
 
                 // for fieldtypes which have their own save algorithm eg. relational data types, ...
                 $index = $this->model->getIndex();
-                $params = array_merge($params, [
-                    'saveRelationalData' => $saveRelationalData,
-                    'context' => [
-                        'containerType' => 'fieldcollection',
-                        'containerKey' => $this->model->getType(),
-                        'fieldname' => $this->model->getFieldname(),
-                        'index' => $index,
-                    ],
-                ]);
+                $params = [...$params, 'saveRelationalData' => $saveRelationalData, 'context' => [
+                    'containerType' => 'fieldcollection',
+                    'containerKey' => $this->model->getType(),
+                    'fieldname' => $this->model->getFieldname(),
+                    'index' => $index,
+                ]];
 
                 if ($fd instanceof Model\DataObject\ClassDefinition\Data\Relations\AbstractRelations
                             && ($params['saveRelationalData']['saveFieldcollectionRelations'] ?? false)) {
@@ -78,7 +75,7 @@ class Dao extends Model\Dao\AbstractDao
                 ];
                 if (is_array($fd->getColumnType())) {
                     $insertDataArray = $fd->getDataForResource($this->model->$getter(), $object, $fieldDefinitionParams);
-                    $data = array_merge($data, $insertDataArray);
+                    $data = [...$data, ...$insertDataArray];
                     $this->model->set($fieldName, $fd->getDataFromResource($insertDataArray, $object, $fieldDefinitionParams));
                 } else {
                     $insertData = $fd->getDataForResource($this->model->$getter(), $object, $fieldDefinitionParams);

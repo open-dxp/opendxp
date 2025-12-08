@@ -30,7 +30,7 @@ class File
     /**
      * @var null|resource
      */
-    protected static $context = null;
+    protected static $context;
 
     public static function getValidFilename(string $tmpFilename, ?string $language = null, string $replacement = '-'): string
     {
@@ -84,7 +84,7 @@ class File
         );
 
         if (!$keep) {
-            register_shutdown_function(static function () use ($filePath) {
+            register_shutdown_function(static function () use ($filePath): void {
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }

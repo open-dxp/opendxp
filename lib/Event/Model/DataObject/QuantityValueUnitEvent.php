@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class QuantityValueUnitEvent extends Event
 {
-    protected Unit $unit;
-
     /**
      * QuantityValueUnitEvent constructor.
      *
      */
-    public function __construct(Unit $unit)
+    public function __construct(protected Unit $unit)
     {
-        $this->unit = $unit;
     }
 
     public function getUnit(): Unit

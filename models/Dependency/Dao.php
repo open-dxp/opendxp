@@ -112,9 +112,8 @@ class Dao extends Model\Dao\AbstractDao
 
         if (count($requiresByPath) > 0) {
             return $requiresByPath;
-        } else {
-            return [];
         }
+        return [];
     }
 
     public function getFilterRequiredByPath(
@@ -170,9 +169,8 @@ class Dao extends Model\Dao\AbstractDao
 
         if (count($requiredByPath) > 0) {
             return $requiredByPath;
-        } else {
-            return [];
         }
+        return [];
     }
 
     /**
@@ -254,8 +252,8 @@ class Dao extends Model\Dao\AbstractDao
 
         // collect all IDs for deletion
         $idsForDeletion = [];
-        foreach ($existingDepencies as $targetType => $targetIds) {
-            foreach ($targetIds as $targetId => $rowId) {
+        foreach ($existingDepencies as $targetIds) {
+            foreach ($targetIds as $rowId) {
                 $idsForDeletion[] = $rowId;
             }
         }
@@ -265,17 +263,15 @@ class Dao extends Model\Dao\AbstractDao
             $this->db->executeStatement('DELETE FROM dependencies WHERE id IN (' . $idString . ')');
         }
 
-        if ($newData) {
-            foreach ($newData as $target) {
-                try {
-                    $this->db->insert('dependencies', [
-                        'sourceid' => $this->model->getSourceId(),
-                        'sourcetype' => $this->model->getSourceType(),
-                        'targetid' => $target['id'],
-                        'targettype' => $target['type'],
-                    ]);
-                } catch (UniqueConstraintViolationException $e) {
-                }
+        foreach ($newData as $target) {
+            try {
+                $this->db->insert('dependencies', [
+                    'sourceid' => $this->model->getSourceId(),
+                    'sourcetype' => $this->model->getSourceType(),
+                    'targetid' => $target['id'],
+                    'targettype' => $target['type'],
+                ]);
+            } catch (UniqueConstraintViolationException) {
             }
         }
     }

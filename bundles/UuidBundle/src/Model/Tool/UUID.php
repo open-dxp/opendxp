@@ -201,7 +201,7 @@ final class UUID extends Model\AbstractModel
      */
     public static function create(mixed $item): static
     {
-        $uuid = new static;
+        $uuid = new self;
         $uuid->setSystemInstanceIdentifier()->setItem($item);
         $uuid->setUuid($uuid->createUuid());
 

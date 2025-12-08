@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 abstract class KernelTestCase extends \Symfony\Bundle\FrameworkBundle\Test\KernelTestCase
 {
+    #[\Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
         $kernel = parent::createKernel($options);

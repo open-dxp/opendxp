@@ -26,11 +26,8 @@ use OpenDxp\Config;
  */
 class ClientFactory
 {
-    protected Config $config;
-
-    public function __construct(Config $config)
+    public function __construct(protected Config $config)
     {
-        $this->config = $config;
     }
 
     public function createClient(array $config = []): Client
@@ -57,10 +54,8 @@ class ClientFactory
             $guzzleConfig[RequestOptions::PROXY] = $proxyUri;
         }
 
-        $guzzleConfig = array_merge($guzzleConfig, $config);
+        $guzzleConfig = [...$guzzleConfig, ...$config];
 
-        $client = new Client($guzzleConfig);
-
-        return $client;
+        return new Client($guzzleConfig);
     }
 }

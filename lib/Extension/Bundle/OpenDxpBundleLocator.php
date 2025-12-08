@@ -28,18 +28,11 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class OpenDxpBundleLocator
 {
-    private Composer\PackageInfo $composerPackageInfo;
-
     private array $paths = [];
 
-    private bool $handleComposer = true;
-
-    public function __construct(Composer\PackageInfo $composerPackageInfo, array $paths = [], bool $handleComposer = true)
+    public function __construct(private readonly Composer\PackageInfo $composerPackageInfo, array $paths = [], private readonly bool $handleComposer = true)
     {
         $this->setPaths($paths);
-
-        $this->composerPackageInfo = $composerPackageInfo;
-        $this->handleComposer = $handleComposer;
     }
 
     private function setPaths(array $paths): void
@@ -66,7 +59,7 @@ class OpenDxpBundleLocator
     {
         $result = $this->findBundlesInPaths($this->paths);
         if ($this->handleComposer) {
-            $result = array_merge($result, $this->findComposerBundles());
+            $result = [...$result, ...$this->findComposerBundles()];
         }
 
         $result = array_values($result);
@@ -81,7 +74,7 @@ class OpenDxpBundleLocator
 
         $finder = new Finder();
         $finder
-            ->in(array_unique(array_filter($paths, 'is_dir')))
+            ->in(array_unique(array_filter($paths, is_dir(...))))
             ->name('*Bundle.php');
 
         /** @var SplFileInfo $file */
@@ -127,7 +120,7 @@ class OpenDxpBundleLocator
 
         // wildcard process composer paths which didn't have a dedicated bundle config entry
         if (count($composerPaths) > 0) {
-            $result = array_merge($result, $this->findBundlesInPaths($composerPaths));
+            return [...$result, ...$this->findBundlesInPaths($composerPaths)];
         }
 
         return $result;

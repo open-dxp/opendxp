@@ -49,10 +49,9 @@ trait CompositeIndexTrait
             $existingMap[$key] = implode(',', $columns);
         }
 
-        $newIndicesFilteredByType = array_filter($compositeIndices, function ($item) use ($type) {
+        $newIndicesFilteredByType = array_filter($compositeIndices, fn($item) =>
             // query or localized_query
-            return $item['index_type'] === $type;
-        });
+            $item['index_type'] === $type);
 
         $newIndicesMap = [];
         foreach ($newIndicesFilteredByType as $newIndex) {

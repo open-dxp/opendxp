@@ -30,6 +30,7 @@ class Dao extends Model\User\AbstractUser\Dao
      *
      * @throws Exception
      */
+    #[\Override]
     public function getById(int $id): void
     {
         parent::getById($id);
@@ -43,6 +44,7 @@ class Dao extends Model\User\AbstractUser\Dao
      *
      * @throws Exception
      */
+    #[\Override]
     public function getByName(string $name): void
     {
         parent::getByName($name);

@@ -22,6 +22,7 @@ use OpenDxp\Model\Element;
 
 class DocumentImporter extends AbstractElementImporter
 {
+    #[\Override]
     protected function importAttribute(Element\ElementInterface $element, string $targetLanguage, Attribute $attribute): void
     {
         if ($targetLanguage != $element->getProperty('language')) {

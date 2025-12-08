@@ -227,14 +227,14 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
                 $class = new self();
                 $name = $class->getDao()->getNameById($id);
                 if (!$name) {
-                    throw new Exception('Class definition with name ' . $name . ' or ID ' . $id . ' does not exist');
+                    throw new Exception('Class definition with name ' . $name . ' or ID ' . $id . ' does not exist', $e->getCode(), $e);
                 }
 
                 $definitionFile = $class->getDefinitionFile($name);
                 $class = @include $definitionFile;
 
                 if (!$class instanceof self) {
-                    throw new Exception('Class definition with name ' . $name . ' or ID ' . $id . ' does not exist');
+                    throw new Exception('Class definition with name ' . $name . ' or ID ' . $id . ' does not exist', $e->getCode(), $e);
                 }
 
                 $class->setId($id);
@@ -260,7 +260,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
             $id = $class->getDao()->getIdByName($name);
 
             return self::getById($id);
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -352,7 +352,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
             throw new Exception(sprintf('Invalid name for class definition: %s', $this->getName()));
         }
 
-        if (!preg_match('/[a-zA-Z0-9]([a-zA-Z0-9_]+)?/', $this->getId())) {
+        if (!preg_match('/[a-zA-Z0-9](\w+)?/', $this->getId())) {
             throw new Exception(sprintf('Invalid ID `%s` for class definition %s', $this->getId(), $this->getName()));
         }
 
@@ -390,7 +390,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
         // empty object cache
         try {
             Cache::clearTag('class_'.$this->getId());
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         foreach ($fieldDefinitions as $fd) {
@@ -476,9 +476,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
             $cd .= ' * ' . str_replace("\n", "\n * ", trim($fieldDefinitionDocBlockBuilder->buildFieldDefinitionDocBlock($fieldDefinition))) . "\n";
         }
 
-        $cd .= ' */';
-
-        return $cd;
+        return $cd . ' */';
     }
 
     public function delete(): void
@@ -502,20 +500,18 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
         // empty object cache
         try {
             Cache::clearTag('class_'.$this->getId());
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         // empty output cache
         try {
             Cache::clearTag('output');
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(function (DataObject\ClassDefinition\CustomLayout $layout) use ($id) {
-            return $layout->getClassId() === $id;
-        });
+        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {
@@ -704,7 +700,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
     public function setLayoutDefinitions(?ClassDefinition\Layout $layoutDefinitions): static
     {
         $oldFieldDefinitions = null;
-        if ($this->layoutDefinitions !== null) {
+        if ($this->layoutDefinitions instanceof \OpenDxp\Model\DataObject\ClassDefinition\Layout) {
             $this->setDeletedDataComponents([]);
             $oldFieldDefinitions = $this->getFieldDefinitions();
         }
@@ -719,7 +715,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
             $deletedComponents = [];
             foreach ($oldFieldDefinitions as $fieldDefinition) {
                 if (!array_key_exists($fieldDefinition->getName(), $newFieldDefinitions)) {
-                    array_push($deletedComponents, $fieldDefinition);
+                    $deletedComponents[] = $fieldDefinition;
                 }
             }
             $this->setDeletedDataComponents($deletedComponents);
@@ -730,11 +726,9 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
     private function extractDataDefinitions(ClassDefinition\Data|ClassDefinition\Layout|null $def): void
     {
-        if ($def instanceof DataObject\ClassDefinition\Layout) {
-            if ($def->hasChildren()) {
-                foreach ($def->getChildren() as $child) {
-                    $this->extractDataDefinitions($child);
-                }
+        if ($def instanceof DataObject\ClassDefinition\Layout && $def->hasChildren()) {
+            foreach ($def->getChildren() as $child) {
+                $this->extractDataDefinitions($child);
             }
         }
 
@@ -811,7 +805,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
      */
     public function setParentClass(string $parentClass): static
     {
-        $this->parentClass = (string) $parentClass;
+        $this->parentClass = $parentClass;
 
         return $this;
     }
@@ -846,7 +840,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
      */
     public function addEncryptedTables(array $tables): void
     {
-        $this->encryptedTables = array_unique(array_merge($this->encryptedTables, $tables));
+        $this->encryptedTables = array_unique([...$this->encryptedTables, ...$tables]);
     }
 
     /**
@@ -866,7 +860,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
      */
     public function isEncryptedTable(string $table): bool
     {
-        return (array_search($table, $this->encryptedTables) === false) ? false : true;
+        return in_array($table, $this->encryptedTables);
     }
 
     public function hasEncryptedTables(): bool
@@ -956,7 +950,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
      */
     public function setDescription(string $description): static
     {
-        $this->description = (string) $description;
+        $this->description = $description;
 
         return $this;
     }
@@ -1061,14 +1055,10 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
     public function getPreviewGenerator(): ?ClassDefinition\PreviewGeneratorInterface
     {
-        $interface = null;
-
         if ($this->getPreviewGeneratorReference()) {
-            /** @var ClassDefinition\PreviewGeneratorInterface $interface */
-            $interface = DataObject\ClassDefinition\Helper\PreviewGeneratorResolver::resolveGenerator($this->getPreviewGeneratorReference());
+            return DataObject\ClassDefinition\Helper\PreviewGeneratorResolver::resolveGenerator($this->getPreviewGeneratorReference());
         }
-
-        return $interface;
+        return null;
     }
 
     public function isEnableGridLocking(): bool
@@ -1131,8 +1121,6 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
     /**
      * @param ClassDefinition\Data[] $deletedDataComponents
-     *
-     * @return $this
      */
     public function setDeletedDataComponents(array $deletedDataComponents): ClassDefinition
     {
@@ -1146,9 +1134,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(function (DataObject\ClassDefinition\CustomLayout $layout) use ($id) {
-            return $layout->getClassId() === $id;
-        });
+        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {
@@ -1162,9 +1148,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
     {
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(function (DataObject\ClassDefinition\CustomLayout $layout) use ($id) {
-            return $layout->getClassId() === $id;
-        });
+        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {

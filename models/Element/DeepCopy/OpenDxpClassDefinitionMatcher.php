@@ -25,15 +25,12 @@ use OpenDxp\Model\DataObject\Concrete;
  */
 class OpenDxpClassDefinitionMatcher implements Matcher
 {
-    private string $matchType;
-
     /**
      * OpenDxpClassDefinitionMatcher constructor.
      *
      */
-    public function __construct(string $matchType)
+    public function __construct(private readonly string $matchType)
     {
-        $this->matchType = $matchType;
     }
 
     /**

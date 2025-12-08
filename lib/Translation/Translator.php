@@ -52,7 +52,7 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
     public function __construct(TranslatorInterface $translator)
     {
         if (!$translator instanceof TranslatorBagInterface) {
-            throw new InvalidArgumentException(sprintf('The Translator "%s" must implement TranslatorInterface and TranslatorBagInterface.', get_class($translator)));
+            throw new InvalidArgumentException(sprintf('The Translator "%s" must implement TranslatorInterface and TranslatorBagInterface.', $translator::class));
         }
 
         $this->translator = $translator;
@@ -70,7 +70,7 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
             $domain = Translation::DOMAIN_DEFAULT;
         }
 
-        if ($domain === Translation::DOMAIN_ADMIN && !empty($this->adminTranslationMapping)) {
+        if ($domain === Translation::DOMAIN_ADMIN && $this->adminTranslationMapping !== []) {
             if (null === $locale) {
                 $locale = $this->getLocale();
             }
@@ -227,12 +227,13 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
         }
 
         $lookForFallback = empty($translated);
-        if ($normalizedId != $translated && $translated) {
+        if ($normalizedId !== $translated && $translated) {
             return $translated;
-        } elseif ($normalizedId == $translated) {
+        }
+        if ($normalizedId === $translated) {
             if ($this->getCatalogue($locale)->has($normalizedId, $domain)) {
                 $translated = $this->getCatalogue($locale)->get($normalizedId, $domain);
-                if ($normalizedId != $translated && $translated) {
+                if ($normalizedId !== $translated && $translated) {
                     return $translated;
                 }
             } elseif (Translation::isAValidDomain($domain)) {
@@ -271,7 +272,7 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
         }
 
         // now check for custom fallback locales, only for shared translations
-        if ($lookForFallback && $domain == 'messages') {
+        if ($lookForFallback && $domain === 'messages') {
             foreach (Tool::getFallbackLanguagesFor($locale) as $fallbackLanguage) {
                 $this->lazyInitialize($domain, $fallbackLanguage);
                 $catalogue = $this->getCatalogue($fallbackLanguage);
@@ -282,17 +283,17 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
                     $fallbackValue = $catalogue->get($normalizedId, $domain);
                 }
 
-                if ($fallbackValue && $normalizedId != $fallbackValue) {
-                    $isIntl = $catalogue->defines($normalizedId, $domain . $catalogue::INTL_DOMAIN_SUFFIX);
+                if ($fallbackValue && $normalizedId !== $fallbackValue) {
+                    $isIntl = $catalogue->defines($normalizedId, $domain . \Symfony\Component\Translation\MessageCatalogueInterface::INTL_DOMAIN_SUFFIX);
                     // update fallback value in original catalogue otherwise multiple calls to the same id will not work
-                    $this->getCatalogue($locale)->set($normalizedId, $fallbackValue, $domain . ($isIntl ? $catalogue::INTL_DOMAIN_SUFFIX : ''));
+                    $this->getCatalogue($locale)->set($normalizedId, $fallbackValue, $domain . ($isIntl ? \Symfony\Component\Translation\MessageCatalogueInterface::INTL_DOMAIN_SUFFIX : ''));
 
                     return $this->translator->trans($normalizedId, $parameters, $domain, $locale);
                 }
             }
         }
 
-        return !empty($translated) ? $translated : $id;
+        return empty($translated) ? $id : $translated;
     }
 
     /**
@@ -362,7 +363,7 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
     private function updateLinks(string $text): string
     {
         if (strpos($text, 'opendxp_id')) {
-            $text = Tool\Text::wysiwygText($text);
+            return Tool\Text::wysiwygText($text);
         }
 
         return $text;

@@ -128,10 +128,6 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return $dataArray;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataForGrid(?DataObject\Data\Link $data, ?Concrete $object = null, array $params = []): ?array
     {
         return $this->getDataForEditmode($data, $object, $params);
@@ -154,10 +150,6 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return $link;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): ?DataObject\Data\Link
     {
         return $this->getDataFromEditmode($data, $object, $params);
@@ -169,11 +161,13 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return (string) $data;
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data instanceof DataObject\Data\Link) {
@@ -205,38 +199,37 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         }
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
 
-        if ($data instanceof DataObject\Data\Link && $data->getInternal()) {
-            if ((int)$data->getInternal() > 0) {
-                if ($data->getInternalType() == 'document') {
-                    if ($doc = Document::getById($data->getInternal())) {
-                        $key = 'document_' . $doc->getId();
-                        $dependencies[$key] = [
-                            'id' => $doc->getId(),
-                            'type' => 'document',
-                        ];
-                    }
-                } elseif ($data->getInternalType() == 'asset') {
-                    if ($asset = Asset::getById($data->getInternal())) {
-                        $key = 'asset_' . $asset->getId();
+        if ($data instanceof DataObject\Data\Link && $data->getInternal() && (int) $data->getInternal() > 0) {
+            if ($data->getInternalType() == 'document') {
+                if ($doc = Document::getById($data->getInternal())) {
+                    $key = 'document_' . $doc->getId();
+                    $dependencies[$key] = [
+                        'id' => $doc->getId(),
+                        'type' => 'document',
+                    ];
+                }
+            } elseif ($data->getInternalType() == 'asset') {
+                if ($asset = Asset::getById($data->getInternal())) {
+                    $key = 'asset_' . $asset->getId();
 
-                        $dependencies[$key] = [
-                            'id' => $asset->getId(),
-                            'type' => 'asset',
-                        ];
-                    }
-                } elseif ($data->getInternalType() == 'object') {
-                    if ($object = DataObject\Concrete::getById($data->getInternal())) {
-                        $key = 'object_' . $object->getId();
+                    $dependencies[$key] = [
+                        'id' => $asset->getId(),
+                        'type' => 'asset',
+                    ];
+                }
+            } elseif ($data->getInternalType() == 'object') {
+                if ($object = DataObject\Concrete::getById($data->getInternal())) {
+                    $key = 'object_' . $object->getId();
 
-                        $dependencies[$key] = [
-                            'id' => $object->getId(),
-                            'type' => 'object',
-                        ];
-                    }
+                    $dependencies[$key] = [
+                        'id' => $object->getId(),
+                        'type' => 'object',
+                    ];
                 }
             }
         }
@@ -244,18 +237,18 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return $dependencies;
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
-        if ($data instanceof DataObject\Data\Link && $data->getInternal()) {
-            if ((int)$data->getInternal() > 0) {
-                $tag = Element\Service::getElementCacheTag($data->getInternalType(), $data->getInternal());
-                $tags[$tag] = $tag;
-            }
+        if ($data instanceof DataObject\Data\Link && $data->getInternal() && (int) $data->getInternal() > 0) {
+            $tag = Element\Service::getElementCacheTag($data->getInternalType(), $data->getInternal());
+            $tags[$tag] = $tag;
         }
 
         return $tags;
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -266,6 +259,7 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -276,6 +270,7 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -284,17 +279,18 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
     /** Generates a pretty version preview (similar to getVersionPreview) can be either HTML or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?DataObject\Data\Link $data, ?Concrete $object = null, array $params = []): ?string
     {
-        if ($data instanceof DataObject\Data\Link) {
-            if ($data->getText()) {
-                return $data->getText();
-            } elseif ($data->getDirect()) {
-                return $data->getDirect();
-            }
+        if (!$data instanceof DataObject\Data\Link) {
+            return null;
+        }
+        if ($data->getText()) {
+            return $data->getText();
+        }
+        if ($data->getDirect()) {
+            return $data->getDirect();
         }
 
         return null;
@@ -374,9 +370,9 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         if (is_array($value)) {
             $link = new DataObject\Data\Link();
             $link->setValues($value);
-
             return $link;
-        } elseif ($value instanceof DataObject\Data\Link) {
+        }
+        if ($value instanceof DataObject\Data\Link) {
             return $value;
         }
 

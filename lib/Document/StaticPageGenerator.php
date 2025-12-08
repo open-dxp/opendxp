@@ -32,7 +32,7 @@ class StaticPageGenerator
 {
     public function __construct(
         protected DocumentRendererInterface $documentRenderer,
-        private LockFactory $lockFactory,
+        private readonly LockFactory $lockFactory,
         protected SystemSettingsConfig $settingsConfig
     ) {
     }

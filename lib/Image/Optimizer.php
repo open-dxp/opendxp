@@ -49,19 +49,13 @@ class Optimizer implements ImageOptimizerInterface
                         'path' => $optimizedFile,
                         'optimizer' => $optimizer,
                     ];
-                } catch (ImageOptimizationFailedException $ex) {
+                } catch (ImageOptimizationFailedException) {
                 }
             }
         }
 
         // order by filesize
-        usort($optimizedImages, function ($a, $b) {
-            if ($a['filesize'] == $b['filesize']) {
-                return 0;
-            }
-
-            return ($a['filesize'] < $b['filesize']) ? -1 : 1;
-        });
+        usort($optimizedImages, fn($a, $b) => $a['filesize'] <=> $b['filesize']);
 
         // first entry is the smallest -> use this one
         if (count($optimizedImages)) {
@@ -78,7 +72,7 @@ class Optimizer implements ImageOptimizerInterface
     {
         if (in_array($optimizer, $this->optimizers)) {
             throw new InvalidArgumentException(sprintf('Optimizer of class %s has already been registered',
-                get_class($optimizer)));
+                $optimizer::class));
         }
 
         $this->optimizers[] = $optimizer;

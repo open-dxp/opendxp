@@ -41,7 +41,7 @@ final class RedirectingPlugin
     {
         $config = SystemSettingsConfig::get()['email'];
         if (!empty($config['debug']['email_addresses'])) {
-            $recipient = array_merge($recipient, array_filter(explode(',', $config['debug']['email_addresses'])));
+            $recipient = [...$recipient, ...array_filter(explode(',', $config['debug']['email_addresses']))];
         }
 
         $this->recipient = $recipient;
@@ -113,7 +113,7 @@ final class RedirectingPlugin
      */
     private function appendDebugInformation(Mail $message): void
     {
-        if ($message->isPreventingDebugInformationAppending() != true) {
+        if (!$message->isPreventingDebugInformationAppending()) {
             $originalData = [];
 
             //adding the debug information to the html email

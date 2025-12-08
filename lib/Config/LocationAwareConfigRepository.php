@@ -49,20 +49,8 @@ class LocationAwareConfigRepository
 
     public const DIRECTORY = 'directory';
 
-    protected array $containerConfig = [];
-
-    protected ?string $settingsStoreScope = null;
-
-    protected ?array $storageConfig = null;
-
-    public function __construct(
-        array $containerConfig,
-        ?string $settingsStoreScope,
-        array $storageConfig,
-    ) {
-        $this->containerConfig = $containerConfig;
-        $this->settingsStoreScope = $settingsStoreScope;
-        $this->storageConfig = $storageConfig;
+    public function __construct(protected array $containerConfig, protected ?string $settingsStoreScope, protected ?array $storageConfig)
+    {
     }
 
     public function loadConfigByKey(string $key): array
@@ -74,17 +62,14 @@ class LocationAwareConfigRepository
         if ($loadType === null) {
             // try to load from container config
             $data = $this->getDataFromContainerConfig($key, $dataSource);
-
             // try to load from SettingsStore
             if (!$data) {
                 $data = $this->getDataFromSettingsStore($key, $dataSource);
             }
-        } else {
-            if ($loadType === self::LOCATION_SYMFONY_CONFIG) {
-                $data = $this->getDataFromContainerConfig($key, $dataSource);
-            } elseif ($loadType === self::LOCATION_SETTINGS_STORE) {
-                $data = $this->getDataFromSettingsStore($key, $dataSource);
-            }
+        } elseif ($loadType === self::LOCATION_SYMFONY_CONFIG) {
+            $data = $this->getDataFromContainerConfig($key, $dataSource);
+        } elseif ($loadType === self::LOCATION_SETTINGS_STORE) {
+            $data = $this->getDataFromSettingsStore($key, $dataSource);
         }
 
         return [
@@ -123,14 +108,17 @@ class LocationAwareConfigRepository
     {
         $key = $key ?: uniqid('opendxp_random_key_', true);
         $writeTarget = $this->getWriteTarget();
-
         if ($writeTarget === self::LOCATION_SYMFONY_CONFIG && !OpenDxp::getKernel()->isDebug()) {
             return false;
-        } elseif ($writeTarget === self::LOCATION_DISABLED) {
+        }
+        if ($writeTarget === self::LOCATION_DISABLED) {
             return false;
-        } elseif ($dataSource === self::LOCATION_SYMFONY_CONFIG && !file_exists($this->getVarConfigFile($key))) {
+        }
+        if ($dataSource === self::LOCATION_SYMFONY_CONFIG && !file_exists($this->getVarConfigFile($key))) {
             return false;
-        } elseif ($dataSource && $dataSource !== $writeTarget) {
+        }
+
+        if ($dataSource && $dataSource !== $writeTarget) {
             return false;
         }
 
@@ -260,10 +248,7 @@ class LocationAwareConfigRepository
 
     public function fetchAllKeys(): array
     {
-        return array_unique(array_merge(
-            SettingsStore::getIdsByScope($this->settingsStoreScope),
-            array_keys($this->containerConfig)
-        ));
+        return array_unique([...SettingsStore::getIdsByScope($this->settingsStoreScope), ...array_keys($this->containerConfig)]);
     }
 
     public function fetchAllKeysByReadTargets(): array

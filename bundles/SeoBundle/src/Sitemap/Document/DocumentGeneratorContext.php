@@ -30,7 +30,7 @@ class DocumentGeneratorContext extends GeneratorContext
         ?Site $site = null,
         array $parameters = []
     ) {
-        if (null !== $site) {
+        if ($site instanceof \OpenDxp\Model\Site) {
             $parameters['site'] = $site;
         }
 

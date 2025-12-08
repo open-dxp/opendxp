@@ -26,11 +26,8 @@ use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
  */
 class MkdirCacheWarmer implements CacheWarmerInterface
 {
-    private int $mode;
-
-    public function __construct(int $mode = 0775)
+    public function __construct(private readonly int $mode = 0775)
     {
-        $this->mode = $mode;
     }
 
     public function isOptional(): bool

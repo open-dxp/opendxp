@@ -24,15 +24,12 @@ use OpenDxp\Marshaller\MarshallerInterface;
  */
 class Localizedfields implements MarshallerInterface
 {
-    protected MarshallerService $marshallerService;
-
     /**
      * Localizedfields constructor.
      *
      */
-    public function __construct(MarshallerService $marshallerService)
+    public function __construct(protected MarshallerService $marshallerService)
     {
-        $this->marshallerService = $marshallerService;
     }
 
     public function marshal(mixed $value, array $params = []): mixed

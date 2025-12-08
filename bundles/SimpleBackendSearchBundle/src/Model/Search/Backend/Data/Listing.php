@@ -53,9 +53,10 @@ class Listing extends AbstractListing
      */
     public function __construct()
     {
-        $this->initDao(__CLASS__);
+        $this->initDao(self::class);
     }
 
+    #[\Override]
     public function isValidOrderKey(string $key): bool
     {
         return in_array(

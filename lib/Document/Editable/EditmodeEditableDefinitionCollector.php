@@ -68,7 +68,7 @@ final class EditmodeEditableDefinitionCollector
 
     public function stashPush(): void
     {
-        array_push($this->stash, $this->editableDefinitions);
+        $this->stash[] = $this->editableDefinitions;
         $this->editableDefinitions = [];
     }
 
@@ -111,12 +111,10 @@ final class EditmodeEditableDefinitionCollector
      */
     public function getHtml(): string
     {
-        $code = '
+        return '
             <script>
                 var editableDefinitions = ' . $this->getJson() . ';
             </script>
         ';
-
-        return $code;
     }
 }

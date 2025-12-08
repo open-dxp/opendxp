@@ -32,6 +32,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
      */
     public ?string $restrictTo = null;
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -54,6 +55,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
         return $this->restrictTo;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -64,6 +66,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
         return '@' . CountryOptionsProvider::class;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'country';

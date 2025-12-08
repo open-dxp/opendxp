@@ -25,11 +25,8 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class BundleRoutingLoader extends Loader
 {
-    private BundleConfigLocator $locator;
-
-    public function __construct(BundleConfigLocator $locator)
+    public function __construct(private readonly BundleConfigLocator $locator)
     {
-        $this->locator = $locator;
     }
 
     public function load(mixed $resource, ?string $type = null): mixed
@@ -37,7 +34,7 @@ class BundleRoutingLoader extends Loader
         $collection = new RouteCollection();
         $files = $this->locator->locate('routing');
 
-        if (empty($files)) {
+        if ($files === []) {
             return $collection;
         }
 

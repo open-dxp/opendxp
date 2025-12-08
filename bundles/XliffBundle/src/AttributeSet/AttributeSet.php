@@ -20,8 +20,6 @@ use OpenDxp\Bundle\XliffBundle\TranslationItemCollection\TranslationItem;
 
 class AttributeSet
 {
-    private TranslationItem $translationItem;
-
     private string $sourceLanguage = '';
 
     /**
@@ -38,9 +36,8 @@ class AttributeSet
      * DataExtractorResult constructor.
      *
      */
-    public function __construct(TranslationItem $translationItem)
+    public function __construct(private TranslationItem $translationItem)
     {
-        $this->translationItem = $translationItem;
     }
 
     public function getTranslationItem(): TranslationItem
@@ -96,7 +93,7 @@ class AttributeSet
 
     public function isEmpty(): bool
     {
-        if (empty($this->attributes)) {
+        if ($this->attributes === []) {
             return true;
         }
 

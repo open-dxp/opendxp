@@ -28,7 +28,7 @@ use Traversable;
  */
 class CollectionServiceLocator extends ServiceLocator implements IteratorAggregate
 {
-    private array $ids;
+    private readonly array $ids;
 
     public function __construct($factories)
     {
@@ -39,11 +39,10 @@ class CollectionServiceLocator extends ServiceLocator implements IteratorAggrega
 
     public function all(): array
     {
-        return array_map(function ($id) {
-            return $this->get($id);
-        }, $this->ids);
+        return array_map($this->get(...), $this->ids);
     }
 
+    #[\Override]
     public function getIterator(): Traversable
     {
         foreach ($this->ids as $id) {

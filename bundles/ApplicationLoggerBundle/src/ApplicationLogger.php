@@ -149,16 +149,12 @@ class ApplicationLogger implements LoggerInterface
             $previousCall = $logCall;
             $logCall = $backtrace[$i];
 
-            if (!empty($logCall['class']) && $logCall['class'] === __CLASS__) {
-                if (in_array($logCall['function'], $validMethods)) {
-                    break;
-                }
+            if (!empty($logCall['class']) && $logCall['class'] === self::class && in_array($logCall['function'], $validMethods)) {
+                break;
             }
         }
 
-        $normalizeFile = function ($filename) {
-            return str_replace(OPENDXP_PROJECT_ROOT . '/', '', $filename);
-        };
+        $normalizeFile = (fn($filename) => str_replace(OPENDXP_PROJECT_ROOT . '/', '', $filename));
 
         $source = '';
         if (null !== $previousCall) {
@@ -248,16 +244,12 @@ class ApplicationLogger implements LoggerInterface
             }
         }
 
-        if (isset($params[2])) {
-            if ($params[2] instanceof FileObject) {
-                $context['fileObject'] = $params[2];
-            }
+        if (isset($params[2]) && $params[2] instanceof FileObject) {
+            $context['fileObject'] = $params[2];
         }
 
-        if (isset($params[3])) {
-            if (is_string($params[3])) {
-                $context['component'] = $params[3];
-            }
+        if (isset($params[3]) && is_string($params[3])) {
+            $context['component'] = $params[3];
         }
 
         $this->log($level, $message, $context);
@@ -296,10 +288,7 @@ class ApplicationLogger implements LoggerInterface
 
         $fileObject = self::createExceptionFileObject($exception);
 
-        $logger->log($level, $message, array_merge([
-            'relatedObject' => $relatedObject,
-            'fileObject' => $fileObject,
-        ], $context));
+        $logger->log($level, $message, ['relatedObject' => $relatedObject, 'fileObject' => $fileObject, ...$context]);
     }
 
     private static function exceptionToString(Throwable $exceptionObject, bool $includeStackTrace, bool $includePrevious = false): string

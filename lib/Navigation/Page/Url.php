@@ -89,13 +89,9 @@ class Url extends Page
 
     // Public methods:
 
+    #[\Override]
     public function toArray(): array
     {
-        return array_merge(
-            parent::toArray(),
-            [
-                'uri' => $this->getUri(),
-            ]
-        );
+        return [...parent::toArray(), 'uri' => $this->getUri()];
     }
 }

@@ -57,16 +57,19 @@ abstract class Kernel extends SymfonyKernel
 
     private BundleCollection $bundleCollection;
 
+    #[\Override]
     public function getProjectDir(): string
     {
         return OPENDXP_PROJECT_ROOT;
     }
 
+    #[\Override]
     public function getCacheDir(): string
     {
         return ($_SERVER['APP_CACHE_DIR'] ?? OPENDXP_SYMFONY_CACHE_DIRECTORY) . '/' . $this->environment;
     }
 
+    #[\Override]
     public function getLogDir(): string
     {
         return OPENDXP_LOG_DIRECTORY;
@@ -94,7 +97,7 @@ abstract class Kernel extends SymfonyKernel
             'select_options',
         ];
 
-        $loader->load(function (ContainerBuilder $container) use ($loader, $configKeysArray) {
+        $loader->load(function (ContainerBuilder $container) use ($loader, $configKeysArray): void {
             $containerConfig = ConfigurationHelper::getConfigNodeFromSymfonyTree($container, 'opendxp');
 
             foreach ($configKeysArray as $configKey) {
@@ -103,12 +106,12 @@ abstract class Kernel extends SymfonyKernel
 
                 $configDir = null;
                 if ($readTargetConf !== null) {
-                    if ($readTargetConf[LocationAwareConfigRepository::TYPE] === LocationAwareConfigRepository::LOCATION_SETTINGS_STORE ||
-                        ($readTargetConf[LocationAwareConfigRepository::TYPE] !== LocationAwareConfigRepository::LOCATION_SYMFONY_CONFIG && $writeTargetConf[LocationAwareConfigRepository::TYPE] !== LocationAwareConfigRepository::LOCATION_SYMFONY_CONFIG)
-                    ) {
+                    if ($readTargetConf[LocationAwareConfigRepository::TYPE] === LocationAwareConfigRepository::LOCATION_SETTINGS_STORE) {
                         continue;
                     }
-
+                    if ($readTargetConf[LocationAwareConfigRepository::TYPE] !== LocationAwareConfigRepository::LOCATION_SYMFONY_CONFIG && $writeTargetConf[LocationAwareConfigRepository::TYPE] !== LocationAwareConfigRepository::LOCATION_SYMFONY_CONFIG) {
+                        continue;
+                    }
                     if ($readTargetConf[LocationAwareConfigRepository::TYPE] === LocationAwareConfigRepository::LOCATION_SYMFONY_CONFIG && $readTargetConf[LocationAwareConfigRepository::OPTIONS][LocationAwareConfigRepository::DIRECTORY] !== null) {
                         $configDir = rtrim($readTargetConf[LocationAwareConfigRepository::OPTIONS][LocationAwareConfigRepository::DIRECTORY], '/\\');
                     }
@@ -126,9 +129,10 @@ abstract class Kernel extends SymfonyKernel
         });
     }
 
+    #[\Override]
     public function boot(): void
     {
-        if (true === $this->booted) {
+        if ($this->booted) {
             // make sure container reset is handled properly
             parent::boot();
 
@@ -141,9 +145,10 @@ abstract class Kernel extends SymfonyKernel
         parent::boot();
     }
 
+    #[\Override]
     public function shutdown(): void
     {
-        if (true === $this->booted) {
+        if ($this->booted) {
             // cleanup runtime cache, doctrine, monolog ... to free some memory and avoid locking issues
             $this->container->get(\OpenDxp\Helper\LongRunningHelper::class)->cleanUp();
         }
@@ -151,6 +156,7 @@ abstract class Kernel extends SymfonyKernel
         parent::shutdown();
     }
 
+    #[\Override]
     protected function initializeContainer(): void
     {
         parent::initializeContainer();
@@ -161,7 +167,7 @@ abstract class Kernel extends SymfonyKernel
         \OpenDxp\Cache::init();
 
         // on opendxp shutdown
-        register_shutdown_function(function () {
+        register_shutdown_function(function (): void {
 
             try {
                 // check if container still exists at this point as it could already

@@ -91,7 +91,7 @@ final class WebsiteSetting extends AbstractModel
      */
     public static function getByName(string $name, ?int $siteId = null, ?string $language = null, ?string $fallbackLanguage = null): ?WebsiteSetting
     {
-        $nameCacheKey = static::getCacheKey($name, $siteId, $language);
+        $nameCacheKey = self::getCacheKey($name, $siteId, $language);
 
         // check if opendxp already knows the id for this $name, if yes just return it
         if (array_key_exists($nameCacheKey, self::$nameIdMappingCache)) {
@@ -103,11 +103,9 @@ final class WebsiteSetting extends AbstractModel
 
         try {
             $setting->getDao()->getByName($name, $siteId, $language);
-        } catch (NotFoundException $e) {
-            if ($language != $fallbackLanguage) {
-                $result = self::getByName($name, $siteId, $fallbackLanguage, $fallbackLanguage);
-
-                return $result;
+        } catch (NotFoundException) {
+            if ($language !== $fallbackLanguage) {
+                return self::getByName($name, $siteId, $fallbackLanguage, $fallbackLanguage);
             }
 
             return null;

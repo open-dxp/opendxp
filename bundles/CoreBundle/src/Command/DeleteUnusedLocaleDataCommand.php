@@ -72,7 +72,7 @@ class DeleteUnusedLocaleDataCommand extends AbstractCommand
             $classId = str_replace('object_localized_data_', '', $table);
 
             $result = $db->fetchAllAssociative('SELECT DISTINCT `language` FROM ' . $table . ' WHERE `language` NOT IN(' . implode(',', $languageList) .')');
-            $result = ($result ? $result : []);
+            $result = ($result ?: []);
 
             //delete data from object_localized_data_classID tables
             foreach ($result as $res) {
@@ -127,7 +127,7 @@ class DeleteUnusedLocaleDataCommand extends AbstractCommand
                 }
             }
 
-            if ($printLine == true) {
+            if ($printLine) {
                 $output->writeln('------------');
             }
         }

@@ -83,7 +83,7 @@ final class GroupConfig extends Model\AbstractModel
             Cache::save($config, $cacheKey);
 
             return $config;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -109,14 +109,14 @@ final class GroupConfig extends Model\AbstractModel
 
             $config = new self();
             $config->setName($name);
-            $config->setStoreId($storeId ? $storeId : 1);
+            $config->setStoreId($storeId ?: 1);
             $config->getDao()->getByName();
 
             Cache\RuntimeCache::set($cacheKey, $config);
             Cache::save($config, $cacheKey);
 
             return $config;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }

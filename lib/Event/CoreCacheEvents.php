@@ -20,22 +20,16 @@ final class CoreCacheEvents
 {
     /**
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const INIT = 'opendxp.cache.core.init';
+    const string INIT = 'opendxp.cache.core.init';
 
     /**
      * @Event("Symfony\Contracts\EventDispatcher\Event")
-     *
-     * @var string
      */
-    const ENABLE = 'opendxp.cache.core.enable';
+    const string ENABLE = 'opendxp.cache.core.enable';
 
     /**
      * @Event("Symfony\Contracts\EventDispatcher\Event")
-     *
-     * @var string
      */
-    const DISABLE = 'opendxp.cache.core.disable';
+    const string DISABLE = 'opendxp.cache.core.disable';
 }

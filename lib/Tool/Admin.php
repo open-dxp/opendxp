@@ -55,10 +55,8 @@ class Admin
                             $languageCode = $parts[1];
                         }
 
-                        if ($parts[1] === 'json' || $parts[0] === 'admin') {
-                            if (OpenDxp::getContainer()->get(LocaleServiceInterface::class)->isLocale($languageCode)) {
-                                $translatedLanguages[] = $languageCode;
-                            }
+                        if (($parts[1] === 'json' || $parts[0] === 'admin') && OpenDxp::getContainer()->get(LocaleServiceInterface::class)->isLocale($languageCode)) {
+                            $translatedLanguages[] = $languageCode;
                         }
                     }
                 }
@@ -72,7 +70,7 @@ class Admin
             }
         }
 
-        if (empty($languages)) {
+        if ($languages === []) {
             $languages = $translatedLanguages;
         }
 
@@ -86,12 +84,10 @@ class Admin
         $storage = Storage::get('admin');
         $storage->write($scriptPath, $scriptContent);
 
-        $params = [
+        return [
             'storageFile' => basename($scriptPath),
             '_dc' => \OpenDxp\Version::getRevision(),
         ];
-
-        return $params;
     }
 
     public static function determineCsvDialect(string $file): stdClass
@@ -105,7 +101,7 @@ class Admin
         try {
             $sniffer = new Csv();
             $dialect = $sniffer->detect($sample);
-        } catch (Exception $e) {
+        } catch (Exception) {
             // use default settings
             $dialect = new stdClass();
             $dialect->delimiter = ';';
@@ -138,7 +134,7 @@ class Admin
         if ($contentLanguages) {
             $contentLanguages = array_intersect($contentLanguages, $languages);
             $newLanguages = array_diff($languages, $contentLanguages);
-            $languages = array_merge($contentLanguages, $newLanguages);
+            $languages = [...$contentLanguages, ...$newLanguages];
         }
 
         if (in_array('default', $languages)) {

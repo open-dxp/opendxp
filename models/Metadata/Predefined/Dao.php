@@ -27,8 +27,9 @@ use Symfony\Component\Uid\Uuid as Uid;
  */
 class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
-    private const CONFIG_KEY = 'predefined_asset_metadata';
+    private const string CONFIG_KEY = 'predefined_asset_metadata';
 
+    #[\Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -74,15 +75,13 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $list = new Listing();
         /** @var Model\Metadata\Predefined[] $definitions */
         $definitions = array_values(array_filter($list->getDefinitions(), function ($item) use ($name, $language) {
-            $return = true;
             if ($name && $item->getName() != $name) {
-                $return = false;
+                return false;
             }
             if ($language && $item->getLanguage() != $language) {
-                $return = false;
+                return false;
             }
-
-            return $return;
+            return true;
         }));
 
         if (count($definitions) && $definitions[0]->getId()) {
@@ -127,6 +126,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
+    #[\Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

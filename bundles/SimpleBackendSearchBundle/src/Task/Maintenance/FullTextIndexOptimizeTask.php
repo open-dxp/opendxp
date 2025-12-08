@@ -27,7 +27,7 @@ use Symfony\Component\Lock\LockInterface;
  */
 class FullTextIndexOptimizeTask implements TaskInterface
 {
-    private LockInterface $lock;
+    private readonly LockInterface $lock;
 
     public function __construct(LockFactory $lockFactory)
     {

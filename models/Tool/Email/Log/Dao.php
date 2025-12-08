@@ -91,7 +91,7 @@ class Dao extends Model\Dao\AbstractDao
 
         try {
             $this->db->update(self::$dbTable, $data, ['id' => $this->model->getId()]);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Logger::emerg('Could not Save emailLog with the id "'.$this->model->getId().'" ');
         }
     }
@@ -117,14 +117,12 @@ class Dao extends Model\Dao\AbstractDao
     {
         if (!is_array($data)) {
             return json_encode(new stdClass());
-        } else {
-            $loggingData = [];
-            foreach ($data as $key => $value) {
-                $loggingData[] = self::prepareLoggingData($key, $value);
-            }
-
-            return $loggingData;
         }
+        $loggingData = [];
+        foreach ($data as $key => $value) {
+            $loggingData[] = self::prepareLoggingData($key, $value);
+        }
+        return $loggingData;
     }
 
     /**
@@ -147,7 +145,7 @@ class Dao extends Model\Dao\AbstractDao
         } elseif (is_object($value) && method_exists($value, 'getId')) {
             $class->data = ['type' => 'object',
                 'objectId' => $value->getId(),
-                'objectClass' => get_class($value), ];
+                'objectClass' => $value::class, ];
         } elseif (is_array($value)) {
             foreach ($value as $entryKey => $entryValue) {
                 $class->children[] = self::prepareLoggingData($entryKey, $entryValue);

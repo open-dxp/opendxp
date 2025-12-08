@@ -38,7 +38,7 @@ class DefaultConverter implements QuantityValueConverterInterface
         }
 
         $fromBaseUnit = $fromUnit->getBaseunit();
-        if ($fromBaseUnit === null) {
+        if (!$fromBaseUnit instanceof \OpenDxp\Model\DataObject\QuantityValue\Unit) {
             $fromUnit = clone $fromUnit;
             $fromBaseUnit = $fromUnit;
         }
@@ -52,7 +52,7 @@ class DefaultConverter implements QuantityValueConverterInterface
         }
 
         $toBaseUnit = $toUnit->getBaseunit();
-        if ($toBaseUnit === null) {
+        if (!$toBaseUnit instanceof \OpenDxp\Model\DataObject\QuantityValue\Unit) {
             $toUnit = clone $toUnit;
             $toBaseUnit = $toUnit;
         }

@@ -49,13 +49,11 @@ class Input extends Model\Document\Editable implements EditmodeDataInterface
     public function frontend()
     {
         $config = $this->getConfig();
-
-        $text = $this->text;
         if (!isset($config['htmlspecialchars']) || $config['htmlspecialchars'] !== false) {
-            $text = htmlspecialchars($this->text);
+            return htmlspecialchars($this->text);
         }
 
-        return $text;
+        return $this->text;
     }
 
     public function getDataEditmode(): string

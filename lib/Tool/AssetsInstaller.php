@@ -66,14 +66,16 @@ class AssetsInstaller
 
         $preparedOptions = [];
         foreach ($this->resolveOptions($options) as $optionKey => $optionValue) {
-            if ($optionValue === false || $optionValue === null) {
+            if ($optionValue === false) {
                 continue;
             }
-
+            if ($optionValue === null) {
+                continue;
+            }
             $preparedOptions[] = '--' . $optionKey . (($optionValue === true) ? '' : '=' . $optionValue);
         }
 
-        $arguments = array_merge($arguments, $preparedOptions);
+        $arguments = [...$arguments, ...$preparedOptions];
 
         $arguments[] = OPENDXP_WEB_ROOT;
 
@@ -115,21 +117,9 @@ class AssetsInstaller
         $composerJsonSetting = $this->readComposerJsonSetting();
         if (null !== $composerJsonSetting) {
             if ('symlink' === $composerJsonSetting) {
-                $defaults = array_merge(
-                    $defaults,
-                    [
-                        'symlink' => true,
-                        'relative' => false,
-                    ]
-                );
+                $defaults = [...$defaults, 'symlink' => true, 'relative' => false];
             } elseif ('relative' === $composerJsonSetting) {
-                $defaults = array_merge(
-                    $defaults,
-                    [
-                        'symlink' => true,
-                        'relative' => true,
-                    ]
-                );
+                $defaults = [...$defaults, 'symlink' => true, 'relative' => true];
             }
         }
 

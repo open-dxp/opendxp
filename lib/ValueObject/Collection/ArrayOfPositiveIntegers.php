@@ -19,12 +19,12 @@ namespace OpenDxp\ValueObject\Collection;
 
 use ValueError;
 
-final class ArrayOfPositiveIntegers
+final readonly class ArrayOfPositiveIntegers
 {
     /**
      * @throws ValueError
      */
-    public function __construct(private readonly array $value)
+    public function __construct(private array $value)
     {
         $this->validate();
     }

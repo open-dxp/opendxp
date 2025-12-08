@@ -32,12 +32,8 @@ class Dao extends Model\Dao\AbstractDao
     {
         $data = $this->model->getData();
 
-        if ($this->model->getType() == 'object' || $this->model->getType() == 'asset' || $this->model->getType() == 'document') {
-            if ($data instanceof Model\Element\ElementInterface) {
-                $data = $data->getId();
-            } else {
-                $data = null;
-            }
+        if (in_array($this->model->getType(), ['object', 'asset', 'document'])) {
+            $data = $data instanceof Model\Element\ElementInterface ? $data->getId() : null;
         }
 
         if (is_array($data) || is_object($data)) {

@@ -40,9 +40,9 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
 {
     use StopMessengerWorkersTrait;
 
-    private const LOG_JOB_RUN_ID_KEY = '%job_run_id%';
+    private const string LOG_JOB_RUN_ID_KEY = '%job_run_id%';
 
-    private const LOG_JOB_RUN_NAME_KEY = '%job_run_name%';
+    private const string LOG_JOB_RUN_NAME_KEY = '%job_run_name%';
 
     private bool $isDev;
 
@@ -424,7 +424,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
             $message = 'gee_job_finished_with_errors';
         }
 
-        if (empty($logs)) {
+        if ($logs === []) {
             $jobRun->setCurrentMessage(null);
             $jobRun->setState(JobRunStates::FINISHED);
             $message = 'gee_job_finished';
@@ -447,7 +447,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
         SelectionProcessingMode $selectionProcessingMode,
         array $selectedElements = []
     ): void {
-        if (empty($selectedElements) || $selectionProcessingMode === SelectionProcessingMode::ONCE) {
+        if ($selectedElements === [] || $selectionProcessingMode === SelectionProcessingMode::ONCE) {
             $this->executionEngineBus->dispatch(new $messageString(
                 $jobRunId,
                 $currentStepId

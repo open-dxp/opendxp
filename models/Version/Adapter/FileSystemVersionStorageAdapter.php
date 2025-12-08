@@ -39,7 +39,7 @@ class FileSystemVersionStorageAdapter implements VersionStorageAdapterInterface
     {
         try {
             $data = $this->storage->read($this->getStorageFilename($version->getId(), $version->getCid(), $version->getCtype()));
-        } catch (UnableToReadFile $e) {
+        } catch (UnableToReadFile) {
             $data = null;
         }
 
@@ -89,7 +89,7 @@ class FileSystemVersionStorageAdapter implements VersionStorageAdapterInterface
         $binaryStoragePath = $this->getBinaryStoragePath($version);
 
         // assets are kinda special because they can contain massive amount of binary data which isn't serialized, we append it to the data file
-        if (isset($binaryDataStream) === true &&
+        if (isset($binaryDataStream) &&
             !$this->storage->fileExists($binaryStoragePath)) {
             $linked = false;
 

@@ -30,14 +30,8 @@ class EditableUsageResolver
 {
     protected ?UsageRecorderSubscriber $subscriber = null;
 
-    protected EventDispatcherInterface $dispatcher;
-
-    protected DocumentRendererInterface $renderer;
-
-    public function __construct(EventDispatcherInterface $eventDispatcher, DocumentRendererInterface $documentRenderer)
+    public function __construct(protected EventDispatcherInterface $dispatcher, protected DocumentRendererInterface $renderer)
     {
-        $this->dispatcher = $eventDispatcher;
-        $this->renderer = $documentRenderer;
     }
 
     public function getUsedEditableNames(Document\PageSnippet $document): array
@@ -53,9 +47,7 @@ class EditableUsageResolver
         $names = $this->subscriber->getRecordedEditableNames();
         $this->unregisterEventSubscriber();
 
-        $names = array_unique($names);
-
-        return $names;
+        return array_unique($names);
     }
 
     protected function registerEventSubscriber(): void

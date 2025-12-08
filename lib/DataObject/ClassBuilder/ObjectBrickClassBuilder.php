@@ -50,9 +50,9 @@ class ObjectBrickClassBuilder implements ObjectBrickClassBuilderInterface
         $cd .= "\n\n";
 
         $useParts = [
-            'OpenDxp\Model\DataObject',
-            'OpenDxp\Model\DataObject\Exception\InheritanceParentNotFoundException',
-            'OpenDxp\Model\DataObject\PreGetValueHookInterface',
+            \OpenDxp\Model\DataObject::class,
+            \OpenDxp\Model\DataObject\Exception\InheritanceParentNotFoundException::class,
+            \OpenDxp\Model\DataObject\PreGetValueHookInterface::class,
         ];
 
         $cd .= ClassDefinition\Service::buildUseCode($useParts);
@@ -103,8 +103,7 @@ class ObjectBrickClassBuilder implements ObjectBrickClassBuilderInterface
         }
 
         $cd .= "}\n";
-        $cd .= "\n";
 
-        return $cd;
+        return $cd . "\n";
     }
 }

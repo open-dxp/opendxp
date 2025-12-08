@@ -32,20 +32,12 @@ class PropertiesFilter implements FilterInterface
 
     public function canBeAdded(ElementInterface $element, GeneratorContextInterface $context): bool
     {
-        if ($this->getBoolProperty($element, self::PROPERTY_EXCLUDE)) {
-            return false;
-        }
-
-        return true;
+        return !$this->getBoolProperty($element, self::PROPERTY_EXCLUDE);
     }
 
     public function handlesChildren(ElementInterface $element, GeneratorContextInterface $context): bool
     {
-        if ($this->getBoolProperty($element, self::PROPERTY_EXCLUDE_CHILDREN)) {
-            return false;
-        }
-
-        return true;
+        return !$this->getBoolProperty($element, self::PROPERTY_EXCLUDE_CHILDREN);
     }
 
     private function getBoolProperty(ElementInterface $document, string $property): bool

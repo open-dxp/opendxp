@@ -83,10 +83,6 @@ class Installer
         'OpenDxpGenericExecutionEngineBundle' => OpenDxpGenericExecutionEngineBundle::class,
     ];
 
-    private LoggerInterface $logger;
-
-    private EventDispatcherInterface $eventDispatcher;
-
     /**
      * Predefined DB credentials from config
      */
@@ -169,12 +165,8 @@ class Installer
         'clear_cache',
     ];
 
-    public function __construct(
-        LoggerInterface $logger,
-        EventDispatcherInterface $eventDispatcher
-    ) {
-        $this->logger = $logger;
-        $this->eventDispatcher = $eventDispatcher;
+    public function __construct(private readonly LoggerInterface $logger, private readonly EventDispatcherInterface $eventDispatcher)
+    {
     }
 
     public function setDbCredentials(array $dbCredentials = []): void
@@ -204,7 +196,7 @@ class Installer
 
     public function needsDbCredentials(): bool
     {
-        return empty($this->dbCredentials);
+        return $this->dbCredentials === [];
     }
 
     public function setBundlesToInstall(array $bundlesToInstall = [], array $availableBundles = [], array $excludeFromBundlesPhp = []): void
@@ -226,11 +218,7 @@ class Installer
 
     public function checkPrerequisites(?Connection $db = null): array
     {
-        $checks = array_merge(
-            Requirements::checkFilesystem(),
-            Requirements::checkPhp(),
-            null !== $db ? Requirements::checkMysql($db) : []
-        );
+        $checks = [...Requirements::checkFilesystem(), ...Requirements::checkPhp(), ...$db instanceof \Doctrine\DBAL\Connection ? Requirements::checkMysql($db) : []];
 
         return $this->formatPrerequisiteMessages($checks, [Check::STATE_ERROR]);
     }
@@ -243,10 +231,12 @@ class Installer
     {
         $messages = [];
         foreach ($checks as $check) {
-            if (empty($filterStates) || !in_array($check->getState(), $filterStates)) {
+            if ($filterStates === []) {
                 continue;
             }
-
+            if (!in_array($check->getState(), $filterStates)) {
+                continue;
+            }
             if ($check->getLink()) {
                 if ('cli' === php_sapi_name()) {
                     $messages[] = sprintf('%s (see %s)', $check->getMessage(), $check->getLink());
@@ -272,7 +262,7 @@ class Installer
             throw new InvalidArgumentException(sprintf('Trying to dispatch unsupported event type "%s"', $type));
         }
 
-        $message = $message ?? $this->stepEvents[$type];
+        $message ??= $this->stepEvents[$type];
         $step = array_search($type, array_keys($this->stepEvents)) + 1;
 
         $event = new InstallerStepEvent($type, $message, $step, $this->getStepEventCount());
@@ -323,7 +313,7 @@ class Installer
             $errors[] = 'Username and password should have at least 4 characters';
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             return $errors;
         }
 
@@ -356,19 +346,12 @@ class Installer
         ];
 
         // do not handle parameters if db credentials are set via config
-        if (!empty($this->dbCredentials)) {
-            return array_merge(
-                $dbConfig,
-                $this->dbCredentials
-            );
+        if ($this->dbCredentials !== []) {
+            return [...$dbConfig, ...$this->dbCredentials];
         }
 
         // database configuration host/unix socket
-        $dbConfig = array_merge($dbConfig, [
-            'user' => $params['mysql_username'],
-            'password' => $params['mysql_password'],
-            'dbname' => $params['mysql_database'],
-        ]);
+        $dbConfig = [...$dbConfig, 'user' => $params['mysql_username'], 'password' => $params['mysql_password'], 'dbname' => $params['mysql_database']];
 
         $hostSocketValue = $params['mysql_host_socket'];
 
@@ -439,7 +422,7 @@ class Installer
         $kernel = new $kernel($environment, true);
 
         if (in_array('clear_cache', $stepsToRun)) {
-            $this->clearKernelCacheDir($kernel);
+            $this->clearKernelCacheDir();
         }
 
         if (in_array('clear_cache', $stepsToRun) || in_array('install_assets', $stepsToRun)) {
@@ -478,13 +461,13 @@ class Installer
             $this->markMigrationsAsDone();
         }
 
-        if (!empty($this->bundlesToInstall) && in_array('install_bundles', $stepsToRun)) {
+        if ($this->bundlesToInstall !== [] && in_array('install_bundles', $stepsToRun)) {
             $this->dispatchStepEvent('install_bundles');
             $this->installBundles();
         }
 
         if (in_array('clear_cache', $stepsToRun)) {
-            $this->clearKernelCacheDir($kernel);
+            $this->clearKernelCacheDir();
         }
 
         $this->dispatchStepEvent('complete');
@@ -513,13 +496,13 @@ class Installer
                 throw new ProcessFailedException($process);
             }
 
-            if (null !== $io) {
+            if ($io instanceof \OpenDxp\Console\Style\OpenDxpStyle) {
                 $io->writeln($process->getOutput());
             }
         } catch (ProcessFailedException $e) {
             $this->logger->error($e->getMessage());
 
-            if (null === $io) {
+            if (!$io instanceof \OpenDxp\Console\Style\OpenDxpStyle) {
                 return;
             }
 
@@ -578,7 +561,7 @@ class Installer
         $bundlesToInstall = $this->bundlesToInstall;
         $availableBundles = $this->availableBundles;
 
-        if (!empty($this->excludeFromBundlesPhp)) {
+        if ($this->excludeFromBundlesPhp !== []) {
             $bundlesToInstall = array_diff($bundlesToInstall, array_values($this->excludeFromBundlesPhp));
             $availableBundles = array_diff($availableBundles, $this->excludeFromBundlesPhp);
         }
@@ -594,19 +577,19 @@ class Installer
         $io = $this->commandLineOutput;
 
         try {
-            $ansi = null !== $io && $io->isDecorated();
+            $ansi = $io instanceof \OpenDxp\Console\Style\OpenDxpStyle && $io->isDecorated();
 
             $process = $assetsInstaller->install([
                 'ansi' => $ansi,
             ]);
 
-            if (null !== $io) {
+            if ($io instanceof \OpenDxp\Console\Style\OpenDxpStyle) {
                 $io->writeln($process->getOutput());
             }
         } catch (ProcessFailedException $e) {
             $this->logger->error($e->getMessage());
 
-            if (null === $io) {
+            if (!$io instanceof \OpenDxp\Console\Style\OpenDxpStyle) {
                 return;
             }
 
@@ -634,26 +617,21 @@ class Installer
         }
     }
 
-    private function clearKernelCacheDir(KernelInterface $kernel): void
+    private function clearKernelCacheDir(): void
     {
         // we don't use $kernel->getCacheDir() here, since we want to have a fully clean cache dir at this point
         $cacheDir = OPENDXP_SYMFONY_CACHE_DIRECTORY;
-
         if (!file_exists($cacheDir)) {
             return;
         }
-
         // see Symfony's cache:clear command
         $oldCacheDir = substr($cacheDir, 0, -1) . '~';
-
         $filesystem = new Filesystem();
         if ($filesystem->exists($oldCacheDir)) {
             $filesystem->remove($oldCacheDir);
         }
-
         $filesystem->rename($cacheDir, $oldCacheDir);
         $filesystem->mkdir($cacheDir);
-
         try {
             $filesystem->remove($oldCacheDir);
         } catch (IOException $e) {
@@ -677,7 +655,7 @@ class Installer
             // execute every script with a separate call, otherwise this will end in a PDO_Exception "unbufferd queries, ..." seems to be a PDO bug after some googling
             foreach ($mysqlInstallScripts as $m) {
                 $sql = trim($m);
-                if (strlen($sql) > 0) {
+                if ($sql !== '') {
                     $sql .= ';';
                     $db->executeQuery($sql);
                 }
@@ -697,7 +675,7 @@ class Installer
                 //create a system user with id 0
                 $this->insertSystemUser($db);
 
-                if (empty($dataFiles) || !$this->importDatabaseDataDump) {
+                if ($dataFiles === [] || !$this->importDatabaseDataDump) {
                     // empty installation
                     $this->insertDatabaseContents($db);
                     $this->createOrUpdateUser($db, $userCredentials);
@@ -901,7 +879,7 @@ class Installer
 
     private function isBundleInstalled(string $bundle): bool
     {
-        return null !== SettingsStore::get('BUNDLE_INSTALLED__' . $bundle, 'opendxp');
+        return SettingsStore::get('BUNDLE_INSTALLED__' . $bundle, 'opendxp') instanceof \OpenDxp\Model\Tool\SettingsStore;
     }
 
     public function getRunInstallSteps(): array

@@ -74,7 +74,7 @@ final class FilteredMigrationsRepository implements \Doctrine\Migrations\Migrati
 
         $filteredMigrations = [];
         foreach ($migrations->getItems() as $migration) {
-            if (str_starts_with(get_class($migration->getMigration()), $this->prefix)) {
+            if (str_starts_with($migration->getMigration()::class, $this->prefix)) {
                 $filteredMigrations[] = $migration;
             }
         }

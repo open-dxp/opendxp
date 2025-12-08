@@ -48,7 +48,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
 
     public function setElements(): static
     {
-        if (empty($this->elements)) {
+        if ($this->elements === []) {
             $this->elements = [];
             foreach ($this->elementIds as $elementId) {
                 $el = Element\Service::getElementById($elementId['type'], (int) $elementId['id']);
@@ -73,6 +73,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
         return $this->elements;
     }
 
+    #[\Override]
     public function getDataForResource(): mixed
     {
         return $this->elementIds;
@@ -154,9 +155,10 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
     {
         $this->setElements();
 
-        return count($this->elements) > 0 ? false : true;
+        return count($this->elements) <= 0;
     }
 
+    #[\Override]
     public function resolveDependencies(): array
     {
         $this->setElements();
@@ -192,6 +194,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
         $this->setElements();
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $finalVars = [];

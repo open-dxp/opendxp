@@ -87,7 +87,7 @@ final class Note extends Model\AbstractModel
             $note->getDao()->getById($id);
 
             return $note;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }
@@ -116,16 +116,12 @@ final class Note extends Model\AbstractModel
     public function save(): void
     {
         // check if there's a valid user
-        if (!$this->getUser()) {
-            // try to use the logged in user
-            if (OpenDxp::inAdmin()) {
-                if ($user = \OpenDxp\Tool\Admin::getCurrentUser()) {
-                    $this->setUser($user->getId());
-                }
-            }
+        // try to use the logged in user
+        if (!$this->getUser() && OpenDxp::inAdmin() && $user = \OpenDxp\Tool\Admin::getCurrentUser()) {
+            $this->setUser($user->getId());
         }
 
-        $isUpdate = $this->getId() ? true : false;
+        $isUpdate = (bool) $this->getId();
         $this->getDao()->save();
 
         if (!$isUpdate) {

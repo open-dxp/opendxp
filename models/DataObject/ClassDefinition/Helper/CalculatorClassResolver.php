@@ -25,8 +25,6 @@ final class CalculatorClassResolver extends ClassResolver
 {
     public static function resolveCalculatorClass(string $calculatorClass): ?object
     {
-        return self::resolve($calculatorClass, static function ($generator) {
-            return $generator instanceof CalculatorClassInterface;
-        });
+        return self::resolve($calculatorClass, static fn($generator) => $generator instanceof CalculatorClassInterface);
     }
 }

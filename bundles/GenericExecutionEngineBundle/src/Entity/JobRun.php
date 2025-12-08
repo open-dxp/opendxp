@@ -47,9 +47,6 @@ class JobRun
     #[ORM\Column]
     private int $id;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $ownerId;
-
     #[ORM\Column(type: 'string', length: 10, enumType: JobRunStates::class)]
     private JobRunStates $state = JobRunStates::NOT_STARTED;
 
@@ -57,17 +54,17 @@ class JobRun
     private ?int $currentStep = null;
 
     #[ORM\Column(length: 300, nullable: true)]
-    private ?string $currentMessage;
+    private ?string $currentMessage = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $log;
+    private ?string $log = null;
 
     private ?SerializerInterface $serializer = null;
 
     private ?Job $job = null;
 
     #[ORM\Column(type: 'text')]
-    private ?string $serializedJob;
+    private ?string $serializedJob = null;
 
     #[ORM\Column(type: 'json')]
     private ?array $context = null;
@@ -79,7 +76,7 @@ class JobRun
     private int $modificationDate;
 
     #[ORM\Column(type: 'string', length: 255)]
-    private string $executionContext;
+    private string $executionContext = self::DEFAULT_EXECUTION_CONTEXT;
 
     #[ORM\Column(type: 'integer')]
     private int $totalElements = 0;
@@ -87,12 +84,11 @@ class JobRun
     #[ORM\Column(type: 'integer')]
     private int $processedElementsForStep = 0;
 
-    public function __construct(?int $ownerId = null)
+    public function __construct(#[ORM\Column(nullable: true)]
+    private ?int $ownerId = null)
     {
         $this->creationDate = time();
         $this->modificationDate = time();
-        $this->ownerId = $ownerId;
-        $this->executionContext = self::DEFAULT_EXECUTION_CONTEXT;
     }
 
     public function getId(): int
@@ -162,7 +158,7 @@ class JobRun
             try {
                 $logLine = new LogLine($line);
                 $parsed[] = $logLine;
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidArgumentException) {
                 // not starting with a date, append to last parsed log line
                 if (!empty($parsed)) {
                     $lastKey = array_key_last($parsed);
@@ -183,11 +179,7 @@ class JobRun
     #[ORM\PreUpdate]
     public function serializeJob(): void
     {
-        if ($this->getJob() !== null) {
-            $this->serializedJob = $this->getSerializer()->serialize($this->getJob(), 'json');
-        } else {
-            $this->serializedJob = null;
-        }
+        $this->serializedJob = $this->getJob() instanceof \OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job ? $this->getSerializer()->serialize($this->getJob(), 'json') : null;
     }
 
     #[ORM\PostLoad]
@@ -272,7 +264,7 @@ class JobRun
 
     private function getSerializer(): SerializerInterface
     {
-        if ($this->serializer === null) {
+        if (!$this->serializer instanceof \Symfony\Component\Serializer\SerializerInterface) {
             $encoder = [
                 new JsonEncoder(),
             ];

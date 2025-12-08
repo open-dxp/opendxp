@@ -29,8 +29,6 @@ class WriteLock implements LoggerAwareInterface
 
     protected bool $enabled = true;
 
-    protected TagAwareAdapterInterface $itemPool;
-
     protected string $cacheKey = 'system_cache_write_lock';
 
     protected int $lifetime = 30;
@@ -46,9 +44,8 @@ class WriteLock implements LoggerAwareInterface
 
     protected bool $lockInitialized = false;
 
-    public function __construct(TagAwareAdapterInterface $itemPool)
+    public function __construct(protected TagAwareAdapterInterface $itemPool)
     {
-        $this->itemPool = $itemPool;
     }
 
     public function enable(): void
@@ -181,14 +178,12 @@ class WriteLock implements LoggerAwareInterface
                     $this->timestamp = null;
 
                     return true;
-                } else {
-                    $this->logger->debug(
-                        'Not removing write lock as timestamp does not belong to this process (timestamp: {timestamp}, lock: {lock})',
-                        ['timestamp' => $this->timestamp, 'lock' => $lock]
-                    );
-
-                    return false;
                 }
+                $this->logger->debug(
+                    'Not removing write lock as timestamp does not belong to this process (timestamp: {timestamp}, lock: {lock})',
+                    ['timestamp' => $this->timestamp, 'lock' => $lock]
+                );
+                return false;
             }
         }
 

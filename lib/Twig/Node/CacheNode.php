@@ -25,10 +25,10 @@ use Twig\Node\Node;
 final class CacheNode extends Node
 {
     public function __construct(
-        private string $key,
-        private ?int $ttl,
-        private array $tags,
-        private bool $force,
+        private readonly string $key,
+        private readonly ?int $ttl,
+        private readonly array $tags,
+        private readonly bool $force,
         Node $body,
         int $lineno,
         ?string $tag = 'opendxpcache'
@@ -36,6 +36,7 @@ final class CacheNode extends Node
         parent::__construct(['body' => $body], [], $lineno, $tag);
     }
 
+    #[\Override]
     public function compile(Compiler $compiler): void
     {
         $splitChars = uniqid('', true);

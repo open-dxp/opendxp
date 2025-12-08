@@ -25,25 +25,16 @@ class GlobalActionEvent extends Event
 {
     use ArgumentsAwareTrait;
 
-    protected WorkflowInterface $workflow;
-
-    protected mixed $subject = null;
-
-    protected GlobalAction $globalAction;
-
     /**
      * DocumentEvent constructor.
      *
      */
     public function __construct(
-        WorkflowInterface $workflow,
-        mixed $subject,
-        GlobalAction $globalAction,
+        protected WorkflowInterface $workflow,
+        protected mixed $subject,
+        protected GlobalAction $globalAction,
         array $arguments = [])
     {
-        $this->workflow = $workflow;
-        $this->subject = $subject;
-        $this->globalAction = $globalAction;
         $this->arguments = $arguments;
     }
 

@@ -46,6 +46,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
 {
+    #[\Override]
     public function getContainerExtension(): ExtensionInterface
     {
         if (null === $this->extension) {
@@ -76,6 +77,7 @@ class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
         $container->addCompilerPass(new ImageAdapterAliasPass());
     }
 
+    #[\Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

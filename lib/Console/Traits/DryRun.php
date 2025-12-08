@@ -72,7 +72,7 @@ trait DryRun
     protected function dryRunMessage(string $message, string $prefix = 'DRY-RUN'): string
     {
         if ($this->isDryRun()) {
-            $message = $this->prefixDryRun($message, $prefix);
+            return $this->prefixDryRun($message, $prefix);
         }
 
         return $message;

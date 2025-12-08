@@ -81,6 +81,7 @@ class Listing extends Model\Listing\AbstractListing implements PaginateListingIn
         return $this;
     }
 
+    #[\Override]
     public function getCondition(): string
     {
         $condition = parent::getCondition();

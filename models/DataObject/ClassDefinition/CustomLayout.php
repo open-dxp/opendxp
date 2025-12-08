@@ -66,12 +66,12 @@ class CustomLayout extends Model\AbstractModel
             if (!$customLayout) {
                 throw new Exception('Custom Layout in registry is null');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $customLayout = new self();
                 $customLayout->getDao()->getById($id);
                 RuntimeCache::set($cacheKey, $customLayout);
-            } catch (Model\Exception\NotFoundException $e) {
+            } catch (Model\Exception\NotFoundException) {
                 return null;
             }
         }
@@ -91,12 +91,12 @@ class CustomLayout extends Model\AbstractModel
             if (!$customLayout) {
                 throw new Exception('Custom Layout in registry is null');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $customLayout = new self();
                 $customLayout->getDao()->getByName($name);
                 RuntimeCache::set($cacheKey, $customLayout);
-            } catch (Model\Exception\NotFoundException $e) {
+            } catch (Model\Exception\NotFoundException) {
                 return null;
             }
         }
@@ -113,12 +113,12 @@ class CustomLayout extends Model\AbstractModel
             $customLayout = new self();
             $customLayout->getDao()->getByName($name);
 
-            if ($customLayout->getClassId() != $classId) {
+            if ($customLayout->getClassId() !== $classId) {
                 throw new Model\Exception\NotFoundException('classId does not match');
             }
 
             return $customLayout;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
         }
 
         return null;
@@ -187,7 +187,7 @@ class CustomLayout extends Model\AbstractModel
         // empty custom layout cache
         try {
             Cache::clearTag('customlayout_' . $this->getId());
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
     }
 
@@ -204,9 +204,8 @@ class CustomLayout extends Model\AbstractModel
 
             $cd .= '* '.$description."\n";
         }
-        $cd .= '*/';
 
-        return $cd;
+        return $cd . '*/';
     }
 
     /**
@@ -237,13 +236,13 @@ class CustomLayout extends Model\AbstractModel
         // empty object cache
         try {
             Cache::clearTag('customlayout_' . $this->getId());
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         // empty output cache
         try {
             Cache::clearTag('output');
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
 
         $this->getDao()->delete();

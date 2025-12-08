@@ -26,33 +26,18 @@ use Twig\TwigTest;
  */
 class DocumentHelperExtensions extends AbstractExtension
 {
+    #[\Override]
     public function getTests(): array
     {
         return [
-            new TwigTest('opendxp_document', static function ($object) {
-                return $object instanceof Document;
-            }),
-            new TwigTest('opendxp_document_email', static function ($object) {
-                return $object instanceof Document\Email;
-            }),
-            new TwigTest('opendxp_document_folder', static function ($object) {
-                return $object instanceof Document\Folder;
-            }),
-            new TwigTest('opendxp_document_hardlink', static function ($object) {
-                return $object instanceof Document\Hardlink;
-            }),
-            new TwigTest('opendxp_document_page', static function ($object) {
-                return $object instanceof Document\Page;
-            }),
-            new TwigTest('opendxp_document_link', static function ($object) {
-                return $object instanceof Document\Link;
-            }),
-            new TwigTest('opendxp_document_page_snippet', static function ($object) {
-                return $object instanceof Document\PageSnippet;
-            }),
-            new TwigTest('opendxp_document_snippet', static function ($object) {
-                return $object instanceof Document\Snippet;
-            }),
+            new TwigTest('opendxp_document', static fn($object) => $object instanceof Document),
+            new TwigTest('opendxp_document_email', static fn($object) => $object instanceof Document\Email),
+            new TwigTest('opendxp_document_folder', static fn($object) => $object instanceof Document\Folder),
+            new TwigTest('opendxp_document_hardlink', static fn($object) => $object instanceof Document\Hardlink),
+            new TwigTest('opendxp_document_page', static fn($object) => $object instanceof Document\Page),
+            new TwigTest('opendxp_document_link', static fn($object) => $object instanceof Document\Link),
+            new TwigTest('opendxp_document_page_snippet', static fn($object) => $object instanceof Document\PageSnippet),
+            new TwigTest('opendxp_document_snippet', static fn($object) => $object instanceof Document\Snippet),
         ];
     }
 }

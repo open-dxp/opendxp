@@ -30,9 +30,9 @@ final class ExpressionService implements ExpressionServiceInterface
     ): bool {
         $expressionLanguage = new ExpressionLanguage();
         //overwrite constant function to avoid exposing internal information
-        $expressionLanguage->register('constant', function () {
+        $expressionLanguage->register('constant', function (): void {
             throw new SyntaxError('`constant` function not available');
-        }, function () {
+        }, function (): void {
             throw new SyntaxError('`constant` function not available');
         });
 

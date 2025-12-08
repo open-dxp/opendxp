@@ -72,6 +72,7 @@ class Page extends PageSnippet
         return $this;
     }
 
+    #[\Override]
     public function getFullPath(bool $force = false): string
     {
         $path = parent::getFullPath($force);
@@ -112,6 +113,7 @@ class Page extends PageSnippet
         return OPENDXP_SYSTEM_TEMP_DIRECTORY . '/document-page-previews/document-page-screenshot-' . $this->getId() . '@2x.jpg';
     }
 
+    #[\Override]
     public function save(array $parameters = []): static
     {
         $page = parent::save($parameters);

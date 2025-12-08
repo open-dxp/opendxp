@@ -41,6 +41,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
+    #[\Override]
     public function loadIdList(): array
     {
         try {
@@ -56,7 +57,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
-    protected function exceptionHandler(Exception $e): array
+    protected function exceptionHandler(\Throwable $e): array
     {
         // create view if it doesn't exist already // HACK
         $pdoMySQL = preg_match('/Base table or view not found/', $e->getMessage());
@@ -85,10 +86,8 @@ class Dao extends Model\DataObject\Listing\Dao
 
         // check for a localized field and if they should be used for this list
 
-        if ($this->model->getLocale()) {
-            if (Tool::isValidLanguage((string)$this->model->getLocale())) {
-                $language = (string)$this->model->getLocale();
-            }
+        if ($this->model->getLocale() && Tool::isValidLanguage((string)$this->model->getLocale())) {
+            $language = (string)$this->model->getLocale();
         }
 
         if (!$language) {
@@ -99,7 +98,7 @@ class Dao extends Model\DataObject\Listing\Dao
         }
 
         if (!$language) {
-            $language = Tool::getDefaultLanguage();
+            return Tool::getDefaultLanguage();
         }
 
         return $language;
@@ -109,6 +108,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
+    #[\Override]
     public function getTableName(): string
     {
         if (empty($this->tableName)) {
@@ -156,6 +156,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
+    #[\Override]
     protected function applyJoins(DoctrineQueryBuilder $queryBuilder): static
     {
         // add fielcollection's

@@ -131,7 +131,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         $htmlContainerCode = ('<div ' . $attributeString . '></div>');
 
         if ($this->isInDialogBox()) {
-            $htmlContainerCode = $this->wrapEditmodeContainerCodeForDialogBox($attributes['id'], $htmlContainerCode);
+            return $this->wrapEditmodeContainerCodeForDialogBox($attributes['id'], $htmlContainerCode);
         }
 
         return $htmlContainerCode;
@@ -146,9 +146,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
 
     private function wrapEditmodeContainerCodeForDialogBox(string $id, string $code): string
     {
-        $code = '<template id="template__' . $id . '">' . $code . '</template>';
-
-        return $code;
+        return '<template id="template__' . $id . '">' . $code . '</template>';
     }
 
     /**
@@ -158,7 +156,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
      */
     public function getEditmodeDefinition(): array
     {
-        $config = [
+        return [
             // we don't use : and . in IDs (although it's allowed in HTML spec)
             // because they are used in CSS syntax and therefore can't be used in querySelector()
             'id' => 'opendxp_editable_' . str_replace([':', '.'], '_', $this->getName()),
@@ -170,8 +168,6 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
             'inherited' => $this->getInherited(),
             'inDialogBox' => $this->getInDialogBox(),
         ];
-
-        return $config;
     }
 
     /**
@@ -183,12 +179,10 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
     {
         // get configuration data for admin
         if ($this instanceof Document\Editable\EditmodeDataInterface) {
-            $data = $this->getDataEditmode();
-        } else {
-            $data = $this->getData();
+            return $this->getDataEditmode();
         }
 
-        return $data;
+        return $this->getData();
     }
 
     /**
@@ -204,12 +198,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
             throw new RuntimeException(sprintf('Expected an "id" option to be set on the "%s" editable config array', $this->getName()));
         }
 
-        $attributes = array_merge($this->getEditmodeBlockStateAttributes(), [
-            'id' => $config['id'],
-            'class' => implode(' ', $this->getEditmodeElementClasses()),
-        ]);
-
-        return $attributes;
+        return [...$this->getEditmodeBlockStateAttributes(), 'id' => $config['id'], 'class' => implode(' ', $this->getEditmodeElementClasses())];
     }
 
     /**
@@ -218,19 +207,15 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
     protected function getEditmodeBlockStateAttributes(): array
     {
         $blockState = $this->getBlockState();
-        $blockNames = array_map(function (BlockName $blockName) {
-            return $blockName->getRealName();
-        }, $blockState->getBlocks());
+        $blockNames = array_map(fn(BlockName $blockName) => $blockName->getRealName(), $blockState->getBlocks());
 
-        $attributes = [
+        return [
             'data-name' => $this->getName(),
             'data-real-name' => $this->getRealName(),
             'data-type' => $this->getType(),
             'data-block-names' => implode(', ', $blockNames),
             'data-block-indexes' => implode(', ', $blockState->getIndexes()),
         ];
-
-        return $attributes;
     }
 
     /**
@@ -248,7 +233,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         $editableConfig = $this->getConfig();
         if (isset($editableConfig['class'])) {
             if (is_array($editableConfig['class'])) {
-                $classes = array_merge($classes, $editableConfig['class']);
+                $classes = [...$classes, ...$editableConfig['class']];
             } else {
                 $classes[] = (string)$editableConfig['class'];
             }
@@ -405,6 +390,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
      * Returns only the properties which should be serialized
      *
      */
+    #[\Override]
     public function __sleep(): array
     {
         $finalVars = [];
@@ -420,6 +406,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         return $finalVars;
     }
 
+    #[\Override]
     public function __clone(): void
     {
         parent::__clone();
@@ -601,7 +588,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
 
         // check if the previous block is the name we're about to build
         // TODO: can this be avoided at the block level?
-        if ($type === 'block' || $type == 'scheduledblock') {
+        if ($type === 'block' || $type === 'scheduledblock') {
             $tmpBlocks = $blocks;
             $tmpIndexes = $indexes;
 
@@ -631,7 +618,8 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         }
 
         $parts = [];
-        for ($i = 0; $i < count($blocks); $i++) {
+        $counter = count($blocks);
+        for ($i = 0; $i < $counter; $i++) {
             $part = $blocks[$i]->getRealName();
 
             if (isset($indexes[$i])) {
@@ -678,7 +666,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         // targeting prefix if configured on the document. hasBlocks() determines if
         // there are any parent blocks for the current element
         if (interface_exists(TargetingDocumentInterface::class) && $document instanceof TargetingDocumentInterface && !$blockState->hasBlocks()) {
-            $name = $document->getTargetGroupEditableName($name);
+            return $document->getTargetGroupEditableName($name);
         }
 
         return $name;

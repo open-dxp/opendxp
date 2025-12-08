@@ -204,7 +204,7 @@ class Csv
 
     private function getImportNormalizer(): ArrayNormalizer
     {
-        if (null !== $this->importNormalizer) {
+        if ($this->importNormalizer instanceof \OpenDxp\Tool\ArrayNormalizer) {
             return $this->importNormalizer;
         }
 
@@ -230,13 +230,12 @@ class Csv
             if (empty($value)) {
                 return null;
             }
-
             if (is_numeric($value)) {
                 return (int)$value;
-            } elseif (is_string($value)) {
-                if ($target = Document::getByPath($value)) {
-                    return (int)$target->getId();
-                }
+            }
+
+            if (is_string($value) && $target = Document::getByPath($value)) {
+                return (int)$target->getId();
             }
 
             return (string)$value;
@@ -265,7 +264,7 @@ class Csv
 
     private function getImportResolver(): OptionsResolver
     {
-        if (null !== $this->importResolver) {
+        if ($this->importResolver instanceof \Symfony\Component\OptionsResolver\OptionsResolver) {
             return $this->importResolver;
         }
 
@@ -283,12 +282,10 @@ class Csv
         $resolver->setAllowedTypes('targetSite', ['int', 'null']);
 
         $resolver->setAllowedTypes('statusCode', ['int']);
-        $resolver->setAllowedValues('statusCode', array_map(function ($code) {
-            return (int)$code;
-        }, array_keys(Redirect::getStatusCodes())));
+        $resolver->setAllowedValues('statusCode', array_map(fn($code) => (int)$code, array_keys(Redirect::getStatusCodes())));
 
         $resolver->setAllowedTypes('priority', ['int']);
-        $resolver->setAllowedValues('priority', array_merge(range(1, 10), [99]));
+        $resolver->setAllowedValues('priority', [...range(1, 10), 99]);
 
         $resolver->setAllowedTypes('regex', ['bool']);
         $resolver->setAllowedTypes('passThroughParameters', ['bool']);

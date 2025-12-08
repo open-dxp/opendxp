@@ -38,7 +38,6 @@ class Dao extends Model\DataObject\AbstractObject\Dao
 
     public function init(): void
     {
-        return;
     }
 
     protected function getInheritanceHelper(): Dao\InheritanceHelper
@@ -55,6 +54,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
      *
      * @throws Model\Exception\NotFoundException
      */
+    #[\Override]
     public function getById(int $id): void
     {
         $data = $this->db->fetchAssociative("SELECT objects.*, tree_locks.locked as locked FROM objects
@@ -84,11 +84,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     public function getRelationData(string $field, bool $forOwner, ?string $remoteClassId = null): array
     {
         $id = $this->model->getId();
-        if ($remoteClassId) {
-            $classId = $remoteClassId;
-        } else {
-            $classId = $this->model->getClassId();
-        }
+        $classId = $remoteClassId ?: $this->model->getClassId();
 
         $params = [$field, $id, $field, $id, $field, $id];
 
@@ -137,27 +133,25 @@ class Dao extends Model\DataObject\AbstractObject\Dao
 
         $fieldDefinitions = $this->model->getClass()->getFieldDefinitions(['object' => $this->model]);
         foreach ($fieldDefinitions as $key => $value) {
-            if ($value instanceof CustomResourcePersistingInterface) {
-                if (!$value instanceof LazyLoadingSupportInterface || !$value->getLazyLoading()) {
-                    // datafield has it's own loader
-                    $params = [
-                        'context' => [
-                            'object' => $this->model,
-                        ],
-                        'owner' => $this->model,
-                        'fieldname' => $key,
-                    ];
-                    $value = $value->load($this->model, $params);
-                    if ($value === 0 || !empty($value)) {
-                        $this->model->setValue($key, $value);
-                    }
+            if ($value instanceof CustomResourcePersistingInterface && (!$value instanceof LazyLoadingSupportInterface || !$value->getLazyLoading())) {
+                // datafield has it's own loader
+                $params = [
+                    'context' => [
+                        'object' => $this->model,
+                    ],
+                    'owner' => $this->model,
+                    'fieldname' => $key,
+                ];
+                $value = $value->load($this->model, $params);
+                if ($value === 0 || !empty($value)) {
+                    $this->model->setValue($key, $value);
                 }
             }
             if ($value instanceof ResourcePersistenceAwareInterface) {
                 // if a datafield requires more than one field
                 if (is_array($value->getColumnType())) {
                     $multidata = [];
-                    foreach ($value->getColumnType() as $fkey => $fvalue) {
+                    foreach (array_keys($value->getColumnType()) as $fkey) {
                         $multidata[$key . '__' . $fkey] = $data[$key . '__' . $fkey];
                     }
                     $this->model->setValue($key, $value->getDataFromResource($multidata));
@@ -174,6 +168,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     /**
      * Save changes to database, it's an good idea to use save() instead
      */
+    #[\Override]
     public function update(?bool $isUpdate = null): void
     {
         parent::update($isUpdate);
@@ -183,19 +178,13 @@ class Dao extends Model\DataObject\AbstractObject\Dao
         $untouchable = [];
 
         foreach ($fieldDefinitions as $fieldName => $fd) {
-            if ($fd instanceof LazyLoadingSupportInterface && $fd->getLazyLoading()) {
-                if (!$this->model->isLazyKeyLoaded($fieldName) || $fd instanceof DataObject\ClassDefinition\Data\ReverseObjectRelation) {
-                    //this is a relation subject to lazy loading - it has not been loaded
-                    $untouchable[] = $fieldName;
-                }
+            if ($fd instanceof LazyLoadingSupportInterface && $fd->getLazyLoading() && (!$this->model->isLazyKeyLoaded($fieldName) || $fd instanceof DataObject\ClassDefinition\Data\ReverseObjectRelation)) {
+                //this is a relation subject to lazy loading - it has not been loaded
+                $untouchable[] = $fieldName;
             }
 
-            if (!DataObject::isDirtyDetectionDisabled() && $fd->supportsDirtyDetection()) {
-                if (!$this->model->isFieldDirty($fieldName)) {
-                    if (!in_array($fieldName, $untouchable)) {
-                        $untouchable[] = $fieldName;
-                    }
-                }
+            if (!DataObject::isDirtyDetectionDisabled() && $fd->supportsDirtyDetection() && !$this->model->isFieldDirty($fieldName) && !in_array($fieldName, $untouchable)) {
+                $untouchable[] = $fieldName;
             }
         }
 
@@ -234,7 +223,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
                     if (is_array($fd->getColumnType())) {
                         $insertDataArray = $fd->getDataForResource($this->model->$getter(), $this->model, $fieldDefinitionParams);
                         if (is_array($insertDataArray)) {
-                            $data = array_merge($data, $insertDataArray);
+                            $data = [...$data, ...$insertDataArray];
                             $this->model->set($fieldName, $fd->getDataFromResource($insertDataArray, $this->model, $fieldDefinitionParams));
                         }
                     } else {
@@ -289,7 +278,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
 
                         if (is_array($insertData)) {
                             $columnNames = array_keys($insertData);
-                            $data = array_merge($data, $insertData);
+                            $data = [...$data, ...$insertData];
                         } else {
                             $columnNames = [$key];
                             $data[$key] = $insertData;
@@ -338,26 +327,24 @@ class Dao extends Model\DataObject\AbstractObject\Dao
                                         $this->getInheritanceHelper()->addRelationToCheck($key, $fd);
                                     }
                                 }
-                            } else {
-                                if (is_array($insertData)) {
-                                    foreach ($insertData as $insertDataKey => $insertDataValue) {
-                                        $oldDataValue = $oldData[$insertDataKey] ?? null;
-                                        $parentDataValue = $parentData[$insertDataKey] ?? null;
-                                        if ($isEmpty && $oldDataValue == $parentDataValue) {
-                                            // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                        } elseif ($oldDataValue != $insertDataValue) {
-                                            $this->getInheritanceHelper()->addFieldToCheck($insertDataKey, $fd);
-                                        }
-                                    }
-                                } else {
-                                    $oldDataValue = $oldData[$key] ?? null;
-                                    $parentDataValue = $parentData[$key] ?? null;
+                            } elseif (is_array($insertData)) {
+                                foreach ($insertData as $insertDataKey => $insertDataValue) {
+                                    $oldDataValue = $oldData[$insertDataKey] ?? null;
+                                    $parentDataValue = $parentData[$insertDataKey] ?? null;
                                     if ($isEmpty && $oldDataValue == $parentDataValue) {
                                         // do nothing, ... value is still empty and parent data is equal to current data in query table
-                                    } elseif ($oldDataValue != $insertData) {
-                                        // data changed, do check and update
-                                        $this->getInheritanceHelper()->addFieldToCheck($key, $fd);
+                                    } elseif ($oldDataValue != $insertDataValue) {
+                                        $this->getInheritanceHelper()->addFieldToCheck($insertDataKey, $fd);
                                     }
+                                }
+                            } else {
+                                $oldDataValue = $oldData[$key] ?? null;
+                                $parentDataValue = $parentData[$key] ?? null;
+                                if ($isEmpty && $oldDataValue == $parentDataValue) {
+                                    // do nothing, ... value is still empty and parent data is equal to current data in query table
+                                } elseif ($oldDataValue != $insertData) {
+                                    // data changed, do check and update
+                                    $this->getInheritanceHelper()->addFieldToCheck($key, $fd);
                                 }
                             }
                         }
@@ -388,6 +375,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     /**
      * Save object to database
      */
+    #[\Override]
     public function delete(): void
     {
         // delete fields which have their own delete algorithm

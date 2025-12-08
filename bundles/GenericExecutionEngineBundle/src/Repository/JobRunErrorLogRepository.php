@@ -21,10 +21,10 @@ use Doctrine\ORM\EntityRepository;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRun;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRunErrorLog;
 
-final class JobRunErrorLogRepository implements JobRunErrorLogRepositoryInterface
+final readonly class JobRunErrorLogRepository implements JobRunErrorLogRepositoryInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $openDxpEntityManager,
+        private EntityManagerInterface $openDxpEntityManager,
     ) {
     }
 

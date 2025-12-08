@@ -27,14 +27,8 @@ use SimpleXMLElement;
 
 class Xliff12DataExtractor implements ImportDataExtractorInterface
 {
-    protected Xliff12Escaper $xliffEscaper;
-
-    protected TranslationItemResolverInterface $translationItemResolver;
-
-    public function __construct(Xliff12Escaper $xliffEscaper, TranslationItemResolverInterface $translationItemResolver)
+    public function __construct(protected Xliff12Escaper $xliffEscaper, protected TranslationItemResolverInterface $translationItemResolver)
     {
-        $this->xliffEscaper = $xliffEscaper;
-        $this->translationItemResolver = $translationItemResolver;
     }
 
     public function extractElement(string $importId, int $stepId): ?AttributeSet
@@ -70,8 +64,10 @@ class Xliff12DataExtractor implements ImportDataExtractorInterface
 
         foreach ($file->body->{'trans-unit'} as $transUnit) {
             [$type, $name] = explode(Xliff12Exporter::DELIMITER, (string)$transUnit['id']);
-
-            if (!isset($transUnit->target)) {
+            if (!property_exists($transUnit, 'target')) {
+                continue;
+            }
+            if ($transUnit->target === null) {
                 continue;
             }
 

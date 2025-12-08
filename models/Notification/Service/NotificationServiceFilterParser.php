@@ -48,16 +48,13 @@ class NotificationServiceFilterParser
 
     const OPERATOR_LT = 'lt';
 
-    private Request $request;
-
     private array $properties = [
         'title' => 'title',
         'timestamp' => 'creationDate',
     ];
 
-    public function __construct(Request $request)
+    public function __construct(private readonly Request $request)
     {
-        $this->request = $request;
     }
 
     /**
@@ -106,16 +103,13 @@ class NotificationServiceFilterParser
         $property = $this->getDbProperty($item);
         $value = $item[self::KEY_VALUE] ?? '';
 
-        switch ($item[self::KEY_OPERATOR]) {
-            case self::OPERATOR_LIKE:
-                $key = $property . '_like';
-                $result = [
-                    $key,
-                    "{$property} LIKE :{$key}",
-                    [$key => "%{$value}%"],
-                ];
-
-                break;
+        if ($item[self::KEY_OPERATOR] === self::OPERATOR_LIKE) {
+            $key = $property . '_like';
+            $result = [
+                $key,
+                "{$property} LIKE :{$key}",
+                [$key => "%{$value}%"],
+            ];
         }
 
         if (is_null($result)) {
@@ -180,6 +174,6 @@ class NotificationServiceFilterParser
     {
         $property = $item[self::KEY_PROPERTY];
 
-        return isset($this->properties[$property]) ? $this->properties[$property] : $property;
+        return $this->properties[$property] ?? $property;
     }
 }

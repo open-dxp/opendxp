@@ -25,6 +25,7 @@ use OpenDxp\Model\Document\Editable;
  */
 class EditableLoader extends ImplementationLoader implements EditableLoaderInterface
 {
+    #[\Override]
     public function build(string $name, array $params = []): Editable
     {
         return parent::build($name, $params);

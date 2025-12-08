@@ -23,13 +23,11 @@ class CalculatedValue implements OwnerAwareFieldInterface
 {
     use OwnerAwareFieldTrait;
 
-    protected string $fieldname;
-
     protected string $ownerType = 'object';
 
     protected ?string $ownerName = null;
 
-    protected string|int|null $index;
+    protected string|int|null $index = null;
 
     protected ?string $position = null;
 
@@ -43,9 +41,8 @@ class CalculatedValue implements OwnerAwareFieldInterface
      * CalculatedValue constructor.
      *
      */
-    public function __construct(string $fieldname)
+    public function __construct(protected string $fieldname)
     {
-        $this->fieldname = $fieldname;
         $this->markMeDirty();
     }
 

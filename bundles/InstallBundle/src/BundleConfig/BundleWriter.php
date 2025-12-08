@@ -38,8 +38,8 @@ class BundleWriter
         // get installed bundles, they have to stay in the bundles.php, but won't be installed a second time
         $enabledBundles = include $bundlesPhpFile;
 
-        if (is_array($enabledBundles) && !empty($enabledBundles)) {
-            $bundlesToInstall = array_merge($bundlesToInstall, $enabledBundles);
+        if (is_array($enabledBundles) && $enabledBundles !== []) {
+            $bundlesToInstall = [...$bundlesToInstall, ...$enabledBundles];
         }
 
         File::putPhpFile($bundlesPhpFile, $this->buildContents($bundlesToInstall));
@@ -56,8 +56,7 @@ class BundleWriter
             }
             $contents = substr($contents, 0, -2)."],\n";
         }
-        $contents .= "];\n";
 
-        return $contents;
+        return $contents . "];\n";
     }
 }

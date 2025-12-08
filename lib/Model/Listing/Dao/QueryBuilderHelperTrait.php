@@ -95,6 +95,7 @@ trait QueryBuilderHelperTrait
      */
     private function applyOrderByToQueryBuilder(QueryBuilder $queryBuilder): void
     {
+        $parts = [];
         $orderKey = $this->model->getOrderKey();
         $order = $this->model->getOrder();
 
@@ -112,9 +113,7 @@ trait QueryBuilderHelperTrait
                 $c++;
             }
 
-            if (!empty($parts)) {
-                $queryBuilder->orderBy(implode(', ', $parts), ' ');
-            }
+            $queryBuilder->orderBy(implode(', ', $parts), ' ');
         }
     }
 
@@ -140,7 +139,7 @@ trait QueryBuilderHelperTrait
         }
 
         if ($this->isQueryBuilderPartInUse($queryBuilder, 'groupBy') || $this->isQueryBuilderPartInUse($queryBuilder, 'having')) {
-            $queryBuilder->select(!empty($originalSelect) ? $originalSelect : $identifierColumn);
+            $queryBuilder->select(empty($originalSelect) ? $identifierColumn : $originalSelect);
 
             // Rewrite to 'SELECT COUNT(*) FROM (' . $queryBuilder . ') XYZ'
             $innerQuery = (string)$queryBuilder;
@@ -161,7 +160,7 @@ trait QueryBuilderHelperTrait
             if ($query->getQueryPart($part)) {
                 return true;
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             // do nothing
         }
 

@@ -57,7 +57,7 @@ class Dao extends Model\Dao\AbstractDao
 
             try {
                 $results = $this->db->fetchAllAssociative('SELECT * FROM ' . $tableName . ' WHERE id = ? AND fieldname = ? ORDER BY `index` ASC', [$object->getId(), $this->model->getFieldname()]);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $results = [];
             }
 
@@ -87,10 +87,8 @@ class Dao extends Model\Dao\AbstractDao
 
                     if ($fd instanceof CustomResourcePersistingInterface) {
                         $doLoad = true;
-                        if ($fd instanceof LazyLoadingSupportInterface) {
-                            if ($fd->getLazyLoading()) {
-                                $doLoad = false;
-                            }
+                        if ($fd instanceof LazyLoadingSupportInterface && $fd->getLazyLoading()) {
+                            $doLoad = false;
                         }
 
                         if ($doLoad) {
@@ -109,7 +107,7 @@ class Dao extends Model\Dao\AbstractDao
                     if ($fd instanceof ResourcePersistenceAwareInterface) {
                         if (is_array($fd->getColumnType())) {
                             $multidata = [];
-                            foreach ($fd->getColumnType() as $fkey => $fvalue) {
+                            foreach (array_keys($fd->getColumnType()) as $fkey) {
                                 $multidata[$key . '__' . $fkey] = $result[$key . '__' . $fkey];
                             }
                             $collection->setValue($key, $fd->getDataFromResource($multidata, $object, $params));
@@ -217,15 +215,13 @@ class Dao extends Model\Dao\AbstractDao
 
         $isDirty = $this->model->isFieldDirty('_self');
 
-        if (!$isDirty) {
-            if ($items = $this->model->getItems()) {
-                /** @var Model\Element\DirtyIndicatorInterface $item */
-                foreach ($items as $item) {
-                    if ($item->hasDirtyFields()) {
-                        $this->model->markFieldDirty('_self');
+        if (!$isDirty && $items = $this->model->getItems()) {
+            /** @var Model\Element\DirtyIndicatorInterface $item */
+            foreach ($items as $item) {
+                if ($item->hasDirtyFields()) {
+                    $this->model->markFieldDirty('_self');
 
-                        break;
-                    }
+                    break;
                 }
             }
         }
@@ -239,13 +235,10 @@ class Dao extends Model\Dao\AbstractDao
                 . $this->model->getFieldname() . '/%')
             . ' AND ' . Helper::quoteInto($this->db, 'src_id = ?', $object->getId()). ')';
 
-        if ($saveMode) {
-            if (!DataObject::isDirtyDetectionDisabled() && !$this->model->hasDirtyFields() && $hasLocalizedFields) {
-                // always empty localized fields
-                $this->db->executeStatement('DELETE FROM object_relations_' . $object->getClassId() . ' WHERE ' . $whereLocalizedFields);
-
-                return ['saveLocalizedRelations' => true];
-            }
+        if ($saveMode && (!DataObject::isDirtyDetectionDisabled() && !$this->model->hasDirtyFields() && $hasLocalizedFields)) {
+            // always empty localized fields
+            $this->db->executeStatement('DELETE FROM object_relations_' . $object->getClassId() . ' WHERE ' . $whereLocalizedFields);
+            return ['saveLocalizedRelations' => true];
         }
 
         $where = "(ownertype = 'fieldcollection' AND " . Helper::quoteInto($this->db, 'ownername = ?', $this->model->getFieldname())

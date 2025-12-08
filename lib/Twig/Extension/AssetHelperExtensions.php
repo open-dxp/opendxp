@@ -26,36 +26,19 @@ use Twig\TwigTest;
  */
 class AssetHelperExtensions extends AbstractExtension
 {
+    #[\Override]
     public function getTests(): array
     {
         return [
-            new TwigTest('opendxp_asset', static function ($object) {
-                return $object instanceof Asset;
-            }),
-            new TwigTest('opendxp_asset_archive', static function ($object) {
-                return $object instanceof Asset\Archive;
-            }),
-            new TwigTest('opendxp_asset_audio', static function ($object) {
-                return $object instanceof Asset\Audio;
-            }),
-            new TwigTest('opendxp_asset_document', static function ($object) {
-                return $object instanceof Asset\Document;
-            }),
-            new TwigTest('opendxp_asset_folder', static function ($object) {
-                return $object instanceof Asset\Folder;
-            }),
-            new TwigTest('opendxp_asset_image', static function ($object) {
-                return $object instanceof Asset\Image;
-            }),
-            new TwigTest('opendxp_asset_text', static function ($object) {
-                return $object instanceof Asset\Text;
-            }),
-            new TwigTest('opendxp_asset_unknown', static function ($object) {
-                return $object instanceof Asset\Unknown;
-            }),
-            new TwigTest('opendxp_asset_video', static function ($object) {
-                return $object instanceof Asset\Video;
-            }),
+            new TwigTest('opendxp_asset', static fn($object) => $object instanceof Asset),
+            new TwigTest('opendxp_asset_archive', static fn($object) => $object instanceof Asset\Archive),
+            new TwigTest('opendxp_asset_audio', static fn($object) => $object instanceof Asset\Audio),
+            new TwigTest('opendxp_asset_document', static fn($object) => $object instanceof Asset\Document),
+            new TwigTest('opendxp_asset_folder', static fn($object) => $object instanceof Asset\Folder),
+            new TwigTest('opendxp_asset_image', static fn($object) => $object instanceof Asset\Image),
+            new TwigTest('opendxp_asset_text', static fn($object) => $object instanceof Asset\Text),
+            new TwigTest('opendxp_asset_unknown', static fn($object) => $object instanceof Asset\Unknown),
+            new TwigTest('opendxp_asset_video', static fn($object) => $object instanceof Asset\Video),
         ];
     }
 }

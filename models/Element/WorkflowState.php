@@ -40,7 +40,7 @@ class WorkflowState extends Model\AbstractModel
             $workflowState->getDao()->getByPrimary($cid, $ctype, $workflow);
 
             return $workflowState;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }

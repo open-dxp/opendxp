@@ -28,17 +28,14 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  *
  * @internal
  */
-final class ReportConfigWriter
+final readonly class ReportConfigWriter
 {
-    const REPORT_SETTING_ID = 'reports';
+    const string REPORT_SETTING_ID = 'reports';
 
-    const REPORT_SETTING_SCOPE = 'opendxp';
+    const string REPORT_SETTING_SCOPE = 'opendxp';
 
-    private EventDispatcherInterface $eventDispatcher;
-
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(private EventDispatcherInterface $eventDispatcher)
     {
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -67,7 +64,7 @@ final class ReportConfigWriter
         // the config returned from getReportConfig is readonly
         // so we create a new writable one here
         $config = \OpenDxp\Config::getReportConfig();
-        $config = array_merge($config, $values);
+        $config = [...$config, ...$values];
 
         $this->write($config);
     }

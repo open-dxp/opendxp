@@ -25,25 +25,13 @@ use Symfony\Component\Workflow\WorkflowInterface;
  */
 class ExpressionSupportStrategy implements WorkflowSupportStrategyInterface
 {
-    private ExpressionService $expressionService;
-
-    /**
-     * @var string|string[]
-     */
-    private string|array $className;
-
-    private string $expression;
-
     /**
      * ExpressionSupportStrategy constructor.
      *
      * @param string|string[] $className a FQCN
      */
-    public function __construct(ExpressionService $expressionService, array|string $className, string $expression)
+    public function __construct(private readonly ExpressionService $expressionService, private readonly string|array $className, private readonly string $expression)
     {
-        $this->expressionService = $expressionService;
-        $this->className = $className;
-        $this->expression = $expression;
     }
 
     public function supports(WorkflowInterface $workflow, object $subject): bool
@@ -54,7 +42,7 @@ class ExpressionSupportStrategy implements WorkflowSupportStrategyInterface
 
         $ret = $this->expressionService->evaluateExpression($workflow, $subject, $this->expression);
 
-        return filter_var($ret, FILTER_VALIDATE_BOOL) ? (bool)$ret : false;
+        return filter_var($ret, FILTER_VALIDATE_BOOL) && (bool)$ret;
     }
 
     private function supportsClass(object $subject): bool

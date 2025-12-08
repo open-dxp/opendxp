@@ -36,6 +36,7 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
         return Serialize::serialize($data);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $isEmpty = true;
@@ -95,18 +96,15 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
      */
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
-        if (!empty($data)) {
-            if (is_array($data)) {
-                $points = [];
-                foreach ($data as $point) {
-                    $points[] = [
-                        'latitude' => $point->getLatitude(),
-                        'longitude' => $point->getLongitude(),
-                    ];
-                }
-
-                return $points;
+        if (!empty($data) && is_array($data)) {
+            $points = [];
+            foreach ($data as $point) {
+                $points[] = [
+                    'latitude' => $point->getLatitude(),
+                    'longitude' => $point->getLongitude(),
+                ];
             }
+            return $points;
         }
 
         return null;
@@ -138,11 +136,13 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getDiffVersionPreview($data, $object, $params);
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -161,11 +161,13 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -174,7 +176,6 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): string
@@ -197,7 +198,7 @@ class Geopolygon extends AbstractGeo implements ResourcePersistenceAwareInterfac
         }
 
         if (!is_array($oldValue) || !is_array($newValue)
-        || count($oldValue) != count($newValue)) {
+        || count($oldValue) !== count($newValue)) {
             return false;
         }
 

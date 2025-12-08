@@ -24,16 +24,13 @@ class AssetEvent extends Event implements ElementEventInterface
 {
     use ArgumentsAwareTrait;
 
-    protected Asset $asset;
-
     /**
      * AssetEvent constructor.
      *
      * @param array $arguments additional parameters (e.g. "versionNote" for the version note)
      */
-    public function __construct(Asset $asset, array $arguments = [])
+    public function __construct(protected Asset $asset, array $arguments = [])
     {
-        $this->asset = $asset;
         $this->arguments = $arguments;
     }
 

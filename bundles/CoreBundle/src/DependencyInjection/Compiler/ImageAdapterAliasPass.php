@@ -35,14 +35,12 @@ final class ImageAdapterAliasPass implements CompilerPassInterface
             $container->getDefinition(AdapterInterface::class)->setPublic(true)->setShared(false);
         } elseif ($container->hasAlias(AdapterInterface::class)) {
             $container->getAlias(AdapterInterface::class)->setPublic(true);
+        } elseif (extension_loaded('imagick')) {
+            $alias = new Alias(Imagick::class, true);
+            $container->setAlias(AdapterInterface::class, $alias);
         } else {
-            if (extension_loaded('imagick')) {
-                $alias = new Alias(Imagick::class, true);
-                $container->setAlias(AdapterInterface::class, $alias);
-            } else {
-                $alias = new Alias(GD::class, true);
-                $container->setAlias(AdapterInterface::class, $alias);
-            }
+            $alias = new Alias(GD::class, true);
+            $container->setAlias(AdapterInterface::class, $alias);
         }
     }
 }

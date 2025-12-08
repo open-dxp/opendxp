@@ -29,9 +29,7 @@ final class DefinitionModifier
      */
     public function appendFields(Layout $layoutDefinition, string $nameToFind, array|Data|Layout $fieldsToAdd): bool
     {
-        $callable = function () use ($fieldsToAdd) {
-            return $this->add($fieldsToAdd, true, func_get_args());
-        };
+        $callable = (fn() => $this->add($fieldsToAdd, true, func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
@@ -44,9 +42,7 @@ final class DefinitionModifier
      */
     public function prependFields(Layout $layoutDefinition, string $nameToFind, array|Data|Layout $fieldsToAdd): bool
     {
-        $callable = function () use ($fieldsToAdd) {
-            return $this->add($fieldsToAdd, false, func_get_args());
-        };
+        $callable = (fn() => $this->add($fieldsToAdd, false, func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
@@ -59,9 +55,7 @@ final class DefinitionModifier
      */
     public function insertFieldsFront(Layout $layoutDefinition, string $nameToFind, array|Data|Layout $fieldsToInsert): bool
     {
-        $callable = function () use ($fieldsToInsert) {
-            return $this->insert($fieldsToInsert, false, func_get_args());
-        };
+        $callable = (fn() => $this->insert($fieldsToInsert, false, func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
@@ -74,9 +68,7 @@ final class DefinitionModifier
      */
     public function insertFieldsBack(Layout $layoutDefinition, string $nameToFind, array|Data|Layout $fieldsToInsert): bool
     {
-        $callable = function () use ($fieldsToInsert) {
-            return $this->insert($fieldsToInsert, true, func_get_args());
-        };
+        $callable = (fn() => $this->insert($fieldsToInsert, true, func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
@@ -89,18 +81,14 @@ final class DefinitionModifier
      */
     public function replaceField(Layout $layoutDefinition, string $nameToFind, array|Data|Layout $fieldReplacements): bool
     {
-        $callable = function () use ($fieldReplacements) {
-            return $this->replace($fieldReplacements, func_get_args());
-        };
+        $callable = (fn() => $this->replace($fieldReplacements, func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
 
     public function removeField(Layout $layoutDefinition, string $nameToFind): bool
     {
-        $callable = function () {
-            return $this->remove(func_get_args());
-        };
+        $callable = (fn() => $this->remove(func_get_args()));
 
         return $this->findField($layoutDefinition, $nameToFind, $callable);
     }
@@ -134,18 +122,14 @@ final class DefinitionModifier
 
         if ($found) {
             return $callback($layoutDefinition, $child, $index);
-        } else {
-            //if not found, call recursive
-            foreach ($children as $index => $child) {
-                if ($child instanceof Layout || $child instanceof Data\Localizedfields) {
-                    if ($this->findField($child, $nameToFind, $callback)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
+        //if not found, call recursive
+        foreach ($children as $child) {
+            if (($child instanceof Layout || $child instanceof Data\Localizedfields) && $this->findField($child, $nameToFind, $callback)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

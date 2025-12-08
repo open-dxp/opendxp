@@ -22,20 +22,10 @@ use Twig\Environment;
 
 class StatusInfo
 {
-    private Manager $workflowManager;
+    private readonly string $userLanguage;
 
-    private Environment $twig;
-
-    private TranslatorInterface $translator;
-
-    private string $userLanguage;
-
-    public function __construct(Manager $workflowManager, Environment $twig, TranslatorInterface $translator)
+    public function __construct(private readonly Manager $workflowManager, private readonly Environment $twig, private readonly TranslatorInterface $translator)
     {
-        $this->workflowManager = $workflowManager;
-        $this->twig = $twig;
-        $this->translator = $translator;
-
         $user = \OpenDxp\Tool\Admin::getCurrentUser();
         $this->userLanguage = $user ? $user->getLanguage() : 'en';
     }

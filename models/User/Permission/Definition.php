@@ -102,12 +102,10 @@ class Definition extends Model\AbstractModel
             Logger::info("Permission $permission allready exists. Skipping creation.");
 
             return $permissionDefinition;
-        } else {
-            $permissionDefinition = new static();
-            $permissionDefinition->setKey($permission);
-            $permissionDefinition->save();
-
-            return $permissionDefinition;
         }
+        $permissionDefinition = new static();
+        $permissionDefinition->setKey($permission);
+        $permissionDefinition->save();
+        return $permissionDefinition;
     }
 }

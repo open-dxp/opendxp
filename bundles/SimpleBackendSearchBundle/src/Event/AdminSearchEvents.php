@@ -26,10 +26,8 @@ final class AdminSearchEvents
      *  - requestParams | contains the request parameters
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SEARCH_LIST_BEFORE_FILTER_PREPARE = 'opendxp.admin.search.list.beforeFilterPrepare';
+    const string SEARCH_LIST_BEFORE_FILTER_PREPARE = 'opendxp.admin.search.list.beforeFilterPrepare';
 
     /**
      * Allows you to modify the search backend list before it is loaded.
@@ -40,10 +38,8 @@ final class AdminSearchEvents
      *  - context | contains contextual information
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SEARCH_LIST_BEFORE_LIST_LOAD = 'opendxp.admin.search.list.beforeListLoad';
+    const string SEARCH_LIST_BEFORE_LIST_LOAD = 'opendxp.admin.search.list.beforeListLoad';
 
     /**
      * Allows you to modify the the result after the list was loaded.
@@ -54,10 +50,8 @@ final class AdminSearchEvents
      *  - context | contains contextual information
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const SEARCH_LIST_AFTER_LIST_LOAD = 'opendxp.admin.search.list.afterListLoad';
+    const string SEARCH_LIST_AFTER_LIST_LOAD = 'opendxp.admin.search.list.afterListLoad';
 
     /**
      * Allows you to modify the search backend list before it is loaded.
@@ -68,10 +62,8 @@ final class AdminSearchEvents
      *  - context | contains contextual information
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const QUICKSEARCH_LIST_BEFORE_LIST_LOAD = 'opendxp.admin.quickSearch.list.beforeListLoad';
+    const string QUICKSEARCH_LIST_BEFORE_LIST_LOAD = 'opendxp.admin.quickSearch.list.beforeListLoad';
 
     /**
      * Allows you to modify the the result after the list was loaded.
@@ -82,8 +74,6 @@ final class AdminSearchEvents
      *  - context | contains contextual information
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const QUICKSEARCH_LIST_AFTER_LIST_LOAD = 'opendxp.admin.quickSearch.list.afterListLoad';
+    const string QUICKSEARCH_LIST_AFTER_LIST_LOAD = 'opendxp.admin.quickSearch.list.afterListLoad';
 }

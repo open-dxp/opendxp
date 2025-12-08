@@ -41,6 +41,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return $obj;
     }
 
+    #[\Override]
     public function jsonSerialize(): mixed
     {
         if (Service::doRemoveDynamicOptions()) {
@@ -50,6 +51,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return parent::jsonSerialize();
     }
 
+    #[\Override]
     public function resolveBlockedVars(): array
     {
         $blockedVars = parent::resolveBlockedVars();
@@ -58,6 +60,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return $blockedVars;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'gender';

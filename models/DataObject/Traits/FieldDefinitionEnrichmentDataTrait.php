@@ -39,15 +39,13 @@ trait FieldDefinitionEnrichmentDataTrait
 
         if (is_array($def)) {
             foreach ($def as $child) {
-                $fields = array_merge($fields, $this->doGetFieldDefinitions($child, $fields));
+                $fields = [...$fields, ...$this->doGetFieldDefinitions($child, $fields)];
             }
         }
 
-        if ($def instanceof ClassDefinition\Layout) {
-            if ($def->hasChildren()) {
-                foreach ($def->getChildren() as $child) {
-                    $fields = array_merge($fields, $this->doGetFieldDefinitions($child, $fields));
-                }
+        if ($def instanceof ClassDefinition\Layout && $def->hasChildren()) {
+            foreach ($def->getChildren() as $child) {
+                $fields = [...$fields, ...$this->doGetFieldDefinitions($child, $fields)];
             }
         }
 
@@ -75,7 +73,7 @@ trait FieldDefinitionEnrichmentDataTrait
             $definitions = $this->doGetFieldDefinitions();
             foreach ($this->getReferencedFields() as $rf) {
                 if ($rf instanceof ClassDefinition\Data\Localizedfields) {
-                    $definitions = array_merge($definitions, $this->doGetFieldDefinitions($rf->getChildren()));
+                    $definitions = [...$definitions, ...$this->doGetFieldDefinitions($rf->getChildren())];
                 }
             }
 

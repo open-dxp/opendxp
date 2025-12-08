@@ -56,8 +56,6 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
 
     /**
      * @see Data::getDataForEditmode
-     *
-     * @param null|Model\DataObject\Concrete $object
      */
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
     {
@@ -110,8 +108,6 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     }
 
     /**
-     * @param Model\DataObject\Concrete|null $object
-     *
      * @return Model\DataObject\Data\UrlSlug[]
      */
     public function getDataFromGridEditor(float $data, ?Concrete $object = null, array $params = []): array
@@ -119,6 +115,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data && !is_array($data)) {
@@ -132,7 +129,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
                 $slug = htmlspecialchars($item->getSlug());
                 $foundSlug = true;
 
-                if (strlen($slug) > 0) {
+                if ($slug !== '') {
                     $document = Model\Document::getByPath($slug);
                     if ($document) {
                         throw new Model\Element\ValidationException('Slug must be unique. Found conflict with document path "' . $slug . '"');
@@ -221,7 +218,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
 
                                 // if now exception is thrown then the slug is owned by a diffrent object/field
                                 throw new Exception('Unique constraint violated. Slug "' . $slug['slug'] . '" is already used by object '
-                                    . $existingSlug->getObjectId() . ', fieldname: ' . $existingSlug->getFieldname());
+                                    . $existingSlug->getObjectId() . ', fieldname: ' . $existingSlug->getFieldname(), $e->getCode(), $e);
                             }
                         }
 
@@ -234,9 +231,6 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         $this->dispatchEvent($event, UrlSlugEvents::POST_SAVE);
     }
 
-    /**
-     * @param Model\DataObject\Concrete|Model\DataObject\Fieldcollection\Data\AbstractData|Model\DataObject\Objectbrick\Data\AbstractData|Model\DataObject\Localizedfield|null $object
-     */
     public function prepareDataForPersistence(mixed $data, Localizedfield|AbstractData|Model\DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): ?array
     {
         $return = [];
@@ -314,6 +308,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         }
     }
 
+    #[\Override]
     public function getUnique(): bool
     {
         return true;
@@ -322,11 +317,13 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     /**
      * @param Model\DataObject\ClassDefinition\Data\UrlSlug $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->action = $mainDefinition->action;
     }
 
+    #[\Override]
     public function getDataForSearchIndex(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): string
     {
         return '';
@@ -361,19 +358,19 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $oldData === $newData;
     }
 
+    #[\Override]
     public function supportsDirtyDetection(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function isEmpty(mixed $data): bool
     {
         if (is_array($data)) {
             foreach ($data as $item) {
-                if ($item instanceof Model\DataObject\Data\UrlSlug) {
-                    if ($item->getSlug()) {
-                        return false;
-                    }
+                if ($item instanceof Model\DataObject\Data\UrlSlug && $item->getSlug()) {
+                    return false;
                 }
             }
         }
@@ -402,6 +399,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return null;
     }
 
+    #[\Override]
     public function getVersionPreview(mixed $data, ?Model\DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getPreviewData($data, $object, $params) ?? '';
@@ -415,6 +413,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $this->getDataForEditmode($data, $object, $params);
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -423,6 +422,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     /**
      * returns sql query statement to filter according to this data types value(s)
      */
+    #[\Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = 'slug';
@@ -528,6 +528,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return true;
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $result = [];
@@ -543,6 +544,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return implode(',', $result);
     }
 
+    #[\Override]
     public function supportsInheritance(): bool
     {
         return false;

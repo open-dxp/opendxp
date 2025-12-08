@@ -30,13 +30,10 @@ use Symfony\Component\Lock\LockInterface;
  */
 class LowQualityImagePreviewTask implements TaskInterface
 {
-    private LoggerInterface $logger;
+    private readonly LockInterface $lock;
 
-    private LockInterface $lock;
-
-    public function __construct(LoggerInterface $logger, LockFactory $lockFactory)
+    public function __construct(private readonly LoggerInterface $logger, LockFactory $lockFactory)
     {
-        $this->logger = $logger;
         $this->lock = $lockFactory->createLock(self::class, 86400 * 2);
     }
 

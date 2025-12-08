@@ -77,12 +77,11 @@ trait WebLinksTrait
                 // enable web links for the whole helper while disabling them for individual items
                 if (!$itemAttributes['webLink']) {
                     return;
-                } else {
-                    $itemAttributes['webLink'] = [];
                 }
+                $itemAttributes['webLink'] = [];
             }
 
-            $attributes = array_merge($attributes, $itemAttributes['webLink']);
+            $attributes = [...$attributes, ...$itemAttributes['webLink']];
         }
 
         $method = 'preload';

@@ -34,7 +34,7 @@ class Multiselect implements MarshallerInterface
 
     public function unmarshal(mixed $value, array $params = []): mixed
     {
-        if (is_array($value) && strlen($value['value'] ?? '') > 0) {
+        if (is_array($value) && (string) ($value['value'] ?? '') !== '') {
             return explode(',', $value['value']);
         }
 

@@ -23,44 +23,26 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class EditableNameEvent extends Event
 {
-    /**
-     * Editable type (e.g. "input")
-     *
-     */
-    private string $type;
-
-    /**
-     * Editable name (e.g. "headline")
-     *
-     */
-    private string $inputName;
-
-    /**
-     * The current block state
-     *
-     */
-    private BlockState $blockState;
-
-    /**
-     * The built editable name
-     *
-     */
-    private string $editableName;
-
-    private Document $document;
-
     public function __construct(
-        string $type,
-        string $inputName,
-        BlockState $blockState,
-        string $editableName,
-        Document $document
-    ) {
-        $this->type = $type;
-        $this->inputName = $inputName;
-        $this->blockState = $blockState;
-        $this->editableName = $editableName;
-        $this->document = $document;
+        /**
+         * Editable type (e.g. "input")
+         */
+        private readonly string $type,
+        /**
+         * Editable name (e.g. "headline")
+         */
+        private readonly string $inputName,
+        /**
+         * The current block state
+         */
+        private readonly BlockState $blockState,
+        /**
+         * The built editable name
+         */
+        private string $editableName,
+        private readonly Document $document
+    )
+    {
     }
 
     public function getType(): string

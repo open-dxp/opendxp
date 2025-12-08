@@ -47,6 +47,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
         return $items;
     }
 
+    #[\Override]
     protected function getCondition(): string
     {
         $condition = parent::getCondition();
@@ -57,16 +58,15 @@ class Dao extends Model\Listing\Dao\AbstractDao
         }
 
         $types = [$this->model->getType(), $this->model->getType() . 'folder'];
-        $condition .= "id > 0 AND `type` IN ('" . implode("','", $types) . "')";
 
-        return $condition;
+        return $condition . ("id > 0 AND `type` IN ('" . implode("','", $types) . "')");
     }
 
     public function getTotalCount(): int
     {
         try {
             return (int) $this->db->fetchOne('SELECT COUNT(*) FROM users ' . $this->getCondition(), $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
-        } catch (Exception $e) {
+        } catch (Exception) {
             return 0;
         }
     }

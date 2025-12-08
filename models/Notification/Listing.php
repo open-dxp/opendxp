@@ -26,6 +26,7 @@ use OpenDxp\Model\Listing\AbstractListing;
  */
 class Listing extends AbstractListing
 {
+    #[\Override]
     public function isValidOrderKey(string $key): bool
     {
         return true;

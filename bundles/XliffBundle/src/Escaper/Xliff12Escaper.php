@@ -72,9 +72,7 @@ class Xliff12Escaper
             }
         }
 
-        $content = $preText . implode('', $final);
-
-        return $content;
+        return $preText . implode('', $final);
     }
 
     public function unescapeXliff(string $content): string
@@ -89,12 +87,10 @@ class Xliff12Escaper
                 $content = html_entity_decode($el->textContent, ENT_COMPAT, 'UTF-8');
                 $el->ownerDocument->textContent = $content;
             }
-            $content = $xml->text();
-        } else {
-            $content = html_entity_decode(trim($content));
+            return $xml->text();
         }
 
-        return $content;
+        return html_entity_decode(trim($content));
     }
 
     private function parseInnerXml(string $content): string

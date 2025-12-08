@@ -49,10 +49,10 @@ class Service
                 } elseif (in_array($unitArray['id'], $baseUnitsArray)) {
                     array_unshift($units, $unit);
                 } else {
-                    array_push($units, $unit);
+                    $units[] = $unit;
                 }
             }
-            foreach (array_merge($baseUnits, $units) as $unit) {
+            foreach ([...$baseUnits, ...$units] as $unit) {
                 $unit->save();
             }
         } catch (Exception) {

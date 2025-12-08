@@ -62,14 +62,14 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
                 $user->getDao()->getById($id);
                 $className = Service::getClassNameForType($user->getType());
 
-                if (get_class($user) !== $className) {
+                if ($user::class !== $className) {
                     /** @var AbstractUser $user */
                     $user = $className::getById($user->getId());
                 }
 
                 RuntimeCache::set($cacheKey, $user);
             }
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
 
@@ -97,7 +97,7 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
             $user->getDao()->getByName($name);
 
             return $user;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }

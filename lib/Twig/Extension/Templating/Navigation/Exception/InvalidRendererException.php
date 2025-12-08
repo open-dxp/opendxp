@@ -24,7 +24,7 @@ class InvalidRendererException extends LogicException
 {
     public static function create(string $name, mixed $renderer): static
     {
-        $type = is_object($renderer) ? get_class($renderer) : gettype($renderer);
+        $type = get_debug_type($renderer);
 
         return new static(sprintf(
             'Renderer for name "%s" was expected to implement interface "%s", "%s" given.',

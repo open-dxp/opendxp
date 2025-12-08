@@ -43,10 +43,8 @@ class Csv
             $quote = '"';
         }
 
-        if (is_null($delim)) {
-            if (!$delim = $this->guessDelim($data, $linefeed, $quote)) {
-                throw new Exception('Unable to determine the file\'s dialect.');
-            }
+        if (is_null($delim) && !$delim = $this->guessDelim($data, $linefeed, $quote)) {
+            throw new Exception('Unable to determine the file\'s dialect.');
         }
 
         $dialect = new stdClass();
@@ -70,7 +68,7 @@ class Csv
         $count_cr = $charcount[ord($cr)];
         $count_lf = $charcount[ord($lf)];
 
-        if ($count_cr == $count_lf) {
+        if ($count_cr === $count_lf) {
             return "$cr$lf";
         }
         if ($count_cr == 0 && $count_lf > 0) {
@@ -127,11 +125,11 @@ class Csv
 
         $filtered = [];
         foreach ($charcount as $char => $count) {
-            if ($char == ord($quotechar)) {
+            if ($char === ord($quotechar)) {
                 // exclude the quote char
                 continue;
             }
-            if ($char == ord(' ')) {
+            if ($char === ord(' ')) {
                 // exclude spaces
                 continue;
             }
@@ -147,7 +145,11 @@ class Csv
                 // exclude 0-9
                 continue;
             }
-            if ($char == ord("\n") || $char == ord("\r")) {
+            if ($char === ord("\n")) {
+                // exclude linefeeds
+                continue;
+            }
+            if ($char === ord("\r")) {
                 // exclude linefeeds
                 continue;
             }
@@ -206,13 +208,11 @@ class Csv
             asort($tmp);
             $keys = array_keys($tmp);
             $lastEl = end($keys);
-            $delim = chr($lastEl);
-        } else {
-            // no potential delimiters remain
-            $delim = false;
+            return chr($lastEl);
         }
 
-        return $delim;
+        // no potential delimiters remain
+        return false;
     }
 
     protected function deviation(array $array): float
@@ -220,10 +220,9 @@ class Csv
         $avg = array_sum($array) / count($array);
         $variance = [];
         foreach ($array as $value) {
-            $variance[] = pow($value - $avg, 2);
+            $variance[] = ($value - $avg) ** 2;
         }
-        $deviation = sqrt(array_sum($variance) / count($variance));
 
-        return $deviation;
+        return sqrt(array_sum($variance) / count($variance));
     }
 }

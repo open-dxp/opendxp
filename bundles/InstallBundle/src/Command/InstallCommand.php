@@ -45,21 +45,14 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 )]
 class InstallCommand extends Command
 {
-    private Installer $installer;
-
-    private EventDispatcherInterface $eventDispatcher;
-
     private OpenDxpStyle $io;
 
     private ?array $options = null;
 
     public function __construct(
-        Installer $installer,
-        EventDispatcherInterface $eventDispatcher
+        private readonly Installer $installer,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {
-        $this->installer = $installer;
-        $this->eventDispatcher = $eventDispatcher;
-
         parent::__construct();
     }
 
@@ -139,9 +132,7 @@ class InstallCommand extends Command
     {
         $options = $this->getOptions();
 
-        $envVars = array_values(array_map(function ($config) {
-            return $config['env'];
-        }, $options));
+        $envVars = array_values(array_map(fn($config) => $config['env'], $options));
 
         $description = 'Installs OpenDxp with the given parameters. Every parameter will be prompted interactively or can also be set via env vars';
 
@@ -151,7 +142,6 @@ class InstallCommand extends Command
         }
 
         $this
-            ->setHelp($help)
             ->addOption(
                 'skip-database-config',
                 null,
@@ -192,7 +182,7 @@ class InstallCommand extends Command
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         if ($onlySteps = $input->getOption('only-steps')) {
-            $onlySteps = array_map('trim', explode(',', $onlySteps));
+            $onlySteps = array_map(trim(...), explode(',', $onlySteps));
             $this->installer->setRunInstallSteps($onlySteps);
         }
 
@@ -214,11 +204,7 @@ class InstallCommand extends Command
         if (false !== $bundleOption) {
             $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
 
-            if (null === $bundleOption) {
-                $bundles = [];
-            } else {
-                $bundles = explode(',', $bundleOption);
-            }
+            $bundles = null === $bundleOption ? [] : explode(',', $bundleOption);
 
             $installableBundles = $bundleSetupEvent->getInstallableBundles($bundles);
             $this->installer->setBundlesToInstall($installableBundles, $bundleSetupEvent->getAvailableBundles(), $bundleSetupEvent->getExcludeBundlesFromPhpBundles());
@@ -251,10 +237,8 @@ class InstallCommand extends Command
             }
 
             // set option values from env vars
-            if (!$value || $isDefaultValue) {
-                if ($env = getenv($config['env'])) {
-                    $input->setOption($name, $env);
-                }
+            if ((!$value || $isDefaultValue) && $env = getenv($config['env'])) {
+                $input->setOption($name, $env);
             }
         }
     }
@@ -273,8 +257,10 @@ class InstallCommand extends Command
 
             $value = $input->getOption($name);
             $isDefaultValue = isset($config['default']) && $value === $config['default'];
-
-            if ($value || $isDefaultValue) {
+            if ($value) {
+                continue;
+            }
+            if ($isDefaultValue) {
                 continue;
             }
 
@@ -312,12 +298,7 @@ class InstallCommand extends Command
         if ('db_credentials' === ($config['group'] ?? null) && !$this->installer->needsDbCredentials()) {
             return false;
         }
-
-        if ('bundles' === ($config['group'] ?? null)) {
-            return false;
-        }
-
-        return true;
+        return 'bundles' !== ($config['group'] ?? null);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -385,7 +366,7 @@ class InstallCommand extends Command
 
         $this->eventDispatcher->addListener(
             InstallEvents::EVENT_NAME_STEP,
-            function (InstallerStepEvent $event) use ($progressBar) {
+            function (InstallerStepEvent $event) use ($progressBar): void {
                 $progressBar->setMessage($event->getMessage());
                 $progressBar->advance();
             }

@@ -28,10 +28,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const ASSET_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.image.thumbnail';
+    const string ASSET_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.image.thumbnail';
 
     /**
      * Allows to rewrite the frontend path of an video image thumbnail
@@ -43,10 +41,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const ASSET_VIDEO_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.video.image-thumbnail';
+    const string ASSET_VIDEO_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.video.image-thumbnail';
 
     /**
      * Allows to rewrite the frontend path of an video thumbnail (mp4)
@@ -58,10 +54,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const ASSET_VIDEO_THUMBNAIL = 'opendxp.frontend.path.asset.video.thumbnail';
+    const string ASSET_VIDEO_THUMBNAIL = 'opendxp.frontend.path.asset.video.thumbnail';
 
     /**
      * Allows to rewrite the frontend path of an video thumbnail (mp4)
@@ -73,10 +67,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const ASSET_DOCUMENT_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.document.image-thumbnail';
+    const string ASSET_DOCUMENT_IMAGE_THUMBNAIL = 'opendxp.frontend.path.asset.document.image-thumbnail';
 
     /**
      * Allows to rewrite the frontend path of an asset (no matter which type)
@@ -87,10 +79,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const ASSET_PATH = 'opendxp.frontend.path.asset';
+    const string ASSET_PATH = 'opendxp.frontend.path.asset';
 
     /**
      * Allows to rewrite the frontend path of a document (no matter which type)
@@ -101,10 +91,8 @@ final class FrontendEvents
      *  - frontendPath | string | Web-path, relative
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const DOCUMENT_PATH = 'opendxp.frontend.path.document';
+    const string DOCUMENT_PATH = 'opendxp.frontend.path.document';
 
     /**
      * Allows to rewrite the frontend path of a static route
@@ -118,10 +106,8 @@ final class FrontendEvents
      *  - encode | bool
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const STATICROUTE_PATH = 'opendxp.frontend.path.staticroute';
+    const string STATICROUTE_PATH = 'opendxp.frontend.path.staticroute';
 
     /**
      * Subject: 	\OpenDxp\Twig\Extension\Templating\HeadLink
@@ -129,10 +115,8 @@ final class FrontendEvents
      *  - item | stdClass
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const VIEW_HELPER_HEAD_LINK = 'opendxp.frontend.view.helper.head-link';
+    const string VIEW_HELPER_HEAD_LINK = 'opendxp.frontend.view.helper.head-link';
 
     /**
      * Subject: 	\OpenDxp\Twig\Extension\Templating\HeadScript
@@ -140,8 +124,6 @@ final class FrontendEvents
      *  - item | stdClass
      *
      * @Event("Symfony\Component\EventDispatcher\GenericEvent")
-     *
-     * @var string
      */
-    const VIEW_HELPER_HEAD_SCRIPT = 'opendxp.frontend.view.helper.head-script';
+    const string VIEW_HELPER_HEAD_SCRIPT = 'opendxp.frontend.view.helper.head-script';
 }

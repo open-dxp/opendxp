@@ -35,13 +35,11 @@ class Video
                 $adapterClass = '\\OpenDxp\\Video\\Adapter\\' . $adapter;
                 if (Tool::classExists($adapterClass)) {
                     return new $adapterClass();
-                } else {
-                    throw new Exception('Video-transcode adapter `' . $adapter . '´ does not exist.');
                 }
-            } else {
-                if ($adapter = self::getDefaultAdapter()) {
-                    return $adapter;
-                }
+                throw new Exception('Video-transcode adapter `' . $adapter . '´ does not exist.');
+            }
+            if ($adapter = self::getDefaultAdapter()) {
+                return $adapter;
             }
         } catch (Exception $e) {
             Logger::crit('Unable to load video adapter: ' . $e->getMessage());
@@ -54,11 +52,7 @@ class Video
 
     public static function isAvailable(): bool
     {
-        if (self::getDefaultAdapter()) {
-            return true;
-        }
-
-        return false;
+        return self::getDefaultAdapter() instanceof \OpenDxp\Video\Adapter;
     }
 
     private static function getDefaultAdapter(): ?Video\Adapter

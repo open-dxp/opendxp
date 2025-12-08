@@ -32,7 +32,7 @@ class SiteResolver extends AbstractRequestResolver
 
     public function getSite(?Request $request = null): ?Site
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 
@@ -46,7 +46,7 @@ class SiteResolver extends AbstractRequestResolver
 
     public function getSitePath(?Request $request = null): ?string
     {
-        if (null === $request) {
+        if (!$request instanceof \Symfony\Component\HttpFoundation\Request) {
             $request = $this->getCurrentRequest();
         }
 

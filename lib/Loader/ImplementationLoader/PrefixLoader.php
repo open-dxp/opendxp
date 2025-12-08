@@ -29,7 +29,7 @@ use OpenDxp\Tool;
  */
 class PrefixLoader extends AbstractClassNameLoader
 {
-    private Inflector $inflector;
+    private readonly Inflector $inflector;
 
     private array $prefixes = [];
 
@@ -43,7 +43,7 @@ class PrefixLoader extends AbstractClassNameLoader
 
     private function setPrefixes(array $prefixes): void
     {
-        if (empty($prefixes)) {
+        if ($prefixes === []) {
             throw new InvalidArgumentException('Prefix loader needs a list of prefixes, empty array given');
         }
 

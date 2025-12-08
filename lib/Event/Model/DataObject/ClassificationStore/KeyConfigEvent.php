@@ -21,15 +21,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class KeyConfigEvent extends Event
 {
-    protected KeyConfig $keyConfig;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(KeyConfig $keyConfig)
+    public function __construct(protected KeyConfig $keyConfig)
     {
-        $this->keyConfig = $keyConfig;
     }
 
     public function getKeyConfig(): KeyConfig

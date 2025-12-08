@@ -25,13 +25,10 @@ use Symfony\Component\Workflow\MarkingStore\MarkingStoreInterface;
 
 class DataObjectMultipleStateMarkingStore implements MarkingStoreInterface
 {
-    private string $property;
+    private readonly \Symfony\Component\PropertyAccess\PropertyAccessor|PropertyAccessorInterface $propertyAccessor;
 
-    private \Symfony\Component\PropertyAccess\PropertyAccessor|PropertyAccessorInterface $propertyAccessor;
-
-    public function __construct(string $property = 'marking', ?PropertyAccessorInterface $propertyAccessor = null)
+    public function __construct(private readonly string $property = 'marking', ?PropertyAccessorInterface $propertyAccessor = null)
     {
-        $this->property = $property;
         $this->propertyAccessor = $propertyAccessor ?: PropertyAccess::createPropertyAccessor();
     }
 

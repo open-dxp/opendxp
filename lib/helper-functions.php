@@ -20,19 +20,14 @@ function xmlToArray(string $file): array
 {
     $xml = simplexml_load_file($file, null, LIBXML_NOCDATA);
     $json = json_encode((array) $xml);
-    $array = json_decode($json, true);
 
-    return $array;
+    return json_decode($json, true);
 }
 
 function gzcompressfile(string $source, ?int $level = null, ?string $target = null): false|string
 {
     // this is a very memory efficient way of gzipping files
-    if ($target) {
-        $dest = $target;
-    } else {
-        $dest = $source.'.gz';
-    }
+    $dest = $target ?: $source.'.gz';
 
     $mode = 'wb' . $level;
     $error = false;
@@ -51,9 +46,8 @@ function gzcompressfile(string $source, ?int $level = null, ?string $target = nu
     }
     if ($error) {
         return false;
-    } else {
-        return $dest;
     }
+    return $dest;
 }
 
 function is_json(mixed $string): bool
@@ -61,7 +55,7 @@ function is_json(mixed $string): bool
     if (is_string($string)) {
         json_decode($string);
 
-        return json_last_error() == JSON_ERROR_NONE;
+        return json_last_error() === JSON_ERROR_NONE;
     }
 
     return false;
@@ -74,7 +68,7 @@ function foldersize(string $path): int
     $cleanPath = rtrim($path, '/'). '/';
 
     foreach ($files as $t) {
-        if ($t != '.' && $t != '..') {
+        if ($t !== '.' && $t !== '..') {
             $currentFile = $cleanPath . $t;
             if (is_dir($currentFile)) {
                 $size = foldersize($currentFile);
@@ -102,9 +96,7 @@ function replace_pcre_backreferences(string $string, array $values): string
         $string = str_replace('$'.$key, $value, $string);
     }
 
-    $string = str_replace('###URLENCODE_PLACEHOLDER###', '$', $string);
-
-    return $string;
+    return str_replace('###URLENCODE_PLACEHOLDER###', '$', $string);
 }
 
 /**
@@ -117,10 +109,8 @@ function array_htmlspecialchars(array $array): array
     foreach ($array as $key => $value) {
         if (is_string($value) || is_numeric($value)) {
             $array[$key] = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
-        } else {
-            if (is_array($value)) {
-                $array[$key] = array_htmlspecialchars($value);
-            }
+        } elseif (is_array($value)) {
+            $array[$key] = array_htmlspecialchars($value);
         }
     }
 
@@ -129,7 +119,7 @@ function array_htmlspecialchars(array $array): array
 
 function in_arrayi(string $needle, array $haystack): bool
 {
-    return in_array(strtolower($needle), array_map('strtolower', $haystack));
+    return in_array(strtolower($needle), array_map(strtolower(...), $haystack));
 }
 
 /**
@@ -138,7 +128,7 @@ function in_arrayi(string $needle, array $haystack): bool
  */
 function array_searchi(string $needle, array $haystack): false|int|string
 {
-    return array_search(strtolower($needle), array_map('strtolower', $haystack));
+    return array_search(strtolower($needle), array_map(strtolower(...), $haystack));
 }
 
 /**
@@ -238,7 +228,7 @@ function formatBytes(int $bytes, int $precision = 2): string
     $pow = floor(($bytes ? log($bytes) : 0) / log(1000));
     $pow = min($pow, count($units) - 1);
 
-    $bytes /= pow(1000, $pow);
+    $bytes /= 1000 ** $pow;
 
     return round($bytes, $precision) . ' ' . $units[$pow];
 }
@@ -259,9 +249,7 @@ function filesize2bytes(string $str): int
         $bytes *= $bytes_array[$matches[1]];
     }
 
-    $bytes = (int)round($bytes, 2);
-
-    return $bytes;
+    return (int)round($bytes, 2);
 }
 
 /**
@@ -271,7 +259,7 @@ function filesize2bytes(string $str): int
  */
 function rscandir(string $base = '', array &$data = []): array
 {
-    if (substr($base, -1, 1) != DIRECTORY_SEPARATOR) { //add trailing slash if it doesn't exists
+    if (substr($base, -1, 1) !== DIRECTORY_SEPARATOR) { //add trailing slash if it doesn't exists
         $base .= DIRECTORY_SEPARATOR;
     }
 
@@ -303,7 +291,7 @@ function explode_and_trim(string $delimiter, string $string, int $limit = PHP_IN
         $exploded[$key] = trim($value);
     }
     if ($useArrayFilter) {
-        $exploded = array_filter($exploded);
+        return array_filter($exploded);
     }
 
     return $exploded;
@@ -313,39 +301,30 @@ function recursiveDelete(string $directory, bool $empty = true): bool
 {
     if (is_dir($directory)) {
         $directory = rtrim($directory, '/');
-
         if (!file_exists($directory) || !is_dir($directory)) {
             return false;
-        } elseif (!is_readable($directory)) {
-            return false;
-        } else {
-            $directoryHandle = opendir($directory);
-            $contents = '.';
-
-            while ($contents) {
-                $contents = readdir($directoryHandle);
-                if (strlen($contents) && $contents != '.' && $contents != '..') {
-                    $path = $directory . '/' . $contents;
-
-                    if (is_dir($path)) {
-                        recursiveDelete($path);
-                    } else {
-                        unlink($path);
-                    }
-                }
-            }
-
-            closedir($directoryHandle);
-
-            if ($empty == true) {
-                if (!rmdir($directory)) {
-                    return false;
-                }
-            }
-
-            return true;
         }
-    } elseif (is_file($directory)) {
+        if (!is_readable($directory)) {
+            return false;
+        }
+        $directoryHandle = opendir($directory);
+        $contents = '.';
+        while ($contents) {
+            $contents = readdir($directoryHandle);
+            if (strlen($contents) && $contents != '.' && $contents != '..') {
+                $path = $directory . '/' . $contents;
+
+                if (is_dir($path)) {
+                    recursiveDelete($path);
+                } else {
+                    unlink($path);
+                }
+            }
+        }
+        closedir($directoryHandle);
+        return !($empty && !rmdir($directory));
+    }
+    if (is_file($directory)) {
         return unlink($directory);
     }
 
@@ -403,10 +382,10 @@ function resolvePath(string $filename): string
     $parts = explode('/', $filename);
     $out = [];
     foreach ($parts as $part) {
-        if ($part == '.') {
+        if ($part === '.') {
             continue;
         }
-        if ($part == '..') {
+        if ($part === '..') {
             array_pop($out);
 
             continue;
@@ -414,9 +393,7 @@ function resolvePath(string $filename): string
         $out[] = $part;
     }
 
-    $finalPath = $protocol . implode('/', $out);
-
-    return $finalPath;
+    return $protocol . implode('/', $out);
 }
 
 function closureHash(Closure $closure): string
@@ -430,12 +407,10 @@ function closureHash(Closure $closure): string
         $file->next();
     }
 
-    $hash = md5(json_encode([
+    return md5(json_encode([
         $content,
         $ref->getStaticVariables(),
     ]));
-
-    return $hash;
 }
 
 /**
@@ -450,7 +425,7 @@ function is_dir_empty(string $dir): ?bool
     }
     $handle = opendir($dir);
     while (false !== ($entry = readdir($handle))) {
-        if ($entry != '.' && $entry != '..') {
+        if ($entry !== '.' && $entry !== '..') {
             return false;
         }
     }
@@ -492,9 +467,7 @@ function to_php_data_file_format(mixed $contents, ?string $comments = null): str
         $export .= "\n";
     }
 
-    $export .= "\n\nreturn ".$contents.";\n";
-
-    return $export;
+    return $export . ("\n\nreturn " . $contents . ";\n");
 }
 
 function generateRandomSymfonySecret(): string
@@ -514,7 +487,5 @@ function implode_recursive(array $array, string $glue): string
         }
     }
 
-    $ret = substr($ret, 0, 0 - strlen($glue));
-
-    return $ret;
+    return substr($ret, 0, -strlen($glue));
 }

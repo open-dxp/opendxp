@@ -27,23 +27,13 @@ class DataObjectSplittedStateMarkingStore implements MarkingStoreInterface
 {
     const ALLOWED_PLACE_FIELD_TYPES = ['input', 'select', 'multiselect'];
 
-    private string $workflowName;
-
     private array $stateMapping;
 
-    private PropertyAccessorInterface $propertyAccessor;
-
-    private Manager $workflowManager;
-
-    public function __construct(string $workflowName, array $places, array $stateMapping, PropertyAccessorInterface $propertyAccessor, Manager $workflowManager)
+    public function __construct(private readonly string $workflowName, array $places, array $stateMapping, private readonly PropertyAccessorInterface $propertyAccessor, private readonly Manager $workflowManager)
     {
-        $this->workflowName = $workflowName;
-
         $this->validateStateMapping($places, $stateMapping);
 
         $this->stateMapping = $stateMapping;
-        $this->propertyAccessor = $propertyAccessor;
-        $this->workflowManager = $workflowManager;
     }
 
     public function getMarking(object $subject): Marking
@@ -55,12 +45,14 @@ class DataObjectSplittedStateMarkingStore implements MarkingStoreInterface
         $placeNames = [];
         foreach ($properties as $property) {
             $propertyPlaces = $this->propertyAccessor->getValue($subject, $property);
-
-            if (is_null($propertyPlaces) || $propertyPlaces === '') {
+            if (is_null($propertyPlaces)) {
+                continue;
+            }
+            if ($propertyPlaces === '') {
                 continue;
             }
 
-            $placeNames = array_merge($placeNames, (array) $propertyPlaces);
+            $placeNames = [...$placeNames, ...(array) $propertyPlaces];
         }
 
         $places = [];

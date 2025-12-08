@@ -34,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class MaintenanceCommand extends AbstractCommand
 {
-    public function __construct(private ExecutorInterface $maintenanceExecutor, private LoggerInterface $logger)
+    public function __construct(private readonly ExecutorInterface $maintenanceExecutor, private readonly LoggerInterface $logger)
     {
         parent::__construct();
     }
@@ -51,7 +51,6 @@ class MaintenanceCommand extends AbstractCommand
         }
 
         $this
-            ->setHelp($help)
             ->addOption(
                 'job',
                 'j',
@@ -100,8 +99,6 @@ class MaintenanceCommand extends AbstractCommand
             }
         }
 
-        $result = array_unique($result);
-
-        return $result;
+        return array_unique($result);
     }
 }

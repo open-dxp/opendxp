@@ -51,7 +51,7 @@ class InternalModelDaoMappingGeneratorCommand extends AbstractCommand
 
             if (class_exists($className)) {
                 $parents = class_parents($className);
-                if (is_array($parents) && in_array('OpenDxp\\Model\\AbstractModel', $parents)) {
+                if (is_array($parents) && in_array(\OpenDxp\Model\AbstractModel::class, $parents)) {
                     $reflection = new ReflectionClass($className);
                     if (!$reflection->isAbstract()) {
                         $daoClass = Asset::locateDaoClass($className);

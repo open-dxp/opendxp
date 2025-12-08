@@ -25,14 +25,8 @@ class OpenDxpUrl implements RuntimeExtensionInterface
 {
     use HelperCharsetTrait;
 
-    protected UrlGeneratorInterface $generator;
-
-    protected RequestHelper $requestHelper;
-
-    public function __construct(UrlGeneratorInterface $generator, RequestHelper $requestHelper)
+    public function __construct(protected UrlGeneratorInterface $generator, protected RequestHelper $requestHelper)
     {
-        $this->generator = $generator;
-        $this->requestHelper = $requestHelper;
     }
 
     public function __invoke(array $urlOptions = [], ?string $name = null, bool $reset = false, bool $encode = true, bool $relative = false): string
@@ -52,7 +46,7 @@ class OpenDxpUrl implements RuntimeExtensionInterface
      */
     protected function generateUrl(array|string|null $name = null, ?array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, bool $encode = true): string
     {
-        if ($encode !== true) {
+        if (!$encode) {
             // encoding is default anyway, so we only set it when really necessary, to minimize the risk of
             // side-effects when using parameters for that purpose (other routers may not be aware of param `encode`
             $parameters['encode'] = $encode;
@@ -60,11 +54,7 @@ class OpenDxpUrl implements RuntimeExtensionInterface
 
         // if name is an array, treat it as parameters
         if (is_array($name)) {
-            if (is_array($parameters)) {
-                $parameters = array_merge($name, $parameters);
-            } else {
-                $parameters = $name;
-            }
+            $parameters = is_array($parameters) ? [...$name, ...$parameters] : $name;
 
             $name = null;
         }
@@ -89,14 +79,13 @@ class OpenDxpUrl implements RuntimeExtensionInterface
             if (array_key_exists('object', $parameters)) {
                 unset($parameters['object']);
             }
-            $path = $linkGenerator->generate($object, [
+
+            return $linkGenerator->generate($object, [
                 'route' => $name,
                 'parameters' => $parameters,
                 'context' => $this,
                 'referenceType' => $referenceType,
             ]);
-
-            return $path;
         }
 
         if ($name !== null) {
@@ -119,7 +108,7 @@ class OpenDxpUrl implements RuntimeExtensionInterface
         }
 
         if (!$route && $this->requestHelper->hasMainRequest()) {
-            $route = $this->requestHelper->getMainRequest()->attributes->get('_route');
+            return $this->requestHelper->getMainRequest()->attributes->get('_route');
         }
 
         return $route;

@@ -21,7 +21,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozarts\Console\Parallelization\Input\ParallelizationInput;
 
-if (trait_exists('\Webmozarts\Console\Parallelization\Parallelization')) {
+if (trait_exists(\Webmozarts\Console\Parallelization\Parallelization::class)) {
     trait ParallelizationBase
     {
         use \Webmozarts\Console\Parallelization\Parallelization

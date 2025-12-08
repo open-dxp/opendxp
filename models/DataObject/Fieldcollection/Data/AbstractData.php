@@ -132,6 +132,7 @@ abstract class AbstractData extends Model\AbstractModel implements Model\DataObj
         return true;
     }
 
+    #[\Override]
     public function __sleep(): array
     {
         $parentVars = parent::__sleep();
@@ -140,7 +141,7 @@ abstract class AbstractData extends Model\AbstractModel implements Model\DataObj
 
         if (!$this->isInDumpState()) {
             //Remove all lazy loaded fields if item gets serialized for the cache (not for versions)
-            $blockedVars = array_merge($this->getLazyLoadedFieldNames(), $blockedVars);
+            $blockedVars = [...$this->getLazyLoadedFieldNames(), ...$blockedVars];
         }
 
         foreach ($parentVars as $key) {

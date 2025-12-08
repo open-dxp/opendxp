@@ -79,9 +79,7 @@ class Service extends Model\AbstractModel
             }
         }
 
-        $path .= '/' . $element->getId();
-
-        return $path;
+        return $path . ('/' . $element->getId());
     }
 
     /**
@@ -104,9 +102,8 @@ class Service extends Model\AbstractModel
         if ($type !== DataObject::OBJECT_TYPE_FOLDER) {
             $type = self::getElementType($element) ?? throw new Exception('unknown type');
         }
-        $path .= '/' . $type;
 
-        return $path;
+        return $path . ('/' . $type);
     }
 
     /**
@@ -126,9 +123,8 @@ class Service extends Model\AbstractModel
         }
 
         $sortIndex = method_exists($element, 'getIndex') ? (int) $element->getIndex() : 0;
-        $path .= '/' . $sortIndex;
 
-        return $path;
+        return $path . ('/' . $sortIndex);
     }
 
     /**
@@ -152,9 +148,8 @@ class Service extends Model\AbstractModel
         if ($list instanceof Model\Listing\AbstractListing && method_exists($list, 'loadIdList')) {
             $ids = $list->loadIdList();
         }
-        $ids = array_unique($ids);
 
-        return $ids;
+        return array_unique($ids);
     }
 
     /**
@@ -264,8 +259,10 @@ class Service extends Model\AbstractModel
 
     public static function doHideUnpublished(?ElementInterface $element): bool
     {
-        return ($element instanceof AbstractObject && DataObject::doHideUnpublished())
-            || ($element instanceof Document && Document::doHideUnpublished());
+        if ($element instanceof AbstractObject && DataObject::doHideUnpublished()) {
+            return true;
+        }
+        return $element instanceof Document && Document::doHideUnpublished();
     }
 
     /**
@@ -275,15 +272,13 @@ class Service extends Model\AbstractModel
      */
     public static function isPublished(?ElementInterface $element = null): bool
     {
-        if ($element instanceof ElementInterface) {
-            if (method_exists($element, 'isPublished')) {
-                return $element->isPublished();
-            } else {
-                return true;
-            }
+        if (!$element instanceof ElementInterface) {
+            return false;
         }
-
-        return false;
+        if (method_exists($element, 'isPublished')) {
+            return $element->isPublished();
+        }
+        return true;
     }
 
     /**
@@ -374,18 +369,11 @@ class Service extends Model\AbstractModel
      */
     public static function getBaseClassNameForElement(string|ElementInterface $element): string
     {
-        if ($element instanceof ElementInterface) {
-            $elementType = self::getElementType($element);
-        } else {
-            $elementType = $element;
-        }
-
-        $baseClass = ucfirst($elementType);
+        $elementType = $element instanceof ElementInterface ? self::getElementType($element) : $element;
         if ($elementType == 'object') {
-            $baseClass = 'DataObject';
+            return 'DataObject';
         }
-
-        return $baseClass;
+        return ucfirst($elementType);
     }
 
     /**
@@ -572,7 +560,7 @@ class Service extends Model\AbstractModel
         if (!$found) {
             $newElement = Element\Service::getElementById($new->getType(), $new->getId());
             $listing = $target->getChildren();
-            $listing->setData(array_merge($listing->getData(), [$newElement]));
+            $listing->setData([...$listing->getData(), $newElement]);
             $target->setChildren($listing);
         }
     }
@@ -594,11 +582,7 @@ class Service extends Model\AbstractModel
             'modificationDate' => $element->getModificationDate(),
         ];
 
-        if (method_exists($element, 'isPublished')) {
-            $data['published'] = $element->isPublished();
-        } else {
-            $data['published'] = true;
-        }
+        $data['published'] = method_exists($element, 'isPublished') ? $element->isPublished() : true;
 
         return $data;
     }
@@ -623,11 +607,9 @@ class Service extends Model\AbstractModel
 
         $workspaceCids = [];
         $userWorkspaces = $db->fetchAllAssociative('SELECT cpath, cid, list FROM users_workspaces_' . $type . ' WHERE userId = ?', [$user->getId()]);
-        if ($userWorkspaces) {
-            // this collects the array that are on user-level, which have top priority
-            foreach ($userWorkspaces as $userWorkspace) {
-                $workspaceCids[] = $userWorkspace['cid'];
-            }
+        // this collects the array that are on user-level, which have top priority
+        foreach ($userWorkspaces as $userWorkspace) {
+            $workspaceCids[] = $userWorkspace['cid'];
         }
 
         if ($userRoleIds = $user->getRoles()) {
@@ -641,7 +623,7 @@ class Service extends Model\AbstractModel
         }
 
         $uniquePaths = [];
-        foreach (array_merge($userWorkspaces, $roleWorkspaces ?? []) as $workspace) {
+        foreach ([...$userWorkspaces, ...$roleWorkspaces ?? []] as $workspace) {
             $uniquePaths[$workspace['cpath']] = $workspace['list'];
         }
         ksort($uniquePaths);
@@ -662,7 +644,8 @@ class Service extends Model\AbstractModel
                         $findPath = $uniquePathsKeys[$findIndex];
                         if (str_contains($findPath, $path)) { //it means that we found a children
                             if ($uniquePaths[$findPath] == 1) {
-                                array_push($forbidden[$path], $findPath); //adding list=1 children
+                                $forbidden[$path][] = $findPath;
+                                //adding list=1 children
                             }
                         } else {
                             break;
@@ -772,7 +755,7 @@ class Service extends Model\AbstractModel
         $path = str_replace('//', '/', $path);
 
         if (str_contains($path, '%') && mb_check_encoding(rawurldecode($path), 'UTF-8')) {
-            $path = rawurldecode($path);
+            return rawurldecode($path);
         }
 
         return $path;
@@ -803,7 +786,7 @@ class Service extends Model\AbstractModel
      */
     private static function filterNullValues(string $var): bool
     {
-        return strlen($var) > 0;
+        return $var !== '';
     }
 
     /**
@@ -812,7 +795,7 @@ class Service extends Model\AbstractModel
     public static function createFolderByPath(string $path, array $options = []): Asset\Folder|DataObject\Folder|Document\Folder|null
     {
         $calledClass = static::class;
-        if ($calledClass === __CLASS__) {
+        if ($calledClass === self::class) {
             throw new Exception('This method must be called from a extended class. e.g Asset\\Service, DataObject\\Service, Document\\Service');
         }
 
@@ -823,7 +806,7 @@ class Service extends Model\AbstractModel
         $lastFolder = null;
         $pathsArray = [];
         $parts = explode('/', $path);
-        $parts = array_filter($parts, '\\OpenDxp\\Model\\Element\\Service::filterNullValues');
+        $parts = array_filter($parts, \OpenDxp\Model\Element\Service::filterNullValues(...));
 
         $sanitizedPath = '/';
 
@@ -841,11 +824,12 @@ class Service extends Model\AbstractModel
             $pathPart = $pathsArray[count($pathsArray) - 1] ?? '';
             $pathsArray[] = $pathPart . '/' . self::getValidKey($part, $itemType);
         }
+        $counter = count($pathsArray);
 
-        for ($i = 0; $i < count($pathsArray); $i++) {
+        for ($i = 0; $i < $counter; $i++) {
             $currentPath = $pathsArray[$i];
             if (!self::pathExists($currentPath, $itemType)) {
-                $parentFolderPath = ($i == 0) ? '/' : $pathsArray[$i - 1];
+                $parentFolderPath = ($i === 0) ? '/' : $pathsArray[$i - 1];
 
                 $parentFolder = $type::getByPath($parentFolderPath);
 
@@ -888,14 +872,13 @@ class Service extends Model\AbstractModel
     /**
      * Changes the query according to the custom view config
      *
-     * @param Model\Asset\Listing|Model\DataObject\Listing|Model\Document\Listing $childrenList
      *
      * @internal
      */
     public static function addTreeFilterJoins(array $cv, Asset\Listing|DataObject\Listing|Document\Listing $childrenList): void
     {
         if ($cv) {
-            $childrenList->onCreateQueryBuilder(static function (DoctrineQueryBuilder $select) use ($cv) {
+            $childrenList->onCreateQueryBuilder(static function (DoctrineQueryBuilder $select) use ($cv): void {
                 $where = $cv['where'] ?? null;
                 if ($where) {
                     $select->andWhere($where);
@@ -963,7 +946,7 @@ class Service extends Model\AbstractModel
 
     public static function isValidKey(string $key, string $type): bool
     {
-        return self::getValidKey($key, $type) == $key;
+        return self::getValidKey($key, $type) === $key;
     }
 
     public static function isValidPath(string $path, string $type): bool
@@ -1072,7 +1055,7 @@ class Service extends Model\AbstractModel
                 $indexMap[$versionKey] = 0;
             }
             $version['index'] = $indexMap[$versionKey];
-            $indexMap[$versionKey] = $indexMap[$versionKey] + 1;
+            $indexMap[$versionKey] += 1;
 
             $result[] = $version;
         }
@@ -1157,10 +1140,8 @@ class Service extends Model\AbstractModel
     public static function getNoteData(Note $note): array
     {
         $cpath = '';
-        if ($note->getCid() && $note->getCtype()) {
-            if ($element = Service::getElementById($note->getCtype(), $note->getCid())) {
-                $cpath = $element->getRealFullPath();
-            }
+        if ($note->getCid() && $note->getCtype() && $element = Service::getElementById($note->getCtype(), $note->getCid())) {
+            $cpath = $element->getRealFullPath();
         }
 
         $e = [
@@ -1181,7 +1162,7 @@ class Service extends Model\AbstractModel
             $type = $d['type'];
             $data = $d['data'];
 
-            if ($type == 'document' || $type == 'object' || $type == 'asset') {
+            if (in_array($type, ['document', 'object', 'asset'])) {
                 if ($d['data'] instanceof ElementInterface) {
                     $data = [
                         'id' => $d['data']->getId(),
@@ -1209,14 +1190,10 @@ class Service extends Model\AbstractModel
         // prepare user data
         if ($note->getUser()) {
             $user = Model\User::getById($note->getUser());
-            if ($user) {
-                $e['user'] = [
-                    'id' => $user->getId(),
-                    'name' => $user->getName(),
-                ];
-            } else {
-                $e['user'] = '';
-            }
+            $e['user'] = $user ? [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+            ] : '';
         }
 
         return $e;
@@ -1344,9 +1321,8 @@ class Service extends Model\AbstractModel
                         function ($currentValue) {
                             if ($currentValue instanceof ElementInterface) {
                                 $elementType = Service::getElementType($currentValue);
-                                $descriptor = new ElementDescriptor($elementType, $currentValue->getId());
 
-                                return $descriptor;
+                                return new ElementDescriptor($elementType, $currentValue->getId());
                             }
 
                             return $currentValue;
@@ -1359,9 +1335,7 @@ class Service extends Model\AbstractModel
                     new \DeepCopy\TypeFilter\ReplaceFilter(
                         function ($currentValue) {
                             if ($currentValue instanceof ElementDescriptor) {
-                                $value = Service::getElementById($currentValue->getType(), $currentValue->getId());
-
-                                return $value;
+                                return Service::getElementById($currentValue->getType(), $currentValue->getId());
                             }
 
                             return $currentValue;
@@ -1373,9 +1347,9 @@ class Service extends Model\AbstractModel
         }
 
         if ($context['defaultFilters'] ?? false) {
-            $copier->addFilter(new DoctrineCollectionFilter(), new PropertyTypeMatcher('Doctrine\Common\Collections\Collection'));
-            $copier->addFilter(new SetNullFilter(), new PropertyTypeMatcher('Psr\Container\ContainerInterface'));
-            $copier->addFilter(new SetNullFilter(), new PropertyTypeMatcher('OpenDxp\Model\DataObject\ClassDefinition'));
+            $copier->addFilter(new DoctrineCollectionFilter(), new PropertyTypeMatcher(\Doctrine\Common\Collections\Collection::class));
+            $copier->addFilter(new SetNullFilter(), new PropertyTypeMatcher(\Psr\Container\ContainerInterface::class));
+            $copier->addFilter(new SetNullFilter(), new PropertyTypeMatcher(\OpenDxp\Model\DataObject\ClassDefinition::class));
         }
 
         $copier->prependTypeFilter(new CarbonPeriodFilter(), new TypeMatcher(CarbonPeriodFilter::TYPE));
@@ -1396,7 +1370,7 @@ class Service extends Model\AbstractModel
      */
     public static function escapeCsvRecord(array $rowData): array
     {
-        if (self::$formatter === null) {
+        if (!self::$formatter instanceof \League\Csv\EscapeFormula) {
             self::$formatter = new EscapeFormula("'", ['=', '-', '+', '@']);
         }
 
@@ -1408,7 +1382,7 @@ class Service extends Model\AbstractModel
      */
     public static function unEscapeCsvRecord(array $rowData): array
     {
-        if (self::$formatter === null) {
+        if (!self::$formatter instanceof \League\Csv\EscapeFormula) {
             self::$formatter = new EscapeFormula("'", ['=', '-', '+', '@']);
         }
 
@@ -1422,8 +1396,7 @@ class Service extends Model\AbstractModel
     {
         if (isset($id)) {
             return $type . '_' . $id;
-        } else {
-            return $type . '_';
         }
+        return $type . '_';
     }
 }

@@ -19,23 +19,11 @@ namespace OpenDxp\HttpKernel\BundleCollection;
 
 abstract class AbstractItem implements ItemInterface
 {
-    private int $priority;
-
-    /**
-     * @var string[]
-     */
-    private array $environments = [];
-
-    private string $source;
-
     /**
      * @param string[] $environments
      */
-    public function __construct(int $priority = 0, array $environments = [], string $source = self::SOURCE_PROGRAMATICALLY)
+    public function __construct(private readonly int $priority = 0, private readonly array $environments = [], private readonly string $source = self::SOURCE_PROGRAMATICALLY)
     {
-        $this->priority = $priority;
-        $this->environments = $environments;
-        $this->source = $source;
     }
 
     public function getPriority(): int
@@ -50,7 +38,7 @@ abstract class AbstractItem implements ItemInterface
 
     public function matchesEnvironment(string $environment): bool
     {
-        if (empty($this->environments)) {
+        if ($this->environments === []) {
             return true;
         }
 

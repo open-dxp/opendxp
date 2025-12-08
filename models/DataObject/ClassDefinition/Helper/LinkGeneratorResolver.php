@@ -25,8 +25,6 @@ class LinkGeneratorResolver extends ClassResolver
 {
     public static function resolveGenerator(string $generatorClass): ?object
     {
-        return self::resolve($generatorClass, static function ($generator) {
-            return $generator instanceof LinkGeneratorInterface;
-        });
+        return self::resolve($generatorClass, static fn($generator) => $generator instanceof LinkGeneratorInterface);
     }
 }

@@ -94,7 +94,8 @@ trait ImageThumbnailTrait
         $pathReference = $this->getPathReference(false);
         if ($pathReference['type'] === 'asset') {
             return $this->asset->getStream();
-        } elseif (isset($pathReference['storagePath'])) {
+        }
+        if (isset($pathReference['storagePath'])) {
             return Tool\Storage::get('thumbnail')->readStream($pathReference['storagePath']);
         }
 
@@ -188,7 +189,7 @@ trait ImageThumbnailTrait
                         $dimensions['height'] = $thumbnail['height'];
                     }
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // noting to do
             }
         }
@@ -214,7 +215,7 @@ trait ImageThumbnailTrait
                 }
             }
 
-            if (empty($dimensions) && $this->exists()) {
+            if ($dimensions === [] && $this->exists()) {
                 $dimensions = $this->readDimensionsFromFile();
             }
 
@@ -270,7 +271,7 @@ trait ImageThumbnailTrait
                 $fileExt = $this->getFileExtension();
                 $mimeTypes = MimeTypes::getDefault()->getMimeTypes($fileExt);
 
-                if (!empty($mimeTypes)) {
+                if ($mimeTypes !== []) {
                     $this->mimetype = $mimeTypes[0];
                 } else {
                     // unknown
@@ -292,21 +293,24 @@ trait ImageThumbnailTrait
         $type = $pathReference['type'] ?? null;
         $path = $pathReference['src'] ?? null;
 
-        if ($frontend) {
-            if ($type === 'data-uri') {
-                return $path;
-            } elseif ($type === 'deferred') {
-                $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail_deferred'];
-                $path = $prefix . urlencode_ignore_slash($path);
-            } elseif ($type === 'thumbnail') {
-                $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
-                $path = $prefix . urlencode_ignore_slash($path);
-            } elseif ($type === 'asset') {
-                $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['source'];
-                $path = $prefix . urlencode_ignore_slash($path);
-            } else {
-                $path = urlencode_ignore_slash($path);
-            }
+        if (!$frontend) {
+            return $path;
+        }
+        if ($type === 'data-uri') {
+            return $path;
+        }
+        if ($type === 'deferred') {
+            $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail_deferred'];
+            $path = $prefix . urlencode_ignore_slash($path);
+        } elseif ($type === 'thumbnail') {
+            $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
+            $path = $prefix . urlencode_ignore_slash($path);
+        } elseif ($type === 'asset') {
+            $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['source'];
+            $path = $prefix . urlencode_ignore_slash($path);
+        }
+        else {
+            $path = urlencode_ignore_slash($path);
         }
 
         return $path;
@@ -316,7 +320,7 @@ trait ImageThumbnailTrait
     {
         $path = $this->getPath(['deferredAllowed' => true, 'frontend' => true]);
         if (!preg_match('@^(https?|data):@', $path)) {
-            $path = \OpenDxp\Tool::getHostUrl() . $path;
+            return \OpenDxp\Tool::getHostUrl() . $path;
         }
 
         return $path;
@@ -345,15 +349,13 @@ trait ImageThumbnailTrait
     {
         $pathReference = $this->getPathReference(true);
         $type = $pathReference['type'] ?? '';
-        if (
-            $type === 'asset' ||
-            $type === 'data-uri' ||
-            $type === 'thumbnail'
-        ) {
+        if (in_array($type, ['asset', 'data-uri', 'thumbnail'], true)) {
             return true;
-        } elseif ($type === 'deferred') {
+        }
+        if ($type === 'deferred') {
             return false;
-        } elseif (isset($pathReference['storagePath'])) {
+        }
+        if (isset($pathReference['storagePath'])) {
             // this is probably redundant, but as it doesn't hurt we can keep it
             return $this->existsOnStorage($pathReference);
         }
@@ -396,7 +398,8 @@ trait ImageThumbnailTrait
         $pathReference = $this->getPathReference(false);
         if ($pathReference['type'] === 'asset') {
             return $this->asset->getFileSize();
-        } elseif (isset($pathReference['storagePath'])) {
+        }
+        if (isset($pathReference['storagePath'])) {
             return Tool\Storage::get('thumbnail')->fileSize($pathReference['storagePath']);
         }
 

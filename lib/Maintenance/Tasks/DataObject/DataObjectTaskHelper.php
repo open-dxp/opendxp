@@ -26,8 +26,8 @@ use Psr\Log\LoggerInterface;
 class DataObjectTaskHelper implements DataObjectTaskHelperInterface
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private Connection $db
+        private readonly LoggerInterface $logger,
+        private readonly Connection $db
     ) {
     }
 

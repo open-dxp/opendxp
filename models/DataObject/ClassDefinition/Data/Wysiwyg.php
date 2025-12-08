@@ -59,7 +59,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $this;
     }
 
-    private static function getWysiwygSanitizer(): HtmlSanitizer
+    private function getWysiwygSanitizer(): HtmlSanitizer
     {
         return self::$openDxpWysiwygSanitizer ??= OpenDxp::getContainer()->get(Text::OPENDXP_WYSIWYG_SANITIZER_ID);
     }
@@ -107,7 +107,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
     public function getDataForResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         if (is_string($data) && ($params['sanitize'] ?? true)) {
-            $data = self::getWysiwygSanitizer()->sanitizeFor('body', $data);
+            $data = $this->getWysiwygSanitizer()->sanitizeFor('body', $data);
         }
 
         return Text::wysiwygText($data, [
@@ -138,7 +138,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      */
     public function getDataForQueryResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
-        $data = $this->getDataForResource($data, $object, array_merge($params, ['sanitize' => false]));
+        $data = $this->getDataForResource($data, $object, [...$params, 'sanitize' => false]);
 
         if (null !== $data) {
             $data = strip_tags($data, '<a><img>');
@@ -152,13 +152,13 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $data;
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         if ($this->isExcludeFromSearchIndex()) {
             return '';
-        } else {
-            return parent::getDataForSearchIndex($object, $params);
         }
+        return parent::getDataForSearchIndex($object, $params);
     }
 
     /**
@@ -169,7 +169,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
      */
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
-        return $this->getDataForResource($data, $object, array_merge($params, ['sanitize' => false]));
+        return $this->getDataForResource($data, $object, [...$params, 'sanitize' => false]);
     }
 
     /**
@@ -185,23 +185,26 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $data;
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         return Text::getDependenciesOfWysiwygText($data);
     }
 
+    #[\Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         return Text::getCacheTagsOfWysiwygText($data, $tags);
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
             throw new Element\ValidationException('Empty mandatory field [ '.$this->getName().' ]');
         }
         $dependencies = Text::getDependenciesOfWysiwygText($data);
-        foreach ($dependencies as $key => $value) {
+        foreach ($dependencies as $value) {
             $el = Element\Service::getElementById($value['type'], (int) $value['id']);
             if (!$el) {
                 throw new Element\ValidationException('Invalid dependency in wysiwyg text');
@@ -237,14 +240,9 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
     public function getDiffVersionPreview(?string $data, ?DataObject\Concrete $object = null, array $params = []): array|string
     {
         if ($data) {
-            $value = [];
-            $value['html'] = $data;
-            $value['type'] = 'html';
-
-            return $value;
-        } else {
-            return '';
+            return ['html' => $data, 'type' => 'html'];
         }
+        return '';
     }
 
     public function rewriteIds(mixed $container, array $idMapping, array $params = []): mixed
@@ -276,6 +274,7 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $data;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
@@ -319,8 +318,9 @@ class Wysiwyg extends Data implements ResourcePersistenceAwareInterface, QueryRe
     /**
      * @see Data::getVersionPreview
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
-        return self::getWysiwygSanitizer()->sanitizeFor('body', (string) $data);
+        return $this->getWysiwygSanitizer()->sanitizeFor('body', (string) $data);
     }
 }

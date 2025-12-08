@@ -253,7 +253,8 @@ class Container implements RecursiveIterator, Countable
     {
         if (array_key_exists($page->hashCode(), $this->_index)) {
             return true;
-        } elseif ($recursive) {
+        }
+        if ($recursive) {
             foreach ($this->_pages as $childPage) {
                 if ($childPage->hasPage($page, true)) {
                     return true;
@@ -315,28 +316,22 @@ class Container implements RecursiveIterator, Countable
                 foreach ($pageProperty as $item) {
                     if (is_array($item)) {
                         // Use regex?
-                        if (true === $useRegex) {
+                        if ($useRegex) {
                             foreach ($item as $item2) {
                                 if (preg_match($value, $item2)) {
                                     return $page;
                                 }
                             }
-                        } else {
-                            if (in_array($value, $item)) {
-                                return $page;
-                            }
+                        } elseif (in_array($value, $item)) {
+                            return $page;
                         }
-                    } else {
+                    } elseif ($useRegex) {
                         // Use regex?
-                        if (true === $useRegex) {
-                            if (preg_match($value, $item)) {
-                                return $page;
-                            }
-                        } else {
-                            if ($item == $value) {
-                                return $page;
-                            }
+                        if (preg_match($value, $item)) {
+                            return $page;
                         }
+                    } elseif ($item == $value) {
+                        return $page;
                     }
                 }
 
@@ -344,14 +339,12 @@ class Container implements RecursiveIterator, Countable
             }
 
             // Use regex?
-            if (true === $useRegex) {
+            if ($useRegex) {
                 if (preg_match($value, $pageProperty)) {
                     return $page;
                 }
-            } else {
-                if ($pageProperty == $value) {
-                    return $page;
-                }
+            } elseif ($pageProperty == $value) {
+                return $page;
             }
         }
 
@@ -383,7 +376,7 @@ class Container implements RecursiveIterator, Countable
                 foreach ($pageProperty as $item) {
                     if (is_array($item)) {
                         // Use regex?
-                        if (true === $useRegex) {
+                        if ($useRegex) {
                             foreach ($item as $item2) {
                                 if (preg_match($value, $item2)) {
                                     $found[] = $page;
@@ -391,28 +384,20 @@ class Container implements RecursiveIterator, Countable
                                     break 2;
                                 }
                             }
-                        } else {
-                            if (in_array($value, $item)) {
-                                $found[] = $page;
-
-                                break;
-                            }
+                        } elseif (in_array($value, $item)) {
+                            $found[] = $page;
+                            break;
                         }
-                    } else {
+                    } elseif ($useRegex) {
                         // Use regex?
-                        if (true === $useRegex) {
-                            if (preg_match($value, $item)) {
-                                $found[] = $page;
+                        if (preg_match($value, $item)) {
+                            $found[] = $page;
 
-                                break;
-                            }
-                        } else {
-                            if ($item == $value) {
-                                $found[] = $page;
-
-                                break;
-                            }
+                            break;
                         }
+                    } elseif ($item == $value) {
+                        $found[] = $page;
+                        break;
                     }
                 }
 
@@ -420,14 +405,12 @@ class Container implements RecursiveIterator, Countable
             }
 
             // Use regex?
-            if (true === $useRegex) {
+            if ($useRegex) {
                 if (preg_match($value, $pageProperty)) {
                     $found[] = $page;
                 }
-            } else {
-                if ($pageProperty == $value) {
-                    $found[] = $page;
-                }
+            } elseif ($pageProperty == $value) {
+                $found[] = $page;
             }
         }
 
@@ -486,7 +469,7 @@ class Container implements RecursiveIterator, Countable
             return $this->{$match[1]}($match[2], $arguments[0], !empty($arguments[1]));
         }
 
-        throw new Exception(sprintf('Bad method call: Unknown method %s::%s', get_class($this), $method));
+        throw new Exception(sprintf('Bad method call: Unknown method %s::%s', static::class, $method));
     }
 
     /**
@@ -562,11 +545,7 @@ class Container implements RecursiveIterator, Countable
     {
         $hash = key($this->_index);
 
-        if (isset($this->_pages[$hash])) {
-            return $this->_pages[$hash];
-        }
-
-        return null;
+        return $this->_pages[$hash] ?? null;
     }
 
     public function count(): int

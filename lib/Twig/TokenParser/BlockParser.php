@@ -41,7 +41,7 @@ final class BlockParser extends AbstractTokenParser
         $options->setManual(false);
 
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
-        $body = $this->parser->subparse([$this, 'decideOpenDxpBlockEnd'], true);
+        $body = $this->parser->subparse($this->decideOpenDxpBlockEnd(...), true);
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
 
         return new BlockNode($blockName, $options, $body, $lineno, $this->getTag());

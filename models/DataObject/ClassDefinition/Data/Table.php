@@ -182,11 +182,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
     {
         $valueArray = [];
         foreach ($data as $entry) {
-            if (is_array($entry)) {
-                $valueArray[] = $this->convertDataToValueArray($entry);
-            } else {
-                $valueArray[] = $entry;
-            }
+            $valueArray[] = is_array($entry) ? $this->convertDataToValueArray($entry) : $entry;
         }
 
         return $valueArray;
@@ -322,10 +318,6 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $data;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): ?array
     {
         return $this->getDataFromEditmode($data, $object, $params);
@@ -337,6 +329,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         $versionPreview = $this->getDiffVersionPreview($data, $object, $params);
@@ -347,6 +340,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -358,6 +352,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         }
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -368,6 +363,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -388,6 +384,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -396,7 +393,6 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
     /** Generates a pretty version preview (similar to getVersionPreview) can be either html or
      * a image URL.
      *
-     * @param DataObject\Concrete|null $object
      *
      */
     public function getDiffVersionPreview(?array $data, ?Concrete $object = null, array $params = []): array|string
@@ -437,14 +433,14 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
             $value['type'] = 'html';
 
             return $value;
-        } else {
-            return '';
         }
+        return '';
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\Table $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->cols = $mainDefinition->cols;
@@ -479,15 +475,12 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return 'array';
     }
 
+    #[\Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* Get ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -520,20 +513,16 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         $code .= "\t" . '}' . "\n\n";
 
         $code .= "\t" . 'return $data ?? [];' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '';
         $code .= '/**' . "\n";
@@ -564,20 +553,16 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         $code .= "\t" . '}' . "\n\n";
 
         $code .= "\t" . 'return $data ?? [];' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '';
         $code .= '/**' . "\n";
@@ -601,20 +586,16 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         $code .= "\t" . '}' . "\n";
 
         $code .= "\t" . 'return $data ?? [];' . "\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
+    #[\Override]
     public function getGetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
 
-        if ($this->getReturnTypeDeclaration()) {
-            $typeDeclaration = ': ' . $this->getReturnTypeDeclaration();
-        } else {
-            $typeDeclaration = '';
-        }
+        $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
 
         $code = '/**' . "\n";
         $code .= '* Get ' . str_replace(['/**', '*/', '//'], '', $this->getName()) . ' - ' . str_replace(['/**', '*/', '//'], '', $this->getTitle()) . "\n";
@@ -636,9 +617,8 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         // we don't need to consider preGetData, because this is already managed directly by the localized fields within getLocalizedValue()
 
         $code .= "\treturn " . '$data ?? []' . ";\n";
-        $code .= "}\n\n";
 
-        return $code;
+        return $code . "}\n\n";
     }
 
     public function getColumnType(): string

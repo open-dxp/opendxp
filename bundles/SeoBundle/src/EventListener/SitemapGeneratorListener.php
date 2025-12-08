@@ -25,14 +25,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class SitemapGeneratorListener implements EventSubscriberInterface
 {
-    /**
-     * @var IteratorAggregate|GeneratorInterface[]
-     */
-    private array|IteratorAggregate $generators;
-
-    public function __construct(array|IteratorAggregate $generators)
+    public function __construct(
+        /**
+         * @var IteratorAggregate|GeneratorInterface[]
+         */
+        private readonly array|IteratorAggregate $generators
+    )
     {
-        $this->generators = $generators;
     }
 
     /**

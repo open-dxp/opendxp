@@ -35,14 +35,8 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class Router implements RouterInterface, RequestMatcherInterface, VersatileGeneratorInterface
 {
-    protected RequestContext $context;
-
-    protected RequestHelper $requestHelper;
-
-    public function __construct(RequestContext $context, RequestHelper $requestHelper)
+    public function __construct(protected RequestContext $context, protected RequestHelper $requestHelper)
     {
-        $this->context = $context;
-        $this->requestHelper = $requestHelper;
     }
 
     public function setContext(RequestContext $context): void
@@ -86,18 +80,15 @@ class Router implements RouterInterface, RequestMatcherInterface, VersatileGener
                 $needsHostname = true;
             }
 
-            if ($needsHostname) {
-                if ('' !== $host || ('' !== $scheme && 'http' !== $scheme && 'https' !== $scheme)) {
-                    $port = '';
-                    if ('http' === $scheme && 80 !== $this->context->getHttpPort()) {
-                        $port = ':'.$this->context->getHttpPort();
-                    } elseif ('https' === $scheme && 443 !== $this->context->getHttpsPort()) {
-                        $port = ':'.$this->context->getHttpsPort();
-                    }
-
-                    $schemeAuthority = self::NETWORK_PATH === $referenceType || '' === $scheme ? '//' : "$scheme://";
-                    $schemeAuthority .= $host.$port;
+            if ($needsHostname && ('' !== $host || '' !== $scheme && 'http' !== $scheme && 'https' !== $scheme)) {
+                $port = '';
+                if ('http' === $scheme && 80 !== $this->context->getHttpPort()) {
+                    $port = ':'.$this->context->getHttpPort();
+                } elseif ('https' === $scheme && 443 !== $this->context->getHttpsPort()) {
+                    $port = ':'.$this->context->getHttpsPort();
                 }
+                $schemeAuthority = self::NETWORK_PATH === $referenceType || '' === $scheme ? '//' : "$scheme://";
+                $schemeAuthority .= $host.$port;
             }
 
             $qs = http_build_query($parameters);
@@ -144,7 +135,7 @@ class Router implements RouterInterface, RequestMatcherInterface, VersatileGener
         }
 
         if (!$route && $this->requestHelper->hasMainRequest()) {
-            $route = $this->requestHelper->getMainRequest()->attributes->get('_route');
+            return $this->requestHelper->getMainRequest()->attributes->get('_route');
         }
 
         return $route;

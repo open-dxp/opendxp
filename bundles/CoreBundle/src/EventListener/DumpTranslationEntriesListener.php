@@ -29,11 +29,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class DumpTranslationEntriesListener implements EventSubscriberInterface
 {
-    private TranslationEntriesDumper $dumper;
-
-    public function __construct(TranslationEntriesDumper $dumper)
+    public function __construct(private readonly TranslationEntriesDumper $dumper)
     {
-        $this->dumper = $dumper;
     }
 
     public static function getSubscribedEvents(): array

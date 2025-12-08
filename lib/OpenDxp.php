@@ -79,7 +79,7 @@ class OpenDxp
             \OpenDxp\Db::get()->fetchOne('SELECT id FROM assets LIMIT 1');
 
             return true;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return false;
         }
     }
@@ -105,11 +105,7 @@ class OpenDxp
      */
     public static function hasKernel(): bool
     {
-        if (self::$kernel) {
-            return true;
-        }
-
-        return false;
+        return self::$kernel instanceof \Symfony\Component\HttpKernel\KernelInterface;
     }
 
     /**
@@ -183,7 +179,7 @@ class OpenDxp
     {
         try {
             self::getContainer();
-        } catch (\LogicException $e) {
+        } catch (\LogicException) {
             return;
         }
 
@@ -217,12 +213,7 @@ class OpenDxp
         if (self::inDevMode()) {
             return true;
         }
-
         // magic parameter for debugging ExtJS stuff
-        if (array_key_exists('unminified_js', $_REQUEST) && self::inDebugMode()) {
-            return true;
-        }
-
-        return false;
+        return array_key_exists('unminified_js', $_REQUEST) && self::inDebugMode();
     }
 }

@@ -42,11 +42,13 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $documentsData = $this->db->fetchAllAssociative($select->getSQL(), $select->getParameters(), $select->getParameterTypes());
 
         foreach ($documentsData as $documentData) {
-            if ($documentData['type']) {
-                if ($doc = Document::getById((int) $documentData['id'])) {
-                    $documents[] = $doc;
-                }
+            if (!$documentData['type']) {
+                continue;
             }
+            if (!$doc = Document::getById((int) $documentData['id'])) {
+                continue;
+            }
+            $documents[] = $doc;
         }
 
         $this->model->setDocuments($documents);
@@ -78,7 +80,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $queryBuilder = $this->getQueryBuilder('documents.id');
         $documentIds = $this->db->fetchFirstColumn($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
-        return array_map('intval', $documentIds);
+        return array_map(intval(...), $documentIds);
     }
 
     /**
@@ -87,20 +89,17 @@ class Dao extends Model\Listing\Dao\AbstractDao
     public function loadIdPathList(): array
     {
         $queryBuilder = $this->getQueryBuilder('documents.id', 'CONCAT(documents.path, documents.key) as `path`');
-        $documentIds = $this->db->fetchAllAssociative($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
-        return $documentIds;
+        return $this->db->fetchAllAssociative($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
     }
 
     public function getCount(): int
     {
         if ($this->model->isLoaded()) {
             return count($this->model->getDocuments());
-        } else {
-            $idList = $this->loadIdList();
-
-            return count($idList);
         }
+        $idList = $this->loadIdList();
+        return count($idList);
     }
 
     public function getTotalCount(): int
@@ -108,8 +107,6 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $queryBuilder = $this->getQueryBuilder();
         $this->prepareQueryBuilderForTotalCount($queryBuilder, 'documents.id');
 
-        $amount = (int) $this->db->fetchOne($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
-
-        return $amount;
+        return (int) $this->db->fetchOne($queryBuilder->getSql(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
     }
 }

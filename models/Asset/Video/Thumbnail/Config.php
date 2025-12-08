@@ -116,14 +116,14 @@ final class Config extends Model\AbstractModel
             if (!$thumbnail) {
                 throw new Exception('Thumbnail in registry is null');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             try {
                 $thumbnail = new self();
                 /** @var Model\Asset\Video\Thumbnail\Config\Dao $dao */
                 $dao = $thumbnail->getDao();
                 $dao->getByName($name);
                 RuntimeCache::set($cacheKey, $thumbnail);
-            } catch (Model\Exception\NotFoundException $e) {
+            } catch (Model\Exception\NotFoundException) {
                 return null;
             }
         }
@@ -175,7 +175,7 @@ final class Config extends Model\AbstractModel
         ];
 
         // default is added to $this->items for compatibility reasons
-        if (!$media || $media == 'default') {
+        if (!$media || $media === 'default') {
             $this->items[] = $item;
         } else {
             $this->createMediaIfNotExists($media);
@@ -191,7 +191,7 @@ final class Config extends Model\AbstractModel
      */
     public function addItemAt(int $position, string $name, array $parameters, ?string $media = null): bool
     {
-        if (!$media || $media == 'default') {
+        if (!$media || $media === 'default') {
             $itemContainer = &$this->items;
         } else {
             $this->createMediaIfNotExists($media);
@@ -208,11 +208,7 @@ final class Config extends Model\AbstractModel
 
     public function selectMedia(string $name): bool
     {
-        if (preg_match('/^[0-9a-f]{8}$/', $name)) {
-            $hash = $name;
-        } else {
-            $hash = hash('crc32b', $name);
-        }
+        $hash = preg_match('/^[0-9a-f]{8}$/', $name) ? $name : hash('crc32b', $name);
 
         foreach ($this->medias as $key => $value) {
             $currentHash = hash('crc32b', $key);
@@ -272,7 +268,7 @@ final class Config extends Model\AbstractModel
 
     public function hasMedias(): bool
     {
-        return !empty($this->medias);
+        return $this->medias !== [];
     }
 
     public function setFilenameSuffix(string $filenameSuffix): void
@@ -330,13 +326,15 @@ final class Config extends Model\AbstractModel
         $dimensions = [];
         $transformations = $this->getItems();
         foreach ($transformations as $transformation) {
-            if (!empty($transformation)) {
-                if (is_array($transformation['arguments'])) {
-                    foreach ($transformation['arguments'] as $key => $value) {
-                        if ($key == 'width' || $key == 'height') {
-                            $dimensions[$key] = $value;
-                        }
-                    }
+            if (empty($transformation)) {
+                continue;
+            }
+            if (!is_array($transformation['arguments'])) {
+                continue;
+            }
+            foreach ($transformation['arguments'] as $key => $value) {
+                if ($key == 'width' || $key == 'height') {
+                    $dimensions[$key] = $value;
                 }
             }
         }
@@ -374,6 +372,7 @@ final class Config extends Model\AbstractModel
         $this->group = $group;
     }
 
+    #[\Override]
     public function __clone(): void
     {
         if ($this->dao) {

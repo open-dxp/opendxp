@@ -46,8 +46,6 @@ class IntlFormatter
 
     protected ?string $locale = null;
 
-    private LocaleServiceInterface $localeService;
-
     /**
      * @var IntlDateFormatter[]
      */
@@ -67,9 +65,8 @@ class IntlFormatter
      */
     protected array $currencyFormats = [];
 
-    public function __construct(LocaleServiceInterface $locale)
+    public function __construct(private readonly LocaleServiceInterface $localeService)
     {
-        $this->localeService = $locale;
     }
 
     public function getLocale(): string

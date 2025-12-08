@@ -435,6 +435,7 @@ class Menu extends AbstractRenderer
      *
      * @return string                      HTML string for the given page
      */
+    #[\Override]
     public function htmlify(Page $page): string
     {
         $label = $page->getLabel();
@@ -461,7 +462,7 @@ class Menu extends AbstractRenderer
         }
 
         // Add custom HTML attributes
-        $attribs = array_merge($attribs, $page->getCustomHtmlAttribs());
+        $attribs = [...$attribs, ...$page->getCustomHtmlAttribs()];
 
         return '<' . $element . $this->_htmlAttribs($attribs) . '>'
              . htmlspecialchars((string) $label, ENT_COMPAT, 'UTF-8')
@@ -478,11 +479,7 @@ class Menu extends AbstractRenderer
     protected function _normalizeOptions(array $options = []): array
     {
         // Ident
-        if (isset($options['indent'])) {
-            $options['indent'] = $this->_getWhitespace($options['indent']);
-        } else {
-            $options['indent'] = $this->getIndent();
-        }
+        $options['indent'] = isset($options['indent']) ? $this->_getWhitespace($options['indent']) : $this->getIndent();
 
         // Inner ident
         if (isset($options['innerIndent'])) {
@@ -493,33 +490,16 @@ class Menu extends AbstractRenderer
         }
 
         // UL class
-        if (isset($options['ulClass'])) {
-            $options['ulClass'] = $options['ulClass'];
-        } else {
-            $options['ulClass'] = $this->getUlClass();
-        }
+        $options['ulClass'] ??= $this->getUlClass();
 
         // UL id
-        if (isset($options['ulId'])) {
-            $options['ulId'] = (string) $options['ulId'];
-        } else {
-            $options['ulId'] = $this->getUlId();
-        }
+        $options['ulId'] = isset($options['ulId']) ? (string) $options['ulId'] : $this->getUlId();
 
         // Active class
-        if (isset($options['activeClass'])
-        ) {
-            $options['activeClass'] = (string) $options['activeClass'];
-        } else {
-            $options['activeClass'] = $this->getActiveClass();
-        }
+        $options['activeClass'] = isset($options['activeClass']) ? (string) $options['activeClass'] : $this->getActiveClass();
 
         // Parent class
-        if (isset($options['parentClass'])) {
-            $options['parentClass'] = (string) $options['parentClass'];
-        } else {
-            $options['parentClass'] = $this->getParentClass();
-        }
+        $options['parentClass'] = isset($options['parentClass']) ? (string) $options['parentClass'] : $this->getParentClass();
 
         // Minimum depth
         if (array_key_exists('minDepth', $options)) {
@@ -666,9 +646,7 @@ class Menu extends AbstractRenderer
             $html .= $indent . $innerIndent . '</li>' . $this->getEOL();
         }
 
-        $html .= $indent . '</ul>';
-
-        return $html;
+        return $html . ($indent . '</ul>');
     }
 
     /**
@@ -733,18 +711,18 @@ class Menu extends AbstractRenderer
         foreach ($iterator as $page) {
             $depth = $iterator->getDepth();
             $isActive = $page->isActive(true);
-
             // Set ulClass depth wise if array of classes is supplied.
-            if (is_array($ulClasses)) {
-                $ulClass = $ulClasses[$depth] ?? $ulClasses['default'];
-            } else {
-                $ulClass = (string) $ulClasses;
-            }
-
-            if ($depth < $minDepth || !$this->accept($page)) {
+            $ulClass = is_array($ulClasses) ? $ulClasses[$depth] ?? $ulClasses['default'] : $ulClasses;
+            if ($depth < $minDepth) {
                 // page is below minDepth or not accepted by visibilty
                 continue;
-            } elseif ($expandSibs && $depth > $minDepth) {
+            }
+            if (!$this->accept($page)) {
+                // page is below minDepth or not accepted by visibilty
+                continue;
+            }
+
+            if ($expandSibs && $depth > $minDepth) {
                 // page is not active itself, but might be in the active branch
                 $accept = false;
                 if ($foundPage) {
@@ -833,13 +811,9 @@ class Menu extends AbstractRenderer
                 $liClasses[] = $page->getClass();
             }
             // Add CSS class for parents to LI?
-            if ($renderParentClass && $page->hasVisiblePages()) {
-                // Check max depth
-                if ((is_int($maxDepth) && ($depth + 1 < $maxDepth))
-                    || !is_int($maxDepth)
-                ) {
-                    $liClasses[] = $parentClass;
-                }
+            // Check max depth
+            if ($renderParentClass && $page->hasVisiblePages() && (is_int($maxDepth) && $depth + 1 < $maxDepth || !is_int($maxDepth))) {
+                $liClasses[] = $parentClass;
             }
 
             $html .= $myIndent . $innerIndent . '<li'
@@ -883,29 +857,13 @@ class Menu extends AbstractRenderer
         $options = $this->_normalizeOptions($options);
 
         if ($options['onlyActiveBranch'] && !$options['renderParents']) {
-            $html = $this->_renderDeepestMenu(
+            return $this->_renderDeepestMenu(
                 $container,
                 $options['ulClass'],
                 $options['indent'],
                 $options['innerIndent'],
                 $options['minDepth'],
                 $options['maxDepth'],
-                $options['ulId'],
-                $options['addPageClassToLi'],
-                $options['activeClass'],
-                $options['parentClass'],
-                $options['renderParentClass']
-            );
-        } else {
-            $html = $this->_renderMenu(
-                $container,
-                $options['ulClass'],
-                $options['indent'],
-                $options['innerIndent'],
-                $options['minDepth'],
-                $options['maxDepth'],
-                $options['onlyActiveBranch'],
-                $options['expandSiblingNodesOfActiveBranch'],
                 $options['ulId'],
                 $options['addPageClassToLi'],
                 $options['activeClass'],
@@ -914,7 +872,21 @@ class Menu extends AbstractRenderer
             );
         }
 
-        return $html;
+        return $this->_renderMenu(
+            $container,
+            $options['ulClass'],
+            $options['indent'],
+            $options['innerIndent'],
+            $options['minDepth'],
+            $options['maxDepth'],
+            $options['onlyActiveBranch'],
+            $options['expandSiblingNodesOfActiveBranch'],
+            $options['ulId'],
+            $options['addPageClassToLi'],
+            $options['activeClass'],
+            $options['parentClass'],
+            $options['renderParentClass']
+        );
     }
 
     /**
@@ -1028,8 +1000,7 @@ class Menu extends AbstractRenderer
     {
         if ($partial = $this->getTemplate()) {
             return $this->renderTemplate($container, $partial);
-        } else {
-            return $this->renderMenu($container);
         }
+        return $this->renderMenu($container);
     }
 }

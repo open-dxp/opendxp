@@ -32,7 +32,7 @@ class AbstractNotificationService
 
         $notes = $noteList->load();
 
-        if (count($notes) == 1) {
+        if (count($notes) === 1) {
             // found matching note
             return $notes[0]->getDescription();
         }

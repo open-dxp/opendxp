@@ -24,6 +24,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class OpenDxpApplicationLoggerExtension extends Extension implements PrependExtensionInterface
 {
+    #[\Override]
     public function getAlias(): string
     {
         return 'opendxp_application_logger';

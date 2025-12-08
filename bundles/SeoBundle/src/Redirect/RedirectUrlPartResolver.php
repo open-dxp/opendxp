@@ -26,17 +26,14 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class RedirectUrlPartResolver
 {
-    private Request $request;
-
     private array $parts = [];
 
     /**
      * RedirectUrlPartResolver constructor.
      *
      */
-    public function __construct(Request $request)
+    public function __construct(private readonly Request $request)
     {
-        $this->request = $request;
     }
 
     public function getRequestUriPart(string $type): string

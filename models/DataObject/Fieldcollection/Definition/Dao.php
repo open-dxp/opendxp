@@ -75,11 +75,9 @@ class Dao extends Model\Dao\AbstractDao
                         $this->addModifyColumn($table, $key . '__' . $fkey, $fvalue, '', 'NULL');
                         $protectedColums[] = $key . '__' . $fkey;
                     }
-                } else {
-                    if ($value->getColumnType()) {
-                        $this->addModifyColumn($table, $key, $value->getColumnType(), '', 'NULL');
-                        $protectedColums[] = $key;
-                    }
+                } elseif ($value->getColumnType()) {
+                    $this->addModifyColumn($table, $key, $value->getColumnType(), '', 'NULL');
+                    $protectedColums[] = $key;
                 }
                 $this->addIndexToField($value, $table, 'getColumnType', true, false, true);
             }

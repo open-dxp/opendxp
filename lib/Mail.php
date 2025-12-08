@@ -380,27 +380,22 @@ class Mail extends Email
     {
         $document = $this->getDocument();
 
-        if ($document instanceof Model\Document\Email) {
-            if (!$this->recipientsCleared) {
-                $to = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getTo());
-                foreach ($to as $toEntry) {
-                    $this->addTo(new Address($toEntry['email'], $toEntry['name']));
-                }
-
-                $cc = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getCc());
-                foreach ($cc as $ccEntry) {
-                    $this->addCc(new Address($ccEntry['email'], $ccEntry['name']));
-                }
-
-                $bcc = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getBcc());
-                foreach ($bcc as $bccEntry) {
-                    $this->addBcc(new Address($bccEntry['email'], $bccEntry['name']));
-                }
-
-                $replyTo = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getReplyTo());
-                foreach ($replyTo as $replyToEntry) {
-                    $this->addReplyTo(new Address($replyToEntry['email'], $replyToEntry['name']));
-                }
+        if ($document instanceof Model\Document\Email && !$this->recipientsCleared) {
+            $to = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getTo());
+            foreach ($to as $toEntry) {
+                $this->addTo(new Address($toEntry['email'], $toEntry['name']));
+            }
+            $cc = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getCc());
+            foreach ($cc as $ccEntry) {
+                $this->addCc(new Address($ccEntry['email'], $ccEntry['name']));
+            }
+            $bcc = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getBcc());
+            foreach ($bcc as $bccEntry) {
+                $this->addBcc(new Address($bccEntry['email'], $bccEntry['name']));
+            }
+            $replyTo = \OpenDxp\Helper\Mail::parseEmailAddressField($document->getReplyTo());
+            foreach ($replyTo as $replyToEntry) {
+                $this->addReplyTo(new Address($replyToEntry['email'], $replyToEntry['name']));
             }
         }
 
@@ -492,7 +487,7 @@ class Mail extends Email
         }
 
         $sendingFailedException = null;
-        if ($mailer === null) {
+        if (!$mailer instanceof \Symfony\Component\Mailer\MailerInterface) {
             try {
                 //if no mailer given, get default mailer from container
                 $mailer = OpenDxp::getContainer()->get(Mailer::class);
@@ -530,8 +525,8 @@ class Mail extends Email
             OpenDxp::getEventDispatcher()->dispatch($event, MailEvents::PRE_LOG);
 
             try {
-                $this->lastLogEntry = MailHelper::logEmail($this, $recipients, $sendingFailedException === null ? null : $sendingFailedException->getMessage());
-            } catch (Exception $e) {
+                $this->lastLogEntry = MailHelper::logEmail($this, $recipients, $sendingFailedException instanceof \Exception ? $sendingFailedException->getMessage() : null);
+            } catch (Exception) {
                 Logger::emerg("Couldn't log Email");
             }
         }
@@ -556,11 +551,9 @@ class Mail extends Email
                 if (Model\Tool\Email\Blocklist::getByAddress($address->getAddress())) {
                     unset($addrKey);
                 }
-            } else {
+            } elseif (Model\Tool\Email\Blocklist::getByAddress($addrKey)) {
                 // remove address if blocklisted
-                if (Model\Tool\Email\Blocklist::getByAddress($addrKey)) {
-                    unset($addresses[$addrKey]);
-                }
+                unset($addresses[$addrKey]);
             }
         }
 
@@ -621,8 +614,7 @@ class Mail extends Email
                 'Failed rendering the %s: %s. Please check your twig sandbox security policy or contact the administrator.',
                 $context,
                 substr($e->getMessage(), 0, strpos($e->getMessage(), ' in "__string'))
-            )
-            );
+            ), $e->getCode(), $e);
 
         } finally {
             // Restore the default escaping strategy (HTML) after rendering the subject
@@ -667,13 +659,10 @@ class Mail extends Email
 
         // if the content was manually set with $obj->setBody(); this content will be used
         // and not the content of the Document!
-        if (!$html) {
-            // render document
-            if ($this->getDocument() instanceof Model\Document) {
-                $attributes = $this->getParams();
-
-                $html = Model\Document\Service::render($this->getDocument(), $attributes);
-            }
+        // render document
+        if (!$html && $this->getDocument() instanceof Model\Document) {
+            $attributes = $this->getParams();
+            $html = Model\Document\Service::render($this->getDocument(), $attributes);
         }
 
         $content = null;
@@ -810,7 +799,7 @@ class Mail extends Email
                 $converter = new HtmlConverter();
                 $converter->getConfig()->merge($this->getHtml2TextOptions());
                 $content = $converter->convert($htmlContent);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 Logger::warning('Converting HTML to plain text failed, no plain text part will be attached to the sent email');
             }
         }
@@ -874,6 +863,7 @@ class Mail extends Email
      *
      * @return $this
      */
+    #[\Override]
     public function addTo(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -886,6 +876,7 @@ class Mail extends Email
      *
      * @return $this
      */
+    #[\Override]
     public function addCc(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -898,6 +889,7 @@ class Mail extends Email
      *
      * @return $this
      */
+    #[\Override]
     public function addBcc(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -910,6 +902,7 @@ class Mail extends Email
      *
      * @return $this
      */
+    #[\Override]
     public function addFrom(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -922,6 +915,7 @@ class Mail extends Email
      *
      * @return $this
      */
+    #[\Override]
     public function addReplyTo(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);

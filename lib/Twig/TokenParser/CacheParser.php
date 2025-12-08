@@ -76,7 +76,7 @@ class CacheParser extends AbstractTokenParser
                         $tags = $this->getArrayValue($node);
                         $tags = new ArrayOfStrings($tags);
                         $tags = $tags->getValue();
-                    } catch (ValueError|LogicException $e) {
+                    } catch (ValueError|LogicException) {
                         $this->throwSyntaxError(
                             'The "tags" modifier requires a string or an array of strings.',
                             $stream
@@ -93,7 +93,7 @@ class CacheParser extends AbstractTokenParser
         }
 
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
-        $body = $this->parser->subparse([$this, 'decideCacheEnd'], true);
+        $body = $this->parser->subparse($this->decideCacheEnd(...), true);
         $this->parser->getStream()->expect(Token::BLOCK_END_TYPE);
 
         return new CacheNode($key, $ttl, $tags, $force, $body, $lineno, $this->getTag());

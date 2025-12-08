@@ -46,6 +46,7 @@ class MaintenanceModeCommand extends AbstractCommand
         ;
     }
 
+    #[\Override]
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $input->setOption('ignore-maintenance-mode', true);

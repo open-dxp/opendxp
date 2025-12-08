@@ -45,22 +45,11 @@ class RequirementsCheckCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        switch ($input->getOption('min-level')) {
-            case 'warning':
-            case 'warnings':
-                $this->levelsToDisplay = [Requirements\Check::STATE_WARNING, Requirements\Check::STATE_ERROR];
-
-                break;
-            case 'error':
-            case 'errors':
-                $this->levelsToDisplay = [Requirements\Check::STATE_ERROR];
-
-                break;
-            default:
-                $this->levelsToDisplay = [Requirements\Check::STATE_OK, Requirements\Check::STATE_WARNING, Requirements\Check::STATE_ERROR];
-
-                break;
-        }
+        $this->levelsToDisplay = match ($input->getOption('min-level')) {
+            'warning', 'warnings' => [Requirements\Check::STATE_WARNING, Requirements\Check::STATE_ERROR],
+            'error', 'errors' => [Requirements\Check::STATE_ERROR],
+            default => [Requirements\Check::STATE_OK, Requirements\Check::STATE_WARNING, Requirements\Check::STATE_ERROR],
+        };
 
         $allChecks = Requirements::checkAll(Db::get());
 
@@ -85,29 +74,17 @@ class RequirementsCheckCommand extends AbstractCommand
             }
         }
 
-        if (!empty($checksTab)) {
+        if ($checksTab !== []) {
             $this->io->table(["<options=bold>$title</>", ''], $checksTab);
         }
     }
 
     protected function displayState(int $state): string
     {
-        switch ($state) {
-            case Requirements\Check::STATE_OK:
-                $displayState = '<fg=green>ok</>';
-
-                break;
-            case Requirements\Check::STATE_WARNING:
-                $displayState = '<fg=yellow>warning</>';
-
-                break;
-            case Requirements\Check::STATE_ERROR:
-            default:
-                $displayState = '<fg=red>error</>';
-
-                break;
-        }
-
-        return $displayState;
+        return match ($state) {
+            Requirements\Check::STATE_OK => '<fg=green>ok</>',
+            Requirements\Check::STATE_WARNING => '<fg=yellow>warning</>',
+            default => '<fg=red>error</>',
+        };
     }
 }

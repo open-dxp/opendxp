@@ -37,12 +37,14 @@ class Folder extends DataObject
         return $object;
     }
 
+    #[\Override]
     protected function update(?bool $isUpdate = null, array $params = []): void
     {
         parent::update($isUpdate, $params);
         $this->getDao()->update($isUpdate);
     }
 
+    #[\Override]
     public function delete(): void
     {
         if ($this->getId() == 1) {

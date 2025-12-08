@@ -31,6 +31,7 @@ class Document extends Model\Asset
 
     protected string $type = 'document';
 
+    #[\Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {

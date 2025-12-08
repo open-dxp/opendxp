@@ -24,7 +24,7 @@ use OpenDxp\Tool\Authentication;
 /**
  * @internal
  */
-final class PermissionService implements PermissionServiceInterface
+final readonly class PermissionService implements PermissionServiceInterface
 {
     private ?UserInterface $user;
 

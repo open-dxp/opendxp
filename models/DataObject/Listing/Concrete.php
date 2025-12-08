@@ -51,7 +51,7 @@ abstract class Concrete extends Model\DataObject\Listing
      */
     public function __construct()
     {
-        $this->initDao(__CLASS__);
+        $this->initDao(self::class);
     }
 
     public function getClassId(): string
@@ -84,9 +84,7 @@ abstract class Concrete extends Model\DataObject\Listing
 
     public function getClass(): DataObject\ClassDefinition
     {
-        $class = DataObject\ClassDefinition::getById($this->getClassId());
-
-        return $class;
+        return DataObject\ClassDefinition::getById($this->getClassId());
     }
 
     public function setLocale(?string $locale): static
@@ -213,14 +211,11 @@ abstract class Concrete extends Model\DataObject\Listing
      * @internal
      *
      */
+    #[\Override]
     public function addDistinct(): bool
     {
         $fieldCollections = $this->getFieldCollections();
-        if (!empty($fieldCollections)) {
-            return true;
-        }
-
-        return false;
+        return $fieldCollections !== [];
     }
 
     /**

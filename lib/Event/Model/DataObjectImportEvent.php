@@ -26,10 +26,6 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class DataObjectImportEvent extends Event
 {
-    protected mixed $config = null;
-
-    protected string $originalFile;
-
     protected Concrete $object;
 
     protected mixed $rowData = null;
@@ -42,10 +38,8 @@ class DataObjectImportEvent extends Event
      * DataObjectImportEvent constructor.
      *
      */
-    public function __construct(mixed $config, string $originalFile)
+    public function __construct(protected mixed $config, protected string $originalFile)
     {
-        $this->config = $config;
-        $this->originalFile = $originalFile;
     }
 
     public function getConfig(): mixed

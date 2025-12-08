@@ -32,7 +32,7 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
     use DataObject\Traits\DataWidthTrait;
     use DataObject\Traits\SimpleNormalizerTrait;
 
-    private const MASK = '******';
+    private const string MASK = '******';
 
     public ?int $minimumLength = null;
 
@@ -104,7 +104,6 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
      * from the ones which were used to create the hash (e.g. cost was increased from 10 to 12).
      * In this case, the hash will be re-calculated with the new parameters and saved back to the object.
      *
-     * @param bool|true $updateHash
      *
      * @internal
      */
@@ -178,6 +177,7 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return self::MASK;
@@ -188,16 +188,19 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
         return self::MASK;
     }
 
+    #[\Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
     }
 
+    #[\Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): mixed
     {
         return $data[0]['data'];
@@ -206,6 +209,7 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
     /** See parent class.
      *
      */
+    #[\Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $diffdata = [];
@@ -220,7 +224,7 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
             // $diffdata["value"] = $data;
         }
 
-        $diffdata['title'] = !empty($this->title) ? $this->title : $this->name;
+        $diffdata['title'] = empty($this->title) ? $this->name : $this->title;
 
         $result = [];
         $result[] = $diffdata;
@@ -252,6 +256,7 @@ class Password extends Data implements ResourcePersistenceAwareInterface, QueryR
      *
      * @throws Model\Element\ValidationException|Exception
      */
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (is_string($data) && $this->isPasswordTooLong($data)) {

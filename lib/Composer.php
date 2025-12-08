@@ -42,9 +42,8 @@ class Composer
     protected static function getRootPath(Event $event): string
     {
         $config = $event->getComposer()->getConfig();
-        $rootPath = dirname($config->get('vendor-dir'));
 
-        return $rootPath;
+        return dirname($config->get('vendor-dir'));
     }
 
     public static function postCreateProject(Event $event): void
@@ -69,7 +68,7 @@ class Composer
     {
         try {
             static::executeCommand($event, $consoleDir, ['opendxp:cache:clear'], 60);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $event->getIO()->write('<comment>Unable to perform command opendxp:cache:clear</comment>');
         }
     }
@@ -89,10 +88,9 @@ class Composer
 
         // ensure that there's a random secret defined
         if (strpos($parameters, 'ThisTokenIsNotSoSecretChangeIt')) {
-            $parameters = preg_replace_callback('/ThisTokenIsNotSoSecretChangeIt(Immediately)?/', function ($match) {
+            $parameters = preg_replace_callback('/ThisTokenIsNotSoSecretChangeIt(Immediately)?/', fn($match) =>
                 // generate a unique token for each occurrence
-                return base64_encode(random_bytes(32));
-            }, $parameters);
+                base64_encode(random_bytes(32)), $parameters);
             file_put_contents($parametersYml, $parameters);
         }
     }
@@ -117,19 +115,19 @@ class Composer
     protected static function executeCommand(Event $event, string $consoleDir, array $cmd, int $timeout = 900, bool $writeBuffer = true): Process
     {
         $command = [static::getPhp(false)];
-        $command = array_merge($command, static::getPhpArguments());
+        $command = [...$command, ...static::getPhpArguments()];
 
         $command[] = $consoleDir.'/console';
         if ($event->getIO()->isDecorated()) {
             $command[] = '--ansi';
         }
 
-        $command = array_merge($command, $cmd);
+        $command = [...$command, ...$cmd];
 
         //$event->getIO()->write('Run command: ' . implode(' ', $command), false);
 
         $process = new Process($command, null, null, null, $timeout);
-        $process->run(function ($type, $buffer) use ($event, $writeBuffer) {
+        $process->run(function ($type, $buffer) use ($event, $writeBuffer): void {
             if ($writeBuffer) {
                 $event->getIO()->write($buffer, false);
             }
@@ -183,7 +181,7 @@ class Composer
      */
     protected static function getOptions(Event $event): array
     {
-        $options = array_merge(static::$options, $event->getComposer()->getPackage()->getExtra());
+        $options = [...static::$options, ...$event->getComposer()->getPackage()->getExtra()];
 
         if (!empty($_SERVER['SYMFONY_ASSETS_INSTALL'])) {
             $options['symfony-assets-install'] = $_SERVER['SYMFONY_ASSETS_INSTALL'];
@@ -253,7 +251,8 @@ class Composer
         if ('symlink' == $options['symfony-assets-install']) {
             $command[] = '--symlink';
         } elseif ('relative' == $options['symfony-assets-install']) {
-            array_push($command, '--symlink', '--relative');
+            $command[] = '--symlink';
+            $command[] = '--relative';
         }
 
         $command[] = '--ignore-maintenance-mode';

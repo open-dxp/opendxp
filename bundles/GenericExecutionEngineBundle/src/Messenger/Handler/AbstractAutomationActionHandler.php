@@ -156,7 +156,7 @@ abstract class AbstractAutomationActionHandler
         $jobRun = $this->getJobRun($message);
         $job = $jobRun->getJob();
 
-        return $job === null ? [] : $job->getEnvironmentData();
+        return $job instanceof \OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job ? $job->getEnvironmentData() : [];
     }
 
     protected function replaceConfigValueWithEnvVariable(

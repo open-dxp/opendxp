@@ -31,21 +31,19 @@ use Twig\TwigFunction;
  */
 class DocumentEditableExtension extends AbstractExtension
 {
-    protected EditableRenderer $editableRenderer;
-
-    public function __construct(EditableRenderer $editableRenderer)
+    public function __construct(protected EditableRenderer $editableRenderer)
     {
-        $this->editableRenderer = $editableRenderer;
     }
 
+    #[\Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('opendxp_*', [$this, 'renderEditable'], [
+            new TwigFunction('opendxp_*', $this->renderEditable(...), [
                 'needs_context' => true,
                 'is_safe' => ['html'],
             ]),
-            new TwigFunction('opendxp_iterate_block', [$this, 'getBlockIterator']),
+            new TwigFunction('opendxp_iterate_block', $this->getBlockIterator(...)),
         ];
 
         // @phpstan-ignore-next-line those are just for auto-complete, not nice, but works ;-)
@@ -101,6 +99,7 @@ class DocumentEditableExtension extends AbstractExtension
         return $block->getIterator();
     }
 
+    #[\Override]
     public function getTokenParsers(): array
     {
         return [

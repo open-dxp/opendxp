@@ -31,21 +31,17 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class DocumentTreeGenerator extends AbstractElementGenerator
 {
-    private DocumentUrlGeneratorInterface $urlGenerator;
-
     protected array $options = [];
 
     private int $currentBatchCount = 0;
 
     public function __construct(
-        DocumentUrlGeneratorInterface $urlGenerator,
+        private readonly DocumentUrlGeneratorInterface $urlGenerator,
         array $filters = [],
         array $processors = [],
         array $options = []
     ) {
         parent::__construct($filters, $processors);
-
-        $this->urlGenerator = $urlGenerator;
 
         $optionsResolver = new OptionsResolver();
         $this->configureOptions($optionsResolver);
@@ -90,7 +86,7 @@ class DocumentTreeGenerator extends AbstractElementGenerator
                     $siteSection = sprintf('site_%s', $currentSite->getId());
                     $this->populateCollection($urlContainer, $rootDocument, $siteSection, $currentSite);
                 }
-            } catch (Exception $e) {
+            } catch (Exception) {
                 Logger::error('Cannot determine current domain for sitemap generation');
             }
         }
@@ -114,7 +110,7 @@ class DocumentTreeGenerator extends AbstractElementGenerator
 
         foreach ($visit as $document) {
             $url = $this->createUrl($document, $context);
-            if (null === $url) {
+            if (!$url instanceof \Presta\SitemapBundle\Sitemap\Url\Url) {
                 continue;
             }
 

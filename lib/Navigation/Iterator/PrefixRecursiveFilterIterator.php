@@ -28,20 +28,14 @@ use RecursiveIterator;
  */
 final class PrefixRecursiveFilterIterator extends RecursiveFilterIterator
 {
-    private string $property;
-
-    private string $value;
-
     /**
      * @param RecursiveIterator $iterator navigation container to iterate
      * @param string $property name of property that acts as needle
      * @param string $value value which acts as haystack
      */
-    public function __construct(RecursiveIterator $iterator, string $property, string $value)
+    public function __construct(RecursiveIterator $iterator, private readonly string $property, private readonly string $value)
     {
         parent::__construct($iterator);
-        $this->property = $property;
-        $this->value = $value;
     }
 
     public function accept(): bool

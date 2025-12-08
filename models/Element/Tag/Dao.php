@@ -134,9 +134,7 @@ class Dao extends Model\Dao\AbstractDao
         }
 
         $tags = array_filter($tags);
-        @usort($tags, function ($left, $right) {
-            return strcmp($left->getNamePath(), $right->getNamePath());
-        });
+        @usort($tags, fn($left, $right) => strcmp($left->getNamePath(), $right->getNamePath()));
 
         return $tags;
     }
@@ -225,16 +223,16 @@ class Dao extends Model\Dao\AbstractDao
         $elements = [];
 
         $map = [
-            'document' => ['documents', '\OpenDxp\Model\Document'],
-            'asset' => ['assets', '\OpenDxp\Model\Asset'],
-            'object' => ['objects', '\OpenDxp\Model\DataObject\AbstractObject'],
+            'document' => ['documents', \OpenDxp\Model\Document::class],
+            'asset' => ['assets', \OpenDxp\Model\Asset::class],
+            'object' => ['objects', \OpenDxp\Model\DataObject\AbstractObject::class],
         ];
 
         $select = $this->db->createQueryBuilder()->select('*')
                            ->from('tags_assignment')
                            ->andWhere('tags_assignment.ctype = :ctype')->setParameter('ctype', $type);
 
-        if (true === $considerChildTags) {
+        if ($considerChildTags) {
             $select->innerJoin('tags_assignment', 'tags', 'tags', 'tags.id = tags_assignment.tagid');
             $select->andWhere(
                 '(' .
@@ -248,14 +246,14 @@ class Dao extends Model\Dao\AbstractDao
 
         $select->innerJoin('tags_assignment', $map[$type][0], 'el', 'tags_assignment.cId = el.id');
 
-        if (! empty($subtypes)) {
+        if ($subtypes !== []) {
             foreach ($subtypes as $subType) {
                 $quotedSubTypes[] = $this->db->quote($subType);
             }
             $select->andWhere('`type` IN (' . implode(',', $quotedSubTypes) . ')');
         }
 
-        if ('object' === $type && ! empty($classNames)) {
+        if ('object' === $type && $classNames !== []) {
             foreach ($classNames as $cName) {
                 $quotedClassNames[] = $this->db->quote($cName);
             }

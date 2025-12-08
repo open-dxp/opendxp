@@ -23,17 +23,8 @@ use Presta\SitemapBundle\Service\UrlContainerInterface;
 
 class GeneratorContext implements GeneratorContextInterface
 {
-    private UrlContainerInterface $urlContainer;
-
-    private ?string $section = null;
-
-    private array $parameters = [];
-
-    public function __construct(UrlContainerInterface $urlContainer, ?string $section = null, array $parameters = [])
+    public function __construct(private readonly UrlContainerInterface $urlContainer, private readonly ?string $section = null, private array $parameters = [])
     {
-        $this->urlContainer = $urlContainer;
-        $this->section = $section;
-        $this->parameters = $parameters;
     }
 
     public function getUrlContainer(): UrlContainerInterface

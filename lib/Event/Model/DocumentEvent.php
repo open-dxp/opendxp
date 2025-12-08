@@ -24,15 +24,12 @@ class DocumentEvent extends Event implements ElementEventInterface
 {
     use ArgumentsAwareTrait;
 
-    protected Document $document;
-
     /**
      * DocumentEvent constructor.
      *
      */
-    public function __construct(Document $document, array $arguments = [])
+    public function __construct(protected Document $document, array $arguments = [])
     {
-        $this->document = $document;
         $this->arguments = $arguments;
     }
 

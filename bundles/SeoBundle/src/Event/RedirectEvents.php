@@ -20,36 +20,26 @@ final class RedirectEvents
 {
     /**
      * @Event("OpenDxp\Event\Model\RedirectEvent")
-     *
-     * @var string
      */
-    const PRE_SAVE = 'opendxp.redirect.preSave';
+    const string PRE_SAVE = 'opendxp.redirect.preSave';
 
     /**
      * @Event("OpenDxp\Event\Model\RedirectEvent")
-     *
-     * @var string
      */
-    const POST_SAVE = 'opendxp.redirect.postSave';
+    const string POST_SAVE = 'opendxp.redirect.postSave';
 
     /**
      * @Event("OpenDxp\Event\Model\RedirectEvent")
-     *
-     * @var string
      */
-    const PRE_DELETE = 'opendxp.redirect.preDelete';
+    const string PRE_DELETE = 'opendxp.redirect.preDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\RedirectEvent")
-     *
-     * @var string
      */
-    const POST_DELETE = 'opendxp.redirect.postDelete';
+    const string POST_DELETE = 'opendxp.redirect.postDelete';
 
     /**
      * @Event("OpenDxp\Event\Model\RedirectEvent")
-     *
-     * @var string
      */
-    const PRE_BUILD = 'opendxp.redirect.preBuild';
+    const string PRE_BUILD = 'opendxp.redirect.preBuild';
 }

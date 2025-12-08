@@ -143,6 +143,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception When no $content provided or invalid method
      */
+    #[\Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(Style)$/', $method, $matches)) {
@@ -150,11 +151,9 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
             $argc = count($args);
             $action = $matches['action'];
 
-            if ('offsetSet' == $action) {
-                if (0 < $argc) {
-                    $index = array_shift($args);
-                    --$argc;
-                }
+            if ('offsetSet' === $action && 0 < $argc) {
+                $index = array_shift($args);
+                --$argc;
             }
 
             if (1 > $argc) {
@@ -169,7 +168,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
 
             $item = $this->createData($content, $attrs);
 
-            if ('offsetSet' == $action) {
+            if ('offsetSet' === $action) {
                 $this->offsetSet($index, $item);
             } else {
                 $this->$action($item);
@@ -188,13 +187,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      */
     protected function _isValid(mixed $value): bool
     {
-        if ((!$value instanceof stdClass)
-            || !isset($value->content)
-            || !isset($value->attributes)) {
-            return false;
-        }
-
-        return true;
+        return !(!$value instanceof stdClass || !isset($value->content) || !isset($value->attributes));
     }
 
     /**
@@ -217,6 +210,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      * @param  string|int $offset
      *
      */
+    #[\Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -320,6 +314,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
+    #[\Override]
     public function toString(int|string|null $indent = null): string
     {
         $indent = (null !== $indent)
@@ -336,9 +331,8 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
         }
 
         $return = $indent . implode($this->getSeparator() . $indent, $items);
-        $return = preg_replace("/(\r\n?|\n)/", '$1' . $indent, $return);
 
-        return $return;
+        return preg_replace("/(\r\n?|\n)/", '$1' . $indent, $return);
     }
 
     /**

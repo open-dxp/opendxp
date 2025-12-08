@@ -40,7 +40,7 @@ class Blocklist extends Model\AbstractModel
             $address->getDao()->getByAddress($addr);
 
             return $address;
-        } catch (Model\Exception\NotFoundException $e) {
+        } catch (Model\Exception\NotFoundException) {
             return null;
         }
     }

@@ -34,29 +34,26 @@ class Scheduledblock extends Block implements BlockInterface
      */
     protected ?array $cachedCurrentElement = null;
 
+    #[\Override]
     public function getType(): string
     {
         return 'scheduledblock';
     }
 
+    #[\Override]
     public function setDataFromEditmode(mixed $data): static
     {
         $this->indices = $data;
 
-        usort($this->indices, function ($left, $right) {
-            if ($left['date'] == $right['date']) {
-                return 0;
-            }
-
-            return ($left['date'] < $right['date']) ? -1 : 1;
-        });
+        usort($this->indices, fn($left, $right) => $left['date'] <=> $right['date']);
 
         return $this;
     }
 
+    #[\Override]
     protected function setDefault(): static
     {
-        if (empty($this->indices)) {
+        if ($this->indices === []) {
             $this->indices[] = [
                 'key' => 0,
                 'date' => time(),
@@ -70,37 +67,32 @@ class Scheduledblock extends Block implements BlockInterface
     {
         if ($this->getEditmode()) {
             return $this->indices;
-        } else {
-            if ($this->cachedCurrentElement) {
-                return [$this->cachedCurrentElement];
-            }
-
-            $outputTimestampResolver = OpenDxp::getContainer()->get(OutputTimestampResolver::class);
-            $outputTimestamp = $outputTimestampResolver->getOutputTimestamp();
-
-            $currentElement = null;
-            $nextElement = null; //needed for calculating cache lifetime
-            foreach ($this->indices as $element) {
-                if ($element['date'] <= $outputTimestamp) {
-                    $currentElement = $element;
-                } elseif (empty($nextElement)) {
-                    //set first element after output timestamp as next element
-                    $nextElement = $element;
-                } else {
-                    break;
-                }
-            }
-
-            $this->updateOutputCacheLifetime($outputTimestamp, $nextElement);
-
-            if ($currentElement) {
-                $this->cachedCurrentElement = $currentElement;
-
-                return [$currentElement];
+        }
+        if ($this->cachedCurrentElement) {
+            return [$this->cachedCurrentElement];
+        }
+        $outputTimestampResolver = OpenDxp::getContainer()->get(OutputTimestampResolver::class);
+        $outputTimestamp = $outputTimestampResolver->getOutputTimestamp();
+        $currentElement = null;
+        $nextElement = null;
+        //needed for calculating cache lifetime
+        foreach ($this->indices as $element) {
+            if ($element['date'] <= $outputTimestamp) {
+                $currentElement = $element;
+            } elseif (empty($nextElement)) {
+                //set first element after output timestamp as next element
+                $nextElement = $element;
             } else {
-                return null;
+                break;
             }
         }
+        $this->updateOutputCacheLifetime($outputTimestamp, $nextElement);
+        if ($currentElement) {
+            $this->cachedCurrentElement = $currentElement;
+
+            return [$currentElement];
+        }
+        return null;
     }
 
     /**
@@ -120,6 +112,7 @@ class Scheduledblock extends Block implements BlockInterface
         }
     }
 
+    #[\Override]
     public function loop(): bool
     {
         $this->setDefault();
@@ -141,13 +134,12 @@ class Scheduledblock extends Block implements BlockInterface
             $this->blockStart();
 
             return true;
-        } else {
-            $this->end();
-
-            return false;
         }
+        $this->end();
+        return false;
     }
 
+    #[\Override]
     public function start(): void
     {
         if ($this->getEditmode()) {
@@ -167,6 +159,7 @@ class Scheduledblock extends Block implements BlockInterface
         $this->outputEditmode('<div class="opendxp_scheduled_block_controls" ></div>');
     }
 
+    #[\Override]
     public function blockConstruct(): void
     {
         // set the current block suffix for the child elements (0, 1, 3, ...)
@@ -176,6 +169,7 @@ class Scheduledblock extends Block implements BlockInterface
         $this->getBlockState()->pushIndex((int) $elements[$this->current]['key']);
     }
 
+    #[\Override]
     public function blockStart(bool $showControls = true, bool $return = false, string $additionalClass = ''): void
     {
         $attributes = [
@@ -197,11 +191,13 @@ class Scheduledblock extends Block implements BlockInterface
         $this->current++;
     }
 
+    #[\Override]
     public function getCurrentIndex(): int
     {
         return (int) $this->indices[$this->getCurrent()]['key'];
     }
 
+    #[\Override]
     public function getIterator(): Generator
     {
         while ($this->loop()) {
@@ -209,6 +205,7 @@ class Scheduledblock extends Block implements BlockInterface
         }
     }
 
+    #[\Override]
     public function getElements(): array
     {
         $document = $this->getDocument();
@@ -224,6 +221,7 @@ class Scheduledblock extends Block implements BlockInterface
         return $list;
     }
 
+    #[\Override]
     public function setConfig(array $config): static
     {
         $config['reload'] = true;
@@ -235,6 +233,7 @@ class Scheduledblock extends Block implements BlockInterface
     /**
      * If object was serialized, set cached elements to null
      */
+    #[\Override]
     public function __wakeup(): void
     {
         parent::__wakeup();

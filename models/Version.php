@@ -95,7 +95,7 @@ final class Version extends AbstractModel
             $version->getDao()->getById($id);
 
             return $version;
-        } catch (NotFoundException $e) {
+        } catch (NotFoundException) {
             return null;
         }
     }
@@ -165,7 +165,7 @@ final class Version extends AbstractModel
             $dataString = $data;
         }
 
-        if ($data instanceof Asset && $data->getType() != 'folder') {
+        if ($data instanceof Asset && $data->getType() !== 'folder') {
             $isAsset = true;
             $dataStream = $data->getStream();
             $ctx = hash_init('sha3-512');
@@ -214,9 +214,8 @@ final class Version extends AbstractModel
         }
 
         $copier->addFilter(new SetDumpStateFilter(true), new \DeepCopy\Matcher\PropertyMatcher(ElementDumpStateInterface::class, ElementDumpStateInterface::DUMP_STATE_PROPERTY_NAME));
-        $newData = $copier->copy($data);
 
-        return $newData;
+        return $copier->copy($data);
     }
 
     private function unmarshalData(ElementInterface $data): mixed

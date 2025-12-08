@@ -25,16 +25,16 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 /**
  * @internal
  */
-final class JobRunStatusChangeSubscriber
+final readonly class JobRunStatusChangeSubscriber
 {
     public function __construct(
-        private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly JobRunRepositoryInterface $jobRunRepository
+        private EventDispatcherInterface $eventDispatcher,
+        private JobRunRepositoryInterface $jobRunRepository
     ) {
 
     }
 
-    private const STATE_FIELD = 'state';
+    private const string STATE_FIELD = 'state';
 
     public function preUpdate(PreUpdateEventArgs $args): void
     {

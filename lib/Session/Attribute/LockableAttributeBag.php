@@ -38,6 +38,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         return $this->locked;
     }
 
+    #[\Override]
     public function set(string $name, mixed $value): void
     {
         $this->checkLock();
@@ -45,6 +46,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         parent::set($name, $value);
     }
 
+    #[\Override]
     public function replace(array $attributes): void
     {
         $this->checkLock();
@@ -52,6 +54,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         parent::replace($attributes);
     }
 
+    #[\Override]
     public function remove(string $name): mixed
     {
         $this->checkLock();
@@ -59,6 +62,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         return parent::remove($name);
     }
 
+    #[\Override]
     public function clear(): mixed
     {
         $this->checkLock();

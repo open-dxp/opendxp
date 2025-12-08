@@ -40,7 +40,7 @@ class Dao extends Model\Dao\AbstractDao
             ], $this->getPrimaryKey(self::TABLE_NAME));
 
             return true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }

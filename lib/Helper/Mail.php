@@ -36,12 +36,12 @@ class Mail
     {
         $type = strtolower($type);
 
-        if ($type != 'html' && $type != 'text') {
+        if ($type !== 'html' && $type !== 'text') {
             throw new Exception('$type has to be "html" or "text"');
         }
 
         //generating html debug info
-        if ($type == 'html') {
+        if ($type === 'html') {
             $debugInformation = '<br/><br/><table class="opendxp_debug_information">
                                     <tr><th colspan="2">Debug information</th></tr>';
 
@@ -89,7 +89,7 @@ class Mail
      */
     public static function getDebugInformationCssStyle(): string
     {
-        $style = <<<'CSS'
+        return <<<'CSS'
 <style type="text/css">
 .opendxp_debug_information{
     width:100%;
@@ -115,8 +115,6 @@ class Mail
 
 </style>
 CSS;
-
-        return $style;
     }
 
     /**
@@ -131,12 +129,10 @@ CSS;
         foreach ($receivers as $mail => $name) {
             if ($name instanceof Address) {
                 $formatedReceiversArray[] = $name->toString();
+            } elseif (trim($name) !== '') {
+                $formatedReceiversArray[] = $name . ' <' . $mail . '>';
             } else {
-                if (strlen(trim($name)) > 0) {
-                    $formatedReceiversArray[] = $name . ' <' . $mail . '>';
-                } else {
-                    $formatedReceiversArray[] = $mail;
-                }
+                $formatedReceiversArray[] = $mail;
             }
         }
 
@@ -183,12 +179,10 @@ CSS;
         }
 
         foreach (['To', 'Cc', 'Bcc', 'ReplyTo'] as $key) {
-            $addresses = isset($recipients[$key]) ? $recipients[$key] : null;
+            $addresses = $recipients[$key] ?? null;
 
-            if ($addresses) {
-                if (method_exists($emailLog, 'set' . $key)) {
-                    $emailLog->{"set$key"}(self::formatDebugReceivers($addresses));
-                }
+            if ($addresses && method_exists($emailLog, 'set' . $key)) {
+                $emailLog->{"set$key"}(self::formatDebugReceivers($addresses));
             }
         }
 
@@ -254,11 +248,16 @@ CSS;
             foreach ($parts as $key => $v) {
                 $v = trim($v);
                 // ignore absolute urls
-                if (str_starts_with($v, 'http://') ||
-                    str_starts_with($v, 'https://') ||
-                    str_starts_with($v, '//') ||
-                    str_starts_with($v, 'file://')
-                ) {
+                if (str_starts_with($v, 'http://')) {
+                    continue;
+                }
+                if (str_starts_with($v, 'https://')) {
+                    continue;
+                }
+                if (str_starts_with($v, '//')) {
+                    continue;
+                }
+                if (str_starts_with($v, 'file://')) {
                     continue;
                 }
                 $parts[$key] = $hostUrl.$v;
@@ -284,7 +283,7 @@ CSS;
         if ($matches[0]) {
             $css = '';
 
-            foreach ($matches[0] as $key => $value) {
+            foreach (array_keys($matches[0]) as $key) {
                 $fullMatch = $matches[0][$key];
                 $path = $matches[1][$key];
 
@@ -315,9 +314,8 @@ CSS;
         }
 
         $cssToInlineStyles = new CssToInlineStyles();
-        $string = $cssToInlineStyles->convert($string, $css);
 
-        return $string;
+        return $cssToInlineStyles->convert($string, $css);
     }
 
     /**
@@ -328,7 +326,7 @@ CSS;
         preg_match_all("@url\s*\(\s*[\"']?(.*?)[\"']?\s*\)@is", $content, $matches);
         $hostUrl = Tool::getHostUrl();
 
-        foreach ($matches[0] as $key => $value) {
+        foreach (array_keys($matches[0]) as $key) {
             $fullMatch = $matches[0][$key];
             $path = $matches[1][$key];
 

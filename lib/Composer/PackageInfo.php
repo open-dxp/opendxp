@@ -67,7 +67,7 @@ class PackageInfo
             try {
                 return json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
-                throw new RuntimeException(sprintf('Failed to parse composer file %s', $path), previous: $e);
+                throw new RuntimeException(sprintf('Failed to parse composer file %s', $path), $e->getCode(), previous: $e);
             }
         }
 

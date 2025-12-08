@@ -32,6 +32,7 @@ class SubrequestExtension extends AbstractExtension
         $this->incHelper = $incHelper;
     }
 
+    #[\Override]
     public function getFunctions(): array
     {
         // as runtime extension classes are invokable, we can pass them directly as callable

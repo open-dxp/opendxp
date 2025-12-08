@@ -24,15 +24,12 @@ class DataObjectEvent extends Event implements ElementEventInterface
 {
     use ArgumentsAwareTrait;
 
-    protected AbstractObject $object;
-
     /**
      * DataObjectEvent constructor.
      *
      */
-    public function __construct(AbstractObject $object, array $arguments = [])
+    public function __construct(protected AbstractObject $object, array $arguments = [])
     {
-        $this->object = $object;
         $this->arguments = $arguments;
     }
 

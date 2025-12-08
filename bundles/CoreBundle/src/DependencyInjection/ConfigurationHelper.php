@@ -109,7 +109,7 @@ final class ConfigurationHelper
             $dirs[]= $configPath;
         }
 
-        if (empty($dirs)) {
+        if ($dirs === []) {
             return [];
         }
 

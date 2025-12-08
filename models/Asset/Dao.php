@@ -64,13 +64,13 @@ class Dao extends Model\Element\Dao
 
                     $transformedData = $md['data'];
 
-                    $md['type'] = $md['type'] ?? 'input';
+                    $md['type'] ??= 'input';
 
                     try {
                         /** @var Data $instance */
                         $instance = $loader->build($md['type']);
                         $transformedData = $instance->getDataFromResource($md['data'], $md);
-                    } catch (UnsupportedException $e) {
+                    } catch (UnsupportedException) {
                     }
 
                     $md['data'] = $transformedData;
@@ -150,7 +150,7 @@ class Dao extends Model\Element\Dao
                     /** @var Data $instance */
                     $instance = $loader->build($metadataItem['type']);
                     $dataForResource = $instance->getDataForResource($metadataItem['data'], $metadataItem);
-                } catch (UnsupportedException $e) {
+                } catch (UnsupportedException) {
                 }
 
                 $metadataItem['data'] = $dataForResource;
@@ -244,9 +244,7 @@ class Dao extends Model\Element\Dao
         );
 
         // because this should be faster than mysql
-        usort($propertiesRaw, function ($left, $right) {
-            return strcmp($left['cpath'], $right['cpath']);
-        });
+        usort($propertiesRaw, fn($left, $right) => strcmp($left['cpath'], $right['cpath']));
 
         foreach ($propertiesRaw as $propertyRaw) {
             try {
@@ -300,7 +298,7 @@ class Dao extends Model\Element\Dao
 
         try {
             $path = $this->db->fetchOne('SELECT CONCAT(`path`,filename) as `path` FROM assets WHERE id = ?', [$this->model->getId()]);
-        } catch (Exception $e) {
+        } catch (Exception) {
             Logger::error('could not get  current asset path from DB');
         }
 
@@ -326,7 +324,6 @@ class Dao extends Model\Element\Dao
     /**
      * quick test if there are children
      *
-     * @param Model\User|null $user
      *
      */
     public function hasChildren(?User $user = null): bool
@@ -385,7 +382,6 @@ class Dao extends Model\Element\Dao
     /**
      * returns the amount of directly children (not recursivly)
      *
-     * @param Model\User|null $user
      *
      */
     public function getChildAmount(?User $user = null): int
@@ -424,12 +420,7 @@ class Dao extends Model\Element\Dao
 
         $parentIds = $this->getParentIds();
         $inhertitedLocks = $this->db->fetchOne('SELECT id FROM tree_locks WHERE id IN (' . implode(',', $parentIds) . ") AND `type`='asset' AND locked = 'propagate' LIMIT 1");
-
-        if ($inhertitedLocks > 0) {
-            return true;
-        }
-
-        return false;
+        return $inhertitedLocks > 0;
     }
 
     public function unlockPropagate(): array
@@ -477,7 +468,7 @@ class Dao extends Model\Element\Dao
             }
 
             // exception for list permission
-            if (empty($permissionsParent) && $type == 'list') {
+            if (empty($permissionsParent) && $type === 'list') {
                 // check for children with permissions
                 $path = $this->model->getRealFullPath() . '/';
                 if ($this->model->getId() == 1) {
@@ -489,7 +480,7 @@ class Dao extends Model\Element\Dao
                     return true;
                 }
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             Logger::warn('Unable to get permission ' . $type . ' for asset ' . $this->model->getId());
         }
 
@@ -520,11 +511,7 @@ class Dao extends Model\Element\Dao
     public function __isBasedOnLatestData(): bool
     {
         $data = $this->db->fetchAssociative('SELECT modificationDate, versionCount from assets WHERE id = ?', [$this->model->getId()]);
-        if ($data['modificationDate'] == $this->model->__getDataVersionTimestamp() && $data['versionCount'] == $this->model->getVersionCount()) {
-            return true;
-        }
-
-        return false;
+        return $data['modificationDate'] == $this->model->__getDataVersionTimestamp() && $data['versionCount'] == $this->model->getVersionCount();
     }
 
     public function addToThumbnailCache(string $name, string $filename, int $filesize, int $width, int $height): void

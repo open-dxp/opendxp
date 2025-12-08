@@ -25,6 +25,7 @@ use Twig\Extension\AbstractExtension;
  */
 class AssetCompressExtension extends AbstractExtension
 {
+    #[\Override]
     public function getTokenParsers(): array
     {
         return [

@@ -40,7 +40,7 @@ class CleanupCommand extends AbstractCommand
         'email',
     ];
 
-    private const PROTECTED_DOCUMENT_TYPES = ['page', 'link', 'snippet', 'folder', 'hardlink', 'email'];
+    private const array PROTECTED_DOCUMENT_TYPES = ['page', 'link', 'snippet', 'folder', 'hardlink', 'email'];
 
     protected function configure(): void
     {
@@ -64,7 +64,7 @@ class CleanupCommand extends AbstractCommand
             $filteredDocumentTypes[] = $documentType;
         }
 
-        if (!empty($filteredDocumentTypes)) {
+        if ($filteredDocumentTypes !== []) {
             $db = Db::get();
 
             try {

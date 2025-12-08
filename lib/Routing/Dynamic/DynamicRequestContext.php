@@ -26,17 +26,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final class DynamicRequestContext
 {
-    private Request $request;
-
-    private string $path;
-
-    private string $originalPath;
-
-    public function __construct(Request $request, string $path, string $originalPath)
+    public function __construct(private Request $request, private string $path, private string $originalPath)
     {
-        $this->request = $request;
-        $this->path = $path;
-        $this->originalPath = $originalPath;
     }
 
     public function getRequest(): Request

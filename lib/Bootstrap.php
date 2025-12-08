@@ -158,7 +158,7 @@ class Bootstrap
             include_once $customConstantsFile;
         }
 
-        $resolveConstant = function (string $name, $default, bool $define = true) {
+        $resolveConstant = static function (string $name, $default, bool $define = true) {
             // return constant if defined
             if (defined($name)) {
                 return constant($name);
@@ -216,11 +216,7 @@ class Bootstrap
             Debug::enable();
         }
 
-        if (defined('OPENDXP_KERNEL_CLASS')) {
-            $kernelClass = OPENDXP_KERNEL_CLASS;
-        } else {
-            $kernelClass = '\App\Kernel';
-        }
+        $kernelClass = defined('OPENDXP_KERNEL_CLASS') ? OPENDXP_KERNEL_CLASS : '\App\Kernel';
 
         if (!class_exists($kernelClass)) {
             throw new InvalidArgumentException(sprintf('Defined Kernel Class %s not found', $kernelClass));

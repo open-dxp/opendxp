@@ -70,36 +70,31 @@ class CacheWarmingCommand extends AbstractCommand
                 'types',
                 't',
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-                sprintf('Perform warming only for this types of elements. Valid options: %s', $this->humanList($this->validTypes)),
-                null
+                sprintf('Perform warming only for this types of elements. Valid options: %s', $this->humanList($this->validTypes))
             )
             ->addOption(
                 'documentTypes',
                 'd',
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                sprintf('Restrict warming to these types of documents. Valid options: %s', $this->humanList($this->validDocumentTypes)),
-                null
+                sprintf('Restrict warming to these types of documents. Valid options: %s', $this->humanList($this->validDocumentTypes))
             )
             ->addOption(
                 'assetTypes',
                 'a',
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                sprintf('Restrict warming to these types of assets. Valid options: %s', $this->humanList($this->validAssetTypes)),
-                null
+                sprintf('Restrict warming to these types of assets. Valid options: %s', $this->humanList($this->validAssetTypes))
             )
             ->addOption(
                 'objectTypes',
                 'o',
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                sprintf('Restrict warming to these types of objects. Valid options: %s', $this->humanList($this->validObjectTypes)),
-                null
+                sprintf('Restrict warming to these types of objects. Valid options: %s', $this->humanList($this->validObjectTypes))
             )
             ->addOption(
                 'classes',
                 'c',
                 InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                'Restrict object warming to these classes (only valid for objects!). Valid options: class names of your classes defined in OpenDxp',
-                null
+                'Restrict object warming to these classes (only valid for objects!). Valid options: class names of your classes defined in OpenDxp'
             )
         ;
     }
@@ -149,7 +144,7 @@ class CacheWarmingCommand extends AbstractCommand
         if (count($types) > 0) {
             $output .= sprintf(' for types %s', $this->humanList($types, 'and', '<info>%s</info>'));
         } else {
-            $output .= sprintf(' for <info>all</info> types');
+            $output .= ' for <info>all</info> types';
         }
 
         if (!empty($extra)) {
@@ -166,7 +161,7 @@ class CacheWarmingCommand extends AbstractCommand
     protected function humanList(array $list, string $glue = 'or', ?string $template = null): string
     {
         if (null !== $template) {
-            array_walk($list, static function (&$item) use ($template) {
+            array_walk($list, static function (&$item) use ($template): void {
                 $item = sprintf($template, $item);
             });
         }
@@ -190,11 +185,7 @@ class CacheWarmingCommand extends AbstractCommand
 
         // fall back to whole list if fallback is set
         if (!$input || count($input) === 0) {
-            if ($fallback) {
-                $input = $this->$property;
-            } else {
-                $input = null;
-            }
+            $input = $fallback ? $this->$property : null;
         }
 
         if (null !== $input) {

@@ -27,12 +27,14 @@ class Installer extends SettingsStoreAwareInstaller
         'reports_config',
     ];
 
+    #[\Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
+    #[\Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

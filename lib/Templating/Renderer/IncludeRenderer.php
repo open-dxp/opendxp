@@ -57,13 +57,13 @@ class IncludeRenderer
         if (is_numeric($include)) {
             try {
                 $include = Model\Document::getById((int) $include);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $include = $originalInclude;
             }
         } elseif (is_string($include)) {
             try {
                 $include = Model\Document::getByPath($include);
-            } catch (Exception $e) {
+            } catch (Exception) {
                 $include = $originalInclude;
             }
         }
@@ -84,7 +84,7 @@ class IncludeRenderer
             $cacheParams = $params;
             $cacheParams['~~include-document'] = $originalInclude;
 
-            array_walk($cacheParams, function (&$value, $key) {
+            array_walk($cacheParams, function (&$value, $key): void {
                 if ($value instanceof Element\ElementInterface) {
                     $value = $value->getId();
                 } elseif (is_object($value) && method_exists($value, '__toString')) {
@@ -103,7 +103,7 @@ class IncludeRenderer
             }
         }
 
-        $params = array_merge($params, ['document' => $include]);
+        $params = [...$params, 'document' => $include];
         $content = '';
 
         if ($include instanceof PageSnippet && $include->isPublished()) {
@@ -155,7 +155,7 @@ class IncludeRenderer
 
             $html->clear();
             unset($html);
-        } catch (Exception $e) {
+        } catch (Exception) {
             // add a div container if the include doesn't contain markup/html
             $content = '<div class="' . $editmodeClass . '" opendxp_id="' . $include->getId() . '" opendxp_type="' . $include->getType() . '">' . $content . '</div>';
         }

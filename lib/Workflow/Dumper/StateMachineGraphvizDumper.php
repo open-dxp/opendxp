@@ -34,6 +34,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
      *  * node: The default options for nodes (places)
      *  * edge: The default options for edges
      */
+    #[\Override]
     public function dump(Definition $definition, ?Marking $marking = null, array $options = []): string
     {
         $places = $this->findPlaces($definition, $marking, $options['workflowName']);
@@ -51,6 +52,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
     /**
      * @internal
      */
+    #[\Override]
     protected function findEdges(Definition $definition): array
     {
         $edges = [];
@@ -73,6 +75,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
     /**
      * @internal
      */
+    #[\Override]
     protected function addEdges(array $edges): string
     {
         $code = '';

@@ -74,12 +74,10 @@ class Processor
         }
 
         if (in_array($format, $allowed)) {
-            $target = $format;
-        } else {
-            $target = $fallback;
+            return $format;
         }
 
-        return $target;
+        return $fallback;
     }
 
     /**
@@ -111,7 +109,7 @@ class Processor
         $fileExt = pathinfo($asset->getFilename(), PATHINFO_EXTENSION);
 
         // simple detection for source type if SOURCE is selected
-        if ($format == 'source' || empty($format)) {
+        if ($format === 'source' || empty($format)) {
             $optimizedFormat = true;
             $format = self::getAllowedFormat($fileExt, ['pjpeg', 'jpeg', 'gif', 'png'], 'png');
             if ($format === 'jpeg') {
@@ -119,26 +117,26 @@ class Processor
             }
         }
 
-        if ($format == 'print') {
+        if ($format === 'print') {
             // Don't optimize images for print as we assume we want images as
             // untouched as possible.
             $optimizedFormat = $optimizeContent = false;
             $format = self::getAllowedFormat($fileExt, ['svg', 'jpeg', 'png', 'tiff'], 'png');
 
-            if (($format == 'tiff') &&\OpenDxp\Tool::isFrontendRequestByAdmin()) {
+            if (($format === 'tiff') &&\OpenDxp\Tool::isFrontendRequestByAdmin()) {
                 // return a webformat in admin -> tiff cannot be displayed in browser
                 $format = 'png';
                 $deferred = false; // deferred is default, but it's not possible when using isFrontendRequestByAdmin()
             } elseif (
-                ($format == 'tiff' && self::containsTransformationType($config, 'tifforiginal'))
-                || $format == 'svg'
+                ($format === 'tiff' && self::containsTransformationType($config, 'tifforiginal'))
+                || $format === 'svg'
             ) {
                 return [
                     'src' => $asset->getRealFullPath(),
                     'type' => 'asset',
                 ];
             }
-        } elseif ($format == 'tiff') {
+        } elseif ($format === 'tiff') {
             $optimizedFormat = $optimizeContent = false;
             if (\OpenDxp\Tool::isFrontendRequestByAdmin()) {
                 // return a webformat in admin -> tiff cannot be displayed in browser
@@ -161,7 +159,7 @@ class Processor
         }
 
         $fileExtension = $format;
-        if ($format == 'original') {
+        if ($format === 'original') {
             $fileExtension = $fileExt;
         } elseif ($format === 'pjpeg' || $format === 'jpeg') {
             $fileExtension = 'jpg';
@@ -181,7 +179,7 @@ class Processor
         } else {
             try {
                 $modificationDate = $storage->lastModified($storagePath);
-            } catch (FilesystemException $e) {
+            } catch (FilesystemException) {
                 // nothing to do
             }
         }
@@ -194,18 +192,16 @@ class Processor
                         'type' => 'thumbnail',
                         'storagePath' => $storagePath,
                     ];
-                } else {
-                    // delete the file if it's not valid anymore, otherwise writing the actual data from
-                    // the local tmp-file to the real storage a bit further down doesn't work, as it has a
-                    // check for race-conditions & locking, so it needs to check for the existence of the thumbnail
-                    $storage->delete($storagePath);
-
-                    // refresh the thumbnail cache, if the asset modification date is modified
-                    // this is necessary because the thumbnail cache is not cleared automatically
-                    // when the original asset is modified
-                    $asset->getDao()->deleteFromThumbnailCache($config->getName());
                 }
-            } catch (FilesystemException $e) {
+                // delete the file if it's not valid anymore, otherwise writing the actual data from
+                // the local tmp-file to the real storage a bit further down doesn't work, as it has a
+                // check for race-conditions & locking, so it needs to check for the existence of the thumbnail
+                $storage->delete($storagePath);
+                // refresh the thumbnail cache, if the asset modification date is modified
+                // this is necessary because the thumbnail cache is not cleared automatically
+                // when the original asset is modified
+                $asset->getDao()->deleteFromThumbnailCache($config->getName());
+            } catch (FilesystemException) {
                 // nothing to do
             }
         }
@@ -284,46 +280,43 @@ class Processor
                 // if so add a transformation at the beginning that rotates and/or mirrors the image
                 if (function_exists('exif_read_data')) {
                     $exif = @exif_read_data($fileSystemPath);
-                    if (is_array($exif)) {
-                        if (array_key_exists('Orientation', $exif)) {
-                            $orientation = (int)$exif['Orientation'];
+                    if (is_array($exif) && array_key_exists('Orientation', $exif)) {
+                        $orientation = (int)$exif['Orientation'];
+                        if ($orientation > 1) {
+                            $angleMappings = [
+                                2 => 180,
+                                3 => 180,
+                                4 => 180,
+                                5 => 90,
+                                6 => 90,
+                                7 => 90,
+                                8 => 270,
+                            ];
 
-                            if ($orientation > 1) {
-                                $angleMappings = [
-                                    2 => 180,
-                                    3 => 180,
-                                    4 => 180,
-                                    5 => 90,
-                                    6 => 90,
-                                    7 => 90,
-                                    8 => 270,
-                                ];
+                            if (array_key_exists($orientation, $angleMappings)) {
+                                array_unshift($transformations, [
+                                    'method' => 'rotate',
+                                    'arguments' => [
+                                        'angle' => $angleMappings[$orientation],
+                                    ],
+                                ]);
+                            }
 
-                                if (array_key_exists($orientation, $angleMappings)) {
-                                    array_unshift($transformations, [
-                                        'method' => 'rotate',
-                                        'arguments' => [
-                                            'angle' => $angleMappings[$orientation],
-                                        ],
-                                    ]);
-                                }
+                            // values that have to be mirrored, this is not very common, but should be covered anyway
+                            $mirrorMappings = [
+                                2 => 'vertical',
+                                4 => 'horizontal',
+                                5 => 'vertical',
+                                7 => 'horizontal',
+                            ];
 
-                                // values that have to be mirrored, this is not very common, but should be covered anyway
-                                $mirrorMappings = [
-                                    2 => 'vertical',
-                                    4 => 'horizontal',
-                                    5 => 'vertical',
-                                    7 => 'horizontal',
-                                ];
-
-                                if (array_key_exists($orientation, $mirrorMappings)) {
-                                    array_unshift($transformations, [
-                                        'method' => 'mirror',
-                                        'arguments' => [
-                                            'mode' => $mirrorMappings[$orientation],
-                                        ],
-                                    ]);
-                                }
+                            if (array_key_exists($orientation, $mirrorMappings)) {
+                                array_unshift($transformations, [
+                                    'method' => 'mirror',
+                                    'arguments' => [
+                                        'mode' => $mirrorMappings[$orientation],
+                                    ],
+                                ]);
                             }
                         }
                     }
@@ -406,7 +399,7 @@ class Processor
                 $newFactor = $factor * $original / $new;
                 if ($newFactor < 1) {
                     // don't go below factor 1
-                    $newFactor = 1;
+                    return 1;
                 }
 
                 return $newFactor;
@@ -426,32 +419,28 @@ class Processor
                             $position = array_search($key, $mapping);
                             if ($position !== false) {
                                 // high res calculations if enabled
-                                if (!in_array($transformation['method'], ['cropPercent']) && in_array($key,
-                                    ['width', 'height', 'x', 'y'])) {
-                                    if ($highResFactor && $highResFactor > 1) {
-                                        $value *= $highResFactor;
-                                        $value = (int)ceil($value);
-
-                                        if (!isset($transformation['arguments']['forceResize']) || !$transformation['arguments']['forceResize']) {
-                                            // check if source image is big enough otherwise adjust the high-res factor
-                                            if (in_array($key, ['width', 'x'])) {
-                                                if ($sourceImageWidth < $value) {
-                                                    $highResFactor = $calculateMaxFactor(
-                                                        $highResFactor,
-                                                        $sourceImageWidth,
-                                                        $value
-                                                    );
-                                                    goto prepareTransformations;
-                                                }
-                                            } elseif (in_array($key, ['height', 'y'])) {
-                                                if ($sourceImageHeight < $value) {
-                                                    $highResFactor = $calculateMaxFactor(
-                                                        $highResFactor,
-                                                        $sourceImageHeight,
-                                                        $value
-                                                    );
-                                                    goto prepareTransformations;
-                                                }
+                                if ($transformation['method'] != 'cropPercent' && in_array($key, ['width', 'height', 'x', 'y']) && ($highResFactor && $highResFactor > 1)) {
+                                    $value *= $highResFactor;
+                                    $value = (int)ceil($value);
+                                    if (!isset($transformation['arguments']['forceResize']) || !$transformation['arguments']['forceResize']) {
+                                        // check if source image is big enough otherwise adjust the high-res factor
+                                        if (in_array($key, ['width', 'x'])) {
+                                            if ($sourceImageWidth < $value) {
+                                                $highResFactor = $calculateMaxFactor(
+                                                    $highResFactor,
+                                                    $sourceImageWidth,
+                                                    $value
+                                                );
+                                                goto prepareTransformations;
+                                            }
+                                        } elseif (in_array($key, ['height', 'y'])) {
+                                            if ($sourceImageHeight < $value) {
+                                                $highResFactor = $calculateMaxFactor(
+                                                    $highResFactor,
+                                                    $sourceImageHeight,
+                                                    $value
+                                                );
+                                                goto prepareTransformations;
                                             }
                                         }
                                     }
@@ -486,10 +475,8 @@ class Processor
     {
         $transformations = $config->getItems();
         foreach ($transformations as $transformation) {
-            if (!empty($transformation)) {
-                if ($transformation['method'] == $transformationType) {
-                    return true;
-                }
+            if (!empty($transformation) && $transformation['method'] == $transformationType) {
+                return true;
             }
         }
 

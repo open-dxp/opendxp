@@ -38,7 +38,7 @@ class ThumbnailsImageCommand extends AbstractCommand
 {
     use Parallelization;
 
-    private const DATE_FORMAT = 'Y-m-d H:i:s';
+    private const string DATE_FORMAT = 'Y-m-d H:i:s';
 
     protected function configure(): void
     {
@@ -171,7 +171,7 @@ class ThumbnailsImageCommand extends AbstractCommand
         foreach ($assetIdsList as $assetId) {
             foreach ($thumbnailList as $thumbnailConfig) {
                 $thumbName = $thumbnailConfig->getName();
-                if (empty($allowedThumbs) || in_array($thumbName, $allowedThumbs)) {
+                if ($allowedThumbs === [] || in_array($thumbName, $allowedThumbs)) {
                     $items[] = $assetId . '~~~' . $thumbName;
                 }
             }
@@ -225,8 +225,8 @@ class ThumbnailsImageCommand extends AbstractCommand
         $thumbnailConfig = Image\Thumbnail\Config::getByName($thumbnailConfigName);
         $thumbnailsToGenerate = [$thumbnailConfig];
 
-        $medias = array_merge(['default' => 'defaultMedia'], $thumbnailConfig->getMedias() ?: []);
-        foreach ($medias as $mediaName => $media) {
+        $medias = ['default' => 'defaultMedia', ...$thumbnailConfig->getMedias() ?: []];
+        foreach (array_keys($medias) as $mediaName) {
             $configMedia = clone $thumbnailConfig;
             if ($mediaName !== 'default') {
                 $configMedia->selectMedia($mediaName);

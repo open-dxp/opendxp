@@ -28,22 +28,14 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 class SystemSettingsConfig
 {
-    private const CONFIG_ID = 'system_settings';
+    private const string CONFIG_ID = 'system_settings';
 
-    private const SCOPE = 'opendxp_system_settings';
+    private const string SCOPE = 'opendxp_system_settings';
 
     private static ?LocationAwareConfigRepository $locationAwareConfigRepository = null;
 
-    private LocaleServiceInterface $localeService;
-
-    private EventDispatcherInterface $eventDispatcher;
-
-    public function __construct(
-        EventDispatcherInterface $eventDispatcher,
-        LocaleServiceInterface $localeService
-    ) {
-        $this->eventDispatcher = $eventDispatcher;
-        $this->localeService = $localeService;
+    public function __construct(private readonly EventDispatcherInterface $eventDispatcher, private readonly LocaleServiceInterface $localeService)
+    {
     }
 
     private static function getRepository(): LocationAwareConfigRepository
@@ -75,7 +67,7 @@ class SystemSettingsConfig
         // If the read target is settings-store and no data is found there,
         // load the data from the container config
 
-        if (!$data && $loadType === $repository::LOCATION_SETTINGS_STORE) {
+        if (!$data && $loadType === \OpenDxp\Config\LocationAwareConfigRepository::LOCATION_SETTINGS_STORE) {
             $data = self::getConfigValuesFromContainer()['config'];
             $data['writeable'] = $repository->isWriteable();
         }
@@ -93,9 +85,7 @@ class SystemSettingsConfig
         $data = $this->prepareSystemConfig($values);
 
         foreach ($data as $key => $value) {
-            $repository->saveConfig($key, $value, function ($key, $data) {
-                return ['opendxp' => $data];
-            });
+            $repository->saveConfig($key, $value, fn($key, $data) => ['opendxp' => $data]);
         }
     }
 
@@ -108,9 +98,7 @@ class SystemSettingsConfig
         $repository = self::getRepository();
 
         unset($values['writeable']);
-        $repository->saveConfig(self::CONFIG_ID, $values, function ($key, $data) {
-            return ['opendxp' => $data];
-        });
+        $repository->saveConfig(self::CONFIG_ID, $values, fn($key, $data) => ['opendxp' => $data]);
 
     }
 
@@ -167,7 +155,7 @@ class SystemSettingsConfig
         }
 
         // check if there's a fallback language endless loop
-        foreach ($fallbackLanguages as $sourceLang => $targetLang) {
+        foreach (array_keys($fallbackLanguages) as $sourceLang) {
             $this->checkFallbackLanguageLoop($sourceLang, $fallbackLanguages);
         }
 

@@ -26,7 +26,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 /**
  * @internal
  */
-final class JobExecutionSubscriber implements EventSubscriberInterface
+final readonly class JobExecutionSubscriber implements EventSubscriberInterface
 {
     use ThrowableChainTrait;
 
@@ -39,7 +39,7 @@ final class JobExecutionSubscriber implements EventSubscriberInterface
     }
 
     public function __construct(
-        private readonly JobExecutionAgentInterface $jobExecutionAgent
+        private JobExecutionAgentInterface $jobExecutionAgent
     ) {
     }
 

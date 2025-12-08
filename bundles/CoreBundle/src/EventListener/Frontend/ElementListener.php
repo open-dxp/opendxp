@@ -142,20 +142,16 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
         }
 
         // document preview
-        if ($request->query->getBoolean('opendxp_preview')) {
-            // get document from session
-
-            // TODO originally, this was the following call. What was in this->getParam('document') and
-            // why was it an object?
-            // $docKey = "document_" . $this->getParam("document")->getId();
-
-            if ($documentFromSession = Document\Service::getElementFromSession('document', $document->getId(), $request->getSession()->getId())) {
-                // if there is a document in the session use it
-                $this->logger->debug('Loading preview document {document} from session', [
-                    'document' => $document->getFullPath(),
-                ]);
-                $document = $documentFromSession;
-            }
+        // get document from session
+        // TODO originally, this was the following call. What was in this->getParam('document') and
+        // why was it an object?
+        // $docKey = "document_" . $this->getParam("document")->getId();
+        if ($request->query->getBoolean('opendxp_preview') && $documentFromSession = Document\Service::getElementFromSession('document', $document->getId(), $request->getSession()->getId())) {
+            // if there is a document in the session use it
+            $this->logger->debug('Loading preview document {document} from session', [
+                'document' => $document->getFullPath(),
+            ]);
+            $document = $documentFromSession;
         }
 
         // for version preview
@@ -217,17 +213,14 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
     protected function handleObjectParams(Request $request): void
     {
         // object preview
-        if ($objectId = $request->query->getInt('opendxp_object_preview')) {
-            if ($object = Service::getElementFromSession('object', $objectId, $request->getSession()->getId())) {
-                $this->logger->debug('Loading object {object} ({objectId}) from session', [
-                    'object' => $object->getFullPath(),
-                    'objectId' => $object->getId(),
-                ]);
-
-                // TODO remove\OpenDxp\Cache\Runtime
-                // add the object to the registry so every call to DataObject::getById() will return this object instead of the real one
-                RuntimeCache::set('object_' . $object->getId(), $object);
-            }
+        if (($objectId = $request->query->getInt('opendxp_object_preview')) && $object = Service::getElementFromSession('object', $objectId, $request->getSession()->getId())) {
+            $this->logger->debug('Loading object {object} ({objectId}) from session', [
+                'object' => $object->getFullPath(),
+                'objectId' => $object->getId(),
+            ]);
+            // TODO remove\OpenDxp\Cache\Runtime
+            // add the object to the registry so every call to DataObject::getById() will return this object instead of the real one
+            RuntimeCache::set('object_' . $object->getId(), $object);
         }
     }
 }

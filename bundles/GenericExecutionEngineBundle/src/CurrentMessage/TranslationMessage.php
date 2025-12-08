@@ -22,13 +22,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @internal
  */
-final class TranslationMessage implements MessageInterface
+final readonly class TranslationMessage implements MessageInterface
 {
     public function __construct(
-        private readonly string $key,
-        private readonly array $params,
-        private readonly string $domain,
-        private readonly TranslatorInterface $translator
+        private string $key,
+        private array $params,
+        private string $domain,
+        private TranslatorInterface $translator
     ) {
     }
 

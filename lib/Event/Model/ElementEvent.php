@@ -24,15 +24,12 @@ class ElementEvent extends Event implements ElementEventInterface
 {
     use ArgumentsAwareTrait;
 
-    protected ElementInterface $element;
-
     /**
      * ElementEvent constructor.
      *
      */
-    public function __construct(ElementInterface $element, array $arguments = [])
+    public function __construct(protected ElementInterface $element, array $arguments = [])
     {
-        $this->element = $element;
         $this->arguments = $arguments;
     }
 

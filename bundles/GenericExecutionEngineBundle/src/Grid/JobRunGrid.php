@@ -28,12 +28,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @internal
  */
-final class JobRunGrid implements JobRunGridInterface
+final readonly class JobRunGrid implements JobRunGridInterface
 {
     public function __construct(
-        private readonly CurrentMessageProviderInterface $currentMessageProvider,
-        private readonly ExecutionContextInterface $executionContext,
-        private readonly TranslatorInterface $translator
+        private CurrentMessageProviderInterface $currentMessageProvider,
+        private ExecutionContextInterface $executionContext,
+        private TranslatorInterface $translator
     ) {
     }
 

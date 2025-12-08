@@ -23,11 +23,11 @@ use ArrayAccess;
  */
 final class Check implements ArrayAccess
 {
-    const STATE_OK = 1;
+    const int STATE_OK = 1;
 
-    const STATE_WARNING = 2;
+    const int STATE_WARNING = 2;
 
-    const STATE_ERROR = 3;
+    const int STATE_ERROR = 3;
 
     public string $name;
 

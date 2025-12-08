@@ -236,15 +236,13 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data instanceof Element\ElementInterface) {
-            $r = [
+            return [
                 'id' => $data->getId(),
                 'path' => $data->getRealFullPath(),
                 'subtype' => $data->getType(),
                 'type' => Element\Service::getElementType($data),
                 'published' => Element\Service::isPublished($data),
             ];
-
-            return $r;
         }
 
         return null;
@@ -264,19 +262,11 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return null;
     }
 
-    /**
-     * @param null|DataObject\Concrete $object
-     *
-     */
     public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): Asset|Document|DataObject\AbstractObject|null
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    /**
-     * @param DataObject\Concrete|null $object
-     *
-     */
     public function getDataForGrid(?Element\ElementInterface $data, ?Concrete $object = null, array $params = []): ?array
     {
         return $this->getDataForEditmode($data, $object, $params);
@@ -288,6 +278,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
      * @see Data::getVersionPreview
      *
      */
+    #[\Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Element\ElementInterface) {
@@ -297,6 +288,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return '';
     }
 
+    #[\Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && $data === null) {
@@ -321,6 +313,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         }
     }
 
+    #[\Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -331,6 +324,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return '';
     }
 
+    #[\Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -368,10 +362,8 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
             $data = $container->getObjectVar($this->getName());
         }
 
-        if (DataObject::doHideUnpublished() && ($data instanceof Element\ElementInterface)) {
-            if (!Element\Service::isPublished($data)) {
-                return null;
-            }
+        if (DataObject::doHideUnpublished() && $data instanceof Element\ElementInterface && !Element\Service::isPublished($data)) {
+            return null;
         }
 
         return $data;
@@ -424,6 +416,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         $this->allowToClearRelation = $allowToClearRelation;
     }
 
+    #[\Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -443,6 +436,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
     /**
      * @param DataObject\ClassDefinition\Data\ManyToOneRelation $mainDefinition
      */
+    #[\Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->assetUploadPath = $mainDefinition->assetUploadPath;
@@ -481,6 +475,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return null;
     }
 
+    #[\Override]
     public function isEqual(mixed $oldValue, mixed $newValue): bool
     {
         $oldValue = $oldValue ? $oldValue->getType() . $oldValue->getId() : null;
@@ -489,21 +484,25 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return $oldValue === $newValue;
     }
 
+    #[\Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
+    #[\Override]
     public function getParameterTypeDeclaration(): ?string
     {
         return '?\\' . Element\AbstractElement::class;
     }
 
+    #[\Override]
     public function getReturnTypeDeclaration(): ?string
     {
         return '?\\' . Element\AbstractElement::class;
     }
 
+    #[\Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof Element\ElementInterface) {
@@ -523,9 +522,10 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
             return $listing;
         }
 
-        throw new InvalidArgumentException('Filtering '.__CLASS__.' does only support "=" operator');
+        throw new InvalidArgumentException('Filtering '.self::class.' does only support "=" operator');
     }
 
+    #[\Override]
     public function getPhpdocInputType(): ?string
     {
         if ($phpdocType = $this->getPhpdocType()) {
@@ -535,6 +535,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return null;
     }
 
+    #[\Override]
     public function getPhpdocReturnType(): ?string
     {
         if ($phpdocType = $this->getPhpdocType()) {
@@ -549,6 +550,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
      *
      *
      */
+    #[\Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $name = $params['name'] . '__id';

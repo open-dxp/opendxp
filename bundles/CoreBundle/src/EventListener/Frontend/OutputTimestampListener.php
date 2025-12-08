@@ -48,10 +48,8 @@ class OutputTimestampListener implements EventSubscriberInterface
             return;
         }
 
-        if ($overrideTimestamp = (int)$event->getRequest()->query->get(self::TIMESTAMP_OVERRIDE_PARAM_NAME)) {
-            if (OpenDxp::inDebugMode() || Authentication::authenticateSession($event->getRequest())) {
-                $this->outputTimestampResolver->setOutputTimestamp($overrideTimestamp);
-            }
+        if (($overrideTimestamp = (int)$event->getRequest()->query->get(self::TIMESTAMP_OVERRIDE_PARAM_NAME)) && (OpenDxp::inDebugMode() || Authentication::authenticateSession($event->getRequest()))) {
+            $this->outputTimestampResolver->setOutputTimestamp($overrideTimestamp);
         }
     }
 }

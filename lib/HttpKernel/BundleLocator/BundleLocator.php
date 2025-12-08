@@ -23,13 +23,10 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class BundleLocator implements BundleLocatorInterface
 {
-    private KernelInterface $kernel;
-
     private array $bundleCache = [];
 
-    public function __construct(KernelInterface $kernel)
+    public function __construct(private readonly KernelInterface $kernel)
     {
-        $this->kernel = $kernel;
     }
 
     public function getBundle(object|string $class): BundleInterface
@@ -48,7 +45,7 @@ class BundleLocator implements BundleLocatorInterface
     private function getBundleForClass(object|string $class): BundleInterface
     {
         if (is_object($class)) {
-            $class = get_class($class);
+            $class = $class::class;
         }
 
         if (!isset($this->bundleCache[$class])) {

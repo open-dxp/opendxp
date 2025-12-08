@@ -44,7 +44,7 @@ class ResponseStack
 
     public function hasResponses(): bool
     {
-        return !empty($this->responses);
+        return $this->responses !== [];
     }
 
     /**
@@ -57,7 +57,7 @@ class ResponseStack
 
     public function pop(): Response
     {
-        if (empty($this->responses)) {
+        if ($this->responses === []) {
             throw new UnderflowException('There are no responses on the stack.');
         }
 
@@ -66,7 +66,7 @@ class ResponseStack
 
     public function getLastResponse(): Response
     {
-        if (empty($this->responses)) {
+        if ($this->responses === []) {
             throw new UnderflowException('There are no responses on the stack.');
         }
 

@@ -92,8 +92,7 @@ class ObjectBrickContainerClassBuilder implements ObjectBrickContainerClassBuild
         }
 
         $cd .= "}\n";
-        $cd .= "\n";
 
-        return $cd;
+        return $cd . "\n";
     }
 }

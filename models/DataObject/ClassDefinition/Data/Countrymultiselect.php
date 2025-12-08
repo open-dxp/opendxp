@@ -51,6 +51,7 @@ class Countrymultiselect extends Model\DataObject\ClassDefinition\Data\Multisele
         return '@' . CountryOptionsProvider::class;
     }
 
+    #[\Override]
     public function getFieldType(): string
     {
         return 'countrymultiselect';

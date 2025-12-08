@@ -19,7 +19,7 @@ namespace OpenDxp\Model\DataObject\Data;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 
-class GeoCoordinates implements OwnerAwareFieldInterface
+class GeoCoordinates implements OwnerAwareFieldInterface, \Stringable
 {
     use OwnerAwareFieldTrait;
 
