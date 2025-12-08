@@ -21,7 +21,7 @@ namespace OpenDxp\Messenger;
  */
 class VideoConvertMessage
 {
-    public function __construct(protected string $processId, private ?int $assetId = null)
+    public function __construct(protected string $processId, private readonly ?int $assetId = null)
     {
     }
 

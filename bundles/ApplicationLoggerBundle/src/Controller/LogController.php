@@ -63,10 +63,7 @@ class LogController extends UserAwareController implements KernelControllerEvent
 
         $qb->orderBy('id', 'DESC');
 
-        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings(array_merge(
-            $request->request->all(),
-            $request->query->all()
-        ));
+        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
 
         if ($sortingSettings['orderKey']) {
             $qb->orderBy($db->quoteIdentifier($sortingSettings['orderKey']), $sortingSettings['order']);

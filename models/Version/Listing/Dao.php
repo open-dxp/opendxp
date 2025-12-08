@@ -67,7 +67,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     {
         $versionIds = $this->db->fetchFirstColumn('SELECT id FROM versions' . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
 
-        return array_map('intval', $versionIds);
+        return array_map(intval(...), $versionIds);
     }
 
     public function getTotalCount(): int

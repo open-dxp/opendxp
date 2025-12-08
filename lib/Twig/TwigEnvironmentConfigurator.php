@@ -25,10 +25,10 @@ use Twig\Runtime\EscaperRuntime;
 /**
  * @internal
  */
-final class TwigEnvironmentConfigurator
+final readonly class TwigEnvironmentConfigurator
 {
     public function __construct(
-        private readonly EnvironmentConfigurator $decorated,
+        private EnvironmentConfigurator $decorated,
     ) {
     }
 

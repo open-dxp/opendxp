@@ -66,7 +66,7 @@ class DocumentController extends UserAwareController
     ): JsonResponse {
         $this->checkPermission('seo_document_editor');
 
-        $allParams = array_merge($request->request->all(), $request->query->all());
+        $allParams = [...$request->request->all(), ...$request->query->all()];
 
         $filterPrepareEvent = new GenericEvent($this, [
             'requestParams' => $allParams,

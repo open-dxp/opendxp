@@ -52,7 +52,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     {
         $tagsIds = $this->db->fetchFirstColumn('SELECT id FROM tags' . $this->getCondition() . $this->getGroupBy() . $this->getOrder() . $this->getOffsetLimit(), $this->model->getConditionVariables(), $this->model->getConditionVariableTypes());
 
-        return array_map('intval', $tagsIds);
+        return array_map(intval(...), $tagsIds);
     }
 
     public function getTotalCount(): int

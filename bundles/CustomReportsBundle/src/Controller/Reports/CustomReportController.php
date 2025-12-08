@@ -436,7 +436,7 @@ class CustomReportController extends UserAwareController
     {
         $sort = null;
         $dir = null;
-        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings(array_merge($request->request->all(), $request->query->all()));
+        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
 
         if ($sortingSettings['orderKey']) {
             $sort = $sortingSettings['orderKey'];
