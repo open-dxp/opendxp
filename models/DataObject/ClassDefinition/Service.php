@@ -73,10 +73,6 @@ class Service
                     unset($layout->{$blockedVar});
                 }
             }
-
-            if (property_exists($layout, 'blockedVarsForExport') && $layout->blockedVarsForExport !== null) {
-                unset($layout->blockedVarsForExport);
-            }
         }
 
         if (method_exists($layout, 'getChildren')) {
