@@ -47,6 +47,7 @@ function gzcompressfile(string $source, ?int $level = null, ?string $target = nu
     if ($error) {
         return false;
     }
+
     return $dest;
 }
 
@@ -322,6 +323,7 @@ function recursiveDelete(string $directory, bool $empty = true): bool
             }
         }
         closedir($directoryHandle);
+
         return !($empty && !rmdir($directory));
     }
     if (is_file($directory)) {

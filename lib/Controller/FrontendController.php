@@ -22,6 +22,7 @@ use OpenDxp\Http\Request\Resolver\EditmodeResolver;
 use OpenDxp\Http\Request\Resolver\ResponseHeaderResolver;
 use OpenDxp\Model\Document;
 use OpenDxp\Templating\Renderer\EditableRenderer;
+use Override;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +37,7 @@ abstract class FrontendController extends AbstractController
     /**
      * @return string[]
      */
-    #[\Override]
+    #[Override]
     public static function getSubscribedServices(): array
     {
         $services = parent::getSubscribedServices();

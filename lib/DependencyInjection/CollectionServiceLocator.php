@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\DependencyInjection;
 
 use IteratorAggregate;
+use Override;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Traversable;
 
@@ -42,7 +43,7 @@ class CollectionServiceLocator extends ServiceLocator implements IteratorAggrega
         return array_map($this->get(...), $this->ids);
     }
 
-    #[\Override]
+    #[Override]
     public function getIterator(): Traversable
     {
         foreach ($this->ids as $id) {

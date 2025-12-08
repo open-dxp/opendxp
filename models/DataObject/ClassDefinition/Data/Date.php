@@ -19,12 +19,12 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 use Carbon\Carbon;
 use DateTimeInterface;
 use OpenDxp\Db;
-use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\UserTimezone;
+use Override;
 
 class Date extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -162,7 +162,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DateTimeInterface) {
@@ -193,7 +193,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -204,7 +204,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
@@ -225,13 +225,13 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
         return $this->useCurrentDate;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?Carbon
     {
         $thedata = $data[0]['data'];
@@ -245,7 +245,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
     /** See parent class.
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $result = [];
@@ -274,7 +274,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
      * @param array $params optional params used to change the behavior
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $timestamp = $value;
@@ -292,13 +292,14 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
             $maxTime = $timestamp + (86400 - 1);
             //specifies the top point of the range used in the condition
             $filterField = $params['name'] ?: $this->getName();
+
             return '`' . $filterField . '` BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxTime);
         }
 
         return parent::getFilterConditionExt($value, $operator, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
@@ -309,6 +310,7 @@ class Date extends Data implements ResourcePersistenceAwareInterface, QueryResou
         if ($this->getDefaultValue()) {
             $date = new \Carbon\Carbon();
             $date->setTimestamp($this->getDefaultValue());
+
             return $date;
         }
         if ($this->isUseCurrentDate()) {

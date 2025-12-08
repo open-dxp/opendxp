@@ -20,6 +20,7 @@ use Exception;
 use JsonSerializable;
 use OpenDxp;
 use OpenDxp\Model;
+use Override;
 use RuntimeException;
 use stdClass;
 
@@ -125,7 +126,7 @@ class Config extends Model\AbstractModel implements JsonSerializable
      */
     public static function getAdapter(?stdClass $configuration, ?Config $fullConfig = null): Adapter\CustomReportAdapterInterface
     {
-        if (!$configuration instanceof \stdClass) {
+        if (!$configuration instanceof stdClass) {
             $configuration = new stdClass();
         }
 
@@ -406,7 +407,7 @@ class Config extends Model\AbstractModel implements JsonSerializable
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

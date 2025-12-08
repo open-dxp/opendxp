@@ -30,6 +30,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface
 {
@@ -115,7 +116,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data && !is_array($data)) {
@@ -308,7 +309,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getUnique(): bool
     {
         return true;
@@ -317,13 +318,13 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     /**
      * @param Model\DataObject\ClassDefinition\Data\UrlSlug $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->action = $mainDefinition->action;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): string
     {
         return '';
@@ -358,13 +359,13 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $oldData === $newData;
     }
 
-    #[\Override]
+    #[Override]
     public function supportsDirtyDetection(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         if (is_array($data)) {
@@ -399,7 +400,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?Model\DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getPreviewData($data, $object, $params) ?? '';
@@ -413,7 +414,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $this->getDataForEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
@@ -422,7 +423,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     /**
      * returns sql query statement to filter according to this data types value(s)
      */
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = 'slug';
@@ -528,7 +529,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $result = [];
@@ -544,7 +545,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return implode(',', $result);
     }
 
-    #[\Override]
+    #[Override]
     public function supportsInheritance(): bool
     {
         return false;

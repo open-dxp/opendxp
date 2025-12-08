@@ -25,6 +25,7 @@ use OpenDxp\Extension\Document\Areabrick\EditableDialogBoxInterface;
 use OpenDxp\Model;
 use OpenDxp\Templating\Renderer\EditableRenderer;
 use OpenDxp\Tool\HtmlUtils;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -56,7 +57,7 @@ class Area extends Model\Document\Editable
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): array
     {
         return [
@@ -71,7 +72,7 @@ class Area extends Model\Document\Editable
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function admin(): void
     {
         $attributes = $this->getEditmodeElementAttributes();

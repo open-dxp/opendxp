@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Asset\Video\Thumbnail;
 use Exception;
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method bool isWriteable()
@@ -372,7 +373,7 @@ final class Config extends Model\AbstractModel
         $this->group = $group;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

@@ -22,6 +22,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Link\Dao getDao()
@@ -77,7 +78,7 @@ class Link extends Model\Document
      */
     protected string $href = '';
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = parent::resolveDependencies();
@@ -98,7 +99,7 @@ class Link extends Model\Document
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
@@ -330,7 +331,7 @@ class Link extends Model\Document
         return '<a href="' . $link . '" ' . implode(' ', $attribs) . '>' . htmlspecialchars($this->getProperty('navigation_name')) . '</a>';
     }
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         parent::update($params);
@@ -338,7 +339,7 @@ class Link extends Model\Document
         $this->saveScheduledTasks();
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

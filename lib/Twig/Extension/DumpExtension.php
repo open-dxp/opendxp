@@ -20,8 +20,6 @@ namespace OpenDxp\Twig\Extension;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\AbstractDumper;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
 
 /**
  * @internal

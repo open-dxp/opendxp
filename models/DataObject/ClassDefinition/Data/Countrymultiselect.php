@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\ClassDefinition\DynamicOptionsProvider\CountryOptionsProvider;
+use Override;
 
 class Countrymultiselect extends Model\DataObject\ClassDefinition\Data\Multiselect
 {
@@ -51,7 +52,7 @@ class Countrymultiselect extends Model\DataObject\ClassDefinition\Data\Multisele
         return '@' . CountryOptionsProvider::class;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'countrymultiselect';

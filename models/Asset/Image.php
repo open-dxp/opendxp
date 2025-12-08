@@ -25,6 +25,7 @@ use OpenDxp\File;
 use OpenDxp\Model;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Storage;
+use Override;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
@@ -38,7 +39,7 @@ class Image extends Model\Asset
 
     private bool $clearThumbnailsOnSave = false;
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {
@@ -306,7 +307,7 @@ EOT;
         return 0;
     }
 
-    #[\Override]
+    #[Override]
     public function setCustomSetting(string $key, mixed $value): static
     {
         // if the focal point changes we need to clean all thumbnails on save

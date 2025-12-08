@@ -28,7 +28,7 @@ class PathFormatterResolver extends ClassResolver
     public static function resolvePathFormatter(string $formatterClass): ?PathFormatterInterface
     {
         /** @var PathFormatterInterface $formatter */
-        $formatter = self::resolve($formatterClass, static fn($formatter) => $formatter instanceof PathFormatterInterface);
+        $formatter = self::resolve($formatterClass, static fn ($formatter) => $formatter instanceof PathFormatterInterface);
 
         return $formatter;
     }

@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\StaticRoutesBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use OpenDxp\Model\Tool\SettingsStore;
+use Override;
 
 /**
  * @internal
@@ -32,14 +33,14 @@ class Installer extends SettingsStoreAwareInstaller
         'routes',
     ];
 
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

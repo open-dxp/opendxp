@@ -21,6 +21,7 @@ use OpenDxp;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\ClassDefinition\Service;
 use OpenDxp\Tool;
+use Override;
 
 class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multiselect
 {
@@ -80,7 +81,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return $obj;
     }
 
-    #[\Override]
+    #[Override]
     public function jsonSerialize(): mixed
     {
         if (Service::doRemoveDynamicOptions()) {
@@ -90,7 +91,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return parent::jsonSerialize();
     }
 
-    #[\Override]
+    #[Override]
     public function resolveBlockedVars(): array
     {
         $blockedVars = parent::resolveBlockedVars();
@@ -99,7 +100,7 @@ class Languagemultiselect extends Model\DataObject\ClassDefinition\Data\Multisel
         return $blockedVars;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'languagemultiselect';

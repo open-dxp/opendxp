@@ -66,8 +66,7 @@ class Service extends Model\Element\Service
          * @internal
          */
         protected ?Model\User $_user = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -621,7 +620,7 @@ class Service extends Model\Element\Service
         return self::getOptionsForSelectField($object, $fieldname);
     }
 
-    #[\Override]
+    #[Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -722,7 +721,7 @@ class Service extends Model\Element\Service
 
         $classId = $object->getClassId();
         $list = new ClassDefinition\CustomLayout\Listing();
-        $list->setOrder(fn(ClassDefinition\CustomLayout $a, ClassDefinition\CustomLayout $b) => strcmp($a->getName(), $b->getName()));
+        $list->setOrder(fn (ClassDefinition\CustomLayout $a, ClassDefinition\CustomLayout $b) => strcmp($a->getName(), $b->getName()));
 
         if (is_array($layoutPermissions) && count($layoutPermissions)) {
             $layoutIds = array_values($layoutPermissions);
@@ -756,6 +755,7 @@ class Service extends Model\Element\Service
      * Returns the fields of a datatype container (e.g. block or localized fields)
      *
      * @param ClassDefinition\Data[] $targetList
+     *
      * @return ClassDefinition\Data[]
      */
     public static function extractFieldDefinitions(ClassDefinition\Data|ClassDefinition\Layout $layout, string $targetClass, array $targetList, bool $insideDataType): array
@@ -1083,7 +1083,7 @@ class Service extends Model\Element\Service
         return $result;
     }
 
-    #[\Override]
+    #[Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -1120,6 +1120,7 @@ class Service extends Model\Element\Service
      * Enriches the layout definition before it is returned to the admin interface.
      *
      * @param array<string, mixed> $context additional contextual data
+     *
      * @internal
      */
     public static function enrichLayoutDefinition(ClassDefinition\Data|ClassDefinition\Layout|null &$layout, ?Concrete $object = null, array $context = []): void
@@ -1466,6 +1467,7 @@ class Service extends Model\Element\Service
 
     /**
      * @param string[] $fields
+     *
      * @internal
      */
     public static function getCsvData(string $requestedLanguage, LocaleServiceInterface $localeService, Listing $list, array $fields, string $header = '', bool $addTitles = true, array $context = []): array

@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class ExternalImage extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -156,7 +157,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Model\DataObject\Data\ExternalImage && $data->getUrl()) {
@@ -166,7 +167,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -177,7 +178,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         return $return ?? '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -200,7 +201,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
     /**
      * @param Model\DataObject\ClassDefinition\Data\ExternalImage $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->previewHeight = $mainDefinition->previewHeight;
@@ -212,7 +213,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
      *
      * @throws Model\Element\ValidationException
      */
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($this->getMandatory() && !$omitMandatoryCheck && $this->isEmpty($data)) {
@@ -220,7 +221,7 @@ class ExternalImage extends Data implements ResourcePersistenceAwareInterface, Q
         }
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return !($data instanceof DataObject\Data\ExternalImage && $data->getUrl());

@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\CustomResourcePersistingInterf
 use OpenDxp\Model\DataObject\ClassDefinition\Data\LazyLoadingSupportInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\QueryResourcePersistenceAwareInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\ResourcePersistenceAwareInterface;
+use Override;
 
 /**
  * @internal
@@ -54,7 +55,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
      *
      * @throws Model\Exception\NotFoundException
      */
-    #[\Override]
+    #[Override]
     public function getById(int $id): void
     {
         $data = $this->db->fetchAssociative("SELECT objects.*, tree_locks.locked as locked FROM objects
@@ -168,7 +169,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     /**
      * Save changes to database, it's an good idea to use save() instead
      */
-    #[\Override]
+    #[Override]
     public function update(?bool $isUpdate = null): void
     {
         parent::update($isUpdate);
@@ -375,7 +376,7 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     /**
      * Save object to database
      */
-    #[\Override]
+    #[Override]
     public function delete(): void
     {
         // delete fields which have their own delete algorithm

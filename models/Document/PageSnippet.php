@@ -28,6 +28,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Editable\Loader\EditableLoaderInterface;
 use OpenDxp\SystemSettingsConfig;
+use Override;
 
 /**
  * @method Model\Document\PageSnippet\Dao getDao()
@@ -124,7 +125,7 @@ abstract class PageSnippet extends Model\Document
         return self::$getInheritedValues;
     }
 
-    #[\Override]
+    #[Override]
     public function save(array $parameters = []): static
     {
         // checking the required editables renders the document, so this needs to be
@@ -137,7 +138,7 @@ abstract class PageSnippet extends Model\Document
         return parent::save($parameters);
     }
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         // update elements
@@ -220,7 +221,7 @@ abstract class PageSnippet extends Model\Document
         }
     }
 
-    #[\Override]
+    #[Override]
     protected function doDelete(): void
     {
         // Dispatch Symfony Message Bus to delete versions
@@ -234,7 +235,7 @@ abstract class PageSnippet extends Model\Document
         parent::doDelete();
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
@@ -246,7 +247,7 @@ abstract class PageSnippet extends Model\Document
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [parent::resolveDependencies()];
@@ -496,7 +497,7 @@ abstract class PageSnippet extends Model\Document
     /**
      * @return Model\Version[]
      */
-    #[\Override]
+    #[Override]
     public function getVersions(): array
     {
         if ($this->versions === null) {
@@ -525,7 +526,7 @@ abstract class PageSnippet extends Model\Document
         return $this->getFullPath();
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];
@@ -670,7 +671,7 @@ abstract class PageSnippet extends Model\Document
         $this->staticGeneratorLifetime = $staticGeneratorLifetime;
     }
 
-    #[\Override]
+    #[Override]
     public function __wakeup(): void
     {
         $propertyMappings = [

@@ -48,7 +48,7 @@ class Configuration implements ConfigurationInterface
                             ->prototype('array')
                                 ->beforeNormalization()
                                     ->ifString()
-                                    ->then(fn($v) => [
+                                    ->then(fn ($v) => [
                                         'enabled' => true,
                                         'generator_id' => $v,
                                         'priority' => 0,

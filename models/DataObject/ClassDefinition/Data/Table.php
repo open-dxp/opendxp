@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class Table extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -329,7 +330,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         $versionPreview = $this->getDiffVersionPreview($data, $object, $params);
@@ -340,7 +341,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -352,7 +353,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -363,7 +364,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -384,7 +385,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -434,13 +435,14 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
 
             return $value;
         }
+
         return '';
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\Table $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->cols = $mainDefinition->cols;
@@ -475,7 +477,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return 'array';
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -517,7 +519,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         $key = $this->getName();
@@ -557,7 +559,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         $key = $this->getName();
@@ -590,7 +592,7 @@ class Table extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();

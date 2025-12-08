@@ -21,6 +21,7 @@ use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 /**
  * @method bool isWriteable()
@@ -770,7 +771,7 @@ final class Config extends Model\AbstractModel
         $this->downloadable = $downloadable;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

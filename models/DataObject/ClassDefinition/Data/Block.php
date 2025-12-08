@@ -32,6 +32,7 @@ use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class Block extends Data implements CustomResourcePersistingInterface, ResourcePersistenceAwareInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, VarExporterInterface, NormalizerInterface, DataContainerAwareInterface, PreGetDataInterface, PreSetDataInterface, FieldDefinitionEnrichmentModelInterface
 {
@@ -166,7 +167,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
 
             //Fix old serialized data protected properties with \0*\0 prefix
             if (str_contains($data, ':" * ')) {
-                $data = preg_replace_callback('!s:(\d+):" \* (.*?)";!', fn($match) => ($match[1] == strlen($match[2])) ? $match[0] : 's:' . strlen($match[2]) .   ':"' . $match[2] . '";', $data);
+                $data = preg_replace_callback('!s:(\d+):" \* (.*?)";!', fn ($match) => ($match[1] == strlen($match[2])) ? $match[0] : 's:' . strlen($match[2]) .   ':"' . $match[2] . '";', $data);
             }
 
             $unserializedData = Serialize::unserialize($data);
@@ -409,19 +410,19 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     /**
      * @see Data::getVersionPreview
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getDiffVersionPreview($data, $object, $params)['html'];
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -471,7 +472,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
     /**
      * @param Model\DataObject\ClassDefinition\Data\Block $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->disallowAddRemove = $mainDefinition->disallowAddRemove;
@@ -480,7 +481,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $this->collapsed = $mainDefinition->collapsed;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return is_null($data) || count($data) === 0;
@@ -590,7 +591,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         return array_keys($vars);
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -617,7 +618,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($this->getLazyLoading()) {
@@ -849,7 +850,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $this->disallowReorder = $disallowReorder;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && is_array($data)) {
@@ -869,6 +870,7 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
                             if ($fd->getMandatory()) {
                                 throw new Element\ValidationException('Block element empty [ ' . $fd->getName() . ' ]');
                             }
+
                             continue;
                         }
 

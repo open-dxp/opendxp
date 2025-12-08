@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class ImageGallery extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, IdRewriterInterface
 {
@@ -253,7 +254,7 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\ImageGallery) {
@@ -263,7 +264,7 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -274,13 +275,13 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Data\ImageGallery) {
@@ -293,7 +294,7 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
         return array_unique($tags);
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -331,7 +332,7 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
      *
      * @throws Element\ValidationException
      */
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (
@@ -344,7 +345,7 @@ class ImageGallery extends Data implements ResourcePersistenceAwareInterface, Qu
         parent::checkValidity($data, $omitMandatoryCheck);
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         if (empty($data)) {

@@ -15,6 +15,8 @@
 
 namespace OpenDxp\Model\User;
 
+use Override;
+
 /**
  * @internal
  *
@@ -25,7 +27,7 @@ class Dao extends UserRole\Dao
     /**
      * Deletes object from database
      */
-    #[\Override]
+    #[Override]
     public function delete(): void
     {
         parent::delete();

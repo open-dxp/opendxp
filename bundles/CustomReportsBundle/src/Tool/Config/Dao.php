@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CustomReportsBundle\Tool\Config;
 use Exception;
 use OpenDxp;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @internal
@@ -28,7 +29,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
     private const string CONFIG_KEY = 'custom_reports';
 
-    #[\Override]
+    #[Override]
     public function configure(): void
     {
         $config = OpenDxp::getContainer()->getParameter('opendxp_custom_reports.config_location');
@@ -104,7 +105,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getName());
     }
 
-    #[\Override]
+    #[Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

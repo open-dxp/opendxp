@@ -22,10 +22,11 @@ use OpenDxp\Bundle\AdminBundle\Service\GridData;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element;
+use Override;
 
 class DataObjects extends DataProvider\DataObjects
 {
-    #[\Override]
+    #[Override]
     public function searchData(int $id, string $firstname, string $lastname, string $email, int $start, int $limit, ?string $sort = null): array
     {
         if (empty($id) && empty($firstname) && empty($lastname) && empty($email)) {

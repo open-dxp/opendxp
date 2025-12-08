@@ -86,6 +86,7 @@ class Listing extends AbstractModel implements CallableFilterListingInterface, C
                 if (empty($item->getTargetSubtype())) {
                     return true;
                 }
+
                 return in_array($item->getTargetSubtype(), $subTypes);
             });
         }

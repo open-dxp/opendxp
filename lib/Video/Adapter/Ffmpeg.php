@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\Logger;
 use OpenDxp\Tool\Console;
 use OpenDxp\Video\Adapter;
+use Override;
 use Symfony\Component\Process\Process;
 
 /**
@@ -371,7 +372,7 @@ class Ffmpeg extends Adapter
         return $this->arguments;
     }
 
-    #[\Override]
+    #[Override]
     public function setVideoBitrate(int $videoBitrate): static
     {
         $videoBitrate = (int) ceil($videoBitrate / 2) * 2;
@@ -385,7 +386,7 @@ class Ffmpeg extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setAudioBitrate(int $audioBitrate): static
     {
         $audioBitrate = (int) ceil($audioBitrate / 2) * 2;

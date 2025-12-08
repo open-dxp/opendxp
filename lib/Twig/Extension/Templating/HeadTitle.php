@@ -42,6 +42,7 @@ namespace OpenDxp\Twig\Extension\Templating;
 use OpenDxp\Twig\Extension\Templating\Placeholder\AbstractExtension;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Container;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Exception;
+use Override;
 use Twig\Extension\RuntimeExtensionInterface;
 
 class HeadTitle extends AbstractExtension implements RuntimeExtensionInterface
@@ -118,7 +119,7 @@ class HeadTitle extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function toString(?string $indent = null, ?string $locale = null): string
     {
         $indent = (null !== $indent)

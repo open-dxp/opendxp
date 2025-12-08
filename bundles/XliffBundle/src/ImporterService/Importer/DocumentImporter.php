@@ -19,10 +19,11 @@ namespace OpenDxp\Bundle\XliffBundle\ImporterService\Importer;
 use OpenDxp\Bundle\XliffBundle\AttributeSet\Attribute;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use Override;
 
 class DocumentImporter extends AbstractElementImporter
 {
-    #[\Override]
+    #[Override]
     protected function importAttribute(Element\ElementInterface $element, string $targetLanguage, Attribute $attribute): void
     {
         if ($targetLanguage != $element->getProperty('language')) {

@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension;
 
 use OpenDxp\Model\DataObject;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 use Twig\TwigTest;
@@ -27,28 +28,28 @@ use Twig\TwigTest;
  */
 class DataObjectHelperExtensions extends AbstractExtension
 {
-    #[\Override]
+    #[Override]
     public function getTests(): array
     {
         return [
-            new TwigTest('opendxp_data_object', static fn($object) => $object instanceof DataObject\Concrete),
-            new TwigTest('opendxp_data_object_folder', static fn($object) => $object instanceof DataObject\Folder),
+            new TwigTest('opendxp_data_object', static fn ($object) => $object instanceof DataObject\Concrete),
+            new TwigTest('opendxp_data_object_folder', static fn ($object) => $object instanceof DataObject\Folder),
             new TwigTest('opendxp_data_object_class', static function ($object, $className) {
                 $className = ucfirst($className);
                 $className = 'OpenDxp\\Model\\DataObject\\' . $className;
 
                 return class_exists($className) && $object instanceof $className;
             }),
-            new TwigTest('opendxp_data_object_gallery', static fn($object) => $object instanceof DataObject\Data\ImageGallery),
-            new TwigTest('opendxp_data_object_hotspot_image', static fn($object) => $object instanceof DataObject\Data\Hotspotimage),
+            new TwigTest('opendxp_data_object_gallery', static fn ($object) => $object instanceof DataObject\Data\ImageGallery),
+            new TwigTest('opendxp_data_object_hotspot_image', static fn ($object) => $object instanceof DataObject\Data\Hotspotimage),
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('opendxp_data_object_select_options', static fn($object, $field) => DataObject\Service::getOptionsForSelectField($object, $field)),
+            new TwigFunction('opendxp_data_object_select_options', static fn ($object, $field) => DataObject\Service::getOptionsForSelectField($object, $field)),
         ];
     }
 }

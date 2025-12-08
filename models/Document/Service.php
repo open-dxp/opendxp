@@ -32,6 +32,7 @@ use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Serialize;
+use Override;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -60,8 +61,7 @@ class Service extends Model\Element\Service
          * @internal
          */
         protected ?Model\User $_user = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -296,7 +296,7 @@ class Service extends Model\Element\Service
         return $doc;
     }
 
-    #[\Override]
+    #[Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -418,6 +418,7 @@ class Service extends Model\Element\Service
                     if (!$document = Document::getByPath($site->getRootDocument() . $urlParts['path'])) {
                         continue;
                     }
+
                     break;
                 }
             }
@@ -426,7 +427,7 @@ class Service extends Model\Element\Service
         return $document;
     }
 
-    #[\Override]
+    #[Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -504,6 +505,7 @@ class Service extends Model\Element\Service
                     $sitePrettyDocId = $this->getDao()->getDocumentIdByPrettyUrlInSite($site, $originalPath);
                     if ($sitePrettyDocId && $sitePrettyDoc = Document::getById($sitePrettyDocId)) {
                         $document = $this->nearestPathCache[$cacheKey] = $sitePrettyDoc;
+
                         break;
                     }
                 }

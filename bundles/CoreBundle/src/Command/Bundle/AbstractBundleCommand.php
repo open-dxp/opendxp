@@ -77,6 +77,7 @@ abstract class AbstractBundleCommand extends AbstractCommand
             return 0;
         }
         $this->io->error($message);
+
         return 1;
     }
 

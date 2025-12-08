@@ -24,6 +24,7 @@ use OpenDxp\Twig\Extension\Templating\HeadStyle;
 use OpenDxp\Twig\Extension\Templating\HeadTitle;
 use OpenDxp\Twig\Extension\Templating\InlineScript;
 use OpenDxp\Twig\Extension\Templating\Placeholder;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -57,7 +58,7 @@ class HeaderExtension extends AbstractExtension
         $this->placeholder = $placeholder;
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         $options = [

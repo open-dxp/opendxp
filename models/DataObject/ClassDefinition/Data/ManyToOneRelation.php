@@ -28,6 +28,7 @@ use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class ManyToOneRelation extends AbstractRelations implements QueryResourcePersistenceAwareInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface
 {
@@ -278,7 +279,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Element\ElementInterface) {
@@ -288,7 +289,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && $data === null) {
@@ -313,7 +314,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -324,7 +325,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -416,7 +417,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         $this->allowToClearRelation = $allowToClearRelation;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -436,7 +437,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
     /**
      * @param DataObject\ClassDefinition\Data\ManyToOneRelation $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->assetUploadPath = $mainDefinition->assetUploadPath;
@@ -475,7 +476,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function isEqual(mixed $oldValue, mixed $newValue): bool
     {
         $oldValue = $oldValue ? $oldValue->getType() . $oldValue->getId() : null;
@@ -484,25 +485,25 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return $oldValue === $newValue;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function getParameterTypeDeclaration(): ?string
     {
         return '?\\' . Element\AbstractElement::class;
     }
 
-    #[\Override]
+    #[Override]
     public function getReturnTypeDeclaration(): ?string
     {
         return '?\\' . Element\AbstractElement::class;
     }
 
-    #[\Override]
+    #[Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof Element\ElementInterface) {
@@ -525,7 +526,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         throw new InvalidArgumentException('Filtering '.self::class.' does only support "=" operator');
     }
 
-    #[\Override]
+    #[Override]
     public function getPhpdocInputType(): ?string
     {
         if ($phpdocType = $this->getPhpdocType()) {
@@ -535,7 +536,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getPhpdocReturnType(): ?string
     {
         if ($phpdocType = $this->getPhpdocType()) {
@@ -550,7 +551,7 @@ class ManyToOneRelation extends AbstractRelations implements QueryResourcePersis
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $name = $params['name'] . '__id';

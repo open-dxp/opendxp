@@ -100,7 +100,7 @@ abstract class OpenDxpLocationAwareConfigDao implements DaoInterface
     {
         $dao = $this;
         $this->invalidateCache($id);
-        $this->locationAwareConfigRepository->saveConfig($id, $data, fn($id, $data) => $dao->prepareDataStructureForYaml($id, $data));
+        $this->locationAwareConfigRepository->saveConfig($id, $data, fn ($id, $data) => $dao->prepareDataStructureForYaml($id, $data));
     }
 
     /**

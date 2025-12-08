@@ -24,6 +24,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\QuantityValue\UnitConversionService;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 abstract class AbstractQuantityValue extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -88,7 +89,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         $this->defaultUnit = $defaultUnit;
     }
 
-    #[\Override]
+    #[Override]
     public function getUnique(): bool
     {
         return $this->unique;
@@ -143,7 +144,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {
@@ -161,7 +162,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -225,7 +226,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return $obj;
     }
 
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         /** @var UnitConversionService $converter */
@@ -301,7 +302,7 @@ abstract class AbstractQuantityValue extends Data implements ResourcePersistence
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         if ($data instanceof Model\DataObject\Data\AbstractQuantityValue) {

@@ -17,8 +17,9 @@ declare(strict_types=1);
 namespace OpenDxp\Tool;
 
 use Exception;
+use Stringable;
 
-class DeviceDetector implements \Stringable
+class DeviceDetector implements Stringable
 {
     protected array $validDeviceTypes = ['phone', 'tablet', 'desktop'];
 

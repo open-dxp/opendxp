@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 use stdClass;
 
 class StructuredTable extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
@@ -260,7 +261,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\StructuredTable) {
@@ -270,7 +271,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory()) {
@@ -295,7 +296,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $value = $this->getDataFromObjectParam($object, $params);
@@ -369,7 +370,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
         return $mapper[$type];
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         if ($data instanceof DataObject\Data\StructuredTable) {
@@ -379,7 +380,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -388,7 +389,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
     /** See parent class.
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $defaultData = parent::getDiffDataForEditMode($data, $object, $params);
@@ -404,7 +405,7 @@ class StructuredTable extends Data implements ResourcePersistenceAwareInterface,
     /**
      * @param DataObject\ClassDefinition\Data\StructuredTable $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->labelWidth = $mainDefinition->labelWidth;

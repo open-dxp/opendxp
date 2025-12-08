@@ -46,6 +46,7 @@ use OpenDxp\Twig\Extension\Templating\Placeholder\Container;
 use OpenDxp\Twig\Extension\Templating\Placeholder\ContainerService;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Exception;
 use OpenDxp\Twig\Extension\Templating\Traits\WebLinksTrait;
+use Override;
 use stdClass;
 use Symfony\Bridge\Twig\Extension\WebLinkExtension;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -151,7 +152,7 @@ class HeadLink extends CacheBusterAware
      * - prependAlternate($href, $type, $title, $extras)
      * - setAlternate($href, $type, $title, $extras)
      */
-    #[\Override]
+    #[Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(?P<type>Stylesheet|Alternate)$/', $method, $matches)) {
@@ -204,6 +205,7 @@ class HeadLink extends CacheBusterAware
         $vars = get_object_vars($value);
         $keys = array_keys($vars);
         $intersection = array_intersect($this->_itemKeys, $keys);
+
         return $intersection !== [];
     }
 
@@ -228,7 +230,7 @@ class HeadLink extends CacheBusterAware
      * @param  string|int $offset
      *
      */
-    #[\Override]
+    #[Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -311,7 +313,7 @@ class HeadLink extends CacheBusterAware
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function toString(int|string|null $indent = null): string
     {
         $this->prepareEntries();

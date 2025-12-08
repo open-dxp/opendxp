@@ -20,13 +20,14 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\DependencyInjection\OpenDxpGener
 use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 use OpenDxp\Extension\Bundle\Installer\InstallerInterface;
 use OpenDxp\Extension\Bundle\Traits\PackageVersionTrait;
+use Override;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 class OpenDxpGenericExecutionEngineBundle extends AbstractOpenDxpBundle
 {
     use PackageVersionTrait;
 
-    #[\Override]
+    #[Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -36,7 +37,7 @@ class OpenDxpGenericExecutionEngineBundle extends AbstractOpenDxpBundle
         return $this->extension;
     }
 
-    #[\Override]
+    #[Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

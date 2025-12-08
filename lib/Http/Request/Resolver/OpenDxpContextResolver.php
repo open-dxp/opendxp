@@ -89,6 +89,7 @@ class OpenDxpContextResolver extends AbstractRequestResolver
             // no context available to match -> false
             return false;
         }
+
         return in_array($resolvedContext, $context, true);
     }
 }

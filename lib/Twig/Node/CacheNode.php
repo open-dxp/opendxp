@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Twig\Node;
 
+use Override;
 use Twig\Compiler;
 use Twig\Node\Node;
 
@@ -36,7 +37,7 @@ final class CacheNode extends Node
         parent::__construct(['body' => $body], [], $lineno, $tag);
     }
 
-    #[\Override]
+    #[Override]
     public function compile(Compiler $compiler): void
     {
         $splitChars = uniqid('', true);

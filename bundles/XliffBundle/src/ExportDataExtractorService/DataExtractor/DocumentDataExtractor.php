@@ -23,6 +23,7 @@ use OpenDxp\Bundle\XliffBundle\TranslationItemCollection\TranslationItem;
 use OpenDxp\Document\Editable\EditableUsageResolver;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Property;
+use Override;
 
 class DocumentDataExtractor extends AbstractElementDataExtractor
 {
@@ -37,7 +38,7 @@ class DocumentDataExtractor extends AbstractElementDataExtractor
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function extract(TranslationItem $translationItem, string $sourceLanguage, array $targetLanguages): AttributeSet
     {
         $document = $translationItem->getElement();
@@ -144,7 +145,7 @@ class DocumentDataExtractor extends AbstractElementDataExtractor
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     protected function doExportProperty(Property $property): bool
     {
         return

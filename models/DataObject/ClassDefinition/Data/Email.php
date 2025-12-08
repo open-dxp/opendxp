@@ -19,10 +19,11 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 use Egulias\EmailValidator\EmailValidator;
 use Egulias\EmailValidator\Validation\RFCValidation;
 use OpenDxp\Model;
+use Override;
 
 class Email extends Model\DataObject\ClassDefinition\Data\Input
 {
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && is_string($data) && $data !== '') {
@@ -35,7 +36,7 @@ class Email extends Model\DataObject\ClassDefinition\Data\Input
         parent::checkValidity($data, $omitMandatoryCheck);
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'email';

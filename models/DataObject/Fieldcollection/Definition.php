@@ -168,6 +168,7 @@ class Definition extends Model\AbstractModel
                     continue;
                 }
                 $this->getDao()->createUpdateTable($class);
+
                 break;
             }
         }
@@ -249,6 +250,7 @@ class Definition extends Model\AbstractModel
                     continue;
                 }
                 $this->getDao()->delete($class);
+
                 break;
             }
         }

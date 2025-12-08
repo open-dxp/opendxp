@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Editable;
 
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -41,7 +42,7 @@ class Checkbox extends Model\Document\Editable
         return $this->value;
     }
 
-    #[\Override]
+    #[Override]
     public function getValue(): mixed
     {
         return $this->getData();

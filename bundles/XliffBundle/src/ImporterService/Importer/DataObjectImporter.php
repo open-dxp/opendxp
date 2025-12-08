@@ -20,10 +20,11 @@ use OpenDxp\Bundle\XliffBundle\AttributeSet\Attribute;
 use OpenDxp\Bundle\XliffBundle\ExportDataExtractorService\DataExtractor\DataObjectDataExtractor;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element;
+use Override;
 
 class DataObjectImporter extends AbstractElementImporter
 {
-    #[\Override]
+    #[Override]
     protected function importAttribute(Element\ElementInterface $element, string $targetLanguage, Attribute $attribute): void
     {
         parent::importAttribute($element, $targetLanguage, $attribute);
@@ -164,7 +165,7 @@ class DataObjectImporter extends AbstractElementImporter
         }
     }
 
-    #[\Override]
+    #[Override]
     protected function saveElement(Element\ElementInterface $element): void
     {
         if ($element instanceof DataObject\Concrete) {

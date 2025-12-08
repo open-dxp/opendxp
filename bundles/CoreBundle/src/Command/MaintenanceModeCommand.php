@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 use Exception;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Tool\MaintenanceModeHelperInterface;
+use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -46,7 +47,7 @@ class MaintenanceModeCommand extends AbstractCommand
         ;
     }
 
-    #[\Override]
+    #[Override]
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $input->setOption('ignore-maintenance-mode', true);

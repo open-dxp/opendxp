@@ -271,6 +271,7 @@ final class RedirectHandler
                 // if override is true the priority has to be 99 which means that overriding is ok
                 return $redirect->getPriority() === 99;
             }
+
             return $redirect->getPriority() !== 99;
         });
     }

@@ -21,6 +21,7 @@ use OpenDxp\Cache;
 use OpenDxp\Config;
 use OpenDxp\Logger;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method Dao getDao()
@@ -31,7 +32,7 @@ class Document extends Model\Asset
 
     protected string $type = 'document';
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {

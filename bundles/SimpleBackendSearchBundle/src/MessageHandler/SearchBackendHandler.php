@@ -40,7 +40,7 @@ class SearchBackendHandler implements BatchHandlerInterface
 
     private function process(array $jobs): void
     {
-        $jobs = $this->filterUnique($jobs, static fn(SearchBackendMessage $message) => $message->getType() . '-' . $message->getId());
+        $jobs = $this->filterUnique($jobs, static fn (SearchBackendMessage $message) => $message->getType() . '-' . $message->getId());
 
         /**
          * @var SearchBackendMessage $message

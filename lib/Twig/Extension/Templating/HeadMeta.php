@@ -44,6 +44,7 @@ use OpenDxp\Twig\Extension\Templating\Placeholder\Container;
 use OpenDxp\Twig\Extension\Templating\Placeholder\ContainerService;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Exception;
 use OpenDxp\Twig\Extension\Templating\Traits\TextUtilsTrait;
+use Override;
 use stdClass;
 use Twig\Extension\RuntimeExtensionInterface;
 
@@ -145,7 +146,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @return HeadMeta
      */
-    #[\Override]
+    #[Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(pre|ap)pend|offsetSet)(?P<type>Name|HttpEquiv|Property)$/', $method, $matches)) {
@@ -214,7 +215,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -231,7 +232,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function offsetUnset($index): void
     {
         if (!in_array($index, $this->getContainer()->getKeys())) {
@@ -322,7 +323,7 @@ class HeadMeta extends AbstractExtension implements RuntimeExtensionInterface
     /**
      * Render placeholder as string
      */
-    #[\Override]
+    #[Override]
     public function toString(int|string|null $indent = null): string
     {
         $indent = (null !== $indent)

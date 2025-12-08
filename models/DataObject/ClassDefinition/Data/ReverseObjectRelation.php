@@ -24,6 +24,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
+use Override;
 
 class ReverseObjectRelation extends ManyToManyObjectRelation
 {
@@ -51,7 +52,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
      */
     public bool $lazyLoading = true;
 
-    #[\Override]
+    #[Override]
     public function setClasses(array $classes): static
     {
         //dummy, classes are set from owner classId
@@ -133,7 +134,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         //TODO
@@ -151,7 +152,7 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         }
     }
 
-    #[\Override]
+    #[Override]
     public function load(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): array
     {
         if ($this->getOwnerClassId() === null) {
@@ -174,19 +175,19 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
         return $data['data'];
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function preGetData(mixed $container, array $params = []): array
     {
         $data = $this->load($container);
@@ -197,19 +198,19 @@ class ReverseObjectRelation extends ManyToManyObjectRelation
     /**
      * @return false
      */
-    #[\Override]
+    #[Override]
     public function supportsInheritance(): bool
     {
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'reverseObjectRelation';
     }
 
-    #[\Override]
+    #[Override]
     public function getClasses(): array
     {
         if ($this->getOwnerClassId()) {

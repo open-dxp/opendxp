@@ -213,6 +213,7 @@ class OpenDxp
         if (self::inDevMode()) {
             return true;
         }
+
         // magic parameter for debugging ExtJS stuff
         return array_key_exists('unminified_js', $_REQUEST) && self::inDebugMode();
     }

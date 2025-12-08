@@ -37,7 +37,7 @@ abstract class AbstractHasherFactory implements PasswordHasherFactoryInterface
     public function __construct(/**
      * Hasher class name to build
      */
-    protected string $className, mixed $arguments = null)
+        protected string $className, mixed $arguments = null)
     {
         if ($arguments) {
             if (!is_array($arguments)) {
@@ -60,7 +60,7 @@ abstract class AbstractHasherFactory implements PasswordHasherFactoryInterface
 
     protected function getReflector(): ReflectionClass
     {
-        if (!$this->reflector instanceof \ReflectionClass) {
+        if (!$this->reflector instanceof ReflectionClass) {
             $this->reflector = new ReflectionClass($this->className);
         }
 

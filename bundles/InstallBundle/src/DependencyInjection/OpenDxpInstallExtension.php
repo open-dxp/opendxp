@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\InstallBundle\DependencyInjection;
 
 use OpenDxp\Bundle\InstallBundle\Installer;
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -28,7 +29,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
  */
 final class OpenDxpInstallExtension extends ConfigurableExtension
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_install';

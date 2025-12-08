@@ -27,7 +27,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Element;
-use OpenDxp\Model\Element\ElementInterface;
+use Override;
 
 abstract class AbstractRelations extends Data implements
     CustomResourcePersistingInterface,
@@ -389,13 +389,13 @@ abstract class AbstractRelations extends Data implements
         $this->pathFormatterClass = $pathFormatterClass;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function appendData(?array $existingData, array $additionalData): ?array
     {
         $newData = [];
@@ -421,7 +421,7 @@ abstract class AbstractRelations extends Data implements
         return $newData;
     }
 
-    #[\Override]
+    #[Override]
     public function removeData(?array $existingData, array $removeData): array
     {
         $newData = [];
@@ -494,7 +494,7 @@ abstract class AbstractRelations extends Data implements
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function supportsDirtyDetection(): bool
     {
         return true;
@@ -568,8 +568,7 @@ abstract class AbstractRelations extends Data implements
 
                 if (!isset($relationItems[$elementHash])) {
                     $relationItems[$elementHash] = $item;
-                }
-                else {
+                } else {
                     $message = 'Passing relations multiple times not allowed anymore: ' . $elementHash
                         . ' multiple times in field ' . $fieldName;
 

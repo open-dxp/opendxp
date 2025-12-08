@@ -18,13 +18,14 @@ namespace OpenDxp\Bundle\UuidBundle;
 use OpenDxp\Bundle\UuidBundle\DependencyInjection\OpenDxpUuidExtension;
 use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 use OpenDxp\Extension\Bundle\Traits\PackageVersionTrait;
+use Override;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 class OpenDxpUuidBundle extends AbstractOpenDxpBundle
 {
     use PackageVersionTrait;
 
-    #[\Override]
+    #[Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -34,7 +35,7 @@ class OpenDxpUuidBundle extends AbstractOpenDxpBundle
         return $this->extension;
     }
 
-    #[\Override]
+    #[Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

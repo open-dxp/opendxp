@@ -85,7 +85,7 @@ class SystemSettingsConfig
         $data = $this->prepareSystemConfig($values);
 
         foreach ($data as $key => $value) {
-            $repository->saveConfig($key, $value, fn($key, $data) => ['opendxp' => $data]);
+            $repository->saveConfig($key, $value, fn ($key, $data) => ['opendxp' => $data]);
         }
     }
 
@@ -98,7 +98,7 @@ class SystemSettingsConfig
         $repository = self::getRepository();
 
         unset($values['writeable']);
-        $repository->saveConfig(self::CONFIG_ID, $values, fn($key, $data) => ['opendxp' => $data]);
+        $repository->saveConfig(self::CONFIG_ID, $values, fn ($key, $data) => ['opendxp' => $data]);
 
     }
 

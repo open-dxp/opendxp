@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Document\Editable;
 use Carbon\Carbon;
 use DateTimeInterface;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -72,7 +73,7 @@ class Date extends Model\Document\Editable implements EditmodeDataInterface
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): mixed
     {
         if ($this->date) {

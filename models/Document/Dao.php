@@ -273,7 +273,7 @@ class Dao extends Model\Element\Dao
         }
 
         // because this should be faster than mysql
-        usort($propertiesRaw, fn($left, $right) => strcmp($left['cpath'], $right['cpath']));
+        usort($propertiesRaw, fn ($left, $right) => strcmp($left['cpath'], $right['cpath']));
 
         foreach ($propertiesRaw as $propertyRaw) {
             try {
@@ -428,6 +428,7 @@ class Dao extends Model\Element\Dao
 
         $parentIds = $this->getParentIds();
         $inhertitedLocks = $this->db->fetchOne('SELECT id FROM tree_locks WHERE id IN (' . implode(',', $parentIds) . ") AND `type`='document' AND locked = 'propagate' LIMIT 1");
+
         return $inhertitedLocks > 0;
     }
 
@@ -552,6 +553,7 @@ class Dao extends Model\Element\Dao
     public function __isBasedOnLatestData(): bool
     {
         $data = $this->db->fetchAssociative('SELECT modificationDate,versionCount from documents WHERE id = ?', [$this->model->getId()]);
+
         return $data['modificationDate'] == $this->model->__getDataVersionTimestamp() && $data['versionCount'] == $this->model->getVersionCount();
     }
 }

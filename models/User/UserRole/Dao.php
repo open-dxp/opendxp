@@ -18,6 +18,7 @@ namespace OpenDxp\Model\User\UserRole;
 use Exception;
 use OpenDxp\Model;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @internal
@@ -30,7 +31,7 @@ class Dao extends Model\User\AbstractUser\Dao
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function getById(int $id): void
     {
         parent::getById($id);
@@ -44,7 +45,7 @@ class Dao extends Model\User\AbstractUser\Dao
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function getByName(string $name): void
     {
         parent::getByName($name);

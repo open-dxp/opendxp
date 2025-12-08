@@ -22,6 +22,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Exception\NotFoundException;
+use Override;
 
 class QuantityValue extends AbstractQuantityValue
 {
@@ -185,6 +186,7 @@ class QuantityValue extends AbstractQuantityValue
         if (null !== $this->getDecimalSize()) {
             return true;
         }
+
         return null !== $this->getDecimalPrecision();
     }
 
@@ -272,7 +274,7 @@ class QuantityValue extends AbstractQuantityValue
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (
@@ -395,7 +397,7 @@ class QuantityValue extends AbstractQuantityValue
         return 'quantityValue';
     }
 
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();

@@ -20,6 +20,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementDescriptor;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -118,7 +119,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): array
     {
         return [
@@ -189,7 +190,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getConfig(): array
     {
         $config = parent::getConfig();
@@ -453,10 +454,11 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
     public function isEmpty(): bool
     {
         $image = $this->getImage();
+
         return !$image instanceof Asset\Image;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(Model\Document\PageSnippet $ownerDocument, array $tags = []): array
     {
         $image = $this->getImage();
@@ -492,7 +494,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         return $getMetaDataCacheTags($this->hotspots, $tags);
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -655,7 +657,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
         }
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

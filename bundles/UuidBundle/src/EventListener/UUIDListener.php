@@ -80,6 +80,7 @@ class UUIDListener implements EventSubscriberInterface
         }
 
         $config = OpenDxp::getKernel()->getContainer()->getParameter('opendxp_uuid.instance_identifier');
+
         return !empty($config);
     }
 
@@ -91,6 +92,7 @@ class UUIDListener implements EventSubscriberInterface
         if ($event instanceof ClassDefinitionEvent) {
             return $event->getClassDefinition();
         }
+
         return null;
     }
 }

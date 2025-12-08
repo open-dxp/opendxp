@@ -85,7 +85,7 @@ class JobRun
     private int $processedElementsForStep = 0;
 
     public function __construct(#[ORM\Column(nullable: true)]
-    private ?int $ownerId = null)
+        private ?int $ownerId = null)
     {
         $this->creationDate = time();
         $this->modificationDate = time();

@@ -42,6 +42,7 @@ namespace OpenDxp\Navigation\Renderer;
 use Exception;
 use OpenDxp\Navigation\Container;
 use OpenDxp\Navigation\Page;
+use Override;
 use RecursiveIteratorIterator;
 
 class Menu extends AbstractRenderer
@@ -435,7 +436,7 @@ class Menu extends AbstractRenderer
      *
      * @return string                      HTML string for the given page
      */
-    #[\Override]
+    #[Override]
     public function htmlify(Page $page): string
     {
         $label = $page->getLabel();
@@ -1001,6 +1002,7 @@ class Menu extends AbstractRenderer
         if ($partial = $this->getTemplate()) {
             return $this->renderTemplate($container, $partial);
         }
+
         return $this->renderMenu($container);
     }
 }

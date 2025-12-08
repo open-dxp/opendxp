@@ -21,6 +21,7 @@ use OpenDxp\File;
 use OpenDxp\Helper\TemporaryFileHelperTrait;
 use OpenDxp\Model\User\Role;
 use OpenDxp\Tool;
+use Override;
 
 /**
  * @method User\Dao getDao()
@@ -275,6 +276,7 @@ final class User extends User\UserRole implements UserInterface
                     }
                 }
             }
+
             return $this->getPermission($key);
         }
         if ($type === 'class') {
@@ -287,6 +289,7 @@ final class User extends User\UserRole implements UserInterface
             if ($classes !== []) {
                 return in_array($key, $classes);
             }
+
             return true;
         }
         if ($type === 'docType') {
@@ -299,6 +302,7 @@ final class User extends User\UserRole implements UserInterface
             if ($docTypes !== []) {
                 return in_array($key, $docTypes);
             }
+
             return true;
         }
 
@@ -310,7 +314,7 @@ final class User extends User\UserRole implements UserInterface
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function getPermission(string $permissionName): bool
     {
         if ($this->isAdmin()) {

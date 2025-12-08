@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class RgbaColor extends Data implements
     ResourcePersistenceAwareInterface,
@@ -128,7 +129,7 @@ class RgbaColor extends Data implements
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         parent::checkValidity($data, $omitMandatoryCheck);
@@ -154,13 +155,13 @@ class RgbaColor extends Data implements
     /**
      * @param Model\DataObject\ClassDefinition\Data\RgbaColor $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->width = $mainDefinition->width;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return $data === null;
@@ -174,7 +175,7 @@ class RgbaColor extends Data implements
         return $this->getDataForEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?Concrete $object = null, array $params = []): string
     {
         if ($data instanceof  Model\DataObject\Data\RgbaColor) {
@@ -216,7 +217,7 @@ class RgbaColor extends Data implements
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -230,7 +231,7 @@ class RgbaColor extends Data implements
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -248,7 +249,7 @@ class RgbaColor extends Data implements
      * @param array $params optional params used to change the behavior
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();

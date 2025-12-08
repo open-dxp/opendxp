@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\GlossaryBundle\DependencyInjection;
 
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -24,7 +25,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpGlossaryExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_glossary';

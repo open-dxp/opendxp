@@ -26,6 +26,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Templating\Renderer\EditableRenderer;
 use OpenDxp\Tool\HtmlUtils;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -76,7 +77,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         return $this->indices;
     }
 
-    #[\Override]
+    #[Override]
     public function admin(): void
     {
         $this->frontend();
@@ -175,6 +176,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         if (!$manual) {
             $this->end();
         }
+
         return false;
     }
 
@@ -231,6 +233,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         if ($return) {
             return $content;
         }
+
         return null;
     }
 
@@ -282,7 +285,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getEditmodeDefinition(): array
     {
         $config = [...$this->getToolBarDefaultConfig(), ...$this->getConfig()];
@@ -292,7 +295,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         return [...$options, 'config' => $config];
     }
 
-    #[\Override]
+    #[Override]
     protected function getEditmodeElementAttributes(): array
     {
         $attributes = parent::getEditmodeElementAttributes();
@@ -341,6 +344,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         }
 
         $this->outputEditmode($html);
+
         return null;
     }
 
@@ -456,7 +460,7 @@ class Areablock extends Model\Document\Editable implements BlockInterface
         $this->blockStarted = false;
     }
 
-    #[\Override]
+    #[Override]
     public function setConfig(array $config): static
     {
         // we need to set this here otherwise custom areaDir's won't work
@@ -546,12 +550,12 @@ class Areablock extends Model\Document\Editable implements BlockInterface
 
         // sort with translated names
         if (count($result['name'])) {
-            usort($result['name'], fn($a, $b) => $a['name'] <=> $b['name']);
+            usort($result['name'], fn ($a, $b) => $a['name'] <=> $b['name']);
         }
 
         // sort by allowed brick config order
         if (count($result['index'])) {
-            usort($result['index'], fn($a, $b) => $a['sortIndex'] - $b['sortIndex']);
+            usort($result['index'], fn ($a, $b) => $a['sortIndex'] - $b['sortIndex']);
         }
 
         return [...$result['index'], ...$result['name']];

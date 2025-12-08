@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Property;
 
 use Exception;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @internal
@@ -259,7 +260,7 @@ final class Predefined extends Model\AbstractModel
         return $this->modificationDate;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

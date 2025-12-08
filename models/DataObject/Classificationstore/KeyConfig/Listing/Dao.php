@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\Classificationstore\KeyConfig\Listing;
 use Exception;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
+use Override;
 
 /**
  * @internal
@@ -62,7 +63,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
         }
     }
 
-    #[\Override]
+    #[Override]
     protected function getCondition(): string
     {
         $condition = $this->model->getIncludeDisabled() ? '(enabled is null or enabled = 0)' : 'enabled = 1';

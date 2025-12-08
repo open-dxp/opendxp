@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Notification;
 
 use OpenDxp\Model;
 use OpenDxp\Model\Listing\AbstractListing;
+use Override;
 
 /**
  * @method Listing\Dao getDao()
@@ -26,7 +27,7 @@ use OpenDxp\Model\Listing\AbstractListing;
  */
 class Listing extends AbstractListing
 {
-    #[\Override]
+    #[Override]
     public function isValidOrderKey(string $key): bool
     {
         return true;

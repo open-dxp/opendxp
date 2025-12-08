@@ -20,6 +20,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Textarea extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -148,19 +149,21 @@ class Textarea extends Data implements ResourcePersistenceAwareInterface, QueryR
 
             return $value;
         }
+
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         if ($this->isExcludeFromSearchIndex()) {
             return '';
         }
+
         return parent::getDataForSearchIndex($object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMaxLength() !== null && ($data !== null && mb_strlen($data) > $this->getMaxLength())) {
@@ -170,7 +173,7 @@ class Textarea extends Data implements ResourcePersistenceAwareInterface, QueryR
         parent::checkValidity($data, $omitMandatoryCheck);
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;

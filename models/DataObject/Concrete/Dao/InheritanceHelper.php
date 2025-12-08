@@ -276,6 +276,7 @@ class InheritanceHelper
                         continue;
                     }
                     $toBeRemoved = false;
+
                     break;
                 }
                 if ($toBeRemoved && !in_array($queryItem['id'], $objectsWithBrickIds)) {

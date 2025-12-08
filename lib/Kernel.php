@@ -30,6 +30,7 @@ use OpenDxp\Config\BundleConfigLocator;
 use OpenDxp\Config\LocationAwareConfigRepository;
 use OpenDxp\Event\SystemEvents;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
+use Override;
 use Scheb\TwoFactorBundle\SchebTwoFactorBundle;
 use Symfony\Bundle\DebugBundle\DebugBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -57,19 +58,19 @@ abstract class Kernel extends SymfonyKernel
 
     private BundleCollection $bundleCollection;
 
-    #[\Override]
+    #[Override]
     public function getProjectDir(): string
     {
         return OPENDXP_PROJECT_ROOT;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheDir(): string
     {
         return ($_SERVER['APP_CACHE_DIR'] ?? OPENDXP_SYMFONY_CACHE_DIRECTORY) . '/' . $this->environment;
     }
 
-    #[\Override]
+    #[Override]
     public function getLogDir(): string
     {
         return OPENDXP_LOG_DIRECTORY;
@@ -129,7 +130,7 @@ abstract class Kernel extends SymfonyKernel
         });
     }
 
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         if ($this->booted) {
@@ -145,7 +146,7 @@ abstract class Kernel extends SymfonyKernel
         parent::boot();
     }
 
-    #[\Override]
+    #[Override]
     public function shutdown(): void
     {
         if ($this->booted) {
@@ -156,7 +157,7 @@ abstract class Kernel extends SymfonyKernel
         parent::shutdown();
     }
 
-    #[\Override]
+    #[Override]
     protected function initializeContainer(): void
     {
         parent::initializeContainer();

@@ -511,7 +511,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
+        $customLayouts->setFilter(fn (DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {
@@ -1058,6 +1058,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
         if ($this->getPreviewGeneratorReference()) {
             return DataObject\ClassDefinition\Helper\PreviewGeneratorResolver::resolveGenerator($this->getPreviewGeneratorReference());
         }
+
         return null;
     }
 
@@ -1134,7 +1135,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
 
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
+        $customLayouts->setFilter(fn (DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {
@@ -1148,7 +1149,7 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
     {
         $customLayouts = new ClassDefinition\CustomLayout\Listing();
         $id = $this->getId();
-        $customLayouts->setFilter(fn(DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
+        $customLayouts->setFilter(fn (DataObject\ClassDefinition\CustomLayout $layout) => $layout->getClassId() === $id);
         $customLayouts = $customLayouts->load();
 
         foreach ($customLayouts as $customLayout) {

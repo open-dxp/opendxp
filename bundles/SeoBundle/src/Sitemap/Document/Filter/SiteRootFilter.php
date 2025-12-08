@@ -42,6 +42,7 @@ class SiteRootFilter implements FilterInterface
         if ($context instanceof DocumentGeneratorContext && $context->hasSite()) {
             $site = $context->getSite();
         }
+
         return !$this->isExcludedSiteRoot($element, $site);
     }
 
@@ -55,7 +56,7 @@ class SiteRootFilter implements FilterInterface
         if (null === $this->siteRoots) {
             $sites = (new Site\Listing())->load();
 
-            $this->siteRoots = array_map(fn(Site $site) => $site->getRootId(), $sites);
+            $this->siteRoots = array_map(fn (Site $site) => $site->getRootId(), $sites);
         }
 
         if (!in_array($document->getId(), $this->siteRoots, true)) {

@@ -45,6 +45,7 @@ use OpenDxp\Twig\Extension\Templating\Placeholder\CacheBusterAware;
 use OpenDxp\Twig\Extension\Templating\Placeholder\ContainerService;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Exception;
 use OpenDxp\Twig\Extension\Templating\Traits\WebLinksTrait;
+use Override;
 use stdClass;
 use Symfony\Bridge\Twig\Extension\WebLinkExtension;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -172,7 +173,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
      *
      * @throws Exception if too few arguments or invalid method
      */
-    #[\Override]
+    #[Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(?P<mode>File|Script)$/', $method, $matches)) {
@@ -308,7 +309,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
      *
      * @param  string|int $offset
      */
-    #[\Override]
+    #[Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -405,6 +406,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
             if (str_replace(' ', '', $item->attributes['conditional']) === '!IE') {
                 $html = '<!-->' . $html . '<!--';
             }
+
             return $indent . '<!--[if ' . $item->attributes['conditional'] . ']>' . $html . '<![endif]-->';
         }
 
@@ -414,7 +416,7 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
     /**
      * Retrieve string representation
      */
-    #[\Override]
+    #[Override]
     public function toString(int|string|null $indent = null): string
     {
         $this->prepareEntries();

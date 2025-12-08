@@ -19,8 +19,9 @@ namespace OpenDxp\Model\DataObject\Data;
 use Iterator;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
+use Stringable;
 
-class ImageGallery implements Iterator, OwnerAwareFieldInterface, \Stringable
+class ImageGallery implements Iterator, OwnerAwareFieldInterface, Stringable
 {
     use OwnerAwareFieldTrait;
 

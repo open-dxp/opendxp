@@ -41,8 +41,7 @@ class EditableNameEvent extends Event
          */
         private string $editableName,
         private readonly Document $document
-    )
-    {
+    ) {
     }
 
     public function getType(): string

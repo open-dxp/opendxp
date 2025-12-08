@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\InputQuantityValue as InputQuantityValueDataObject;
 use OpenDxp\Model\DataObject\QuantityValue\Unit;
+use Override;
 
 /**
  * TODO: Refactor - this class is very similar to the parent one so probably we can try to refactor parent and have better results here also
@@ -82,7 +83,7 @@ class InputQuantityValue extends AbstractQuantityValue
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($omitMandatoryCheck) {

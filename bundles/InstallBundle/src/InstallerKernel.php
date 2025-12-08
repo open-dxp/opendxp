@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\InstallBundle;
 
+use Override;
 use Symfony\Bundle\DebugBundle\DebugBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -37,25 +38,25 @@ class InstallerKernel extends Kernel
         parent::__construct($environment, $debug);
     }
 
-    #[\Override]
+    #[Override]
     public function getProjectDir(): string
     {
         return $this->projectRoot;
     }
 
-    #[\Override]
+    #[Override]
     public function getLogDir(): string
     {
         return $this->projectRoot . '/var/installer/log';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheDir(): string
     {
         return $this->projectRoot . '/var/installer/cache';
     }
 
-    #[\Override]
+    #[Override]
     public function getBuildDir(): string
     {
         return $this->projectRoot . '/var/installer/build';

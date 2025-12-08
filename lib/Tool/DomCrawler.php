@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tool;
 
+use Override;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -39,7 +40,7 @@ class DomCrawler extends Crawler
         parent::__construct($node, $uri, $baseHref);
     }
 
-    #[\Override]
+    #[Override]
     public function html(?string $default = null): string
     {
         if ($this->wrappedHtmlFragment) {

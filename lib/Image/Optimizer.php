@@ -55,7 +55,7 @@ class Optimizer implements ImageOptimizerInterface
         }
 
         // order by filesize
-        usort($optimizedImages, fn($a, $b) => $a['filesize'] <=> $b['filesize']);
+        usort($optimizedImages, fn ($a, $b) => $a['filesize'] <=> $b['filesize']);
 
         // first entry is the smallest -> use this one
         if (count($optimizedImages)) {

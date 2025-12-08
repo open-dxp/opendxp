@@ -290,6 +290,7 @@ class CoreCacheHandler implements LoggerAwareInterface
                 'Not saving {key} to cache as process is running in CLI mode (pass force to override or set handleCli to true)',
                 ['key' => $key]
             );
+
             return false;
         }
 
@@ -309,6 +310,7 @@ class CoreCacheHandler implements LoggerAwareInterface
             return $this->storeCacheData($key, $data, $tags, $lifetime, $force);
         }
         $cacheQueueItem = new CacheQueueItem($key, $data, $tags, $lifetime, $priority, $force);
+
         return $this->addToSaveQueue($cacheQueueItem);
     }
 
@@ -339,7 +341,7 @@ class CoreCacheHandler implements LoggerAwareInterface
     public function cleanupQueue(): void
     {
         // order by priority
-        uasort($this->saveQueue, fn(CacheQueueItem $a, CacheQueueItem $b) => $b->getPriority() <=> $a->getPriority());
+        uasort($this->saveQueue, fn (CacheQueueItem $a, CacheQueueItem $b) => $b->getPriority() <=> $a->getPriority());
 
         // remove overrun
         array_splice($this->saveQueue, $this->maxWriteToCacheItems);
@@ -645,7 +647,7 @@ class CoreCacheHandler implements LoggerAwareInterface
         $tags = array_unique($tags);
 
         // don't clear tags in ignore array
-        $tags = array_filter($tags, fn($tag) => !in_array($tag, $blocklist));
+        $tags = array_filter($tags, fn ($tag) => !in_array($tag, $blocklist));
 
         return $tags;
     }
@@ -709,7 +711,7 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function removeTagIgnoredOnSave(string $tag): static
     {
-        $this->tagsIgnoredOnSave = array_filter($this->tagsIgnoredOnSave, fn($t) => $t !== $tag);
+        $this->tagsIgnoredOnSave = array_filter($this->tagsIgnoredOnSave, fn ($t) => $t !== $tag);
 
         return $this;
     }
@@ -736,7 +738,7 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function removeTagIgnoredOnClear(string $tag): static
     {
-        $this->tagsIgnoredOnClear = array_filter($this->tagsIgnoredOnClear, fn($t) => $t !== $tag);
+        $this->tagsIgnoredOnClear = array_filter($this->tagsIgnoredOnClear, fn ($t) => $t !== $tag);
 
         return $this;
     }

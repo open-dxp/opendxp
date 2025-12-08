@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class BooleanSelect extends Data implements
     ResourcePersistenceAwareInterface,
@@ -164,7 +165,7 @@ class BooleanSelect extends Data implements
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data === true) {
@@ -177,7 +178,7 @@ class BooleanSelect extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -186,7 +187,7 @@ class BooleanSelect extends Data implements
     /** See parent class.
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $result = [];
@@ -215,7 +216,7 @@ class BooleanSelect extends Data implements
         return $result;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         //TODO mandatory probably doesn't make much sense
@@ -224,7 +225,7 @@ class BooleanSelect extends Data implements
         }
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return $data !== true && $data !== false;
@@ -233,7 +234,7 @@ class BooleanSelect extends Data implements
     /**
      * @param DataObject\ClassDefinition\Data\BooleanSelect $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->options = $mainDefinition->options;
@@ -351,7 +352,7 @@ class BooleanSelect extends Data implements
         return $oldValue === $newValue;
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $value = $this->getDataFromObjectParam($object, $params);

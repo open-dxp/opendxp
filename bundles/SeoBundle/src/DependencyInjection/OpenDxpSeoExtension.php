@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\SeoBundle\DependencyInjection;
 
 use OpenDxp\Bundle\SeoBundle\EventListener\SitemapGeneratorListener;
 use OpenDxp\DependencyInjection\ServiceCollection;
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -29,7 +30,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpSeoExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_seo';
@@ -61,7 +62,7 @@ final class OpenDxpSeoExtension extends ConfigurableExtension implements Prepend
             $generators = $config['generators'];
         }
 
-        uasort($generators, fn(array $a, array $b) => $b['priority'] <=> $a['priority']);
+        uasort($generators, fn (array $a, array $b) => $b['priority'] <=> $a['priority']);
 
         $mapping = [];
         foreach ($generators as $generatorName => $generatorConfig) {

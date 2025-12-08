@@ -44,7 +44,7 @@ class SanityCheckHandler implements BatchHandlerInterface
     // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
-        $jobs = $this->filterUnique($jobs, static fn(SanityCheckMessage $message) => $message->getType() . '-' . $message->getId());
+        $jobs = $this->filterUnique($jobs, static fn (SanityCheckMessage $message) => $message->getType() . '-' . $message->getId());
 
         foreach ($jobs as [$message, $ack]) {
             try {

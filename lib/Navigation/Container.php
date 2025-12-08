@@ -386,6 +386,7 @@ class Container implements RecursiveIterator, Countable
                             }
                         } elseif (in_array($value, $item)) {
                             $found[] = $page;
+
                             break;
                         }
                     } elseif ($useRegex) {
@@ -397,6 +398,7 @@ class Container implements RecursiveIterator, Countable
                         }
                     } elseif ($item == $value) {
                         $found[] = $page;
+
                         break;
                     }
                 }

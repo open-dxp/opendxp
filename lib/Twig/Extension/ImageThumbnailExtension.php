@@ -18,9 +18,6 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension;
 
 use OpenDxp\Model\Asset\Image;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
-use Twig\TwigFunction;
 
 /**
  * @internal

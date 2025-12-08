@@ -40,8 +40,9 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension\Templating\Placeholder;
 
 use ArrayObject;
+use Stringable;
 
-class Container extends ArrayObject implements \Stringable
+class Container extends ArrayObject implements Stringable
 {
     /**
      * Whether or not to override all contents of placeholder

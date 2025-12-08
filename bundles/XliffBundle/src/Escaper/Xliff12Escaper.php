@@ -87,6 +87,7 @@ class Xliff12Escaper
                 $content = html_entity_decode($el->textContent, ENT_COMPAT, 'UTF-8');
                 $el->ownerDocument->textContent = $content;
             }
+
             return $xml->text();
         }
 

@@ -27,6 +27,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -225,7 +226,7 @@ class Renderlet extends Model\Document\Editable implements IdRewriterInterface, 
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $this->load();
@@ -265,10 +266,11 @@ class Renderlet extends Model\Document\Editable implements IdRewriterInterface, 
     public function isEmpty(): bool
     {
         $this->load();
+
         return !$this->o instanceof Element\ElementInterface;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -287,7 +289,7 @@ class Renderlet extends Model\Document\Editable implements IdRewriterInterface, 
         return $sane;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

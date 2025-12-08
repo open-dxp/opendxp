@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Document\DocType;
 use Exception;
 use OpenDxp\Config;
 use OpenDxp\Model;
+use Override;
 use Symfony\Component\Uid\Uuid as Uid;
 
 /**
@@ -29,7 +30,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
     private const string CONFIG_KEY = 'document_types';
 
-    #[\Override]
+    #[Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -102,7 +103,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
-    #[\Override]
+    #[Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

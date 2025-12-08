@@ -31,8 +31,7 @@ class IgnoredSessionKeysEvent extends Event
          * existing session data.
          */
         private array $keys = []
-    )
-    {
+    ) {
     }
 
     /**

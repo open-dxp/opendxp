@@ -43,6 +43,7 @@ use ArrayAccess;
 use Countable;
 use IteratorAggregate;
 use OpenDxp\Twig\Extension\Templating\Traits\HelperCharsetTrait;
+use Stringable;
 use Traversable;
 use Twig\Extension\RuntimeExtensionInterface;
 
@@ -60,7 +61,7 @@ use Twig\Extension\RuntimeExtensionInterface;
  * @method string|int getIndent()
  * @method string getWhitespace(string|int $indent)
  */
-abstract class AbstractExtension implements IteratorAggregate, Countable, ArrayAccess, RuntimeExtensionInterface, \Stringable
+abstract class AbstractExtension implements IteratorAggregate, Countable, ArrayAccess, RuntimeExtensionInterface, Stringable
 {
     use HelperCharsetTrait;
 

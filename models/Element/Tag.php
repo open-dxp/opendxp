@@ -23,11 +23,12 @@ use OpenDxp\Event\TagEvents;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Model;
 use OpenDxp\Model\Exception\NotFoundException;
+use Stringable;
 
 /**
  * @method \OpenDxp\Model\Element\Tag\Dao getDao()
  */
-final class Tag extends Model\AbstractModel implements \Stringable
+final class Tag extends Model\AbstractModel implements Stringable
 {
     use RecursionBlockingEventDispatchHelperTrait;
 

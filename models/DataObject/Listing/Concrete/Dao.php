@@ -22,6 +22,8 @@ use OpenDxp\Localization\LocaleServiceInterface;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Tool;
+use Override;
+use Throwable;
 
 /**
  * @internal
@@ -41,7 +43,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function loadIdList(): array
     {
         try {
@@ -57,7 +59,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
-    protected function exceptionHandler(\Throwable $e): array
+    protected function exceptionHandler(Throwable $e): array
     {
         // create view if it doesn't exist already // HACK
         $pdoMySQL = preg_match('/Base table or view not found/', $e->getMessage());
@@ -108,7 +110,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function getTableName(): string
     {
         if (empty($this->tableName)) {
@@ -156,7 +158,7 @@ class Dao extends Model\DataObject\Listing\Dao
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     protected function applyJoins(DoctrineQueryBuilder $queryBuilder): static
     {
         // add fielcollection's

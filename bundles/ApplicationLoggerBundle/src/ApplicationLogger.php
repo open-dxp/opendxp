@@ -154,7 +154,7 @@ class ApplicationLogger implements LoggerInterface
             }
         }
 
-        $normalizeFile = (fn($filename) => str_replace(OPENDXP_PROJECT_ROOT . '/', '', $filename));
+        $normalizeFile = (fn ($filename) => str_replace(OPENDXP_PROJECT_ROOT . '/', '', $filename));
 
         $source = '';
         if (null !== $previousCall) {

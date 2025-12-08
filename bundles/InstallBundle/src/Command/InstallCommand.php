@@ -132,7 +132,7 @@ class InstallCommand extends Command
     {
         $options = $this->getOptions();
 
-        $envVars = array_values(array_map(fn($config) => $config['env'], $options));
+        $envVars = array_values(array_map(fn ($config) => $config['env'], $options));
 
         $description = 'Installs OpenDxp with the given parameters. Every parameter will be prompted interactively or can also be set via env vars';
 
@@ -298,6 +298,7 @@ class InstallCommand extends Command
         if ('db_credentials' === ($config['group'] ?? null) && !$this->installer->needsDbCredentials()) {
             return false;
         }
+
         return 'bundles' !== ($config['group'] ?? null);
     }
 

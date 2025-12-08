@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Node;
 
 use OpenDxp\Twig\Options\BlockOptions;
+use Override;
 use Twig\Compiler;
 use Twig\Node\Node;
 
@@ -47,7 +48,7 @@ final class ManualBlockNode extends Node
         );
     }
 
-    #[\Override]
+    #[Override]
     public function compile(Compiler $compiler): void
     {
 

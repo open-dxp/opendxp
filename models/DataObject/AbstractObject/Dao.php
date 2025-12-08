@@ -232,7 +232,7 @@ class Dao extends Model\Element\Dao
         );
 
         // because this should be faster than mysql
-        usort($propertiesRaw, fn($left, $right) => strcmp((string)$left['cpath'], (string)$right['cpath']));
+        usort($propertiesRaw, fn ($left, $right) => strcmp((string)$left['cpath'], (string)$right['cpath']));
 
         foreach ($propertiesRaw as $propertyRaw) {
             try {
@@ -430,6 +430,7 @@ class Dao extends Model\Element\Dao
 
         $parentIds = $this->getParentIds();
         $inhertitedLocks = $this->db->fetchOne('SELECT id FROM tree_locks WHERE id IN (' . implode(',', $parentIds) . ") AND `type`='object' AND locked = 'propagate' LIMIT 1");
+
         return $inhertitedLocks > 0;
     }
 

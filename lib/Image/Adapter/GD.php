@@ -18,6 +18,7 @@ namespace OpenDxp\Image\Adapter;
 
 use GdImage;
 use OpenDxp\Image\Adapter;
+use Override;
 
 class GD extends Adapter
 {
@@ -59,6 +60,7 @@ class GD extends Adapter
         if ($this->hasAlphaChannel()) {
             return 'png';
         }
+
         return 'pjpeg';
     }
 
@@ -143,7 +145,7 @@ class GD extends Adapter
         return $newImg;
     }
 
-    #[\Override]
+    #[Override]
     public function resize(int $width, int $height): static
     {
         $this->preModify();
@@ -160,7 +162,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function crop(int $x, int $y, int $width, int $height): static
     {
         $this->preModify();
@@ -183,7 +185,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function frame(int $width, int $height, bool $forceResize = false): static
     {
         $this->preModify();
@@ -207,7 +209,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setBackgroundColor(string $color): static
     {
         $this->preModify();
@@ -230,7 +232,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setBackgroundImage(string $image, ?string $mode = null): static
     {
         $this->preModify();
@@ -265,7 +267,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function grayscale(): static
     {
         $this->preModify();
@@ -277,7 +279,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function sepia(): static
     {
         $this->preModify();
@@ -290,7 +292,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function addOverlay(mixed $image, int $x = 0, int $y = 0, int $alpha = 100, string $composite = 'COMPOSITE_DEFAULT', string $origin = 'top-left'): static
     {
         $this->preModify();
@@ -323,7 +325,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function mirror(string $mode): static
     {
         $this->preModify();
@@ -339,7 +341,7 @@ class GD extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function rotate(int $angle): static
     {
         $this->preModify();

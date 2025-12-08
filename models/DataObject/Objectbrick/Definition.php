@@ -31,6 +31,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\FieldDefinitionEnrichmentInterface;
 use OpenDxp\Tool;
+use Override;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -62,7 +63,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         return $this->classDefinitions;
     }
 
-    #[\Override]
+    #[Override]
     public static function getByKey(string $key): ?Definition
     {
         $brick = null;
@@ -141,7 +142,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function save(bool $saveDefinitionFile = true): void
     {
         if (!$this->getKey()) {
@@ -242,7 +243,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         $this->enforceBlockRules($fds);
     }
 
-    #[\Override]
+    #[Override]
     protected function generateClassFiles(bool $generateDefinitionFile = true): void
     {
         if ($generateDefinitionFile && !$this->isWritable()) {
@@ -472,7 +473,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
      *
      * @throws DataObject\Exception\DefinitionWriteException
      */
-    #[\Override]
+    #[Override]
     public function delete(): void
     {
         if (!$this->isWritable() && file_exists($this->getDefinitionFile())) {
@@ -519,6 +520,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
                 if (!in_array($this->getKey(), $fieldDef->getAllowedTypes())) {
                     continue;
                 }
+
                 break;
             }
         }
@@ -526,7 +528,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
         $this->dispatchEvent(new ObjectbrickDefinitionEvent($this), ObjectbrickDefinitionEvents::POST_DELETE);
     }
 
-    #[\Override]
+    #[Override]
     protected function doEnrichFieldDefinition(Data $fieldDefinition, array $context = []): Data
     {
         if ($fieldDefinition instanceof FieldDefinitionEnrichmentInterface) {
@@ -541,7 +543,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     public function isWritable(): bool
     {
         return (bool) ($_SERVER['OPENDXP_CLASS_DEFINITION_WRITABLE'] ?? !str_starts_with($this->getDefinitionFile(), OPENDXP_CUSTOM_CONFIGURATION_DIRECTORY));
@@ -550,7 +552,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     public function getDefinitionFile(?string $key = null): string
     {
         return $this->locateDefinitionFile($key ?? $this->getKey(), 'objectbricks/%s.php');
@@ -559,7 +561,7 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     public function getPhpClassFile(): string
     {
         return $this->locateFile(ucfirst($this->getKey()), 'DataObject/Objectbrick/Data/%s.php');

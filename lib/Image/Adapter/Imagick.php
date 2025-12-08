@@ -24,6 +24,7 @@ use OpenDxp\Config;
 use OpenDxp\Image\Adapter;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
+use Override;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Imagick extends Adapter
@@ -159,6 +160,7 @@ class Imagick extends Adapter
         $handle = fopen($this->imagePath, 'rb');
         $chunk = fread($handle, 1024*1000); // read the first 1MB
         fclose($handle);
+
         // according to 8BIM format: https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_pgfId-1037504
         // we're looking for the resource id 'Name of clipping path' which is 8BIM 2999 (decimal) or 0x0BB7 in hex
         // and the first path information which is 8BIM 2000 (decimal) or 0x07D0 in hex
@@ -170,6 +172,7 @@ class Imagick extends Adapter
         if ($this->hasAlphaChannel()) {
             return 'png32';
         }
+
         return 'pjpeg';
     }
 
@@ -282,6 +285,7 @@ class Imagick extends Adapter
         if ($i && $checkNumberOfImages && $i->getNumberImages() <= 1) {
             return false;
         }
+
         return !($format && !in_array(strtolower($format), ['gif', 'original', 'auto']));
     }
 
@@ -451,7 +455,7 @@ class Imagick extends Adapter
         return self::$RGBColorProfile;
     }
 
-    #[\Override]
+    #[Override]
     public function resize(int $width, int $height): static
     {
         if ($this->resource === null) {
@@ -519,7 +523,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function crop(int $x, int $y, int $width, int $height): static
     {
         if ($this->resource === null) {
@@ -548,7 +552,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function frame(int $width, int $height, bool $forceResize = false): static
     {
         $this->preModify();
@@ -571,7 +575,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function trim(int $tolerance): static
     {
         if ($this->resource === null) {
@@ -593,7 +597,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function setBackgroundColor(string $color): static
     {
         $this->preModify();
@@ -640,7 +644,7 @@ class Imagick extends Adapter
         return $newImage;
     }
 
-    #[\Override]
+    #[Override]
     public function rotate(int $angle): static
     {
         if ($this->resource === null) {
@@ -662,7 +666,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function roundCorners(int $width, int $height): static
     {
         if ($this->resource === null) {
@@ -701,7 +705,7 @@ class Imagick extends Adapter
         $this->resource->compositeImage($mask, \Imagick::COMPOSITE_DSTIN, 0, 0);
     }
 
-    #[\Override]
+    #[Override]
     public function setBackgroundImage(string $image, ?string $mode = null): static
     {
         $this->preModify();
@@ -735,7 +739,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function addOverlay(mixed $image, int $x = 0, int $y = 0, int $alpha = 100, string $composite = 'COMPOSITE_DEFAULT', string $origin = 'top-left'): static
     {
         $this->preModify();
@@ -791,7 +795,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function addOverlayFit(string $image, string $composite = 'COMPOSITE_DEFAULT'): static
     {
         $asset = Asset\Image::getByPath($image);
@@ -810,7 +814,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function applyMask(string $image): static
     {
         $this->preModify();
@@ -832,7 +836,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function grayscale(): static
     {
         if ($this->resource === null) {
@@ -848,7 +852,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function sepia(): static
     {
         if ($this->resource === null) {
@@ -864,7 +868,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function sharpen(float $radius = 0, float $sigma = 1.0, float $amount = 1.0, float $threshold = 0.05): static
     {
         if ($this->resource === null) {
@@ -881,7 +885,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function gaussianBlur(int $radius = 0, float $sigma = 1.0): static
     {
         if ($this->resource === null) {
@@ -897,7 +901,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function brightnessSaturation(int $brightness = 100, int $saturation = 100, int $hue = 100): static
     {
         if ($this->resource === null) {
@@ -913,7 +917,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function mirror(string $mode): static
     {
         if ($this->resource === null) {
@@ -935,7 +939,7 @@ class Imagick extends Adapter
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function isVectorGraphic(?string $imagePath = null): bool
     {
         if (!$imagePath) {
@@ -1016,7 +1020,7 @@ class Imagick extends Adapter
         return null;
     }
 
-    #[\Override]
+    #[Override]
     protected function getVectorRasterDimensions(): array
     {
         if ($vectorDimensions = $this->getVectorFormatEmbeddedRasterDimensions()) {

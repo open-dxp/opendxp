@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\Geo\AbstractGeo;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Geopoint extends AbstractGeo implements
     ResourcePersistenceAwareInterface,
@@ -128,7 +129,7 @@ class Geopoint extends AbstractGeo implements
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\GeoCoordinates) {
@@ -138,7 +139,7 @@ class Geopoint extends AbstractGeo implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -149,13 +150,13 @@ class Geopoint extends AbstractGeo implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -193,7 +194,7 @@ class Geopoint extends AbstractGeo implements
         return $this->getDataForEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $isEmpty = true;

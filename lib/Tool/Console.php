@@ -106,6 +106,7 @@ final class Console
                 $fullQualifiedPath = $executableFinder->find($executablePath);
                 if ($fullQualifiedPath && (!$customCheckMethod || self::$customCheckMethod($executablePath))) {
                     self::$executableCache[$name] = $fullQualifiedPath;
+
                     return $fullQualifiedPath;
                 }
             } catch (Exception) {
@@ -222,6 +223,7 @@ final class Console
         if (self::getSystemEnvironment() === 'darwin') {
             return self::execInBackgroundUnix($cmd, $outputFile, false);
         }
+
         return self::execInBackgroundUnix($cmd, $outputFile);
     }
 

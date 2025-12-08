@@ -20,9 +20,9 @@ use OpenDxp\Localization\LocaleServiceInterface;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
-use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class CalculatedValue extends Data implements QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -176,19 +176,19 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return (string)$this->getDataForEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         // nothing to do
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return (string) $this->getDataFromObjectParam($object, $params);
@@ -199,7 +199,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return 'varchar(' . $this->getColumnLength() . ')';
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -226,7 +226,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $key = $this->getName();
@@ -278,7 +278,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         $key = $this->getName();
@@ -302,7 +302,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         $key = $this->getName();
@@ -328,25 +328,25 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function getSetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getSetterCodeObjectbrick(\OpenDxp\Model\DataObject\Objectbrick\Definition $brickClass): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getSetterCodeFieldcollection(Definition $fieldcollectionDefinition): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getSetterCodeLocalizedfields(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         return '';
@@ -357,7 +357,7 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function supportsInheritance(): bool
     {
         return false;
@@ -393,13 +393,13 @@ class CalculatedValue extends Data implements QueryResourcePersistenceAwareInter
         return 'calculatedValue';
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return match ($this->elementType) {

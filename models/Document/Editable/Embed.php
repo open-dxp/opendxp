@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Editable;
 
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -45,7 +46,7 @@ class Embed extends Model\Document\Editable
         return $this->url;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): array
     {
         return [
@@ -82,7 +83,7 @@ class Embed extends Model\Document\Editable
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function admin()
     {
         $html = parent::admin();

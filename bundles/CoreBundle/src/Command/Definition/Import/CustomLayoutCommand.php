@@ -21,6 +21,7 @@ use OpenDxp\Logger;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\CustomLayout;
 use OpenDxp\Model\ModelInterface;
+use Override;
 use Symfony\Component\Console\Input\InputOption;
 
 /**
@@ -28,7 +29,7 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class CustomLayoutCommand extends AbstractStructureImportCommand
 {
-    #[\Override]
+    #[Override]
     protected function configure(): void
     {
         parent::configure();

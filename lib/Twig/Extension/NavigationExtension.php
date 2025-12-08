@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension;
 
 use OpenDxp\Twig\Extension\Templating\Navigation;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -30,7 +31,7 @@ class NavigationExtension extends AbstractExtension
     {
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         return [

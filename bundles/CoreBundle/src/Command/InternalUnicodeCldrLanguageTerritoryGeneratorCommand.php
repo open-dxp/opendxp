@@ -69,7 +69,7 @@ class InternalUnicodeCldrLanguageTerritoryGeneratorCommand extends AbstractComma
         $finalData = [];
 
         foreach ($languageRawData as $languageCode => $rawLanguage) {
-            usort($rawLanguage, fn($a, $b) => $b['population'] <=> $a['population']);
+            usort($rawLanguage, fn ($a, $b) => $b['population'] <=> $a['population']);
 
             $finalData[$languageCode] = [];
             foreach ($rawLanguage as $territory) {

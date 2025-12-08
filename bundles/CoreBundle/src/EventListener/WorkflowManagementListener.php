@@ -16,21 +16,17 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\CoreBundle\EventListener;
 
-use Exception;
 use OpenDxp\Event\AssetEvents;
 use OpenDxp\Event\DataObjectEvents;
 use OpenDxp\Event\DocumentEvents;
 use OpenDxp\Event\Model\ElementEventInterface;
 use OpenDxp\Model\Asset;
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Concrete as ConcreteObject;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Element\WorkflowState;
 use OpenDxp\Workflow\Manager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * @internal

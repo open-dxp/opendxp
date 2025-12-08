@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\LazyLoadingSupportInterface;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\DataObject\ObjectAwareFieldInterface;
+use Override;
 
 /**
  * @method Dao getDao()
@@ -132,7 +133,7 @@ abstract class AbstractData extends Model\AbstractModel implements Model\DataObj
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $parentVars = parent::__sleep();

@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Document;
 
 use Exception;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method bool isWriteable()
@@ -270,7 +271,7 @@ class DocType extends Model\AbstractModel
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

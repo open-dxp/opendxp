@@ -22,6 +22,7 @@ use OpenDxp\Bundle\CoreBundle\EventListener\Frontend\FullPageCacheListener;
 use OpenDxp\Document\Editable\Block\BlockName;
 use OpenDxp\Http\Request\Resolver\OutputTimestampResolver;
 use OpenDxp\Tool\HtmlUtils;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -34,23 +35,23 @@ class Scheduledblock extends Block implements BlockInterface
      */
     protected ?array $cachedCurrentElement = null;
 
-    #[\Override]
+    #[Override]
     public function getType(): string
     {
         return 'scheduledblock';
     }
 
-    #[\Override]
+    #[Override]
     public function setDataFromEditmode(mixed $data): static
     {
         $this->indices = $data;
 
-        usort($this->indices, fn($left, $right) => $left['date'] <=> $right['date']);
+        usort($this->indices, fn ($left, $right) => $left['date'] <=> $right['date']);
 
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     protected function setDefault(): static
     {
         if ($this->indices === []) {
@@ -92,6 +93,7 @@ class Scheduledblock extends Block implements BlockInterface
 
             return [$currentElement];
         }
+
         return null;
     }
 
@@ -112,7 +114,7 @@ class Scheduledblock extends Block implements BlockInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function loop(): bool
     {
         $this->setDefault();
@@ -136,10 +138,11 @@ class Scheduledblock extends Block implements BlockInterface
             return true;
         }
         $this->end();
+
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function start(): void
     {
         if ($this->getEditmode()) {
@@ -159,7 +162,7 @@ class Scheduledblock extends Block implements BlockInterface
         $this->outputEditmode('<div class="opendxp_scheduled_block_controls" ></div>');
     }
 
-    #[\Override]
+    #[Override]
     public function blockConstruct(): void
     {
         // set the current block suffix for the child elements (0, 1, 3, ...)
@@ -169,7 +172,7 @@ class Scheduledblock extends Block implements BlockInterface
         $this->getBlockState()->pushIndex((int) $elements[$this->current]['key']);
     }
 
-    #[\Override]
+    #[Override]
     public function blockStart(bool $showControls = true, bool $return = false, string $additionalClass = ''): void
     {
         $attributes = [
@@ -191,13 +194,13 @@ class Scheduledblock extends Block implements BlockInterface
         $this->current++;
     }
 
-    #[\Override]
+    #[Override]
     public function getCurrentIndex(): int
     {
         return (int) $this->indices[$this->getCurrent()]['key'];
     }
 
-    #[\Override]
+    #[Override]
     public function getIterator(): Generator
     {
         while ($this->loop()) {
@@ -205,7 +208,7 @@ class Scheduledblock extends Block implements BlockInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getElements(): array
     {
         $document = $this->getDocument();
@@ -221,7 +224,7 @@ class Scheduledblock extends Block implements BlockInterface
         return $list;
     }
 
-    #[\Override]
+    #[Override]
     public function setConfig(array $config): static
     {
         $config['reload'] = true;
@@ -233,7 +236,7 @@ class Scheduledblock extends Block implements BlockInterface
     /**
      * If object was serialized, set cached elements to null
      */
-    #[\Override]
+    #[Override]
     public function __wakeup(): void
     {
         parent::__wakeup();

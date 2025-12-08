@@ -27,6 +27,7 @@ final class Frontend
     public static function isDocumentInSite(?Site $site, Document $document): bool
     {
         $siteRootDocument = $site?->getRootDocument();
+
         return !($siteRootDocument && !str_starts_with($document->getRealFullPath() . '/', $siteRootDocument->getRealFullPath() . '/'));
     }
 

@@ -18,11 +18,12 @@ declare(strict_types=1);
 namespace OpenDxp\Test;
 
 use OpenDxp;
+use Override;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 abstract class WebTestCase extends \Symfony\Bundle\FrameworkBundle\Test\WebTestCase
 {
-    #[\Override]
+    #[Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
         $kernel = parent::createKernel($options);

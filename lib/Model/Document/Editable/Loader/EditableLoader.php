@@ -19,13 +19,14 @@ namespace OpenDxp\Model\Document\Editable\Loader;
 
 use OpenDxp\Loader\ImplementationLoader\ImplementationLoader;
 use OpenDxp\Model\Document\Editable;
+use Override;
 
 /**
  * @internal
  */
 class EditableLoader extends ImplementationLoader implements EditableLoaderInterface
 {
-    #[\Override]
+    #[Override]
     public function build(string $name, array $params = []): Editable
     {
         return parent::build($name, $params);

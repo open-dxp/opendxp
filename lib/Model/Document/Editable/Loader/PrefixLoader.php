@@ -18,13 +18,14 @@ declare(strict_types = 1);
 namespace OpenDxp\Model\Document\Editable\Loader;
 
 use OpenDxp\Loader\ImplementationLoader\PrefixLoader as BasePrefixLoader;
+use Override;
 
 /**
  * @internal
  */
 final class PrefixLoader extends BasePrefixLoader
 {
-    #[\Override]
+    #[Override]
     protected function normalizeName(string $name): string
     {
         return mb_strtoupper(mb_substr($name, 0, 1)) . mb_substr($name, 1);

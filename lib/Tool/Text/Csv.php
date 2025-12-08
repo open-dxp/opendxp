@@ -208,6 +208,7 @@ class Csv
             asort($tmp);
             $keys = array_keys($tmp);
             $lastEl = end($keys);
+
             return chr($lastEl);
         }
 

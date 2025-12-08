@@ -21,6 +21,7 @@ use OpenDxp;
 use OpenDxp\Loader\ImplementationLoader\Exception\UnsupportedException;
 use OpenDxp\Logger;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @internal
@@ -277,7 +278,7 @@ final class Predefined extends Model\AbstractModel
         }
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         if ($this->dao) {

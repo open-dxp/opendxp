@@ -19,13 +19,14 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Loader;
 
 use OpenDxp\Loader\ImplementationLoader\ImplementationLoader;
 use OpenDxp\Model\DataObject\ClassDefinition\Layout;
+use Override;
 
 /**
  * @internal
  */
 final class LayoutLoader extends ImplementationLoader implements LayoutLoaderInterface
 {
-    #[\Override]
+    #[Override]
     public function build(string $name, array $params = []): Layout
     {
         return parent::build($name, $params);

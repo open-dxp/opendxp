@@ -26,6 +26,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 /**
  * Class EncryptedField
@@ -216,7 +217,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -226,7 +227,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         }
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -247,13 +248,14 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         $fd = $this->getDelegateDatatypeDefinition();
         if ($fd && method_exists($fd, 'getDataForGrid')) {
             $data = $data instanceof Model\DataObject\Data\EncryptedField ? $data->getPlain() : null;
+
             return $fd->getDataForGrid($data, $object, $params);
         }
 
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -262,7 +264,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $fd->getVersionPreview($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $fd = $this->getDelegateDatatypeDefinition();
@@ -280,7 +282,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
     /**
      * returns sql query statement to filter according to this data types value(s)
      */
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         return '';
@@ -348,7 +350,7 @@ class EncryptedField extends Data implements ResourcePersistenceAwareInterface, 
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         // encrypted data shouldn't be in search index

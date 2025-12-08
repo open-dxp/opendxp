@@ -32,6 +32,7 @@ use OpenDxp\Model\Exception\NotFoundException;
 use OpenDxp\SystemSettingsConfig;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Frontend as FrontendTool;
+use Override;
 use ReflectionClass;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -90,7 +91,7 @@ class Document extends Element\AbstractElement
      */
     protected array $siblings = [];
 
-    #[\Override]
+    #[Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['versions', 'scheduledTasks', 'fullPathCache'];
@@ -781,7 +782,7 @@ class Document extends Element\AbstractElement
         return $this->key;
     }
 
-    #[\Override]
+    #[Override]
     public function getPath(): ?string
     {
         // check for site, if so rewrite the path for output
@@ -822,7 +823,7 @@ class Document extends Element\AbstractElement
     /**
      * Set the parent id of the document.
      */
-    #[\Override]
+    #[Override]
     public function setParentId(?int $id): static
     {
         parent::setParentId($id);
@@ -887,7 +888,7 @@ class Document extends Element\AbstractElement
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getParent(): ?Document
     {
         $parent = parent::getParent();
@@ -935,7 +936,7 @@ class Document extends Element\AbstractElement
         return 'document_list_' . ($includingUnpublished ? '1' : '0');
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

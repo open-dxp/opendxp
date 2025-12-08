@@ -18,6 +18,7 @@ namespace OpenDxp\Security\Hasher;
 
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Password;
 use OpenDxp\Model\DataObject\Concrete;
+use Override;
 use Symfony\Component\PasswordHasher\Hasher\CheckPasswordLengthTrait;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\RuntimeException;
@@ -90,7 +91,7 @@ class PasswordFieldHasher extends AbstractUserAwarePasswordHasher
         return $field;
     }
 
-    #[\Override]
+    #[Override]
     public function verify(string $hashedPassword, string $plainPassword, ?string $salt = null): bool
     {
         return $this->getFieldDefinition()->verifyPassword($plainPassword, $this->getUser(), $this->updateHash);

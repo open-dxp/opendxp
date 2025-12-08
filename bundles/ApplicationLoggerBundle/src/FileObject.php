@@ -21,8 +21,9 @@ use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToWriteFile;
 use OpenDxp\Logger;
 use OpenDxp\Tool\Storage;
+use Stringable;
 
-final class FileObject implements \Stringable
+final class FileObject implements Stringable
 {
     public function __construct(protected string $data, protected ?string $filename = null)
     {

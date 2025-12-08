@@ -632,6 +632,7 @@ class Installer
         }
         $filesystem->rename($cacheDir, $oldCacheDir);
         $filesystem->mkdir($cacheDir);
+
         try {
             $filesystem->remove($oldCacheDir);
         } catch (IOException $e) {

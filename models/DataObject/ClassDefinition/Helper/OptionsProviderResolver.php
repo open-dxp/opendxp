@@ -31,7 +31,7 @@ class OptionsProviderResolver extends ClassResolver
 
     public static function resolveProvider(?string $providerClass, int $mode, bool $showError = false): ?object
     {
-        return self::resolve($providerClass, fn($provider) => ($mode === self::MODE_SELECT && ($provider instanceof SelectOptionsProviderInterface))
+        return self::resolve($providerClass, fn ($provider) => ($mode === self::MODE_SELECT && ($provider instanceof SelectOptionsProviderInterface))
             || ($mode === self::MODE_MULTISELECT && ($provider instanceof SelectOptionsProviderInterface)), $showError);
     }
 }

@@ -134,7 +134,7 @@ class Dao extends Model\Dao\AbstractDao
         }
 
         $tags = array_filter($tags);
-        @usort($tags, fn($left, $right) => strcmp($left->getNamePath(), $right->getNamePath()));
+        @usort($tags, fn ($left, $right) => strcmp($left->getNamePath(), $right->getNamePath()));
 
         return $tags;
     }

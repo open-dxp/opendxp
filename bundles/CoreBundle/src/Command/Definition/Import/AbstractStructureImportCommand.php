@@ -105,6 +105,7 @@ abstract class AbstractStructureImportCommand extends AbstractCommand
             return 0;
         }
         $this->output->writeln(sprintf('<error>ERROR:</error> Failed to import %s', $logName));
+
         return 1;
     }
 
@@ -150,6 +151,7 @@ abstract class AbstractStructureImportCommand extends AbstractCommand
             sprintf('(%s) <comment>%s</comment> already exists. Overwrite? [y/N] ', $this->getType(), $name),
             false
         );
+
         return (bool) $helper->ask($this->input, $this->output, $question);
     }
 

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Hardlink\Wrapper;
 
 use OpenDxp\Model;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Hardlink\Dao getDao()
@@ -25,7 +26,7 @@ class Link extends Model\Document\Link implements Model\Document\Hardlink\Wrappe
 {
     use Model\Document\Hardlink\Wrapper;
 
-    #[\Override]
+    #[Override]
     public function getHref(): string
     {
         if ($this->getLinktype() === 'internal' && $this->getInternalType() === 'document') {

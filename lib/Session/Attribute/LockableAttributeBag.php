@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Session\Attribute;
 
 use OpenDxp\Session\Attribute\Exception\AttributeBagLockedException;
+use Override;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 
 class LockableAttributeBag extends AttributeBag implements LockableAttributeBagInterface
@@ -38,7 +39,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         return $this->locked;
     }
 
-    #[\Override]
+    #[Override]
     public function set(string $name, mixed $value): void
     {
         $this->checkLock();
@@ -46,7 +47,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         parent::set($name, $value);
     }
 
-    #[\Override]
+    #[Override]
     public function replace(array $attributes): void
     {
         $this->checkLock();
@@ -54,7 +55,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         parent::replace($attributes);
     }
 
-    #[\Override]
+    #[Override]
     public function remove(string $name): mixed
     {
         $this->checkLock();
@@ -62,7 +63,7 @@ class LockableAttributeBag extends AttributeBag implements LockableAttributeBagI
         return parent::remove($name);
     }
 
-    #[\Override]
+    #[Override]
     public function clear(): mixed
     {
         $this->checkLock();

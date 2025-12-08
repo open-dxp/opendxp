@@ -20,11 +20,13 @@ use Exception;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
+use Override;
+use Stringable;
 
 /**
  * @method \OpenDxp\Model\DataObject\Data\ElementMetadata\Dao getDao()
  */
-class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwareFieldInterface, \Stringable
+class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwareFieldInterface, Stringable
 {
     use DataObject\Traits\OwnerAwareFieldTrait;
 
@@ -56,7 +58,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function __call(string $method, array $args)
     {
         if (str_starts_with($method, 'get')) {

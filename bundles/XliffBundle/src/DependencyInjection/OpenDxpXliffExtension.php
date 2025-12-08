@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\XliffBundle\DependencyInjection;
 
 use OpenDxp\Bundle\XliffBundle\ExportDataExtractorService\DataExtractor\DataObjectDataExtractor;
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -25,7 +26,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class OpenDxpXliffExtension extends ConfigurableExtension
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_xliff';

@@ -32,6 +32,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\ElementInterface;
+use Override;
 
 /**
  * @method AbstractObject\Dao getDao()
@@ -132,7 +133,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
      */
     protected ?array $__rawRelationData = null;
 
-    #[\Override]
+    #[Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['versions', 'class', 'scheduledTasks', 'omitMandatoryCheck'];
@@ -759,7 +760,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this->getFullPath();
     }
 
-    #[\Override]
+    #[Override]
     public function getParentId(): ?int
     {
         $parentId = parent::getParentId();
@@ -787,7 +788,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this->index;
     }
 
-    #[\Override]
+    #[Override]
     public function setParentId(?int $parentId): static
     {
         if ($parentId !== $this->parentId) {
@@ -854,7 +855,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getParent(): ?AbstractObject
     {
         $parent = parent::getParent();
@@ -1005,7 +1006,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
     /**
      * load lazy loaded fields before cloning
      */
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

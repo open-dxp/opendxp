@@ -46,8 +46,7 @@ class ControllerDataProvider
          * id -> class mapping array of controllers defined as services
          */
         private readonly array $serviceControllers
-    )
-    {
+    ) {
     }
 
     /**

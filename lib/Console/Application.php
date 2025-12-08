@@ -24,6 +24,7 @@ use OpenDxp\Migrations\FilteredMigrationsRepository;
 use OpenDxp\Migrations\FilteredTableMetadataStorage;
 use OpenDxp\Tool\MaintenanceModeHelperInterface;
 use OpenDxp\Version;
+use Override;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LazyCommand;
@@ -111,7 +112,7 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         });
     }
 
-    #[\Override]
+    #[Override]
     protected function getDefaultInputDefinition(): InputDefinition
     {
         $inputDefinition = parent::getDefaultInputDefinition();
@@ -121,7 +122,7 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         return $inputDefinition;
     }
 
-    #[\Override]
+    #[Override]
     public function addCommand(callable|Command $command): ?Command
     {
         if ($command instanceof LazyCommand && str_starts_with($command->getName(), 'doctrine:')) {

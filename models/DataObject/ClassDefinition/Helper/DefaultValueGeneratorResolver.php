@@ -25,6 +25,6 @@ class DefaultValueGeneratorResolver extends ClassResolver
 {
     public static function resolveGenerator(string $generatorClass): ?object
     {
-        return self::resolve($generatorClass, static fn($generator) => $generator instanceof DefaultValueGeneratorInterface);
+        return self::resolve($generatorClass, static fn ($generator) => $generator instanceof DefaultValueGeneratorInterface);
     }
 }

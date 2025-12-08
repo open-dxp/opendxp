@@ -106,6 +106,7 @@ class Definition extends Model\AbstractModel
         $permissionDefinition = new static();
         $permissionDefinition->setKey($permission);
         $permissionDefinition->save();
+
         return $permissionDefinition;
     }
 }

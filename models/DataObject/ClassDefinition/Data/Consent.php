@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Consent extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface
 {
@@ -151,7 +152,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *  - "key" => the key of the data element
      *  - "data" => the data
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): DataObject\Data\Consent
     {
         $data = $data[0]['data'];
@@ -205,13 +206,13 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $data ? (string)$data->getConsent() : '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && $data === null) {
@@ -224,7 +225,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
         }*/
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -232,7 +233,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $data ? (string)$data->getConsent() : '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -241,7 +242,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
     /**
      * @param DataObject\ClassDefinition\Data\Consent $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->defaultValue = $mainDefinition->defaultValue;
@@ -253,7 +254,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -271,7 +272,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
      * @param array $params optional params used to change the behavior
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();
@@ -283,13 +284,13 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return 'IFNULL(' . $brickPrefix . $key . ', 0) = ' . $value . ' ';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function supportsInheritance(): bool
     {
         return false;

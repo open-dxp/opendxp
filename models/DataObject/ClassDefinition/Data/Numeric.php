@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, PreSetDataInterface
 {
@@ -199,7 +200,7 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $this->decimalPrecision;
     }
 
-    #[\Override]
+    #[Override]
     public function getUnique(): bool
     {
         return $this->unique;
@@ -233,6 +234,7 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
         if (null !== $this->getDecimalSize()) {
             return true;
         }
+
         return null !== $this->getDecimalPrecision();
     }
 
@@ -337,13 +339,13 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
     /**
      * @see Data::getVersionPreview
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return (string) $data;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && $this->isEmpty($data)) {
@@ -379,7 +381,7 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params) ?? '';
@@ -393,7 +395,7 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
      * @param array $params optional params used to change the behavior
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $db = \OpenDxp\Db::get();
@@ -424,13 +426,13 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return !is_numeric($data);
@@ -464,7 +466,7 @@ class Numeric extends Data implements ResourcePersistenceAwareInterface, QueryRe
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;

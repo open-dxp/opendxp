@@ -33,8 +33,7 @@ abstract class AbstractBlockItem
          * @internal
          */
         protected int $index
-    )
-    {
+    ) {
     }
 
     abstract protected function getItemType(): string;

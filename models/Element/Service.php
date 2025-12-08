@@ -262,6 +262,7 @@ class Service extends Model\AbstractModel
         if ($element instanceof AbstractObject && DataObject::doHideUnpublished()) {
             return true;
         }
+
         return $element instanceof Document && Document::doHideUnpublished();
     }
 
@@ -278,6 +279,7 @@ class Service extends Model\AbstractModel
         if (method_exists($element, 'isPublished')) {
             return $element->isPublished();
         }
+
         return true;
     }
 
@@ -373,6 +375,7 @@ class Service extends Model\AbstractModel
         if ($elementType == 'object') {
             return 'DataObject';
         }
+
         return ucfirst($elementType);
     }
 
@@ -1397,6 +1400,7 @@ class Service extends Model\AbstractModel
         if (isset($id)) {
             return $type . '_' . $id;
         }
+
         return $type . '_';
     }
 }

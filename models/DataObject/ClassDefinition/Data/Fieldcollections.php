@@ -26,6 +26,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Fieldcollections extends Data implements CustomResourcePersistingInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, NormalizerInterface, DataContainerAwareInterface, IdRewriterInterface, PreGetDataInterface, PreSetDataInterface
 {
@@ -215,19 +216,19 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         return $this->getDiffVersionPreview($data, $object, $params)['html'];
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return 'NOT SUPPORTED';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $dataString = '';
@@ -320,7 +321,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -343,7 +344,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Fieldcollection) {
@@ -364,7 +365,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data instanceof DataObject\Fieldcollection) {
@@ -488,7 +489,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $dataForGrid;
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         // getter, no inheritance here, that's the only difference
@@ -531,7 +532,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         return $this->maxItems;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -601,7 +602,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
     /**
      * @param DataObject\ClassDefinition\Data\Fieldcollections $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->allowedTypes = $mainDefinition->allowedTypes;
@@ -699,7 +700,7 @@ class Fieldcollections extends Data implements CustomResourcePersistingInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     public function supportsInheritance(): bool
     {
         return false;

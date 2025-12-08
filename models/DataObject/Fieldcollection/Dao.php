@@ -238,6 +238,7 @@ class Dao extends Model\Dao\AbstractDao
         if ($saveMode && (!DataObject::isDirtyDetectionDisabled() && !$this->model->hasDirtyFields() && $hasLocalizedFields)) {
             // always empty localized fields
             $this->db->executeStatement('DELETE FROM object_relations_' . $object->getClassId() . ' WHERE ' . $whereLocalizedFields);
+
             return ['saveLocalizedRelations' => true];
         }
 

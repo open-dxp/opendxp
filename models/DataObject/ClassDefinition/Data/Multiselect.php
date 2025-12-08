@@ -26,6 +26,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOption
 use OpenDxp\Model\DataObject\ClassDefinition\Service;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 use Throwable;
 
 class Multiselect extends Data implements
@@ -240,7 +241,7 @@ class Multiselect extends Data implements
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $data = $data[0]['data'];
@@ -257,17 +258,17 @@ class Multiselect extends Data implements
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data)) {
-            return implode(',', array_map(fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'), $data));
+            return implode(',', array_map(fn ($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'), $data));
         }
 
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -279,7 +280,7 @@ class Multiselect extends Data implements
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -290,7 +291,7 @@ class Multiselect extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -306,7 +307,7 @@ class Multiselect extends Data implements
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterCondition(mixed $value, string $operator, array $params = []): string
     {
         $params['name'] = $this->name;
@@ -324,7 +325,7 @@ class Multiselect extends Data implements
      * @param array $params optional params used to change the behavior
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         if ($operator === '=' || $operator === 'LIKE') {
@@ -337,7 +338,7 @@ class Multiselect extends Data implements
             }
 
             if (str_contains($name, 'cskey') && is_array($value) && $value !== []) {
-                $values = array_map(fn($val) => $db->quote('%' .Helper::escapeLike($val). '%'), $value);
+                $values = array_map(fn ($val) => $db->quote('%' .Helper::escapeLike($val). '%'), $value);
 
                 return $key . ' LIKE ' . implode(' OR ' . $key . ' LIKE ', $values);
             }
@@ -352,7 +353,7 @@ class Multiselect extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -388,20 +389,21 @@ class Multiselect extends Data implements
 
             return $value;
         }
+
         return '';
     }
 
     /**
      * @param DataObject\ClassDefinition\Data\Multiselect $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
         $this->options = $mainDefinition->options;
     }
 
-    #[\Override]
+    #[Override]
     public function appendData(?array $existingData, array $additionalData): array
     {
         if (!is_array($existingData)) {
@@ -411,7 +413,7 @@ class Multiselect extends Data implements
         return array_unique([...$existingData, ...$additionalData]);
     }
 
-    #[\Override]
+    #[Override]
     public function removeData(?array $existingData, array $removeData): array
     {
         if (!is_array($existingData)) {
@@ -421,7 +423,7 @@ class Multiselect extends Data implements
         return array_unique(array_diff($existingData, $removeData));
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
@@ -432,7 +434,7 @@ class Multiselect extends Data implements
         return $this->isEqualArray($oldValue, $newValue);
     }
 
-    #[\Override]
+    #[Override]
     public function jsonSerialize(): mixed
     {
         if (!$this->useConfiguredOptions() && $this->getOptionsProviderClass() && Service::doRemoveDynamicOptions()) {
@@ -496,7 +498,7 @@ class Multiselect extends Data implements
         } else {
             $options = $this->getOptions();
         }
-        if (is_array($options) && array_reduce($options, static fn($containsComma, $option) => $containsComma || str_contains((string)$option['value'], ','), false)) {
+        if (is_array($options) && array_reduce($options, static fn ($containsComma, $option) => $containsComma || str_contains((string)$option['value'], ','), false)) {
             throw new Exception("Field {$this->getName()}: Multiselect option values may not contain commas (,) for now.");
         }
     }

@@ -27,6 +27,7 @@ use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class ManyToManyObjectRelation extends AbstractRelations implements QueryResourcePersistenceAwareInterface, OptimizedAdminLoadingInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface, LayoutDefinitionEnrichmentInterface
 {
@@ -233,7 +234,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data) && count($data) > 0) {
@@ -250,7 +251,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -279,7 +280,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -297,7 +298,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -366,7 +367,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return $this->maxItems;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -402,7 +403,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
     /**
      * @param DataObject\ClassDefinition\Data\ManyToManyObjectRelation $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
@@ -602,7 +603,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $originalData = $data;
@@ -615,7 +616,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data) {
@@ -695,13 +696,13 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
         $this->enableTextSelection = $enableTextSelection;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof DataObject\Concrete) {
@@ -722,7 +723,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $prefix = '';

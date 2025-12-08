@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension;
 
 use OpenDxp\Twig\Extension\Templating\Inc;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -32,7 +33,7 @@ class SubrequestExtension extends AbstractExtension
         $this->incHelper = $incHelper;
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         // as runtime extension classes are invokable, we can pass them directly as callable

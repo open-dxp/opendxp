@@ -164,6 +164,7 @@ class Sql extends AbstractAdapter
 
                     if ($type == 'date' && $operator == 'eq') {
                         $condition[] = $db->quoteIdentifier($filter['property']) . ' BETWEEN ' . $db->quote($value) . ' AND ' . $db->quote($maxValue);
+
                         break;
                     }
                     $fields[] = $filter['property'];

@@ -36,6 +36,7 @@ class Video
                 if (Tool::classExists($adapterClass)) {
                     return new $adapterClass();
                 }
+
                 throw new Exception('Video-transcode adapter `' . $adapter . '´ does not exist.');
             }
             if ($adapter = self::getDefaultAdapter()) {

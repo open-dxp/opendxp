@@ -16,17 +16,18 @@
 namespace OpenDxp\Bundle\UuidBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
+use Override;
 
 class Installer extends SettingsStoreAwareInstaller
 {
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->installDatabaseTable();
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->uninstallDatabaseTable();

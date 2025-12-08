@@ -31,6 +31,7 @@ use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Tool\TmpStore;
 use OpenDxp\Tool\Storage;
+use Override;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -57,8 +58,7 @@ class Service extends Model\Element\Service
          * @internal
          */
         protected ?Model\User $_user = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -197,7 +197,7 @@ class Service extends Model\Element\Service
         return $target;
     }
 
-    #[\Override]
+    #[Override]
     public static function pathExists(string $path, ?string $type = null): bool
     {
         if (!$path) {
@@ -223,7 +223,7 @@ class Service extends Model\Element\Service
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     public static function loadAllFields(Element\ElementInterface $element): Element\ElementInterface
     {
         $element->getProperties();
@@ -316,7 +316,7 @@ class Service extends Model\Element\Service
         return $result;
     }
 
-    #[\Override]
+    #[Override]
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
@@ -415,6 +415,7 @@ class Service extends Model\Element\Service
                 if (preg_match("|~\-~time\-(\d+)\.|", $config['filename'], $matchesThumbs)) {
                     $time = (int)$matchesThumbs[1];
                 }
+
                 return $asset->getImageThumbnail($thumbnailConfig, $time);
             }
             if ($asset instanceof Asset\Document) {
@@ -424,6 +425,7 @@ class Service extends Model\Element\Service
                 }
                 $thumbnailConfig->setName(preg_replace("/\-[\d]+/", '', $thumbnailConfig->getName()));
                 $thumbnailConfig->setName(str_replace('document_', '', $thumbnailConfig->getName()));
+
                 return $asset->getImageThumbnail($thumbnailConfig, $page);
             }
 
@@ -457,6 +459,7 @@ class Service extends Model\Element\Service
                 if (preg_match("#~\-~media\-\-(.*)\-\-query#", $matches[1], $mediaQueryResult)) {
                     $thumbnailConfig->selectMedia($mediaQueryResult[1]);
                 }
+
                 return $asset->getThumbnail($thumbnailConfig);
             }
         }
@@ -606,6 +609,7 @@ class Service extends Model\Element\Service
                 'filename' => $matches[5],
             ];
         }
+
         throw new Exception(sprintf('Uri `%s` is not valid and could not be parsed', $uri));
     }
 }

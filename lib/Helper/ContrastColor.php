@@ -53,6 +53,7 @@ class ContrastColor
         if ($contrastRatio > 5) {
             return '#000000';
         }
+
         //////////// if not, return white color.
         return '#ffffff';
     }

@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Translation;
 
 use OpenDxp\Model;
 use OpenDxp\Model\Exception\NotFoundException;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Translation\Listing\Dao getDao()
@@ -51,7 +52,7 @@ class Listing extends Model\Listing\AbstractListing
      */
     protected ?array $languages = null;
 
-    #[\Override]
+    #[Override]
     public function isValidOrderKey(string $key): bool
     {
         return in_array($key, ['key', 'type']) || in_array($key, $this->getLanguages());

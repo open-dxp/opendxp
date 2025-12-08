@@ -308,8 +308,7 @@ trait ImageThumbnailTrait
         } elseif ($type === 'asset') {
             $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['source'];
             $path = $prefix . urlencode_ignore_slash($path);
-        }
-        else {
+        } else {
             $path = urlencode_ignore_slash($path);
         }
 

@@ -53,6 +53,7 @@ use OpenDxp\SystemSettingsConfig;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Serialize;
 use OpenDxp\Tool\Storage;
+use Override;
 use stdClass;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Symfony\Component\Filesystem\Filesystem;
@@ -171,7 +172,7 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     protected function getBlockedVars(): array
     {
         $blockedVars = ['scheduledTasks', 'versions', 'stream'];
@@ -188,7 +189,7 @@ class Asset extends Element\AbstractElement
         return $blockedVars;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $blockedVars = parent::__sleep();
@@ -1231,7 +1232,7 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getVersions(): array
     {
         if ($this->versions === null) {
@@ -1580,7 +1581,7 @@ class Asset extends Element\AbstractElement
         return $bytes;
     }
 
-    #[\Override]
+    #[Override]
     public function getParent(): ?Asset
     {
         $parent = parent::getParent();
@@ -1599,7 +1600,7 @@ class Asset extends Element\AbstractElement
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function __wakeup(): void
     {
         if ($this->isInDumpState()) {
@@ -1628,7 +1629,7 @@ class Asset extends Element\AbstractElement
         $this->closeStream();
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         if (!Config::getSystemConfiguration()['dependency']['enabled']) {
@@ -1659,7 +1660,7 @@ class Asset extends Element\AbstractElement
         return array_merge(...$dependencies);
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

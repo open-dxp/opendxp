@@ -140,6 +140,7 @@ class ListCommand extends AbstractBundleCommand
                 $decorated ? "\xE2\x9C\x94" : 'yes'
             );
         }
+
         return sprintf(
             '<fg=red>%s</>',
             $decorated ? "\xE2\x9D\x8C" : 'no'

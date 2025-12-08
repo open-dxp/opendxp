@@ -21,6 +21,7 @@ use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
 use OpenDxp\Tool\Admin as AdminTool;
+use Override;
 use Sabre\DAV;
 
 /**
@@ -62,7 +63,7 @@ class Folder extends DAV\Collection
      *
      * @throws DAV\Exception\NotFound
      */
-    #[\Override]
+    #[Override]
     public function getChild($name): File|Folder
     {
         $asset = null;

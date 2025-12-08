@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Document;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Paginator\PaginateListingInterface;
+use Override;
 
 /**
  * @method Document[] load()
@@ -81,7 +82,7 @@ class Listing extends Model\Listing\AbstractListing implements PaginateListingIn
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getCondition(): string
     {
         $condition = parent::getCondition();

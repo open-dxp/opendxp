@@ -90,6 +90,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
             return count($this->model->getObjects());
         }
         $idList = $this->loadIdList();
+
         return count($idList);
     }
 

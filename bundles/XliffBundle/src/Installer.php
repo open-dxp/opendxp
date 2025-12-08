@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\XliffBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
+use Override;
 
 /**
  * @internal
@@ -29,14 +30,14 @@ class Installer extends SettingsStoreAwareInstaller
         'xliff_import_export',
     ];
 
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

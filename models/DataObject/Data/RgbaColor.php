@@ -19,8 +19,9 @@ namespace OpenDxp\Model\DataObject\Data;
 use Exception;
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
+use Stringable;
 
-class RgbaColor implements OwnerAwareFieldInterface, \Stringable
+class RgbaColor implements OwnerAwareFieldInterface, Stringable
 {
     use OwnerAwareFieldTrait;
 

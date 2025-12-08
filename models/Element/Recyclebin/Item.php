@@ -191,7 +191,7 @@ class Item extends Model\AbstractModel
         $storage = Storage::get('recycle_bin');
         $storage->delete($this->getStorageFile());
 
-        $files = $storage->listContents($this->getType())->filter(fn(StorageAttributes $item) => (bool) strpos($item->path(), '/' . $this->getId() . '_'));
+        $files = $storage->listContents($this->getType())->filter(fn (StorageAttributes $item) => (bool) strpos($item->path(), '/' . $this->getId() . '_'));
 
         /** @var StorageAttributes $item */
         foreach ($files as $item) {

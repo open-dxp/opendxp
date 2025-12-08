@@ -19,6 +19,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\ClassDefinition\DynamicOptionsProvider\CountryOptionsProvider;
 use OpenDxp\Model\DataObject\Concrete;
+use Override;
 
 class Country extends Model\DataObject\ClassDefinition\Data\Select
 {
@@ -32,7 +33,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
      */
     public ?string $restrictTo = null;
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -55,7 +56,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
         return $this->restrictTo;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
@@ -66,7 +67,7 @@ class Country extends Model\DataObject\ClassDefinition\Data\Select
         return '@' . CountryOptionsProvider::class;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'country';

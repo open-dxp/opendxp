@@ -31,6 +31,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\Link;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Relations\AbstractRelations;
 use OpenDxp\Model\DataObject\Exception\InheritanceParentNotFoundException;
 use OpenDxp\SystemSettingsConfig;
+use Override;
 
 /**
  * @method Model\DataObject\Concrete\Dao getDao()
@@ -103,7 +104,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return $v['classId'];
     }
 
-    #[\Override]
+    #[Override]
     protected function update(?bool $isUpdate = null, array $params = []): void
     {
         $fieldDefinitions = $this->getClass()->getFieldDefinitions();
@@ -217,7 +218,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         }
     }
 
-    #[\Override]
+    #[Override]
     protected function doDelete(): void
     {
         // Dispatch Symfony Message Bus to delete versions
@@ -294,7 +295,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * @return Model\Version[]
      */
-    #[\Override]
+    #[Override]
     public function getVersions(): array
     {
         if ($this->versions === null) {
@@ -332,7 +333,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
@@ -348,7 +349,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [parent::resolveDependencies()];
@@ -505,7 +506,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public static function __callStatic(string $method, array $arguments)
     {
         // check for custom static getters like DataObject::getByMyfield()
@@ -621,7 +622,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function save(array $parameters = []): static
     {
         $isDirtyDetectionDisabled = DataObject::isDirtyDetectionDisabled();
@@ -679,7 +680,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         $this->allLazyKeysMarkedAsLoaded = true;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $parentVars = parent::__sleep();
@@ -702,7 +703,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
         return $finalVars;
     }
 
-    #[\Override]
+    #[Override]
     public function __wakeup(): void
     {
         // parent::__wakeup() will call $this->setInDumpState(false) but we'll need the original value below
@@ -734,7 +735,7 @@ class Concrete extends DataObject implements LazyLoadedFieldsInterface
     /**
      * load lazy loaded fields before cloning
      */
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

@@ -438,7 +438,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
             }
 
             if (str_contains($name, 'cskey') && is_array($value) && $value !== []) {
-                $values = array_map(static fn($val) => $db->quote(Helper::escapeLike($val)), $value);
+                $values = array_map(static fn ($val) => $db->quote(Helper::escapeLike($val)), $value);
 
                 return $key . ' ' . $operator . ' ' . implode(' OR ' . $key . ' ' . $operator . ' ', $values) . $trailer;
             }

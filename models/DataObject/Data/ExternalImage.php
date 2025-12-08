@@ -18,8 +18,9 @@ namespace OpenDxp\Model\DataObject\Data;
 
 use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
+use Stringable;
 
-class ExternalImage implements OwnerAwareFieldInterface, \Stringable
+class ExternalImage implements OwnerAwareFieldInterface, Stringable
 {
     use OwnerAwareFieldTrait;
 

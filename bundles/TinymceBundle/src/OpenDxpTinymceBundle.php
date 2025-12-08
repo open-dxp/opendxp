@@ -22,6 +22,7 @@ use OpenDxp\Extension\Bundle\OpenDxpBundleAdminClassicInterface;
 use OpenDxp\Extension\Bundle\Traits\BundleAdminClassicTrait;
 use OpenDxp\Extension\Bundle\Traits\PackageVersionTrait;
 use OpenDxp\Helper\EncoreHelper;
+use Override;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 class OpenDxpTinymceBundle extends AbstractOpenDxpBundle implements OpenDxpBundleAdminClassicInterface
@@ -29,7 +30,7 @@ class OpenDxpTinymceBundle extends AbstractOpenDxpBundle implements OpenDxpBundl
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
 
-    #[\Override]
+    #[Override]
     public function getContainerExtension(): ?ExtensionInterface
     {
         if (null === $this->extension) {
@@ -68,7 +69,7 @@ class OpenDxpTinymceBundle extends AbstractOpenDxpBundle implements OpenDxpBundl
         return $this->container->get(Installer::class);
     }
 
-    #[\Override]
+    #[Override]
     public function getPath(): string
     {
         return dirname(__DIR__);

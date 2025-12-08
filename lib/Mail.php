@@ -24,6 +24,7 @@ use OpenDxp\Event\Model\MailEvent;
 use OpenDxp\Helper\Mail as MailHelper;
 use OpenDxp\Mail\Mailer;
 use OpenDxp\Tool\DomCrawler;
+use Override;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -525,7 +526,7 @@ class Mail extends Email
             OpenDxp::getEventDispatcher()->dispatch($event, MailEvents::PRE_LOG);
 
             try {
-                $this->lastLogEntry = MailHelper::logEmail($this, $recipients, $sendingFailedException instanceof \Exception ? $sendingFailedException->getMessage() : null);
+                $this->lastLogEntry = MailHelper::logEmail($this, $recipients, $sendingFailedException instanceof Exception ? $sendingFailedException->getMessage() : null);
             } catch (Exception) {
                 Logger::emerg("Couldn't log Email");
             }
@@ -863,7 +864,7 @@ class Mail extends Email
      *
      * @return $this
      */
-    #[\Override]
+    #[Override]
     public function addTo(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -876,7 +877,7 @@ class Mail extends Email
      *
      * @return $this
      */
-    #[\Override]
+    #[Override]
     public function addCc(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -889,7 +890,7 @@ class Mail extends Email
      *
      * @return $this
      */
-    #[\Override]
+    #[Override]
     public function addBcc(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -902,7 +903,7 @@ class Mail extends Email
      *
      * @return $this
      */
-    #[\Override]
+    #[Override]
     public function addFrom(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);
@@ -915,7 +916,7 @@ class Mail extends Email
      *
      * @return $this
      */
-    #[\Override]
+    #[Override]
     public function addReplyTo(Address|string ...$addresses): static
     {
         $addresses = $this->formatAddress(...$addresses);

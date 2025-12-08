@@ -21,6 +21,7 @@ use OpenDxp;
 use OpenDxp\Document\Editable\Block\BlockName;
 use OpenDxp\Model;
 use OpenDxp\Tool\HtmlUtils;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -58,7 +59,7 @@ class Block extends Model\Document\Editable implements BlockInterface
         return $this->indices;
     }
 
-    #[\Override]
+    #[Override]
     public function admin()
     {
         // nothing to do
@@ -177,10 +178,11 @@ class Block extends Model\Document\Editable implements BlockInterface
         if (!$manual) {
             $this->end();
         }
+
         return false;
     }
 
-    #[\Override]
+    #[Override]
     protected function getEditmodeElementAttributes(): array
     {
         $attributes = parent::getEditmodeElementAttributes();
@@ -254,6 +256,7 @@ class Block extends Model\Document\Editable implements BlockInterface
         }
 
         $this->outputEditmode($html);
+
         return null;
     }
 
@@ -284,6 +287,7 @@ EOT;
         }
 
         $this->outputEditmode($html);
+
         return null;
     }
 
@@ -297,10 +301,11 @@ EOT;
         }
 
         $this->outputEditmode($html);
+
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function setConfig(array $config): static
     {
         if (empty($config['limit'])) {

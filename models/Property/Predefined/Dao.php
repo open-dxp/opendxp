@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Property\Predefined;
 use Exception;
 use OpenDxp\Config;
 use OpenDxp\Model;
+use Override;
 use Symfony\Component\Uid\Uuid as Uid;
 
 /**
@@ -29,7 +30,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 {
     private const string CONFIG_KEY = 'predefined_properties';
 
-    #[\Override]
+    #[Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -82,7 +83,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
 
         $list = new Listing();
         /** @var Model\Property\Predefined[] $properties */
-        $properties = array_values(array_filter($list->getProperties(), fn($item) => $item->getKey() == $key
+        $properties = array_values(array_filter($list->getProperties(), fn ($item) => $item->getKey() == $key
         ));
 
         if (count($properties) && $properties[0]->getId()) {
@@ -130,7 +131,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
-    #[\Override]
+    #[Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

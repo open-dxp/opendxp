@@ -113,6 +113,7 @@ class Dao extends Model\Dao\AbstractDao
         if (count($requiresByPath) > 0) {
             return $requiresByPath;
         }
+
         return [];
     }
 
@@ -170,6 +171,7 @@ class Dao extends Model\Dao\AbstractDao
         if (count($requiredByPath) > 0) {
             return $requiredByPath;
         }
+
         return [];
     }
 

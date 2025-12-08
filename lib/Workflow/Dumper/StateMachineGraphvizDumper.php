@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Workflow\Dumper;
 
 use OpenDxp\Workflow\Transition;
+use Override;
 use Symfony\Component\Workflow\Definition;
 use Symfony\Component\Workflow\Marking;
 
@@ -34,7 +35,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
      *  * node: The default options for nodes (places)
      *  * edge: The default options for edges
      */
-    #[\Override]
+    #[Override]
     public function dump(Definition $definition, ?Marking $marking = null, array $options = []): string
     {
         $places = $this->findPlaces($definition, $marking, $options['workflowName']);
@@ -52,7 +53,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     protected function findEdges(Definition $definition): array
     {
         $edges = [];
@@ -75,7 +76,7 @@ class StateMachineGraphvizDumper extends GraphvizDumper
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     protected function addEdges(array $edges): string
     {
         $code = '';

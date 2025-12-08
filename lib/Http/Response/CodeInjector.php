@@ -82,6 +82,7 @@ class CodeInjector
         if (in_array($selector, self::$presetSelectors, true)) {
             return $this->injectIntoPresetSelector($html, $code, $selector, $position);
         }
+
         return $this->injectIntoDomSelector($html, $code, $selector, $position);
     }
 

@@ -24,6 +24,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Site;
 use OpenDxp\Tool\DeviceDetector;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -167,10 +168,11 @@ class Snippet extends Model\Document\Editable implements IdRewriterInterface, Ed
     public function isEmpty(): bool
     {
         $this->load();
+
         return !$this->snippet instanceof Document\Snippet;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -187,7 +189,7 @@ class Snippet extends Model\Document\Editable implements IdRewriterInterface, Ed
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

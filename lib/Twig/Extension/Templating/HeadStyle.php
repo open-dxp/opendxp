@@ -42,6 +42,7 @@ namespace OpenDxp\Twig\Extension\Templating;
 use OpenDxp\Twig\Extension\Templating\Placeholder\AbstractExtension;
 use OpenDxp\Twig\Extension\Templating\Placeholder\ContainerService;
 use OpenDxp\Twig\Extension\Templating\Placeholder\Exception;
+use Override;
 use stdClass;
 use Twig\Extension\RuntimeExtensionInterface;
 
@@ -143,7 +144,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      *
      * @throws Exception When no $content provided or invalid method
      */
-    #[\Override]
+    #[Override]
     public function __call(string $method, array $args): mixed
     {
         if (preg_match('/^(?P<action>set|(ap|pre)pend|offsetSet)(Style)$/', $method, $matches)) {
@@ -210,7 +211,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      * @param  string|int $offset
      *
      */
-    #[\Override]
+    #[Override]
     public function offsetSet($offset, mixed $value): void
     {
         if (!$this->_isValid($value)) {
@@ -314,7 +315,7 @@ class HeadStyle extends AbstractExtension implements RuntimeExtensionInterface
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function toString(int|string|null $indent = null): string
     {
         $indent = (null !== $indent)

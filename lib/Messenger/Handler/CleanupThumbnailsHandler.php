@@ -39,7 +39,7 @@ class CleanupThumbnailsHandler implements BatchHandlerInterface
     // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
-        $jobs = $this->filterUnique($jobs, static fn(CleanupThumbnailsMessage $message) => $message->getType() . '-' . $message->getName());
+        $jobs = $this->filterUnique($jobs, static fn (CleanupThumbnailsMessage $message) => $message->getType() . '-' . $message->getName());
 
         foreach ($jobs as [$message, $ack]) {
             try {

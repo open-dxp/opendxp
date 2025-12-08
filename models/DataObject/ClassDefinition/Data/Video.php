@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class Video extends Data implements
     ResourcePersistenceAwareInterface,
@@ -254,7 +255,7 @@ class Video extends Data implements
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data && $data->getType() == 'asset' && $data->getData() instanceof Asset) {
@@ -264,7 +265,7 @@ class Video extends Data implements
         return parent::getVersionPreview($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -280,7 +281,7 @@ class Video extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -291,7 +292,7 @@ class Video extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data && $data->getData() instanceof Asset && !array_key_exists($data->getData()->getCacheTag(), $tags)) {
@@ -319,7 +320,7 @@ class Video extends Data implements
         return $this->enrichFieldDefinition($context);
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -341,7 +342,7 @@ class Video extends Data implements
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return false;

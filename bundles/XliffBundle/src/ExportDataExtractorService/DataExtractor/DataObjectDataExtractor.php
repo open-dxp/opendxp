@@ -25,6 +25,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
 use OpenDxp\Tool;
+use Override;
 
 class DataObjectDataExtractor extends AbstractElementDataExtractor
 {
@@ -45,7 +46,7 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function extract(
         TranslationItem $translationItem,
         string $sourceLanguage,
@@ -607,6 +608,7 @@ class DataObjectDataExtractor extends AbstractElementDataExtractor
         if (is_null($exportAttributes) && isset($this->exportAttributes[$className])) {
             $exportAttributes = $this->exportAttributes[$className];
         }
+
         return !(!empty($exportAttributes) && !in_array($definition->getName(), $exportAttributes));
     }
 }

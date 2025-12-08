@@ -89,6 +89,7 @@ class EncryptedField implements MarshallerInterface
                     'value2' => $encryptedValue2,
                 ], ['fieldDefinition' => $delegateFd, 'format' => 'classificationstore']);
             }
+
             return $this->decrypt($value['value'], $params);
         }
 

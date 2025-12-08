@@ -105,6 +105,7 @@ class RequestHelper
         if (OpenDxp::inAdmin()) {
             return false;
         }
+
         return !preg_match('@^/admin.*@', $request->getRequestUri());
     }
 
@@ -143,6 +144,7 @@ class RequestHelper
                 return true;
             }
         }
+
         return (bool) preg_match('@^/admin/document_tag/renderlet@', $request->getRequestUri());
     }
 

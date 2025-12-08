@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\CustomResourcePersistingInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\LazyLoadingSupportInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\ResourcePersistenceAwareInterface;
+use Override;
 
 /**
  * @internal
@@ -29,7 +30,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\ResourcePersistenceAwareInterf
  */
 class Dao extends Model\DataObject\Fieldcollection\Dao
 {
-    #[\Override]
+    #[Override]
     public function load(DataObject\Concrete $object, array $params = []): array
     {
         /** @var DataObject\ClassDefinition\Data\Objectbricks $fieldDef */
@@ -124,7 +125,7 @@ class Dao extends Model\DataObject\Fieldcollection\Dao
      * @param bool $saveMode true if called from save method
      *
      */
-    #[\Override]
+    #[Override]
     public function delete(DataObject\Concrete $object, bool $saveMode = false): array
     {
         // this is to clean up also the inherited values

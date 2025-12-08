@@ -21,6 +21,7 @@ use Exception;
 use OpenDxp\Document;
 use OpenDxp\Twig\Extension\Templating\OpenDxpUrl;
 use OpenDxp\Video;
+use Override;
 use Symfony\Component\Mime\MimeTypes;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
@@ -39,7 +40,7 @@ class HelpersExtension extends AbstractExtension
         $this->OpenDxpUrlHelper = $OpenDxpUrlHelper;
     }
 
-    #[\Override]
+    #[Override]
     public function getFilters(): array
     {
         return [
@@ -47,7 +48,7 @@ class HelpersExtension extends AbstractExtension
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         return [
@@ -67,11 +68,11 @@ class HelpersExtension extends AbstractExtension
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getTests(): array
     {
         return [
-            new TwigTest('instanceof', fn($object, $class) => $object instanceof $class),
+            new TwigTest('instanceof', fn ($object, $class) => $object instanceof $class),
         ];
     }
 

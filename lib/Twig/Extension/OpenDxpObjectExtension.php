@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Site;
 use OpenDxp\Model\User;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -30,7 +31,7 @@ use Twig\TwigFunction;
  */
 class OpenDxpObjectExtension extends AbstractExtension
 {
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         // simple object access functions in case documents/assets/objects need to be loaded directly in the template

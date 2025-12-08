@@ -40,10 +40,10 @@ final class ImageThumbnail implements ImageThumbnailInterface
     public function __construct(?Model\Asset\Video $asset, array|string|Image\Thumbnail\Config|null $config = null, /**
      * @internal
      */
-    protected ?int $timeOffset = null, /**
+        protected ?int $timeOffset = null, /**
      * @internal
      */
-    protected ?Image $imageAsset = null, bool $deferred = true)
+        protected ?Image $imageAsset = null, bool $deferred = true)
     {
         $this->asset = $asset;
         $this->config = $this->createConfig($config ?? []);
@@ -229,6 +229,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
 
                 return $thumb ?? null;
             }
+
             throw new Exception("Media query '" . $name . "' doesn't exist in thumbnail configuration: " . $thumbConfig->getName());
         }
 

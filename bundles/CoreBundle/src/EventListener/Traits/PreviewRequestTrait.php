@@ -32,6 +32,7 @@ trait PreviewRequestTrait
         if ($request->server->get('HTTP_PURPOSE') === 'preview') {
             return true;
         }
+
         return $request->query->getBoolean('opendxp_preview');
     }
 }

@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\ClassDefinition\Service;
+use Override;
 
 class Gender extends Model\DataObject\ClassDefinition\Data\Select
 {
@@ -41,7 +42,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return $obj;
     }
 
-    #[\Override]
+    #[Override]
     public function jsonSerialize(): mixed
     {
         if (Service::doRemoveDynamicOptions()) {
@@ -51,7 +52,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return parent::jsonSerialize();
     }
 
-    #[\Override]
+    #[Override]
     public function resolveBlockedVars(): array
     {
         $blockedVars = parent::resolveBlockedVars();
@@ -60,7 +61,7 @@ class Gender extends Model\DataObject\ClassDefinition\Data\Select
         return $blockedVars;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'gender';

@@ -21,6 +21,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -56,7 +57,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return $this->data;
     }
 
-    #[\Override]
+    #[Override]
     protected function getEditmodeElementClasses(array $options = []): array
     {
         // we don't want the class attribute being applied to the editable container element (<div>, only to the <a> tag inside
@@ -128,7 +129,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -349,7 +350,7 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         return strlen($this->getHref()) < 1;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];

@@ -15,6 +15,7 @@
 
 namespace OpenDxp\Bundle\UuidBundle\DependencyInjection;
 
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -22,7 +23,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 class OpenDxpUuidExtension extends ConfigurableExtension
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_uuid';

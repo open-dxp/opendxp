@@ -23,6 +23,7 @@ use OpenDxp\Model\Document\PageSnippet;
 use OpenDxp\Templating\Renderer\EditableRenderer;
 use OpenDxp\Twig\TokenParser\BlockParser;
 use OpenDxp\Twig\TokenParser\ManualBlockParser;
+use Override;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -35,7 +36,7 @@ class DocumentEditableExtension extends AbstractExtension
     {
     }
 
-    #[\Override]
+    #[Override]
     public function getFunctions(): array
     {
         return [
@@ -99,7 +100,7 @@ class DocumentEditableExtension extends AbstractExtension
         return $block->getIterator();
     }
 
-    #[\Override]
+    #[Override]
     public function getTokenParsers(): array
     {
         return [

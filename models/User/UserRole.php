@@ -19,6 +19,7 @@ namespace OpenDxp\Model\User;
 use OpenDxp\Model\User\Workspace\Asset;
 use OpenDxp\Model\User\Workspace\DataObject;
 use OpenDxp\Model\User\Workspace\Document;
+use Override;
 
 /**
  * @method \OpenDxp\Model\User\UserRole\Dao getDao()
@@ -88,7 +89,7 @@ abstract class UserRole extends AbstractUser implements UserRoleInterface
      */
     protected array $websiteTranslationLanguagesEdit = [];
 
-    #[\Override]
+    #[Override]
     protected function update(): void
     {
         $this->getDao()->update();

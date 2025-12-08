@@ -19,6 +19,7 @@ namespace OpenDxp\Model;
 
 use OpenDxp\Loader\ImplementationLoader\ClassMapLoader;
 use OpenDxp\Loader\ImplementationLoader\ImplementationLoader;
+use Override;
 
 /**
  * @internal
@@ -37,7 +38,7 @@ final class Factory extends ImplementationLoader implements FactoryInterface
         return $map;
     }
 
-    #[\Override]
+    #[Override]
     public function build(string $name, array $params = []): AbstractModel
     {
         return parent::build($name, $params);

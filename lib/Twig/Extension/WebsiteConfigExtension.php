@@ -18,8 +18,6 @@ declare(strict_types=1);
 namespace OpenDxp\Twig\Extension;
 
 use OpenDxp\Config;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
 
 /**
  * @internal

@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\DataCollector;
 
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Version;
+use Override;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
@@ -43,7 +44,7 @@ class OpenDxpDataCollector extends DataCollector implements ResetInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function reset(): void
     {
         $this->data = [];

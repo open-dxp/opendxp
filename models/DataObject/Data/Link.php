@@ -25,8 +25,9 @@ use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
+use Stringable;
 
-class Link implements OwnerAwareFieldInterface, \Stringable
+class Link implements OwnerAwareFieldInterface, Stringable
 {
     use OwnerAwareFieldTrait;
     use ObjectVarTrait;

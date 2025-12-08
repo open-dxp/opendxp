@@ -23,6 +23,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Exception\InheritanceParentNotFoundException;
 use OpenDxp\Model\Element\DirtyIndicatorInterface;
+use Override;
 
 /**
  * @method \OpenDxp\Model\DataObject\Objectbrick\Dao getDao()
@@ -216,7 +217,7 @@ class Objectbrick extends Model\AbstractModel implements DirtyIndicatorInterface
         $this->getDao()->delete($object);
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

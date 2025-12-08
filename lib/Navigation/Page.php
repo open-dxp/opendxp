@@ -41,8 +41,10 @@ namespace OpenDxp\Navigation;
 
 use Exception;
 use OpenDxp\Navigation\Page\Url;
+use Override;
+use Stringable;
 
-abstract class Page extends Container implements \Stringable
+abstract class Page extends Container implements Stringable
 {
     /**
      * Page label
@@ -175,6 +177,7 @@ abstract class Page extends Container implements \Stringable
                     $type
                 ));
             }
+
             return $page;
         }
 
@@ -187,6 +190,7 @@ abstract class Page extends Container implements \Stringable
         if (isset($options['label'])) {
             $message .= ' (Page label: ' . $options['label'] . ')';
         }
+
         throw new Exception($message);
     }
 
@@ -728,6 +732,7 @@ abstract class Page extends Container implements \Stringable
         if (!$this->_parent->isVisible(true)) {
             return false;
         }
+
         return $this->_visible;
     }
 
@@ -1039,7 +1044,7 @@ abstract class Page extends Container implements \Stringable
         return spl_object_id($this);
     }
 
-    #[\Override]
+    #[Override]
     public function toArray(): array
     {
         return [...$this->getCustomProperties(), 'label' => $this->getlabel(), 'fragment' => $this->getFragment(), 'id' => $this->getId(), 'class' => $this->getClass(), 'title' => $this->getTitle(), 'target' => $this->getTarget(), 'accesskey' => $this->getAccesskey(), 'rel' => $this->getRel(), 'rev' => $this->getRev(), 'customHtmlAttribs' => $this->getCustomHtmlAttribs(), 'order' => $this->getOrder(), 'active' => $this->isActive(), 'visible' => $this->isVisible(), 'type' => static::class, 'pages' => parent::toArray()];

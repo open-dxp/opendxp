@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class NumericRange extends Data implements
     ResourcePersistenceAwareInterface,
@@ -167,6 +168,7 @@ class NumericRange extends Data implements
         if (null !== $this->getDecimalSize()) {
             return true;
         }
+
         return null !== $this->getDecimalPrecision();
     }
 
@@ -319,7 +321,7 @@ class NumericRange extends Data implements
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\NumericRange) {
@@ -334,7 +336,7 @@ class NumericRange extends Data implements
      *
      * @throws Exception
      */
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -346,13 +348,13 @@ class NumericRange extends Data implements
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -384,7 +386,7 @@ class NumericRange extends Data implements
         return $this->getDataForEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         $isEmpty = true;

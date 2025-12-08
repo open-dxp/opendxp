@@ -22,6 +22,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -73,7 +74,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
         return $this->elements;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): mixed
     {
         return $this->elementIds;
@@ -158,7 +159,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
         return count($this->elements) <= 0;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $this->setElements();
@@ -194,7 +195,7 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
         $this->setElements();
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

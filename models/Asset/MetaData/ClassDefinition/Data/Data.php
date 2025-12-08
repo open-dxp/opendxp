@@ -18,8 +18,9 @@ namespace OpenDxp\Model\Asset\MetaData\ClassDefinition\Data;
 
 use OpenDxp\Model\DataObject\Traits\SimpleNormalizerTrait;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Stringable;
 
-abstract class Data implements DataDefinitionInterface, NormalizerInterface, \Stringable
+abstract class Data implements DataDefinitionInterface, NormalizerInterface, Stringable
 {
     use SimpleNormalizerTrait;
 

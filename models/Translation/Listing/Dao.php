@@ -138,6 +138,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
     {
         $count = $this->db->fetchOne('SELECT COUNT(*) FROM ' . $this->getDatabaseTableName());
         $cacheLimit = Model\Translation\Listing::getCacheLimit();
+
         return $count <= $cacheLimit;
     }
 

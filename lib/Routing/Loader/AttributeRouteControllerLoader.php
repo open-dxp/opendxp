@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Routing\Loader;
 
+use Override;
 use ReflectionClass;
 use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader as BaseAttributeRouteControllerLoader;
@@ -27,7 +28,7 @@ use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader as Bas
  */
 class AttributeRouteControllerLoader extends BaseAttributeRouteControllerLoader
 {
-    #[\Override]
+    #[Override]
     protected function getDefaultRouteName(ReflectionClass $class, ReflectionMethod $method): string
     {
         $routeName = parent::getDefaultRouteName($class, $method);

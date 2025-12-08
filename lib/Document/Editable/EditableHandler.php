@@ -281,6 +281,7 @@ class EditableHandler implements LoggerAwareInterface
         $this->requestStack->push($request);
         $response = $this->fragmentRenderer->render($uri, $request, $attributes);
         $this->requestStack->pop();
+
         return $response;
     }
 

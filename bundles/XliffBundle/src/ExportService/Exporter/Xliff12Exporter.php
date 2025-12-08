@@ -93,7 +93,7 @@ class Xliff12Exporter implements ExporterInterface
 
     protected function prepareExportFile(string $exportFilePath): void
     {
-        if (!$this->xliffFile instanceof \SimpleXMLElement) {
+        if (!$this->xliffFile instanceof SimpleXMLElement) {
             $dom = new DOMDocument();
             $dom->loadXML(file_get_contents($exportFilePath));
             $this->xliffFile = simplexml_import_dom($dom);

@@ -260,6 +260,7 @@ class Breadcrumbs extends AbstractRenderer
         if ($partial = $this->getTemplate()) {
             return $this->renderPartial($container, $partial);
         }
+
         return $this->renderStraight($container);
     }
 }

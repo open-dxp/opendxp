@@ -260,6 +260,7 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
                 if (!$a->getSiteId() && $b->getSiteId()) {
                     return 1;
                 }
+
                 return $b->getPriority() <=> $a->getPriority();
             });
 

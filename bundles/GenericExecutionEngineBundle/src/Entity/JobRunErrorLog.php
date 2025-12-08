@@ -43,8 +43,7 @@ class JobRunErrorLog
         private ?int $elementId = null,
         #[ORM\Column(type: 'text', nullable: true)]
         private ?string $errorMessage = null
-    )
-    {
+    ) {
     }
 
     public function getId(): int

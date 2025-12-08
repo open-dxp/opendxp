@@ -17,6 +17,7 @@ namespace OpenDxp\Model\DataObject\Data\ObjectMetadata;
 
 use OpenDxp\Db\Helper;
 use OpenDxp\Model\DataObject;
+use Override;
 
 /**
  * @internal
@@ -51,7 +52,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
         }
     }
 
-    #[\Override]
+    #[Override]
     protected function getTablename(DataObject\Concrete $object): string
     {
         return 'object_metadata_' . $object->getClassId();
@@ -76,6 +77,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
 
             return $this->model;
         }
+
         return null;
     }
 }

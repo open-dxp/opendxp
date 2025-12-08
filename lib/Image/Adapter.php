@@ -133,8 +133,7 @@ abstract class Adapter implements AdapterInterface
         }
         if ($x > $y) {
             $this->scaleByWidth($width, $forceResize);
-        }
-        else {
+        } else {
             $this->scaleByHeight($height, $forceResize);
         }
 

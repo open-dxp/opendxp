@@ -28,6 +28,7 @@ use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class ManyToManyRelation extends AbstractRelations implements QueryResourcePersistenceAwareInterface, OptimizedAdminLoadingInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface
 {
@@ -341,7 +342,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
     /**
      * @see Data::getVersionPreview
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if (is_array($data) && count($data) > 0) {
@@ -359,7 +360,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -392,7 +393,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -410,13 +411,13 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -527,7 +528,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         $this->allowToClearRelation = $allowToClearRelation;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -562,7 +563,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
     /**
      * @param DataObject\ClassDefinition\Data\ManyToManyRelation $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->maxItems = $mainDefinition->maxItems;
@@ -697,7 +698,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $originalData = $data;
@@ -706,7 +707,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         return $this->processDiffDataForEditMode($originalData, $data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         if ($data) {
@@ -741,13 +742,13 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         $this->enableTextSelection = $enableTextSelection;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function addListingFilter(DataObject\Listing $listing, float|array|int|string|Model\Element\ElementInterface $data, string $operator = '='): DataObject\Listing
     {
         if ($data instanceof Element\ElementInterface) {
@@ -775,7 +776,7 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $prefix = '';

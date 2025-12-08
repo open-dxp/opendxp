@@ -33,8 +33,9 @@ use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Version\SetDumpStateFilter;
 use ReflectionProperty;
+use Stringable;
 
-class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, CacheMarshallerInterface, \Stringable
+class BlockElement extends AbstractModel implements OwnerAwareFieldInterface, CacheMarshallerInterface, Stringable
 {
     use OwnerAwareFieldTrait;
 

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\WordExportBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
+use Override;
 
 class Installer extends SettingsStoreAwareInstaller
 {
@@ -26,14 +27,14 @@ class Installer extends SettingsStoreAwareInstaller
         'word_export',
     ];
 
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->addUserPermission();
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

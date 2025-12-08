@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
+use Override;
 
 class Image extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, IdRewriterInterface
 {
@@ -102,7 +103,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
      *
      * @throws Element\ValidationException
      */
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && !$data instanceof Asset\Image) {
@@ -123,7 +124,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof Asset\Image) {
@@ -133,7 +134,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -144,13 +145,13 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof Asset\Image && !array_key_exists($data->getCacheTag(), $tags)) {
@@ -160,7 +161,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -175,7 +176,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -196,6 +197,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         if ($versionPreview) {
             return ['src' => $versionPreview, 'type' => 'img'];
         }
+
         return '';
     }
 
@@ -215,13 +217,13 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     /**
      * @param Model\DataObject\ClassDefinition\Data\Image $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(Model\DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->uploadPath = $mainDefinition->uploadPath;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
@@ -281,7 +283,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $name = $params['name'] ?: $this->name;

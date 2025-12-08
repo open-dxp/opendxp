@@ -17,10 +17,11 @@ declare(strict_types=1);
 namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
 use OpenDxp\Model;
+use Override;
 
 class Lastname extends Model\DataObject\ClassDefinition\Data\Input
 {
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'lastname';

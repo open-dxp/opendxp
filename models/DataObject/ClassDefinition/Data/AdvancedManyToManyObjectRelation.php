@@ -26,6 +26,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @method DataObject\Data\ObjectMetadata\Dao getDao()
@@ -78,7 +79,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
      */
     public array $visibleFieldDefinitions = [];
 
-    #[\Override]
+    #[Override]
     protected function prepareDataForPersistence(array|Element\ElementInterface $data, Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): mixed
     {
         if (is_array($data)) {
@@ -105,7 +106,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return null;
     }
 
-    #[\Override]
+    #[Override]
     protected function loadData(array $data, Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): mixed
     {
         $list = [
@@ -177,7 +178,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $list;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForQueryResource(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?string
     {
         //return null when data is not set
@@ -204,7 +205,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
     /**
      * @see Data::getDataForEditmode
      */
-    #[\Override]
+    #[Override]
     public function getDataForEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
     {
         $return = [];
@@ -243,7 +244,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
     /**
      * @see Data::getDataFromEditmode
      */
-    #[\Override]
+    #[Override]
     public function getDataFromEditmode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         //if not set, return null
@@ -286,13 +287,13 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $relationsMetadata;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataFromGridEditor(array $data, ?Concrete $object = null, array $params = []): ?array
     {
         return $this->getDataFromEditmode($data, $object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForGrid(?array $data, ?Concrete $object = null, array $params = []): array
     {
         return $this->getDataForEditmode($data, $object, $params);
@@ -301,7 +302,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
     /**
      * @see Data::getVersionPreview
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         $items = [];
@@ -341,7 +342,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if (!$omitMandatoryCheck && $this->getMandatory() && empty($data)) {
@@ -370,7 +371,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         }
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -389,7 +390,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -409,7 +410,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function save(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
     {
         if ($this->skipSaveCheck($object, $params)) {
@@ -499,7 +500,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         parent::save($object, $params);
     }
 
-    #[\Override]
+    #[Override]
     public function preGetData(mixed $container, array $params = []): array
     {
         $data = null;
@@ -577,7 +578,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $this->allowedClassId;
     }
 
-    #[\Override]
+    #[Override]
     public function setVisibleFields(array|string|null $visibleFields): static
     {
         /**
@@ -591,7 +592,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getVisibleFields(): array|string|null
     {
         return $this->visibleFields;
@@ -654,7 +655,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         $temp->getDao()->createOrUpdateTable($class);
     }
 
-    #[\Override]
+    #[Override]
     public function rewriteIds(mixed $container, array $idMapping, array $params = []): mixed
     {
         $data = $this->getDataFromObjectParam($container, $params);
@@ -677,7 +678,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         if ($mainDefinition instanceof self) {
@@ -687,7 +688,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         }
     }
 
-    #[\Override]
+    #[Override]
     public function enrichLayoutDefinition(?Concrete $object, array $context = []): static
     {
         $classId = $this->allowedClassId;
@@ -767,7 +768,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function denormalize(mixed $value, array $params = []): ?array
     {
         if (is_array($value)) {
@@ -798,7 +799,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function normalize(mixed $value, array $params = []): ?array
     {
         if (is_array($value)) {
@@ -828,7 +829,7 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
     /**
      * @internal
      */
-    #[\Override]
+    #[Override]
     protected function processDiffDataForEditMode(mixed $originalData, mixed $data, ?DataObject\Concrete $object = null, array $params = []): array
     {
         if ($data) {
@@ -900,19 +901,19 @@ class AdvancedManyToManyObjectRelation extends ManyToManyObjectRelation implemen
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getPhpdocInputType(): ?string
     {
         return '\\'.DataObject\Data\ObjectMetadata::class.'[]';
     }
 
-    #[\Override]
+    #[Override]
     public function getPhpdocReturnType(): ?string
     {
         return '\\'.DataObject\Data\ObjectMetadata::class.'[]';
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'advancedManyToManyObjectRelation';

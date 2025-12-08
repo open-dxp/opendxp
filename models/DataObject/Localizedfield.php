@@ -27,6 +27,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\PreSetDataInterface;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\Element\DirtyIndicatorInterface;
 use OpenDxp\Tool;
+use Override;
 
 /**
  * @method Localizedfield\Dao getDao()
@@ -587,7 +588,7 @@ final class Localizedfield extends Model\AbstractModel implements
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         if (!$this->isInDumpState()) {

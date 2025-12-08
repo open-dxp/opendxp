@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\ApplicationLoggerBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
+use Override;
 
 class Installer extends SettingsStoreAwareInstaller
 {
@@ -26,7 +27,7 @@ class Installer extends SettingsStoreAwareInstaller
         'application_logging',
     ];
 
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->addUserPermission();
@@ -35,7 +36,7 @@ class Installer extends SettingsStoreAwareInstaller
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->removeUserPermission();

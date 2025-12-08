@@ -183,6 +183,7 @@ class WriteLock implements LoggerAwareInterface
                     'Not removing write lock as timestamp does not belong to this process (timestamp: {timestamp}, lock: {lock})',
                     ['timestamp' => $this->timestamp, 'lock' => $lock]
                 );
+
                 return false;
             }
         }

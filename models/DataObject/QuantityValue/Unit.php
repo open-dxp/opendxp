@@ -20,11 +20,12 @@ use OpenDxp\Event\DataObjectQuantityValueEvents;
 use OpenDxp\Event\Model\DataObject\QuantityValueUnitEvent;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Model;
+use Stringable;
 
 /**
  * @method \OpenDxp\Model\DataObject\QuantityValue\Unit\Dao getDao()
  */
-class Unit extends Model\AbstractModel implements \Stringable
+class Unit extends Model\AbstractModel implements Stringable
 {
     use RecursionBlockingEventDispatchHelperTrait;
 

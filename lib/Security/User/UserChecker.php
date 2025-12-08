@@ -19,6 +19,7 @@ namespace OpenDxp\Security\User;
 
 use OpenDxp\Security\User\Exception\InvalidUserException;
 use OpenDxp\Tool\Authentication;
+use Override;
 use Symfony\Component\Security\Core\User\InMemoryUserChecker;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -28,7 +29,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class UserChecker extends InMemoryUserChecker
 {
-    #[\Override]
+    #[Override]
     public function checkPreAuth(UserInterface $user): void
     {
         $this->checkValidUser($user);

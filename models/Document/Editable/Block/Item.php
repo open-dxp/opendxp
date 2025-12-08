@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Editable\Block;
 
 use OpenDxp\Model\Document;
+use Override;
 
 class Item extends AbstractBlockItem
 {
@@ -25,7 +26,7 @@ class Item extends AbstractBlockItem
         return 'block';
     }
 
-    #[\Override]
+    #[Override]
     public function __call(string $func, array $args): ?Document\Editable
     {
         $element = $this->getEditable($args[0]);

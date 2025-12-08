@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Document;
 use OpenDxp;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Hardlink\Dao getDao()
@@ -56,7 +57,7 @@ class Hardlink extends Document
         return null;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = parent::resolveDependencies();
@@ -74,7 +75,7 @@ class Hardlink extends Document
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(array $tags = []): array
     {
         $tags = parent::getCacheTags($tags);
@@ -122,7 +123,7 @@ class Hardlink extends Document
         return $this->propertiesFromSource;
     }
 
-    #[\Override]
+    #[Override]
     public function getProperties(): array
     {
         if ($this->properties === null) {
@@ -153,7 +154,7 @@ class Hardlink extends Document
         return $this->properties;
     }
 
-    #[\Override]
+    #[Override]
     public function getChildren(bool $includingUnpublished = false): Listing
     {
         $cacheKey = $this->getListingCacheKey(func_get_args());
@@ -179,13 +180,13 @@ class Hardlink extends Document
         return $this->children[$cacheKey];
     }
 
-    #[\Override]
+    #[Override]
     public function hasChildren(?bool $includingUnpublished = null): bool
     {
         return count($this->getChildren((bool)$includingUnpublished)) > 0;
     }
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         parent::update($params);

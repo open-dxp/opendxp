@@ -25,8 +25,9 @@ use OpenDxp\Model\DataObject\QuantityValue\UnitConversionService;
 use OpenDxp\Model\DataObject\Traits\ObjectVarTrait;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Exception\NotFoundException;
+use Stringable;
 
-abstract class AbstractQuantityValue implements OwnerAwareFieldInterface, \Stringable
+abstract class AbstractQuantityValue implements OwnerAwareFieldInterface, Stringable
 {
     use ObjectVarTrait;
     use OwnerAwareFieldTrait;

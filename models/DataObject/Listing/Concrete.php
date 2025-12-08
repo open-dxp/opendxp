@@ -19,6 +19,7 @@ namespace OpenDxp\Model\DataObject\Listing;
 use Exception;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
+use Override;
 
 /**
  * @method DataObject\Listing\Concrete\Dao getDao()
@@ -211,10 +212,11 @@ abstract class Concrete extends Model\DataObject\Listing
      * @internal
      *
      */
-    #[\Override]
+    #[Override]
     public function addDistinct(): bool
     {
         $fieldCollections = $this->getFieldCollections();
+
         return $fieldCollections !== [];
     }
 

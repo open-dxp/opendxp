@@ -19,6 +19,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Concrete;
+use Override;
 
 class Time extends Model\DataObject\ClassDefinition\Data\Input
 {
@@ -68,7 +69,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         $this->maxValue = is_string($maxValue) && strlen($maxValue) ? $this->toTime($maxValue) : null;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         parent::checkValidity($data, $omitMandatoryCheck);
@@ -96,13 +97,13 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         }
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function isEmpty(mixed $data): bool
     {
         return !is_string($data) || !preg_match('/^(2[0-3]|[01]\d):[0-5]\d$/', $data);
@@ -161,7 +162,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         return $this->toTimestamp($subject, $baseTs) < $this->toTimestamp($comparison, $baseTs);
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
@@ -177,7 +178,7 @@ class Time extends Model\DataObject\ClassDefinition\Data\Input
         $this->increment = $increment;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'time';

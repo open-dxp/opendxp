@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgentInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\ErrorHandlingMode;
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -27,7 +28,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class OpenDxpGenericExecutionEngineExtension extends Extension
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp_generic_execution_engine';

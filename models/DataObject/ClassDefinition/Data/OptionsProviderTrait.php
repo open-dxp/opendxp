@@ -62,6 +62,7 @@ trait OptionsProviderTrait
         if ($this->getOptionsProviderType() === OptionsProviderInterface::TYPE_CONFIGURE) {
             return true;
         }
+
         return $this->getOptionsProviderType() === null && empty($this->getOptionsProviderClass());
     }
 }

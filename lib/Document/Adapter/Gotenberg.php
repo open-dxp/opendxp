@@ -24,6 +24,7 @@ use OpenDxp\Helper\GotenbergHelper;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Tool\Storage;
+use Override;
 
 /**
  * @internal
@@ -32,7 +33,7 @@ class Gotenberg extends Ghostscript
 {
     use GetTextConversionHelperTrait;
 
-    #[\Override]
+    #[Override]
     public function isAvailable(): bool
     {
         try {
@@ -47,7 +48,7 @@ class Gotenberg extends Ghostscript
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function isFileTypeSupported(string $fileType): bool
     {
         // it's also possible to pass a path or filename
@@ -63,7 +64,7 @@ class Gotenberg extends Ghostscript
         return GotenbergHelper::isAvailable();
     }
 
-    #[\Override]
+    #[Override]
     public function load(Asset\Document $asset): static
     {
         // avoid timeouts
@@ -90,7 +91,7 @@ class Gotenberg extends Ghostscript
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getPdf(?Asset\Document $asset = null)
     {
         if (!$asset && $this->asset) {

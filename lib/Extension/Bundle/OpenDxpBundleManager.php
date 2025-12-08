@@ -229,6 +229,7 @@ class OpenDxpBundleManager
         if ($bundle instanceof OpenDxpBundleInterface) {
             return $bundle::class;
         }
+
         return $bundle;
     }
 

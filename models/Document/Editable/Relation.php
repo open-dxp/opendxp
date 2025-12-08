@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Document\Editable;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Element;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -181,10 +182,11 @@ class Relation extends Model\Document\Editable implements IdRewriterInterface, E
     public function isEmpty(): bool
     {
         $this->setElement();
+
         return !$this->getElement() instanceof Element\ElementInterface;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -202,7 +204,7 @@ class Relation extends Model\Document\Editable implements IdRewriterInterface, E
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -221,7 +223,7 @@ class Relation extends Model\Document\Editable implements IdRewriterInterface, E
         return $sane;
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];

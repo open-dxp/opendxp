@@ -50,6 +50,7 @@ class SettingsController extends UserAwareController
                     throw new ConfigWriteException();
                 }
                 $route->delete();
+
                 return $this->jsonResponse(['success' => true, 'data' => []]);
             }
             if ($request->query->getString('xaction') === 'update') {
@@ -60,6 +61,7 @@ class SettingsController extends UserAwareController
                 }
                 $route->setValues($data);
                 $route->save();
+
                 return $this->jsonResponse(['data' => $route->getObjectVars(), 'success' => true]);
             }
 
@@ -74,6 +76,7 @@ class SettingsController extends UserAwareController
                 $route->save();
                 $responseData = $route->getObjectVars();
                 $responseData['writeable'] = $route->isWriteable();
+
                 return $this->jsonResponse(['data' => $responseData, 'success' => true]);
             }
         } else {

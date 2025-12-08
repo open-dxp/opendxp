@@ -23,6 +23,7 @@ use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Tool;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -225,7 +226,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): array
     {
         return [
@@ -270,7 +271,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $this->getEmptyCode();
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -297,7 +298,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(): bool
     {
         $valid = true;
@@ -324,7 +325,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         return $valid;
     }
 
-    #[\Override]
+    #[Override]
     public function admin()
     {
         $html = parent::admin();

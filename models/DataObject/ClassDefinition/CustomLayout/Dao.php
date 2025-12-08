@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\CustomLayout;
 use Exception;
 use OpenDxp\Config;
 use OpenDxp\Model;
+use Override;
 use Symfony\Component\Uid\Uuid as Uid;
 use Symfony\Component\Uid\UuidV4;
 
@@ -33,7 +34,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
      */
     protected $model;
 
-    #[\Override]
+    #[Override]
     public function configure(): void
     {
         $config = Config::getSystemConfiguration();
@@ -88,6 +89,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
             if ($name && $item->getName() !== $name) {
                 return false;
             }
+
             return true;
         }));
 
@@ -108,6 +110,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
             if ($id && $item->getId() != $id) {
                 return false;
             }
+
             return true;
         }));
 
@@ -180,7 +183,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $this->deleteData($this->model->getId());
     }
 
-    #[\Override]
+    #[Override]
     protected function prepareDataStructureForYaml(string $id, mixed $data): mixed
     {
         return [

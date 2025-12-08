@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OpenDxp\Navigation\Page;
 
 use OpenDxp\Navigation\Page;
+use Override;
 
 class Url extends Page
 {
@@ -89,7 +90,7 @@ class Url extends Page
 
     // Public methods:
 
-    #[\Override]
+    #[Override]
     public function toArray(): array
     {
         return [...parent::toArray(), 'uri' => $this->getUri()];

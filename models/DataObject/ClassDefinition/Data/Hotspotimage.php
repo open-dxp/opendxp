@@ -23,6 +23,7 @@ use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
+use Override;
 
 class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, QueryResourcePersistenceAwareInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, NormalizerInterface, IdRewriterInterface
 {
@@ -285,7 +286,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
      * @see Data::getVersionPreview
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         if ($data instanceof DataObject\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
@@ -295,7 +296,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $data = $this->getDataFromObjectParam($object, $params);
@@ -306,13 +307,13 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return '';
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
@@ -352,7 +353,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -498,6 +499,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
             'marker' => $newValue->getMarker(),
             'crop' => $newValue->getCrop(),
         ];
+
         return $this->isEqualArray($oldValue, $newValue);
     }
 
@@ -572,7 +574,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getFilterConditionExt(mixed $value, string $operator, array $params = []): string
     {
         $name = $params['name'] ?: $this->name;

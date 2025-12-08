@@ -27,6 +27,7 @@ use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\DataObject\Objectbrick;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool;
+use Override;
 use stdClass;
 
 class Objectbricks extends Data implements CustomResourcePersistingInterface, TypeDeclarationSupportInterface, NormalizerInterface, DataContainerAwareInterface, IdRewriterInterface, PreSetDataInterface
@@ -300,7 +301,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
         // this is handled directly in the template
@@ -308,13 +309,13 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return 'BRICKS';
     }
 
-    #[\Override]
+    #[Override]
     public function getForCsvExport(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         return 'NOT SUPPORTED';
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForSearchIndex(DataObject\Localizedfield|DataObject\Fieldcollection\Data\AbstractData|DataObject\Objectbrick\Data\AbstractData|DataObject\Concrete $object, array $params = []): string
     {
         $dataString = '';
@@ -407,7 +408,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $data;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(mixed $data): array
     {
         $dependencies = [];
@@ -432,7 +433,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(mixed $data, array $tags = []): array
     {
         if ($data instanceof DataObject\Objectbrick) {
@@ -455,7 +456,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function getGetterCode(DataObject\Objectbrick\Definition|DataObject\ClassDefinition|DataObject\Fieldcollection\Definition $class): string
     {
         $typeDeclaration = $this->getReturnTypeDeclaration() ? ': ' . $this->getReturnTypeDeclaration() : '';
@@ -492,7 +493,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $code . "}\n\n";
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(mixed $data, bool $omitMandatoryCheck = false, array $params = []): void
     {
         if ($data instanceof DataObject\Objectbrick) {
@@ -638,7 +639,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
     /** See parent class.
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataForEditMode(mixed $data, ?DataObject\Concrete $object = null, array $params = []): ?array
     {
         $editmodeData = [];
@@ -664,7 +665,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
      *
      *
      */
-    #[\Override]
+    #[Override]
     public function getDiffDataFromEditmode(array $data, ?DataObject\Concrete $object = null, array $params = []): mixed
     {
         $valueGetter = 'get' . ucfirst($this->getName());
@@ -707,7 +708,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
         return $brickdata;
     }
 
-    #[\Override]
+    #[Override]
     public function isDiffChangeAllowed(Concrete $object, array $params = []): bool
     {
         return true;
@@ -744,7 +745,7 @@ class Objectbricks extends Data implements CustomResourcePersistingInterface, Ty
     /**
      * @param DataObject\ClassDefinition\Data\Objectbricks $mainDefinition
      */
-    #[\Override]
+    #[Override]
     public function synchronizeWithMainDefinition(DataObject\ClassDefinition\Data $mainDefinition): void
     {
         $this->allowedTypes = $mainDefinition->allowedTypes;

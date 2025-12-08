@@ -282,7 +282,7 @@ class Csv
         $resolver->setAllowedTypes('targetSite', ['int', 'null']);
 
         $resolver->setAllowedTypes('statusCode', ['int']);
-        $resolver->setAllowedValues('statusCode', array_map(fn($code) => (int)$code, array_keys(Redirect::getStatusCodes())));
+        $resolver->setAllowedValues('statusCode', array_map(fn ($code) => (int)$code, array_keys(Redirect::getStatusCodes())));
 
         $resolver->setAllowedTypes('priority', ['int']);
         $resolver->setAllowedValues('priority', [...range(1, 10), 99]);

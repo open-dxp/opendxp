@@ -60,6 +60,7 @@ class ResponseHelper
         if ($response instanceof BinaryFileResponse || $response instanceof StreamedResponse) {
             return false;
         }
+
         return str_contains((string)$response->getContent(), '<html');
     }
 }

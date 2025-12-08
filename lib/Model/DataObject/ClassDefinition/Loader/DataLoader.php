@@ -19,13 +19,14 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Loader;
 
 use OpenDxp\Loader\ImplementationLoader\ImplementationLoader;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
+use Override;
 
 /**
  * @internal
  */
 final class DataLoader extends ImplementationLoader implements DataLoaderInterface
 {
-    #[\Override]
+    #[Override]
     public function build(string $name, array $params = []): Data
     {
         return parent::build($name, $params);

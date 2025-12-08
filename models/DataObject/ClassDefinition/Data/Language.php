@@ -20,6 +20,7 @@ use OpenDxp;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\ClassDefinition\Service;
 use OpenDxp\Tool;
+use Override;
 
 class Language extends Model\DataObject\ClassDefinition\Data\Select
 {
@@ -77,7 +78,7 @@ class Language extends Model\DataObject\ClassDefinition\Data\Select
         return $obj;
     }
 
-    #[\Override]
+    #[Override]
     public function jsonSerialize(): mixed
     {
         if (Service::doRemoveDynamicOptions()) {
@@ -87,7 +88,7 @@ class Language extends Model\DataObject\ClassDefinition\Data\Select
         return parent::jsonSerialize();
     }
 
-    #[\Override]
+    #[Override]
     public function resolveBlockedVars(): array
     {
         $blockedVars = parent::resolveBlockedVars();
@@ -96,13 +97,13 @@ class Language extends Model\DataObject\ClassDefinition\Data\Select
         return $blockedVars;
     }
 
-    #[\Override]
+    #[Override]
     public function isFilterable(): bool
     {
         return true;
     }
 
-    #[\Override]
+    #[Override]
     public function getFieldType(): string
     {
         return 'language';

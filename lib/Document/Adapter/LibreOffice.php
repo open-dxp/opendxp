@@ -22,6 +22,7 @@ use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Tool\Console;
 use OpenDxp\Tool\Storage;
+use Override;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Process\Process;
 
@@ -32,7 +33,7 @@ class LibreOffice extends Ghostscript
 {
     use GetTextConversionHelperTrait;
 
-    #[\Override]
+    #[Override]
     public function isAvailable(): bool
     {
         try {
@@ -47,7 +48,7 @@ class LibreOffice extends Ghostscript
         return false;
     }
 
-    #[\Override]
+    #[Override]
     public function isFileTypeSupported(string $fileType): bool
     {
         // it's also possible to pass a path or filename
@@ -63,7 +64,7 @@ class LibreOffice extends Ghostscript
         return Console::getExecutable('soffice', true);
     }
 
-    #[\Override]
+    #[Override]
     public function load(Asset\Document $asset): static
     {
         // avoid timeouts
@@ -90,7 +91,7 @@ class LibreOffice extends Ghostscript
         return $this;
     }
 
-    #[\Override]
+    #[Override]
     public function getPdf(?Asset\Document $asset = null)
     {
         if (!$asset && $this->asset) {

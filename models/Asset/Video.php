@@ -23,6 +23,7 @@ use OpenDxp\Event\FrontendEvents;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Tool;
+use Override;
 use RuntimeException;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -35,7 +36,7 @@ class Video extends Model\Asset
 
     protected string $type = 'video';
 
-    #[\Override]
+    #[Override]
     protected function update(array $params = []): void
     {
         if ($this->getDataChanged()) {
@@ -51,7 +52,7 @@ class Video extends Model\Asset
         parent::update($params);
     }
 
-    #[\Override]
+    #[Override]
     public function clearThumbnails(bool $force = false): void
     {
         if ($this->getDataChanged() || $force) {

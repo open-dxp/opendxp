@@ -17,6 +17,7 @@ namespace OpenDxp\Model\Version\Listing;
 
 use Exception;
 use OpenDxp\Model;
+use Override;
 
 /**
  * @internal
@@ -25,7 +26,7 @@ use OpenDxp\Model;
  */
 class Dao extends Model\Listing\Dao\AbstractDao
 {
-    #[\Override]
+    #[Override]
     public function getCondition(): string
     {
         $condition = parent::getCondition();

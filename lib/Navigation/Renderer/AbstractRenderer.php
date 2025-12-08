@@ -252,6 +252,7 @@ abstract class AbstractRenderer implements RendererInterface
         if ($found) {
             return ['page' => $found, 'depth' => $foundDepth];
         }
+
         return [];
     }
 

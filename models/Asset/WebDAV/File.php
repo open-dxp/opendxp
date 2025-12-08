@@ -21,6 +21,7 @@ use OpenDxp\File as FileHelper;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
 use OpenDxp\Tool\Admin as AdminTool;
+use Override;
 use Sabre\DAV;
 
 /**
@@ -135,6 +136,7 @@ class File extends DAV\File
         if ($this->asset->isAllowed('view')) {
             return $this->asset->getStream();
         }
+
         throw new DAV\Exception\Forbidden();
     }
 
@@ -160,7 +162,7 @@ class File extends DAV\File
      * Get size of file in bytes
      *
      */
-    #[\Override]
+    #[Override]
     public function getSize(): int
     {
         return $this->asset->getFileSize();

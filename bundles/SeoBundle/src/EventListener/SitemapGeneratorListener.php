@@ -30,8 +30,7 @@ class SitemapGeneratorListener implements EventSubscriberInterface
          * @var IteratorAggregate|GeneratorInterface[]
          */
         private readonly array|IteratorAggregate $generators
-    )
-    {
+    ) {
     }
 
     /**

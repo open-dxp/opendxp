@@ -31,6 +31,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Tool\HtmlUtils;
 use OpenDxp\Tool\Serialize;
+use Override;
 use RuntimeException;
 use Stringable;
 use Throwable;
@@ -207,7 +208,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
     protected function getEditmodeBlockStateAttributes(): array
     {
         $blockState = $this->getBlockState();
-        $blockNames = array_map(fn(BlockName $blockName) => $blockName->getRealName(), $blockState->getBlocks());
+        $blockNames = array_map(fn (BlockName $blockName) => $blockName->getRealName(), $blockState->getBlocks());
 
         return [
             'data-name' => $this->getName(),
@@ -390,7 +391,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
      * Returns only the properties which should be serialized
      *
      */
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         $finalVars = [];
@@ -406,7 +407,7 @@ abstract class Editable extends Model\AbstractModel implements Model\Document\Ed
         return $finalVars;
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

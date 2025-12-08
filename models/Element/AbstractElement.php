@@ -29,6 +29,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Element\Traits\DirtyIndicatorTrait;
 use OpenDxp\Model\User;
 use OpenDxp\Workflow\Manager;
+use Override;
 
 /**
  * @method Model\Document\Dao|Model\Asset\Dao|Model\DataObject\AbstractObject\Dao getDao()
@@ -332,6 +333,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         if ($asContainer) {
             return $properties[$name];
         }
+
         return $properties[$name]->getData();
     }
 
@@ -632,7 +634,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return ['dependencies', 'parent'];
     }
 
-    #[\Override]
+    #[Override]
     public function __sleep(): array
     {
         if ($this->isInDumpState()) {
@@ -663,7 +665,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         $this->setInDumpState(false);
     }
 
-    #[\Override]
+    #[Override]
     public function __clone(): void
     {
         parent::__clone();

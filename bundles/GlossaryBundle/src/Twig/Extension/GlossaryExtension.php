@@ -18,8 +18,6 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\GlossaryBundle\Twig\Extension;
 
 use OpenDxp\Bundle\GlossaryBundle\Tool\Processor;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFilter;
 
 /**
  * @internal

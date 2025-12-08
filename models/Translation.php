@@ -425,7 +425,7 @@ final class Translation extends AbstractModel
             if (count($data) > 1) {
                 $keys = $data[0];
                 // remove wrong quotes in some export/import constellations
-                $keys = array_map(fn($value) => trim($value, '﻿""'), $keys);
+                $keys = array_map(fn ($value) => trim($value, '﻿""'), $keys);
                 $data = array_slice($data, 1);
                 foreach ($data as $row) {
                     $keyValueArray = [];

@@ -20,6 +20,7 @@ use OpenDxp;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Asset;
+use Override;
 
 /**
  * @method \OpenDxp\Model\Document\Editable\Dao getDao()
@@ -44,7 +45,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getDataForResource(): array
     {
         return [
@@ -66,7 +67,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function getCacheTags(Model\Document\PageSnippet $ownerDocument, array $tags = []): array
     {
         $asset = $this->id ? Asset::getById($this->id) : null;
@@ -77,7 +78,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         return $tags;
     }
 
-    #[\Override]
+    #[Override]
     public function resolveDependencies(): array
     {
         $dependencies = [];
@@ -94,7 +95,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
         return $dependencies;
     }
 
-    #[\Override]
+    #[Override]
     public function checkValidity(): bool
     {
         $sane = true;
@@ -149,6 +150,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
             </div>
 HTML;
         }
+
         return $this->getErrorCode('Preview in progress or not a valid PDF file');
     }
 

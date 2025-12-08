@@ -19,8 +19,6 @@ namespace OpenDxp\Model\DataObject\Classificationstore;
 use Exception;
 use OpenDxp;
 use OpenDxp\Model\DataObject;
-use OpenDxp\Model\DataObject\ClassDefinition\Data;
-use OpenDxp\Model\DataObject\ClassDefinition\Data\EncryptedField;
 
 /**
  * @internal

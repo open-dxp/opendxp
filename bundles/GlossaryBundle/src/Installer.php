@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\GlossaryBundle;
 
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
+use Override;
 
 /**
  * @internal
@@ -29,7 +30,7 @@ class Installer extends SettingsStoreAwareInstaller
         'glossary',
     ];
 
-    #[\Override]
+    #[Override]
     public function install(): void
     {
         $this->installDatabaseTable();
@@ -37,7 +38,7 @@ class Installer extends SettingsStoreAwareInstaller
         parent::install();
     }
 
-    #[\Override]
+    #[Override]
     public function uninstall(): void
     {
         $this->uninstallDatabaseTable();

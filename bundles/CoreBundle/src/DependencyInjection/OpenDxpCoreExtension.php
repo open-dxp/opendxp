@@ -26,6 +26,7 @@ use OpenDxp\Loader\ImplementationLoader\PrefixLoader;
 use OpenDxp\Model\Document\Editable\Loader\EditableLoader;
 use OpenDxp\Model\Document\Editable\Loader\PrefixLoader as DocumentEditablePrefixLoader;
 use OpenDxp\Model\Factory;
+use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -40,7 +41,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
  */
 final class OpenDxpCoreExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    #[\Override]
+    #[Override]
     public function getAlias(): string
     {
         return 'opendxp';

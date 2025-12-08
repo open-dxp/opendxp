@@ -21,8 +21,9 @@ use OpenDxp\Model\DataObject\OwnerAwareFieldInterface;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Element\ElementDescriptor;
 use OpenDxp\Model\Element\Service;
+use Stringable;
 
-class Hotspotimage implements OwnerAwareFieldInterface, \Stringable
+class Hotspotimage implements OwnerAwareFieldInterface, Stringable
 {
     use OwnerAwareFieldTrait;
 
@@ -41,7 +42,7 @@ class Hotspotimage implements OwnerAwareFieldInterface, \Stringable
     public function __construct(Asset\Image|int|null $image = null, array $hotspots = [], array $marker = [], /**
      * @var array[]|null
      */
-    protected ?array $crop = [])
+        protected ?array $crop = [])
     {
         if ($image instanceof Asset\Image) {
             $this->image = $image;

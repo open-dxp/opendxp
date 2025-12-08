@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data;
 use Exception;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data;
 use OpenDxp\Model\Listing\AbstractListing;
+use Override;
 
 /**
  * @internal
@@ -56,7 +57,7 @@ class Listing extends AbstractListing
         $this->initDao(self::class);
     }
 
-    #[\Override]
+    #[Override]
     public function isValidOrderKey(string $key): bool
     {
         return in_array(
