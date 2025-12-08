@@ -95,13 +95,14 @@ class EncryptedField implements OwnerAwareFieldInterface
      */
     public function __wakeup(): void
     {
+        $this->plain = null;
+
         if ($this->encrypted) {
             try {
                 $key = OpenDxp::getContainer()->getParameter('opendxp.encryption.secret');
                 $key = Key::loadFromAsciiSafeString($key);
 
                 $data = Crypto::decrypt($this->encrypted, $key, true);
-
                 $data = Serialize::unserialize($data);
 
                 if ($data instanceof OwnerAwareFieldInterface) {
