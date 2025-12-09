@@ -43,9 +43,6 @@ class Hotspotimage implements OwnerAwareFieldInterface, Stringable
         Asset\Image|int|null $image = null,
         array $hotspots = [],
         array $marker = [],
-        /**
-         * @var array[]|null
-         */
         protected ?array $crop = []
     ) {
         if ($image instanceof Asset\Image) {
@@ -63,6 +60,7 @@ class Hotspotimage implements OwnerAwareFieldInterface, Stringable
         foreach ($marker as $m) {
             $this->marker[] = $m;
         }
+
         $this->markMeDirty();
     }
 

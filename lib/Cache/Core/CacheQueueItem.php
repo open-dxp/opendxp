@@ -25,16 +25,10 @@ class CacheQueueItem
 {
     protected int $priority = 0;
 
-    /**
-     * @param string[] $tags
-     */
     public function __construct(
         protected string $key,
         protected mixed $data,
         protected array $tags = [],
-        /**
-         * @param int|DateInterval|null $lifetime
-         */
         protected int|null|DateInterval $lifetime = null,
         ?int $priority = 0,
         protected bool $force = false

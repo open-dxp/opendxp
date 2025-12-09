@@ -40,13 +40,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
     public function __construct(
         ?Model\Asset\Video $asset,
         array|string|Image\Thumbnail\Config|null $config = null,
-        /**
-         * @internal
-         */
         protected ?int $timeOffset = null,
-        /**
-         * @internal
-         */
         protected ?Image $imageAsset = null,
         bool $deferred = true
     ) {
