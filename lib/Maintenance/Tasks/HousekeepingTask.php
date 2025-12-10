@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Maintenance\Tasks;
 
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Maintenance\TaskInterface;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -74,7 +75,7 @@ class HousekeepingTask implements TaskInterface
                 @unlink($file->getPathname());
             }
 
-            if (is_dir_empty($file->getPath())) {
+            if (FileSystemHelper::isDirEmpty($file->getPath())) {
                 @rmdir($file->getPath());
             }
         }

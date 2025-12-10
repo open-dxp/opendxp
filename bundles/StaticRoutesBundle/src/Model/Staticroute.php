@@ -396,7 +396,7 @@ final class Staticroute extends AbstractModel
             $value = str_replace($forbiddenCharacters, '', $value);
             if ((string) $value !== '') {
                 if ($encode) {
-                    $value = urlencode_ignore_slash($value);
+                    $value = OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($value);
                 }
                 $value = str_replace('%', $urlEncodeEscapeCharacters, $value);
                 $url = str_replace('%' . $key, $value, $url);
@@ -409,7 +409,7 @@ final class Staticroute extends AbstractModel
 
         // optional get parameters
         if ($parametersGet !== []) {
-            $getParams = $encode ? array_urlencode($parametersGet) : array_toquerystring($parametersGet);
+            $getParams = $encode ? http_build_query($parametersGet) : OpenDxp\Helper\ArrayHelper::arrayToQueryString($parametersGet);
             $url .= '?' . $getParams;
         }
 

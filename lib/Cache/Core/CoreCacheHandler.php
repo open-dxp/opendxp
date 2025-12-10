@@ -20,6 +20,7 @@ use Closure;
 use DateInterval;
 use DeepCopy\TypeMatcher\TypeMatcher;
 use OpenDxp\Event\CoreCacheEvents;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Model\Document\Hardlink\Wrapper\WrapperInterface;
 use OpenDxp\Model\Element\DeepCopy\CarbonPeriodFilter;
 use OpenDxp\Model\Element\ElementDumpStateInterface;
@@ -487,7 +488,7 @@ class CoreCacheHandler implements LoggerAwareInterface
                 if (!is_scalar($itemData)) {
                     $itemData = serialize($itemData);
                 }
-                $itemSizeText = formatBytes(mb_strlen((string) $itemData));
+                $itemSizeText = FileSystemHelper::formatBytes(mb_strlen((string) $itemData));
             } catch (Throwable) {
                 $itemSizeText = 'unknown';
             }

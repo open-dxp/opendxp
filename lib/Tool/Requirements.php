@@ -21,6 +21,8 @@ use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Exception;
 use IntlDateFormatter;
+use OpenDxp\Helper\ArrayHelper;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Helper\GotenbergHelper;
 use OpenDxp\Image;
 use OpenDxp\Tool\Requirements\Check;
@@ -87,13 +89,13 @@ final class Requirements
         // innodb
         $checks[] = new Check([
             'name' => 'InnoDB Support',
-            'state' => ($engines && in_arrayi('innodb', $engines)) ? Check::STATE_OK : Check::STATE_ERROR,
+            'state' => ($engines && ArrayHelper::inArrayCaseInsensitive('innodb', $engines)) ? Check::STATE_OK : Check::STATE_ERROR,
         ]);
 
         // ARCHIVE & MyISAM
         $checks[] = new Check([
             'name' => 'ARCHIVE or MyISAM Support',
-            'state' => ($engines && (in_arrayi('archive', $engines) || in_arrayi('myisam', $engines))) ? Check::STATE_OK : Check::STATE_WARNING,
+            'state' => ($engines && (ArrayHelper::inArrayCaseInsensitive('archive', $engines) || ArrayHelper::inArrayCaseInsensitive('myisam', $engines))) ? Check::STATE_OK : Check::STATE_WARNING,
         ]);
 
         // check database charset =>  utf-8 encoding
@@ -107,7 +109,7 @@ final class Requirements
         $largePrefix = $db->fetchAssociative("SHOW GLOBAL VARIABLES LIKE 'innodb\_large\_prefix';");
         $checks[] = new Check([
             'name' => 'innodb_large_prefix = ON ',
-            'state' => ($largePrefix && !in_arrayi(strtolower((string) $largePrefix['Value']), ['on', '1', ''])) ? Check::STATE_ERROR : Check::STATE_OK,
+            'state' => ($largePrefix && !ArrayHelper::inArrayCaseInsensitive(strtolower((string) $largePrefix['Value']), ['on', '1', ''])) ? Check::STATE_ERROR : Check::STATE_OK,
         ]);
 
         $fileFormat = $db->fetchAssociative("SHOW GLOBAL VARIABLES LIKE 'innodb\_file\_format';");
@@ -119,7 +121,7 @@ final class Requirements
         $fileFilePerTable = $db->fetchAssociative("SHOW GLOBAL VARIABLES LIKE 'innodb\_file\_per\_table';");
         $checks[] = new Check([
             'name' => 'innodb_file_per_table = ON',
-            'state' => ($fileFilePerTable && !in_arrayi(strtolower((string) $fileFilePerTable['Value']), ['on', '1'])) ? Check::STATE_ERROR : Check::STATE_OK,
+            'state' => ($fileFilePerTable && !ArrayHelper::inArrayCaseInsensitive(strtolower((string) $fileFilePerTable['Value']), ['on', '1'])) ? Check::STATE_ERROR : Check::STATE_OK,
         ]);
 
         // create table
@@ -494,7 +496,7 @@ final class Requirements
         // check bytes of memory limit if it's not set to unlimited ('-1')
         // https://php.net/manual/en/ini.core.php#ini.memory-limit
         if ($memoryLimit !== '-1') {
-            $memoryLimit = filesize2bytes($memoryLimit . 'B');
+            $memoryLimit = FileSystemHelper::filesizeToBytes($memoryLimit . 'B');
             if ($memoryLimit < 67108000) {
                 $memoryLimitState = Check::STATE_ERROR;
                 $memoryLimitMessage = 'Your memory limit is by far too low. Set `memory_limit` in your php.ini at least to `150M`.';

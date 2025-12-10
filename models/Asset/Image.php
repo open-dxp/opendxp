@@ -121,7 +121,7 @@ EOT;
         $path = $storagePath;
 
         if (Tool::isFrontend()) {
-            $path = urlencode_ignore_slash($storagePath);
+            $path = OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($storagePath);
             $prefix = Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
             $path = $prefix . $path;
         }

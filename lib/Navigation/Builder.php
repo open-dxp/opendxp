@@ -20,6 +20,7 @@ use CallbackFilterIterator;
 use Closure;
 use Exception;
 use OpenDxp\Cache as CacheManager;
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Logger;
 use OpenDxp\Model\Document;
@@ -141,7 +142,7 @@ class Builder
             }
 
             if ($pageCallback instanceof Closure) {
-                $cacheKeys[] = 'pageCallback_' . closureHash($pageCallback);
+                $cacheKeys[] = 'pageCallback_' . StringHelper::closureHash($pageCallback);
             }
 
             if ($maxDepth) {

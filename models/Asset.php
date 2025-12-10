@@ -31,6 +31,7 @@ use OpenDxp\Event\AssetEvents;
 use OpenDxp\Event\FrontendEvents;
 use OpenDxp\Event\Model\AssetEvent;
 use OpenDxp\File;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Helper\TemporaryFileHelperTrait;
 use OpenDxp\Loader\ImplementationLoader\Exception\UnsupportedException;
 use OpenDxp\Localization\LocaleServiceInterface;
@@ -884,7 +885,7 @@ class Asset extends Element\AbstractElement
     public function getFrontendFullPath(): string
     {
         $path = $this->getPath() . $this->getFilename();
-        $path = urlencode_ignore_slash($path);
+        $path = OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
 
         $prefix = Config::getSystemConfiguration('assets')['frontend_prefixes']['source'];
         $path = $prefix . $path;
@@ -1559,7 +1560,7 @@ class Asset extends Element\AbstractElement
         }
 
         if ($formatted) {
-            return formatBytes($bytes, $precision);
+            return FileSystemHelper::formatBytes($bytes, $precision);
         }
 
         return $bytes;

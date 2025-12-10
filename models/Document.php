@@ -758,11 +758,12 @@ class Document extends Element\AbstractElement
     private function prepareFrontendPath(string $path): string
     {
         if (Tool::isFrontend()) {
-            $path = urlencode_ignore_slash($path);
+            $path = OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
 
             $event = new GenericEvent($this, [
                 'frontendPath' => $path,
             ]);
+
             $this->dispatchEvent($event, FrontendEvents::DOCUMENT_PATH);
             $path = $event->getArgument('frontendPath');
         }

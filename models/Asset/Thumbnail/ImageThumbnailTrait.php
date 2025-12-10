@@ -292,15 +292,15 @@ trait ImageThumbnailTrait
         }
         if ($type === 'deferred') {
             $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail_deferred'];
-            $path = $prefix . urlencode_ignore_slash($path);
+            $path = $prefix . \OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
         } elseif ($type === 'thumbnail') {
             $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
-            $path = $prefix . urlencode_ignore_slash($path);
+            $path = $prefix . \OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
         } elseif ($type === 'asset') {
             $prefix = \OpenDxp\Config::getSystemConfiguration('assets')['frontend_prefixes']['source'];
-            $path = $prefix . urlencode_ignore_slash($path);
+            $path = $prefix . \OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
         } else {
-            $path = urlencode_ignore_slash($path);
+            $path = \OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($path);
         }
 
         return $path;

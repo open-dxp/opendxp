@@ -8,7 +8,8 @@ Provide a URL and make use of the context paramater to render a response of your
 Note that you can provide a freely selectable string that will be added to the context information. See the output of the example below.
 
 ## Sample Controller Code
-```
+
+```php
 <?php
 
 namespace App\Controller;
@@ -16,13 +17,11 @@ namespace App\Controller;
 use OpenDxp\Model\DataObject\Service;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class IFrameController extends \OpenDxp\Controller\FrontendController
 {
-    /**
-     * @Route("/iframe/summary")
-     */
+     #[Route('/iframe/summary')]
     public function summaryAction(Request $request): Response
     {
         $context = json_decode($request->query->getString("context"), true);
@@ -41,7 +40,8 @@ class IFrameController extends \OpenDxp\Controller\FrontendController
         $response =  '<h1>Title for language "' . $language . '": '  . $object->getTitle($language) . "</h1>";
 
         $response .= '<h2>Context</h2>';
-        $response .= array_to_html_attribute_string($context);
+        $response .= \OpenDxp\Helper\StringHelper::arrayToHtmlAttributeString($context);
+        
         return new Response($response);
     }
 }

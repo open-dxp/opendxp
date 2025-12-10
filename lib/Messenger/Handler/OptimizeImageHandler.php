@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Messenger\Handler;
 
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Image\ImageOptimizerInterface;
 use OpenDxp\Messenger\OptimizeImageMessage;
 use OpenDxp\Tool\Storage;
@@ -54,7 +55,7 @@ class OptimizeImageHandler implements BatchHandlerInterface
                     $originalFilesize = $storage->fileSize($path);
                     $this->optimizer->optimizeImage($path);
 
-                    $this->logger->debug('Optimized image: '.$path.' saved '.formatBytes($originalFilesize - $storage->fileSize($path)));
+                    $this->logger->debug('Optimized image: '.$path.' saved '.FileSystemHelper::formatBytes($originalFilesize - $storage->fileSize($path)));
                 } else {
                     $this->logger->debug('Skip optimizing of '.$path." because it doesn't exist anymore");
                 }

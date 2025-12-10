@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\DataObject\Data;
 
 use Exception;
+use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
@@ -64,7 +65,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
     {
         if (str_starts_with($method, 'get')) {
             $key = substr($method, 3, strlen($method) - 3);
-            $idx = array_searchi($key, $this->columns);
+            $idx = ArrayHelper::arraySearchCaseInsensitive($key, $this->columns);
 
             if ($idx !== false) {
                 $correctedKey = $this->columns[$idx];
@@ -77,7 +78,7 @@ class ElementMetadata extends Model\AbstractModel implements DataObject\OwnerAwa
 
         if (str_starts_with($method, 'set')) {
             $key = substr($method, 3);
-            $idx = array_searchi($key, $this->columns);
+            $idx = ArrayHelper::arraySearchCaseInsensitive($key, $this->columns);
 
             if ($idx !== false) {
                 $correctedKey = $this->columns[$idx];

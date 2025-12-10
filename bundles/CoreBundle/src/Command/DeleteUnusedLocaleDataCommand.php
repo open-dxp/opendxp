@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Console\Traits\DryRun;
 use OpenDxp\Db;
+use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Tool;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -77,7 +78,7 @@ class DeleteUnusedLocaleDataCommand extends AbstractCommand
             //delete data from object_localized_data_classID tables
             foreach ($result as $res) {
                 $language = $res['language'];
-                if (!in_arrayi($language, $skipLocales) && !in_arrayi($language, $validLanguages)) {
+                if (!ArrayHelper::inArrayCaseInsensitive($language, $skipLocales) && !ArrayHelper::inArrayCaseInsensitive($language, $validLanguages)) {
                     $sqlDeleteData = 'Delete FROM object_localized_data_' . $classId  . ' WHERE `language` = ' . $db->quote($language);
                     $printLine = true;
                     if (!$this->isDryRun()) {
@@ -95,7 +96,7 @@ class DeleteUnusedLocaleDataCommand extends AbstractCommand
                 $localizedView = current($existingView);
                 $existingLanguage = str_replace('object_localized_'.$classId.'_', '', $localizedView);
 
-                if (!in_arrayi($existingLanguage, $validLanguages)) {
+                if (!ArrayHelper::inArrayCaseInsensitive($existingLanguage, $validLanguages)) {
                     $sqlDropView = 'DROP VIEW IF EXISTS object_localized_' . $classId . '_' .$existingLanguage;
                     $printLine = true;
 
@@ -114,7 +115,7 @@ class DeleteUnusedLocaleDataCommand extends AbstractCommand
                 $localizedTable = current($existingTable);
                 $existingLanguage = str_replace('object_localized_query_'.$classId.'_', '', $localizedTable);
 
-                if (!in_arrayi($existingLanguage, $validLanguages)) {
+                if (!ArrayHelper::inArrayCaseInsensitive($existingLanguage, $validLanguages)) {
                     $sqlDropTable = 'DROP TABLE IF EXISTS object_localized_query_' . $classId . '_' .$existingLanguage;
                     $printLine = true;
 

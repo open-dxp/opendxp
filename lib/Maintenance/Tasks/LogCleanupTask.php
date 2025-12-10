@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Maintenance\Tasks;
 
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Maintenance\TaskInterface;
 use OpenDxp\Model\Tool\TmpStore;
 
@@ -65,7 +66,7 @@ class LogCleanupTask implements TaskInterface
             if (filemtime($file) < (time() - (86400 * 7))) { // we keep the logs for 7 days
                 unlink($file);
             } elseif (!preg_match("/\.gz$/", $file)) {
-                gzcompressfile($file);
+                FileSystemHelper::gzCompressFile($file);
                 unlink($file);
             }
         }

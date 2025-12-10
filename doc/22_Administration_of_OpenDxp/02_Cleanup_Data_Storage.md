@@ -63,7 +63,7 @@ Db::get()->executeQuery('TRUNCATE TABLE assets_image_thumbnail_cache');
 Tool\Storage::get('asset_cache')->deleteDirectory('/');
 
 // clear system files
-recursiveDelete(OPENDXP_SYSTEM_TEMP_DIRECTORY, false);
+\OpenDxp\Helper\FileSystemHelper::recursiveDelete(OPENDXP_SYSTEM_TEMP_DIRECTORY, false);
 ```
 All temporary files can be deleted at any time.   
 **WARNING: Deleting all files in `public/var/tmp/` can have a huge impact on performance until all needed thumbnails are generated again.**

@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Twig\Extension;
 
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
@@ -57,7 +58,7 @@ class OpenDxpObjectExtension extends AbstractExtension
 
     public function getFieldDefinitionFromJson(array|string $definition, string $type): ?DataObject\ClassDefinition\Data
     {
-        if (is_json($definition)) {
+        if (StringHelper::isValidJson($definition)) {
             $definition = json_decode($definition, true);
         }
 

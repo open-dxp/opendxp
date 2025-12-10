@@ -13,57 +13,50 @@
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+use OpenDxp\Helper;
+
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @return array<string, mixed>
  */
 function xmlToArray(string $file): array
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "xmlToArray()" is deprecated and will be removed in 2.0.');
+
     $xml = simplexml_load_file($file, null, LIBXML_NOCDATA);
     $json = json_encode((array) $xml);
 
     return json_decode($json, true);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function gzcompressfile(string $source, ?int $level = null, ?string $target = null): false|string
 {
-    // this is a very memory efficient way of gzipping files
-    $dest = $target ?: $source.'.gz';
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "gzcompressfile()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::gzCompressFile()" instead.');
 
-    $mode = 'wb' . $level;
-    $error = false;
-    if ($fp_out = gzopen($dest, $mode)) {
-        if ($fp_in = fopen($source, 'rb')) {
-            while (!feof($fp_in)) {
-                gzwrite($fp_out, fread($fp_in, 1024 * 512));
-            }
-            fclose($fp_in);
-        } else {
-            $error = true;
-        }
-        gzclose($fp_out);
-    } else {
-        $error = true;
-    }
-    if ($error) {
-        return false;
-    }
-
-    return $dest;
+    return Helper\FileSystemHelper::gzCompressFile($source, $level, $target);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function is_json(mixed $string): bool
 {
-    if (is_string($string)) {
-        json_decode($string);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "is_json()" is deprecated, use "\OpenDxp\Helper\StringHelper::isValidJson()" instead.');
 
-        return json_last_error() === JSON_ERROR_NONE;
-    }
-
-    return false;
+    return Helper\StringHelper::isValidJson($string);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function foldersize(string $path): int
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "foldersize()" is deprecated and will be removed in 2.0..');
+
     $total_size = 0;
     $files = scandir($path);
     $cleanPath = rtrim($path, '/'). '/';
@@ -85,27 +78,26 @@ function foldersize(string $path): int
 }
 
 /**
- * @param string[] $values
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
  */
 function replace_pcre_backreferences(string $string, array $values): string
 {
-    array_unshift($values, '');
-    $string = str_replace('\$', '###PCRE_PLACEHOLDER###', $string);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "replace_pcre_backreferences()" is deprecated, use "\OpenDxp\Helper\StringHelper::replacePcreBackreferences()" instead.');
 
-    foreach ($values as $key => $value) {
-        $string = str_replace('$'.$key, $value, $string);
-    }
-
-    return str_replace('###URLENCODE_PLACEHOLDER###', '$', $string);
+    return Helper\StringHelper::replacePcreBackreferences($string, $values);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @param mixed[] $array
  *
  * @return mixed[]
  */
 function array_htmlspecialchars(array $array): array
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "array_htmlspecialchars()" is deprecated and will be removed in 2.0.');
+
     foreach ($array as $key => $value) {
         if (is_string($value) || is_numeric($value)) {
             $array[$key] = htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
@@ -117,90 +109,89 @@ function array_htmlspecialchars(array $array): array
     return $array;
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function in_arrayi(string $needle, array $haystack): bool
 {
-    return in_array(strtolower($needle), array_map(strtolower(...), $haystack));
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "in_arrayi()" is deprecated, use "\OpenDxp\Helper\ArrayHelper::inArrayCaseInsensitive()" instead.');
+
+    return Helper\ArrayHelper::inArrayCaseInsensitive($needle, $haystack);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @return false|int|string the key for needle if it is found in the array, false otherwise.
  */
 function array_searchi(string $needle, array $haystack): false|int|string
 {
-    return array_search(strtolower($needle), array_map(strtolower(...), $haystack));
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "array_searchi()" is deprecated, use "\OpenDxp\Helper\ArrayHelper::arraySearchCaseInsensitive()" instead.');
+
+    return Helper\ArrayHelper::arraySearchCaseInsensitive($needle, $haystack);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @return array<string, mixed>
  */
 function object2array(object $node): array
 {
-    // dirty hack, should be replaced
-    $paj = json_encode($node);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "object2array()" is deprecated, use "\OpenDxp\Helper\ArrayHelper::objectToArray()" instead.');
 
-    if (JSON_ERROR_NONE !== json_last_error()) {
-        throw new \InvalidArgumentException(json_last_error_msg());
-    }
-
-    return @json_decode($paj, true);
+    return Helper\ArrayHelper::objectToArray($node);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function array_urlencode(array $args): string
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "array_urlencode()" is deprecated, use "\http_build_query()" instead.');
+
     return http_build_query($args);
 }
 
 /**
- * same as array_urlencode but no urlencode()
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
  */
 function array_toquerystring(array $args): string
 {
-    return urldecode(http_build_query($args));
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "array_toquerystring()" is deprecated, use "\OpenDxp\Helper\ArrayHelper::arrayToQueryString()" instead.');
+
+    return Helper\ArrayHelper::arrayToQueryString($args);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @param array $array with attribute names as keys, and values as values
  */
 function array_to_html_attribute_string(array $array): string
 {
-    $data = [];
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "array_to_html_attribute_string()" is deprecated, use "\OpenDxp\Helper\StringHelper::arrayToHtmlAttributeString()" instead.');
 
-    foreach ($array as $key => $value) {
-        if (is_scalar($value)) {
-            $data[] = $key . '="' . htmlspecialchars($value) . '"';
-        } elseif (is_string($key) && is_null($value)) {
-            $data[] = $key;
-        }
-    }
-
-    return implode(' ', $data);
+    return Helper\StringHelper::arrayToHtmlAttributeString($array);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function urlencode_ignore_slash(string $var): string
 {
-    $scheme = parse_url($var, PHP_URL_SCHEME);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "urlencode_ignore_slash()" is deprecated, use "\OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash()" instead.');
 
-    if ($scheme) {
-        $var = str_replace($scheme . '://', '', $var);
-    }
-
-    $placeholder = 'x-X-x-ignore-' . md5(microtime()) . '-slash-x-X-x';
-    $var = str_replace('/', $placeholder, $var);
-    $var = rawurlencode($var);
-    $var = str_replace($placeholder, '/', $var);
-
-    if ($scheme) {
-        $var = $scheme . '://' . $var;
-    }
-
-    // allow @2x for retina thumbnails, ...
-    $var = preg_replace("/%40([\d]+)x\./", '@$1x.', $var);
-
-    return $var;
+    return Helper\StringHelper::urlEncodeIgnoreSlash($var);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function return_bytes(string $val): int
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling return_bytes()" is deprecated and will be removed in 2.0.');
+
     $val = trim($val);
     $last = strtolower($val[strlen($val) - 1]);
     $bytes = (int)$val;
@@ -218,65 +209,44 @@ function return_bytes(string $val): int
     return $bytes;
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function formatBytes(int $bytes, int $precision = 2): string
 {
-    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "formatBytes()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::formatBytes()" instead.');
 
-    $bytes = max($bytes, 0);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1000));
-    $pow = min($pow, count($units) - 1);
-
-    $bytes /= 1000 ** $pow;
-
-    return round($bytes, $precision) . ' ' . $units[$pow];
-}
-
-function filesize2bytes(string $str): int
-{
-    $bytes_array = [
-        'K' => 1024,
-        'M' => 1024 * 1024,
-        'G' => 1024 * 1024 * 1024,
-        'T' => 1024 * 1024 * 1024 * 1024,
-        'P' => 1024 * 1024 * 1024 * 1024 * 1024,
-    ];
-
-    $bytes = (float)$str;
-
-    if (preg_match('#([KMGTP])?B?$#si', $str, $matches) && (array_key_exists(1, $matches) && !empty($bytes_array[$matches[1]]))) {
-        $bytes *= $bytes_array[$matches[1]];
-    }
-
-    return (int)round($bytes, 2);
+    return Helper\FileSystemHelper::formatBytes($bytes, $precision);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
+function filesize2bytes(string $str): int
+{
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "filesize2bytes()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::filesizeToBytes()" instead.');
+
+    return Helper\FileSystemHelper::filesizeToBytes($str);
+}
+
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * @param string[] $data
  *
  * @return string[]
  */
 function rscandir(string $base = '', array &$data = []): array
 {
-    if (substr($base, -1, 1) !== DIRECTORY_SEPARATOR) { //add trailing slash if it doesn't exists
-        $base .= DIRECTORY_SEPARATOR;
-    }
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "rscandir()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::scanDirectory()" instead.');
 
-    $array = array_diff(scandir($base), ['.', '..', '.svn']);
-    foreach ($array as $value) {
-        if (is_dir($base . $value)) {
-            $data[] = $base . $value . DIRECTORY_SEPARATOR;
-            $data = rscandir($base . $value . DIRECTORY_SEPARATOR, $data);
-        } elseif (is_file($base . $value)) {
-            $data[] = $base . $value;
-        }
-    }
-
-    return $data;
+    return Helper\FileSystemHelper::scanDirectory($base);
 }
 
 /**
- * Wrapper for explode() to get a trimmed array
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
  *
+ * Wrapper for explode() to get a trimmed array
  *
  * @return string[]
  *
@@ -284,54 +254,28 @@ function rscandir(string $base = '', array &$data = []): array
  */
 function explode_and_trim(string $delimiter, string $string, int $limit = PHP_INT_MAX, bool $useArrayFilter = true): array
 {
-    $exploded = explode($delimiter, $string, $limit);
-    foreach ($exploded as $key => $value) {
-        $exploded[$key] = trim($value);
-    }
-    if ($useArrayFilter) {
-        return array_filter($exploded);
-    }
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "explode_and_trim()" is deprecated, use "\OpenDxp\Helper\ArrayHelper::explodeAndTrim()" instead.');
 
-    return $exploded;
+    return Helper\ArrayHelper::explodeAndTrim($delimiter, $string, $limit, $useArrayFilter);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function recursiveDelete(string $directory, bool $empty = true): bool
 {
-    if (is_dir($directory)) {
-        $directory = rtrim($directory, '/');
-        if (!file_exists($directory) || !is_dir($directory)) {
-            return false;
-        }
-        if (!is_readable($directory)) {
-            return false;
-        }
-        $directoryHandle = opendir($directory);
-        $contents = '.';
-        while ($contents) {
-            $contents = readdir($directoryHandle);
-            if ($contents !== false && $contents !== '.' && $contents !== '..') {
-                $path = $directory . '/' . $contents;
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "recursiveDelete()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::recursiveDelete()" instead.');
 
-                if (is_dir($path)) {
-                    recursiveDelete($path);
-                } else {
-                    unlink($path);
-                }
-            }
-        }
-        closedir($directoryHandle);
-
-        return !($empty && !rmdir($directory));
-    }
-    if (is_file($directory)) {
-        return unlink($directory);
-    }
-
-    return false;
+    return Helper\FileSystemHelper::recursiveDelete($directory, $empty);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function p_r(): void
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling p_r()" is deprecated and will be removed in 2.0.');
+
     $cloner = new \Symfony\Component\VarDumper\Cloner\VarCloner();
     $dumper = 'cli' === PHP_SAPI ? new \Symfony\Component\VarDumper\Dumper\CliDumper() : new \Symfony\Component\VarDumper\Dumper\HtmlDumper();
 
@@ -341,12 +285,14 @@ function p_r(): void
 }
 
 /**
- * @param string[] $array
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
  *
  * @return string[]
  */
 function wrapArrayElements(array $array, string $prefix = "'", string $suffix = "'"): array
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "wrapArrayElements()" is deprecated and will be removed in 2.0.');
+
     foreach ($array as $key => $value) {
         $array[$key] = $prefix . trim($value). $suffix;
     }
@@ -355,18 +301,26 @@ function wrapArrayElements(array $array, string $prefix = "'", string $suffix = 
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * Checks if an array is associative
  */
 function isAssocArray(array $arr): bool
 {
-    return array_keys($arr) !== range(0, count($arr) - 1);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling wrapArrayElements()" is deprecated, use "!\array_is_list($arr)" instead.');
+
+    return !array_is_list($arr);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * this is an alternative for realpath() which isn't able to handle symlinks correctly
  */
 function resolvePath(string $filename): string
 {
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "resolvePath()" is deprecated and will be removed in 2.0.');
+
     $protocol = '';
     if (!stream_is_local($filename)) {
         $protocol = parse_url($filename, PHP_URL_SCHEME) . '://';
@@ -391,94 +345,64 @@ function resolvePath(string $filename): string
     return $protocol . implode('/', $out);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function closureHash(Closure $closure): string
 {
-    $ref = new ReflectionFunction($closure);
-    $file = new SplFileObject($ref->getFileName());
-    $file->seek($ref->getStartLine() - 1);
-    $content = '';
-    while ($file->key() < $ref->getEndLine()) {
-        $content .= $file->current();
-        $file->next();
-    }
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "closureHash()" is deprecated, use "\OpenDxp\Helper\StringHelper::closureHash()" instead.');
 
-    return md5(json_encode([
-        $content,
-        $ref->getStaticVariables(),
-    ]));
+    return Helper\StringHelper::closureHash($closure);
 }
 
 /**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ *
  * Checks if the given directory is empty
  */
 function is_dir_empty(string $dir): ?bool
 {
-    if (!is_readable($dir)) {
-        return null;
-    }
-    $handle = opendir($dir);
-    while (false !== ($entry = readdir($handle))) {
-        if ($entry !== '.' && $entry !== '..') {
-            return false;
-        }
-    }
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "is_dir_empty()" is deprecated, use "\OpenDxp\Helper\FileSystemHelper::isDirEmpty()" instead.');
 
-    return true;
+    return Helper\FileSystemHelper::isDirEmpty($dir);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function var_export_pretty(mixed $var, string $indent = ''): string
 {
-    switch (gettype($var)) {
-        case 'string':
-            return '"' . addcslashes($var, "\\\$\"\r\n\t\v\f") . '"';
-        case 'array':
-            $indexed = array_keys($var) === range(0, count($var) - 1);
-            $r = [];
-            foreach ($var as $key => $value) {
-                $r[] = "$indent    "
-                    . ($indexed ? '' : var_export_pretty($key) . ' => ')
-                    . var_export_pretty($value, "$indent    ");
-            }
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "var_export_pretty()" is deprecated, use "\OpenDxp\Helper\ExportHelper::varExportPretty()" instead.');
 
-            return "[\n" . implode(",\n", $r) . "\n" . $indent . ']';
-        case 'boolean':
-            return $var ? 'TRUE' : 'FALSE';
-        default:
-            return var_export($var, true);
-    }
+    return Helper\ExportHelper::varExportPretty($var, $indent);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function to_php_data_file_format(mixed $contents, ?string $comments = null): string
 {
-    $contents = var_export_pretty($contents);
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "to_php_data_file_format()" is deprecated, use "\OpenDxp\Helper\ExportHelper::toPhpDataFileFormat()" instead.');
 
-    $export = '<?php';
-
-    if (!empty($comments)) {
-        $export .= "\n\n";
-        $export .= $comments;
-        $export .= "\n";
-    }
-
-    return $export . ("\n\nreturn " . $contents . ";\n");
+    return Helper\ExportHelper::toPhpDataFileFormat($contents, $comments);
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function generateRandomSymfonySecret(): string
 {
-    return base64_encode(random_bytes(24));
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "generateRandomSymfonySecret()" is deprecated, use "\OpenDxp\Helper\StringHelper::generateRandomSymfonySecret()" instead.');
+
+    return Helper\StringHelper::generateRandomSymfonySecret();
 }
 
+/**
+ * @deprecated since OpenDXP 1.2 and will be removed in 2.0
+ */
 function implode_recursive(array $array, string $glue): string
 {
-    $ret = '';
+    trigger_deprecation('open-dxp/opendxp', '1.2', 'Calling "implode_recursive()" is deprecated, use "\OpenDxp\Helper\StringHelper::implodeRecursive()" instead.');
 
-    foreach ($array as $item) {
-        if (is_array($item)) {
-            $ret .= implode_recursive($item, $glue) . $glue;
-        } else {
-            $ret .= $item . $glue;
-        }
-    }
-
-    return substr($ret, 0, -strlen($glue));
+    return Helper\StringHelper::implodeRecursive($array, $glue);
 }

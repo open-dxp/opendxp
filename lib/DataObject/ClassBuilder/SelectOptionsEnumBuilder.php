@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\DataObject\ClassBuilder;
 
 use Exception;
+use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Model\DataObject\SelectOptions\Config;
 use OpenDxp\Model\DataObject\SelectOptions\Data\SelectOption;
 use OpenDxp\Model\DataObject\SelectOptions\Traits\EnumGetValuesTrait;
@@ -100,8 +101,8 @@ class SelectOptionsEnumBuilder implements SelectOptionsEnumBuilderInterface
     {
         // Prefix backslash
         return array_map(
-            fn (string $class) => '\\' . ltrim($class),
-            explode_and_trim(',', $classes)
+            static fn (string $class) => '\\' . ltrim($class),
+            ArrayHelper::explodeAndTrim(',', $classes)
         );
     }
 

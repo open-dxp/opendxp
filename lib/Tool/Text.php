@@ -18,6 +18,7 @@ namespace OpenDxp\Tool;
 
 use Onnov\DetectEncoding\EncodingDetector;
 use OpenDxp\Cache\RuntimeCache;
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Document;
@@ -172,7 +173,7 @@ class Text
                         $pattern = '/' . $linkAttr . '="[^"]*"/';
                         $replacement = $linkAttr . '="' . $path . '"';
                         if ($additionalAttributes !== []) {
-                            $replacement .= ' ' . array_to_html_attribute_string($additionalAttributes);
+                            $replacement .= ' ' . StringHelper::arrayToHtmlAttributeString($additionalAttributes);
                         }
 
                         //if the html-sanitizer removes required link attribute add it here again
@@ -186,10 +187,10 @@ class Text
 
                 if (!$path) {
                     // in case there's a broken internal reference/link
-                    if ($matches[1][$i] == 'img') {
+                    if ($matches[1][$i] === 'img') {
                         // remove the entire tag for images
                         $text = str_replace($oldTag, '', $text);
-                    } elseif ($matches[1][$i] == 'a') {
+                    } elseif ($matches[1][$i] === 'a') {
                         // just display the text for links
                         $text = preg_replace('@' . preg_quote($oldTag, '@') . '([^\<]+)\</a\>@i', '$1', $text);
                     }

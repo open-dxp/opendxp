@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 
 use League\Flysystem\StorageAttributes;
 use OpenDxp\Console\AbstractCommand;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Image\ImageOptimizerInterface;
 use OpenDxp\Tool\Storage;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -56,12 +57,12 @@ class OptimizeImageThumbnailsCommand extends AbstractCommand
                 $savedBytes = ($originalFilesize - $storage->fileSize($item->path()));
                 $savedBytesTotal += $savedBytes;
 
-                $this->output->writeln('Optimized image: ' . $item->path() . ' saved ' . formatBytes($savedBytes));
+                $this->output->writeln('Optimized image: ' . $item->path() . ' saved ' . FileSystemHelper::formatBytes($savedBytes));
             }
         }
 
         $this->output->writeln('Finished!');
-        $this->output->writeln('Saved ' . formatBytes($savedBytesTotal) . ' in total');
+        $this->output->writeln('Saved ' . FileSystemHelper::formatBytes($savedBytesTotal) . ' in total');
 
         return 0;
     }

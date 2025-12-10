@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\File;
+use OpenDxp\Helper\ExportHelper;
 use OpenDxp\Model\Asset;
 use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -66,7 +67,7 @@ class InternalModelDaoMappingGeneratorCommand extends AbstractCommand
         ksort($map);
 
         $mapFile = realpath(__DIR__ . '/../../../../config/dao-classmap.php');
-        File::putPhpFile($mapFile, to_php_data_file_format($map));
+        File::putPhpFile($mapFile, ExportHelper::toPhpDataFileFormat($map));
 
         return 0;
     }

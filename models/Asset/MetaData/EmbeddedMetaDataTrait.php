@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Asset\MetaData;
 
 use Exception;
+use OpenDxp\Helper\ArrayHelper;
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Logger;
 use OpenDxp\Tool\Console;
 use RuntimeException;
@@ -100,9 +102,9 @@ trait EmbeddedMetaDataTrait
 
     private function flattenArray(array $tempArray): array
     {
-        array_walk($tempArray, function (&$value): void {
+        array_walk($tempArray, static function (&$value): void {
             if (is_array($value)) {
-                $value = implode_recursive($value, ' | ');
+                $value = StringHelper::implodeRecursive($value, ' | ');
             }
         });
 
@@ -192,7 +194,7 @@ trait EmbeddedMetaDataTrait
                 $xml = @simplexml_load_string($buffer);
                 if ($xml && $xml->rdf____RDF->rdf____Description) {
                     foreach ($xml->rdf____RDF->rdf____Description as $description) {
-                        $data = [...$data, ...object2array($description)];
+                        $data = [...$data, ...ArrayHelper::objectToArray($description)];
                     }
                 }
 
@@ -206,7 +208,7 @@ trait EmbeddedMetaDataTrait
 
         // remove namespace prefixes if possible
         $resultData = [];
-        array_walk($data, function ($value, $key) use (&$resultData): void {
+        array_walk($data, static function ($value, $key) use (&$resultData): void {
             $parts = explode('____', $key);
             $length = count($parts);
             if ($length > 1) {

@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 use OpenDxp;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Console\Traits\Parallelization;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Version;
@@ -121,14 +122,14 @@ class ThumbnailsVideoCommand extends AbstractCommand
         $thumbnail = Asset\Video\Thumbnail\Config::getByName($thumbnailConfigName);
 
         if ($output->isVerbose()) {
-            $this->output->writeln(' generating thumbnail for video: ' . $video->getRealFullPath() . ' | ' . $video->getId() . ' | Thumbnail: ' . $thumbnailConfigName . ' : ' . formatBytes(memory_get_usage()));
+            $this->output->writeln(' generating thumbnail for video: ' . $video->getRealFullPath() . ' | ' . $video->getId() . ' | Thumbnail: ' . $thumbnailConfigName . ' : ' . FileSystemHelper::formatBytes(memory_get_usage()));
         }
         $video->getThumbnail($thumbnail);
         $this->waitTillFinished($video->getId(), $thumbnail);
 
         if ($input->getOption('system')) {
             if ($output->isVerbose()) {
-                $this->output->writeln(' generating thumbnail for video: ' . $video->getRealFullPath() . ' | ' . $video->getId() . ' | Thumbnail: System Preview : ' . formatBytes(memory_get_usage()));
+                $this->output->writeln(' generating thumbnail for video: ' . $video->getRealFullPath() . ' | ' . $video->getId() . ' | Thumbnail: System Preview : ' . FileSystemHelper::formatBytes(memory_get_usage()));
             }
             $thumbnail = Asset\Video\Thumbnail\Config::getPreviewConfig();
             $video->getThumbnail($thumbnail);

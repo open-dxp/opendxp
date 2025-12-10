@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\HttpKernel\CacheWarmer;
 
 use OpenDxp\Bootstrap;
+use OpenDxp\Helper\FileSystemHelper;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use ReflectionClass;
@@ -65,7 +66,7 @@ class OpenDxpCoreCacheWarmer implements CacheWarmerInterface
 
     private function getClassesFromDirectory(string $dir, string $excludePattern, string $NSPrefix, array &$classes): void
     {
-        $files = rscandir($dir);
+        $files = FileSystemHelper::scanDirectory($dir);
 
         foreach ($files as $file) {
             $file = str_replace(DIRECTORY_SEPARATOR, '/', $file);

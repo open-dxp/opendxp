@@ -125,7 +125,7 @@ class Video extends Model\Asset
         $fullPath = rtrim($this->getRealPath(), '/') . '/' . ltrim($path, '/');
 
         if (Tool::isFrontend()) {
-            $path = urlencode_ignore_slash($fullPath);
+            $path = OpenDxp\Helper\StringHelper::urlEncodeIgnoreSlash($fullPath);
             $prefix = Config::getSystemConfiguration('assets')['frontend_prefixes']['thumbnail'];
             $path = $prefix . $path;
         }
@@ -134,6 +134,7 @@ class Video extends Model\Asset
             'filesystemPath' => $fullPath,
             'frontendPath' => $path,
         ]);
+
         OpenDxp::getEventDispatcher()->dispatch($event, FrontendEvents::ASSET_VIDEO_THUMBNAIL);
 
         return $event->getArgument('frontendPath');
@@ -312,7 +313,7 @@ class Video extends Model\Asset
                 $buffer = preg_replace('@<(/)?([a-zA-Z]+):([a-zA-Z]+)@', '<$1$2____$3', $buffer);
 
                 $xml = @simplexml_load_string($buffer);
-                $data = object2array($xml);
+                $data = OpenDxp\Helper\ArrayHelper::objectToArray($xml);
             }
 
             fclose($file_pointer);
@@ -320,7 +321,7 @@ class Video extends Model\Asset
 
         // remove namespace prefixes if possible
         $resultData = [];
-        array_walk($data, function ($value, $key) use (&$resultData): void {
+        array_walk($data, static function ($value, $key) use (&$resultData): void {
             $parts = explode('____', $key);
             $length = count($parts);
             if ($length > 1) {

@@ -23,6 +23,7 @@ use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Cache;
 use OpenDxp\Config;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Http\Request\Resolver\SiteResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Model\Document;
@@ -153,7 +154,7 @@ final class RedirectHandler
             array_shift($matches);
 
             // support for pcre backreferences
-            $url = replace_pcre_backreferences($url, $matches);
+            $url = StringHelper::replacePcreBackreferences($url, $matches);
         }
 
         if (!preg_match('@http(s)?://@i', $url)) {

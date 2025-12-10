@@ -16,6 +16,7 @@
 namespace OpenDxp\Model\DataObject\Data\ObjectMetadata;
 
 use OpenDxp\Db\Helper;
+use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Model\DataObject;
 use Override;
 
@@ -69,7 +70,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
             $this->model->setFieldname($fieldname);
             $columns = $this->model->getColumns();
             foreach ($dataRaw as $row) {
-                if (in_arrayi($row['column'], $columns)) {
+                if (ArrayHelper::inArrayCaseInsensitive($row['column'], $columns)) {
                     $setter = 'set' . ucfirst($row['column']);
                     $this->model->$setter($row['data']);
                 }

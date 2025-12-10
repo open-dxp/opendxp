@@ -500,7 +500,7 @@ class Service extends Model\AbstractModel
     {
         $properties = [];
         foreach ($props as $key => $p) {
-            //$p = object2array($p);
+
             $allowedProperties = [
                 'key',
                 'filename',

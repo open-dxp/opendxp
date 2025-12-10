@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\File;
+use OpenDxp\Helper\ExportHelper;
 use OpenDxp\Localization\LocaleServiceInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -77,7 +78,7 @@ class InternalUnicodeCldrLanguageTerritoryGeneratorCommand extends AbstractComma
             }
         }
 
-        $contents = to_php_data_file_format($finalData);
+        $contents = ExportHelper::toPhpDataFileFormat($finalData);
         $dataFile = OPENDXP_PATH . '/bundles/CoreBundle/public/misc/cldr-language-territory-mapping.php';
         File::putPhpFile($dataFile, $contents);
 

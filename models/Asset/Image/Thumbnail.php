@@ -19,6 +19,7 @@ use Exception;
 use OpenDxp;
 use OpenDxp\Event\AssetEvents;
 use OpenDxp\Event\FrontendEvents;
+use OpenDxp\Helper\StringHelper;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Asset\Image;
@@ -201,7 +202,7 @@ final class Thumbnail implements ThumbnailInterface
             $sourceTagAttributes = $sourceCallback($sourceTagAttributes);
         }
 
-        return '<source ' . array_to_html_attribute_string($sourceTagAttributes) . ' />';
+        return '<source ' . StringHelper::arrayToHtmlAttributeString($sourceTagAttributes) . ' />';
     }
 
     /**
@@ -235,7 +236,7 @@ final class Thumbnail implements ThumbnailInterface
             $pictureTagAttributes = $pictureCallback($pictureTagAttributes);
         }
 
-        $html = '<picture ' . array_to_html_attribute_string($pictureTagAttributes) . '>' . "\n";
+        $html = '<picture ' . StringHelper::arrayToHtmlAttributeString($pictureTagAttributes) . '>' . "\n";
 
         if ($thumbConfig instanceof Config) {
             $thumbConfigRes = clone $thumbConfig;
@@ -384,8 +385,9 @@ final class Thumbnail implements ThumbnailInterface
 
             $attributes[$srcsetAttribute] = $this->getSrcset($thumbConfig, $image, $options);
         }
+
         if (!empty($attributes)) {
-            return '<img ' . array_to_html_attribute_string($attributes) . ' />';
+            return '<img ' . StringHelper::arrayToHtmlAttributeString($attributes) . ' />';
         }
 
         return '';
@@ -397,7 +399,7 @@ final class Thumbnail implements ThumbnailInterface
     public function getMedia(string $name, int $highRes = 1): ?ThumbnailInterface
     {
         $thumbConfig = $this->getConfig();
-        if (!$thumbConfig instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
+        if (!$thumbConfig instanceof Config) {
             return null;
         }
 
@@ -428,7 +430,7 @@ final class Thumbnail implements ThumbnailInterface
     {
         $thumbnailConfig = Thumbnail\Config::getByAutoDetect($selector);
 
-        if (!empty($selector) && !$thumbnailConfig instanceof \OpenDxp\Model\Asset\Image\Thumbnail\Config) {
+        if (!empty($selector) && !$thumbnailConfig instanceof Config) {
             throw new NotFoundException('Thumbnail definition "' . (is_string($selector) ? $selector : '') . '" does not exist');
         }
 
