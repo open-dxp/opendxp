@@ -78,6 +78,8 @@ jobs:
             experimental: ${{ matrix.matrix.experimental }}
             opendxp_version: ${{ matrix.matrix.opendxp_version }}
             opendxp_admin_version: ${{ matrix.matrix.opendxp_admin_version }}
+            composer_options: ${{ matrix.matrix.composer_options }}
+            composer_root_version: ${{ matrix.matrix.composer_root_version }}
         secrets:
             SSH_PRIVATE_KEY_OPENDXP_DEPLOYMENTS_USER: ${{ secrets.SSH_PRIVATE_KEY_OPENDXP_DEPLOYMENTS_USER }}
             COMPOSER_OPENDXP_REPO_PACKAGIST_TOKEN: ${{ secrets.COMPOSER_OPENDXP_REPO_PACKAGIST_TOKEN }}
