@@ -16,8 +16,6 @@
 use OpenDxp\Bootstrap;
 use OpenDxp\Console\Application;
 
-ob_get_clean();
-
 include __DIR__ . '/../vendor/autoload_runtime.php';
 
 define('OPENDXP_PROJECT_ROOT', __DIR__ . '/..');

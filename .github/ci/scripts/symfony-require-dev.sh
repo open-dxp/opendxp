@@ -44,6 +44,7 @@ composer require --no-update \
     symfony/uid:${SYMFONY_VERSION} \
     symfony/validator:${SYMFONY_VERSION} \
     symfony/var-dumper:${SYMFONY_VERSION} \
+    symfony/var-exporter:${SYMFONY_VERSION} \
     symfony/web-profiler-bundle:${SYMFONY_VERSION} \
     symfony/workflow:${SYMFONY_VERSION} \
     symfony/yaml:${SYMFONY_VERSION}

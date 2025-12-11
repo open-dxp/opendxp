@@ -1,7 +1,9 @@
 imports:
     - { resource: services.yaml }
-    - { resource: system.yaml }
     - { resource: 'local/' }
+
+parameters:
+    secret: ThisTokenIsNotSoSecretChangeItImmediately
 
 opendxp:
     email:
