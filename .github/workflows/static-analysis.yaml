@@ -66,7 +66,7 @@ jobs:
       
                      matrix_json=$(jq -c --arg php_versions "$php_versions" \
                         '{matrix: [.configs[] | select(.php_version == $php_versions) | .matrix[]]}' \
-                        reusable-workflows/codeception-tests-configuration/matrix-config.json)
+                        reusable-workflows/phpstan-configuration/matrix-config.json)
                       
                      echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
 
