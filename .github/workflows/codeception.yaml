@@ -72,6 +72,7 @@ jobs:
             app_env: test
             opendxp_test: 1
             enable_gotenberg_service: true
+            enable_redis_service: true
             install_ghostscript_and_pdfinfo: true
             php_version: ${{ matrix.matrix.php-version }}
             database: ${{ matrix.matrix.database }}
