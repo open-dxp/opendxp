@@ -85,5 +85,5 @@ jobs:
             opendxp_version: ${{ matrix.matrix.opendxp_version }}
             opendxp_admin_version: ${{ matrix.matrix.opendxp_admin_version }}
             composer_options: ${{ matrix.matrix.composer_options }}
-            composer_root_version: ${{ matrix.matrix.composer_root_version }}
+            composer_root_version: ${{ matrix.matrix.composer_root_version || '1.99.9' }}
             cache_clear: true
