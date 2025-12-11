@@ -71,6 +71,8 @@ jobs:
         with:
             app_env: test
             opendxp_test: 1
+            enable_gotenberg_service: true
+            install_ghostscript_and_pdfinfo: true
             php_version: ${{ matrix.matrix.php-version }}
             database: ${{ matrix.matrix.database }}
             server_version: ${{ matrix.matrix.server_version }}
@@ -81,5 +83,6 @@ jobs:
             composer_options: ${{ matrix.matrix.composer_options }}
             composer_root_version: ${{ matrix.matrix.composer_root_version || '1.99.9' }}
         secrets:
+            CLA_ACTION_ACCESS_TOKEN: ${{ secrets.CLA_ACTION_ACCESS_TOKEN }}
             SSH_PRIVATE_KEY_OPENDXP_DEPLOYMENTS_USER: ${{ secrets.SSH_PRIVATE_KEY_OPENDXP_DEPLOYMENTS_USER }}
             COMPOSER_OPENDXP_REPO_PACKAGIST_TOKEN: ${{ secrets.COMPOSER_OPENDXP_REPO_PACKAGIST_TOKEN }}
