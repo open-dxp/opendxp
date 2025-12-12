@@ -1,2 +1,2 @@
 _opendxp:
-    resource: "@OpenDxpCoreBundle/config/routing.yaml"
+    resource: '@OpenDxpCoreBundle/config/routing.yaml'

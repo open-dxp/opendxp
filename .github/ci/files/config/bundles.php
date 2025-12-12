@@ -2,28 +2,12 @@
 declare(strict_types=1);
 
 return [
-    "OpenDxp\\Bundle\\GlossaryBundle\\OpenDxpGlossaryBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\SimpleBackendSearchBundle\\OpenDxpSimpleBackendSearchBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\SeoBundle\\OpenDxpSeoBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\StaticRoutesBundle\\OpenDxpStaticRoutesBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\UuidBundle\\OpenDxpUuidBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\WordExportBundle\\OpenDxpWordExportBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\ApplicationLoggerBundle\\OpenDxpApplicationLoggerBundle" => [
-        "all" => TRUE
-    ],
-    "OpenDxp\\Bundle\\TinymceBundle\\OpenDxpTinymceBundle" => [
-        "all" => TRUE
-    ],
+    OpenDxp\Bundle\GlossaryBundle\OpenDxpGlossaryBundle::class                       => ['all' => true],
+    OpenDxp\Bundle\SimpleBackendSearchBundle\OpenDxpSimpleBackendSearchBundle::class => ['all' => true],
+    OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle::class                                 => ['all' => true],
+    OpenDxp\Bundle\StaticRoutesBundle\OpenDxpStaticRoutesBundle::class               => ['all' => true],
+    OpenDxp\Bundle\UuidBundle\OpenDxpUuidBundle::class                               => ['all' => true],
+    OpenDxp\Bundle\WordExportBundle\OpenDxpWordExportBundle::class                   => ['all' => true],
+    OpenDxp\Bundle\ApplicationLoggerBundle\OpenDxpApplicationLoggerBundle::class     => ['all' => true],
+    OpenDxp\Bundle\TinymceBundle\OpenDxpTinymceBundle::class                         => ['all' => true],
 ];
