@@ -114,7 +114,7 @@ class StringHelper
 
         foreach ($array as $key => $value) {
             if (is_scalar($value)) {
-                $data[] = sprintf('%s="%s"', $key, htmlspecialchars($value));
+                $data[] = sprintf('%s="%s"', $key, htmlspecialchars((string) $value));
             } elseif (is_string($key) && is_null($value)) {
                 $data[] = $key;
             }
