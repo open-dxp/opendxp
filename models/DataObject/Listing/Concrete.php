@@ -24,6 +24,8 @@ use Override;
 /**
  * @method DataObject\Listing\Concrete\Dao getDao()
  * @method DataObject\Concrete[] load()
+ * @method DataObject\Concrete[] getData()
+ * @method DataObject\Concrete[] getObjects()
  * @method DataObject\Concrete|false current()
  */
 abstract class Concrete extends Model\DataObject\Listing

@@ -1480,6 +1480,9 @@ class Service extends Model\Element\Service
 
             $objects = $list->getObjects();
             foreach ($objects as $object) {
+                if (!$object instanceof Concrete) {
+                    continue;
+                }
                 if ($addTitles && $data === []) {
                     $tmp = [];
                     $mapped = self::getCsvDataForObject($object, $requestedLanguage, $fields, $helperDefinitions, $localeService, $header, true, $context);
