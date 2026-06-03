@@ -105,39 +105,9 @@ class PublicServicesController extends AbstractController
 
     public function versionAction(Request $request): Response
     {
-        $version = htmlspecialchars(\OpenDxp\Version::getVersion(), ENT_QUOTES, 'UTF-8');
-
-        $svg = <<<SVG
-            <svg xmlns="http://www.w3.org/2000/svg" width="73" height="18" role="img" aria-label="{$version}">
-                <title>{$version}</title>
-                <filter id="blur">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="16" />
-                </filter>
-                <linearGradient id="s" x2="0" y2="100%">
-                    <stop offset="0" stop-color="#fff" stop-opacity=".7" />
-                    <stop offset=".1" stop-color="#aaa" stop-opacity=".1" />
-                    <stop offset=".9" stop-color="#000" stop-opacity=".3" />
-                    <stop offset="1" stop-color="#000" stop-opacity=".5" />
-                </linearGradient>
-                <clipPath id="r">
-                    <rect width="73" height="18" rx="4" fill="#fff" />
-                </clipPath>
-                <g clip-path="url(#r)">
-                    <rect width="18" height="18" fill="#DBFF00" />
-                    <circle cx="9" cy="9" r="4.378" fill="black"/>
-                    <rect x="18" width="55" height="18" fill="#555" />
-                    <rect width="73" height="18" fill="url(#s)" />
-                </g>
-                <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif"
-                    text-rendering="geometricPrecision" font-size="110">
-                    <text aria-hidden="true" x="459" y="140" fill="#010101" fill-opacity=".80"
-                        filter="url(#blur)" transform="scale(.1)">{$version}</text>
-                    <text aria-hidden="true" x="459" y="140" fill="#010101" fill-opacity=".3"
-                        transform="scale(.1)">{$version}</text>
-                    <text x="459" y="130" transform="scale(.1)" fill="#fff">{$version}</text>
-                </g>
-            </svg>
-            SVG;
+        $svg = $this->renderView('@OpenDxpCore/version_badge.svg.twig', [
+            'version' => \OpenDxp\Version::getVersion(),
+        ]);
 
         return new Response($svg, Response::HTTP_OK, [
             'Content-Type' => 'image/svg+xml',
