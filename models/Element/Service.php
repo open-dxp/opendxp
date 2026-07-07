@@ -520,6 +520,11 @@ class Service extends Model\AbstractModel
             'document' => DocumentEvents::POST_LOAD,
             'object' => DataObjectEvents::POST_LOAD,
         };
+        $expectedClass = match ($type) {
+            'asset' => Asset::class,
+            'document' => Document::class,
+            'object' => AbstractObject::class,
+        };
         $hasListeners = $dispatcher->hasListeners($eventName);
         $params = ['force' => false];
 
@@ -530,18 +535,21 @@ class Service extends Model\AbstractModel
             $element = $elements[$cacheKey] ?? null;
             unset($elements[$cacheKey]);
 
-            if (!$element instanceof ElementInterface) {
+            if (!$element instanceof $expectedClass) {
                 continue;
             }
 
             RuntimeCache::set($cacheKey, $element);
 
             if ($hasListeners) {
-                $event = match ($type) {
-                    'asset' => new AssetEvent($element, ['params' => $params]),
-                    'document' => new DocumentEvent($element, ['params' => $params]),
-                    'object' => new DataObjectEvent($element, ['params' => $params]),
-                };
+                if ($element instanceof Asset) {
+                    $event = new AssetEvent($element, ['params' => $params]);
+                } elseif ($element instanceof Document) {
+                    $event = new DocumentEvent($element, ['params' => $params]);
+                } else {
+                    $event = new DataObjectEvent($element, ['params' => $params]);
+                }
+
                 $dispatcher->dispatch($event, $eventName);
             }
         }
