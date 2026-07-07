@@ -1,5 +1,14 @@
 # Upgrade Notes
 
+## Unreleased
+- Improvement: Performance optimizations in element loading and caching (fully backwards compatible on the public API):
+  - `Element\Service::prepareGetByIdParams()` uses a fast path for the common `[]` / `['force' => bool]` inputs; validation behavior is unchanged
+  - `DataObject\AbstractObject::getById()` now fetches type discriminator and object row with a single query instead of two. Custom DataObject DAOs that override `Dao::getById()` for load-time logic should override the new `Dao::initByRow()` instead, since the model's `getById()` no longer calls `Dao::getById()` on the hot path
+  - Listing DAOs (DataObject, Asset, Document) pre-warm the RuntimeCache with a single batched persistent-cache read (`Cache::loadMultiple()` / `CoreCacheHandler::loadMultiple()`) before loading elements individually; element order, POST_LOAD events, and visibility filtering are unchanged
+  - `Asset`, `Document` and `DataObject` `getById()` only construct and dispatch `POST_LOAD` events when listeners are registered
+  - `Document::getById()` caches the per-class abstractness reflection check
+  - `CoreCacheHandler` uses hash lookups for method-local tag bookkeeping (`writeSaveQueue()`, `normalizeClearTags()`, `prepareCacheTags()`); the protected tag list properties keep their array shape
+
 ## OpenDXP 1.3.3
 - Chore: Fix infinite-loop typo and stale routing docblock [#156](https://github.com/open-dxp/opendxp/pull/156)
 - Chore: Refactor composite index generation, permission checks, and serialization handling [#155](https://github.com/open-dxp/opendxp/pull/155):
