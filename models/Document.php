@@ -238,10 +238,13 @@ class Document extends Element\AbstractElement
             return null;
         }
 
-        OpenDxp::getEventDispatcher()->dispatch(
-            new DocumentEvent($document, ['params' => $params]),
-            DocumentEvents::POST_LOAD
-        );
+        $dispatcher = OpenDxp::getEventDispatcher();
+        if ($dispatcher->hasListeners(DocumentEvents::POST_LOAD)) {
+            $dispatcher->dispatch(
+                new DocumentEvent($document, ['params' => $params]),
+                DocumentEvents::POST_LOAD
+            );
+        }
 
         return $document;
     }

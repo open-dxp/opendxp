@@ -287,10 +287,13 @@ class Asset extends Element\AbstractElement
         }
 
         if ($asset && static::typeMatch($asset)) {
-            OpenDxp::getEventDispatcher()->dispatch(
-                new AssetEvent($asset, ['params' => $params]),
-                AssetEvents::POST_LOAD
-            );
+            $dispatcher = OpenDxp::getEventDispatcher();
+            if ($dispatcher->hasListeners(AssetEvents::POST_LOAD)) {
+                $dispatcher->dispatch(
+                    new AssetEvent($asset, ['params' => $params]),
+                    AssetEvents::POST_LOAD
+                );
+            }
         } else {
             $asset = null;
         }

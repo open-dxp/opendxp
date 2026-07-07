@@ -253,10 +253,13 @@ abstract class AbstractObject extends Model\Element\AbstractElement
             return null;
         }
 
-        OpenDxp::getEventDispatcher()->dispatch(
-            new DataObjectEvent($object, ['params' => $params]),
-            DataObjectEvents::POST_LOAD
-        );
+        $dispatcher = OpenDxp::getEventDispatcher();
+        if ($dispatcher->hasListeners(DataObjectEvents::POST_LOAD)) {
+            $dispatcher->dispatch(
+                new DataObjectEvent($object, ['params' => $params]),
+                DataObjectEvents::POST_LOAD
+            );
+        }
 
         return $object;
     }
