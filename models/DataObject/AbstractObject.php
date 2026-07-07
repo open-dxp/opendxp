@@ -211,19 +211,20 @@ abstract class AbstractObject extends Model\Element\AbstractElement
             $object = new Model\DataObject();
 
             try {
-                $typeInfo = $object->getDao()->getTypeById($id);
+                // single query fetching type discriminator and full row at once
+                $row = $object->getDao()->getDataRowById($id);
 
-                if (!empty($typeInfo['type']) && in_array($typeInfo['type'], DataObject::$types)) {
-                    if ($typeInfo['type'] == DataObject::OBJECT_TYPE_FOLDER) {
+                if (!empty($row['type']) && in_array($row['type'], DataObject::$types)) {
+                    if ($row['type'] == DataObject::OBJECT_TYPE_FOLDER) {
                         $className = Folder::class;
                     } else {
-                        $className = 'OpenDxp\\Model\\DataObject\\' . ucfirst($typeInfo['className']);
+                        $className = 'OpenDxp\\Model\\DataObject\\' . ucfirst($row['className']);
                     }
 
                     /** @var AbstractObject $object */
                     $object = self::getModelFactory()->build($className);
                     RuntimeCache::set($cacheKey, $object);
-                    $object->getDao()->getById($id);
+                    $object->getDao()->initByRow($row);
                     if ($object->getModificationDate() !== null) {
                         $object->__setDataVersionTimestamp($object->getModificationDate());
                     }

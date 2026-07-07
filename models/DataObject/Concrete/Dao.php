@@ -51,27 +51,16 @@ class Dao extends Model\DataObject\AbstractObject\Dao
     }
 
     /**
-     * Get the data for the object from database for the given id
+     * Initialize the model from an already fetched object row and load the
+     * class-specific data (getById() delegates here via the parent Dao)
      *
-     * @throws Model\Exception\NotFoundException
+     * @internal
      */
     #[Override]
-    public function getById(int $id): void
+    public function initByRow(array $data): void
     {
-        $data = $this->db->fetchAssociative(
-            'SELECT objects.*, tree_locks.locked as locked FROM objects
-                LEFT JOIN tree_locks ON objects.id = tree_locks.id AND tree_locks.type = "object"
-                WHERE objects.id = ?',
-            [$id]
-        );
-
-        if ($data) {
-            $data['published'] = (bool)$data['published'];
-            $this->assignVariablesToModel($data);
-            $this->getData();
-        } else {
-            throw new Model\Exception\NotFoundException('Object with the ID ' . $id . " doesn't exists");
-        }
+        parent::initByRow($data);
+        $this->getData();
     }
 
     public function getRelationIds(string $fieldName): array

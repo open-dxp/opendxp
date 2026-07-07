@@ -38,6 +38,18 @@ class Dao extends Model\Element\Dao
      */
     public function getById(int $id): void
     {
+        $this->initByRow($this->getDataRowById($id));
+    }
+
+    /**
+     * Fetch the full object row (incl. tree lock state) as used by getById()
+     *
+     * @internal
+     *
+     * @throws Model\Exception\NotFoundException
+     */
+    public function getDataRowById(int $id): array
+    {
         $data = $this->db->fetchAssociative(
             'SELECT objects.*, tree_locks.locked as locked FROM objects
                 LEFT JOIN tree_locks ON objects.id = tree_locks.id AND tree_locks.type = "object"
@@ -45,12 +57,23 @@ class Dao extends Model\Element\Dao
             [$id]
         );
 
-        if ($data) {
-            $data['published'] = (bool)$data['published'];
-            $this->assignVariablesToModel($data);
-        } else {
+        if (!$data) {
             throw new Model\Exception\NotFoundException('Object with the ID ' . $id . " doesn't exists");
         }
+
+        return $data;
+    }
+
+    /**
+     * Initialize the model from an already fetched object row, avoiding a
+     * second query when the row is available from getDataRowById()
+     *
+     * @internal
+     */
+    public function initByRow(array $data): void
+    {
+        $data['published'] = (bool)$data['published'];
+        $this->assignVariablesToModel($data);
     }
 
     /**
