@@ -31,7 +31,15 @@ use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 use Exception;
 use League\Csv\EscapeFormula;
 use OpenDxp;
+use OpenDxp\Cache;
+use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Db;
+use OpenDxp\Event\AssetEvents;
+use OpenDxp\Event\DataObjectEvents;
+use OpenDxp\Event\DocumentEvents;
+use OpenDxp\Event\Model\AssetEvent;
+use OpenDxp\Event\Model\DataObjectEvent;
+use OpenDxp\Event\Model\DocumentEvent;
 use OpenDxp\Event\SystemEvents;
 use OpenDxp\Logger;
 use OpenDxp\Model;
@@ -473,6 +481,70 @@ class Service extends Model\AbstractModel
         }
 
         return self::$getByIdParamsResolver->resolve($params);
+    }
+
+    /**
+     * Pre-warm the RuntimeCache for a batch of element IDs with a single
+     * persistent-cache roundtrip. Mirrors the persistent-cache-hit path of the
+     * individual getById() methods (RuntimeCache::set + POST_LOAD event), so
+     * subsequent getById() calls return the same result, just without one
+     * cache backend roundtrip per element.
+     *
+     * @internal
+     *
+     * @param 'asset'|'document'|'object' $type
+     * @param int[] $ids
+     */
+    public static function prefetchElementsByIds(string $type, array $ids): void
+    {
+        $missingKeys = [];
+        foreach ($ids as $id) {
+            $cacheKey = self::getElementCacheTag($type, $id);
+            if (!isset($missingKeys[$cacheKey]) && !RuntimeCache::isRegistered($cacheKey)) {
+                $missingKeys[$cacheKey] = true;
+            }
+        }
+
+        if (!$missingKeys) {
+            return;
+        }
+
+        $elements = Cache::loadMultiple(array_keys($missingKeys));
+        if (!$elements) {
+            return;
+        }
+
+        $dispatcher = OpenDxp::getEventDispatcher();
+        $eventName = match ($type) {
+            'asset' => AssetEvents::POST_LOAD,
+            'document' => DocumentEvents::POST_LOAD,
+            'object' => DataObjectEvents::POST_LOAD,
+        };
+        $hasListeners = $dispatcher->hasListeners($eventName);
+        $params = ['force' => false];
+
+        // iterate in the requested order so POST_LOAD events fire in the same
+        // order as sequential getById() calls would
+        foreach ($ids as $id) {
+            $cacheKey = self::getElementCacheTag($type, $id);
+            $element = $elements[$cacheKey] ?? null;
+            unset($elements[$cacheKey]);
+
+            if (!$element instanceof ElementInterface) {
+                continue;
+            }
+
+            RuntimeCache::set($cacheKey, $element);
+
+            if ($hasListeners) {
+                $event = match ($type) {
+                    'asset' => new AssetEvent($element, ['params' => $params]),
+                    'document' => new DocumentEvent($element, ['params' => $params]),
+                    'object' => new DataObjectEvent($element, ['params' => $params]),
+                };
+                $dispatcher->dispatch($event, $eventName);
+            }
+        }
     }
 
     public static function getElementType(ElementInterface $element): ?string

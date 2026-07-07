@@ -38,11 +38,18 @@ class Dao extends Model\Listing\Dao\AbstractDao
         $queryBuilder = $this->getQueryBuilder('assets.id', 'assets.type');
         $assetsData = $this->db->fetchAllAssociative($queryBuilder->getSQL(), $queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
 
+        $ids = [];
         foreach ($assetsData as $assetData) {
-            if (!$assetData['type']) {
-                continue;
+            if ($assetData['type']) {
+                $ids[] = (int) $assetData['id'];
             }
-            if (!$asset = Model\Asset::getById((int) $assetData['id'])) {
+        }
+
+        // pre-warm the RuntimeCache with a single batched persistent-cache read
+        Model\Element\Service::prefetchElementsByIds('asset', $ids);
+
+        foreach ($ids as $id) {
+            if (!$asset = Model\Asset::getById($id)) {
                 continue;
             }
             $assets[] = $asset;

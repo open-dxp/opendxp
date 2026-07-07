@@ -61,6 +61,9 @@ class Dao extends Model\Listing\Dao\AbstractDao
         // load id's
         $list = $this->loadIdList();
 
+        // pre-warm the RuntimeCache with a single batched persistent-cache read
+        Model\Element\Service::prefetchElementsByIds('object', $list);
+
         $objects = [];
         foreach ($list as $id) {
             if ($object = DataObject::getById($id)) {

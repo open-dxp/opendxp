@@ -70,6 +70,18 @@ class Cache
     }
 
     /**
+     * Load multiple items from the cache with a single backend roundtrip
+     *
+     * @param string[] $keys
+     *
+     * @return array<string, mixed> data indexed by key, misses are omitted
+     */
+    public static function loadMultiple(array $keys): array
+    {
+        return static::getHandler()->loadMultiple($keys);
+    }
+
+    /**
      * Save an item to the cache (deferred to shutdown if force is false and forceImmediateWrite is not set)
      */
     public static function save(mixed $data, string $key, array $tags = [], DateInterval|int|null $lifetime = null, int $priority = 0, bool $force = false): bool

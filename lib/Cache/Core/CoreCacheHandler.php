@@ -238,6 +238,31 @@ class CoreCacheHandler implements LoggerAwareInterface
     }
 
     /**
+     * Load multiple items from the cache with a single backend roundtrip
+     *
+     * @param string[] $keys
+     *
+     * @return array<string, mixed> data indexed by key, misses are omitted
+     */
+    public function loadMultiple(array $keys): array
+    {
+        if (!$this->enabled) {
+            $this->logger->debug('Not loading objects {keys} from cache (deactivated)', ['keys' => $keys]);
+
+            return [];
+        }
+
+        $result = [];
+        foreach ($this->pool->getItems($keys) as $key => $item) {
+            if ($item->isHit()) {
+                $result[$key] = $item->get();
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Get PSR-6 cache item
      */
     public function getItem(string $key): CacheItem
