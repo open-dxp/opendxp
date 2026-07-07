@@ -177,6 +177,14 @@ class Document extends Element\AbstractElement
         return $document instanceof $staticType;
     }
 
+    /**
+     * Caches the reflection-based abstractness check per class, it is needed
+     * on every uncached load to decide between new Document() and new static()
+     *
+     * @var array<class-string, bool>
+     */
+    private static array $isAbstractCache = [];
+
     public static function getById(int $id, array $params = []): ?static
     {
         if ($id < 1) {
@@ -194,8 +202,8 @@ class Document extends Element\AbstractElement
         }
 
         if ($params['force'] || !($document = \OpenDxp\Cache::load($cacheKey))) {
-            $reflectionClass = new ReflectionClass(static::class);
-            $document = $reflectionClass->isAbstract() ? new Document() : new static();
+            self::$isAbstractCache[static::class] ??= (new ReflectionClass(static::class))->isAbstract();
+            $document = self::$isAbstractCache[static::class] ? new Document() : new static();
 
             try {
                 $document->getDao()->getById($id);
