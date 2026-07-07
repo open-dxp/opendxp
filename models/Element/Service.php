@@ -445,19 +445,34 @@ class Service extends Model\AbstractModel
         };
     }
 
+    private static ?OptionsResolver $getByIdParamsResolver = null;
+
     /**
      * @internal
      */
     public static function prepareGetByIdParams(array $params): array
     {
-        $resolver = new OptionsResolver();
-        $resolver->setDefaults([
-            'force' => false,
-        ]);
+        // fast path for the overwhelmingly common inputs, avoids OptionsResolver
+        // overhead on every getById() call
+        if ($params === []) {
+            return ['force' => false];
+        }
 
-        $resolver->setAllowedTypes('force', 'bool');
+        if (count($params) === 1 && isset($params['force']) && is_bool($params['force'])) {
+            return $params;
+        }
 
-        return $resolver->resolve($params);
+        if (self::$getByIdParamsResolver === null) {
+            $resolver = new OptionsResolver();
+            $resolver->setDefaults([
+                'force' => false,
+            ]);
+
+            $resolver->setAllowedTypes('force', 'bool');
+            self::$getByIdParamsResolver = $resolver;
+        }
+
+        return self::$getByIdParamsResolver->resolve($params);
     }
 
     public static function getElementType(ElementInterface $element): ?string
