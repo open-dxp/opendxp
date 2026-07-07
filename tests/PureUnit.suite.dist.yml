@@ -1,0 +1,4 @@
+actor: PureUnitTester
+modules:
+    enabled:
+        - Asserts
