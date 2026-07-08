@@ -241,6 +241,70 @@ class ListingLoadTest extends ModelTestCase
         }
     }
 
+    public function testListingLoadWithPartiallyCachedElementsKeepsEventOrder(): void
+    {
+        $cacheWasEnabled = Cache::isEnabled();
+        if (!$cacheWasEnabled) {
+            Cache::enable();
+        }
+        Cache::getHandler()->setHandleCli(true);
+
+        try {
+            $ids = [];
+            $created = [];
+            for ($i = 0; $i < 4; $i++) {
+                $obj = TestHelper::createEmptyObject('listing-mixed-');
+                $obj->setInput('mixed_marker_' . $i);
+                $obj->save();
+                $ids[] = $obj->getId();
+                $created[] = $obj;
+            }
+
+            // cache only the 1st and 3rd element — the 2nd and 4th stay
+            // uncached, so the listing has to interleave persistent-cache
+            // hits and DB loads
+            foreach ([$created[0], $created[2]] as $obj) {
+                Cache::getHandler()->removeClearedTags(array_values($obj->getCacheTags()));
+                $cacheKey = Service::getElementCacheTag('object', $obj->getId());
+                $this->assertTrue(
+                    Cache::save($obj, $cacheKey, [], null, 0, true),
+                    'Objects must be storable in the persistent cache for this scenario'
+                );
+            }
+
+            RuntimeCache::clear();
+
+            $dispatcher = \OpenDxp::getEventDispatcher();
+            $postLoadIds = [];
+            $listener = function (DataObjectEvent $event) use (&$postLoadIds): void {
+                $postLoadIds[] = $event->getObject()->getId();
+            };
+            $dispatcher->addListener(DataObjectEvents::POST_LOAD, $listener);
+
+            try {
+                $listing = new Unittest\Listing();
+                $listing->setCondition("input LIKE 'mixed_marker_%'");
+                $listing->setOrderKey('oo_id');
+                $listing->setOrder('asc');
+                $loaded = $listing->load();
+            } finally {
+                $dispatcher->removeListener(DataObjectEvents::POST_LOAD, $listener);
+            }
+
+            $this->assertSame($ids, array_map(fn ($o) => $o->getId(), $loaded));
+            $this->assertSame(
+                $ids,
+                $postLoadIds,
+                'POST_LOAD must fire in listing order even when only some elements are cached'
+            );
+        } finally {
+            Cache::clearAll();
+            if (!$cacheWasEnabled) {
+                Cache::disable();
+            }
+        }
+    }
+
     public function testDataObjectListingLoadCallsSetObjectsOnModel(): void
     {
         for ($i = 0; $i < 2; $i++) {

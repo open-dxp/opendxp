@@ -34,12 +34,6 @@ use OpenDxp;
 use OpenDxp\Cache;
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Db;
-use OpenDxp\Event\AssetEvents;
-use OpenDxp\Event\DataObjectEvents;
-use OpenDxp\Event\DocumentEvents;
-use OpenDxp\Event\Model\AssetEvent;
-use OpenDxp\Event\Model\DataObjectEvent;
-use OpenDxp\Event\Model\DocumentEvent;
 use OpenDxp\Event\SystemEvents;
 use OpenDxp\Logger;
 use OpenDxp\Model;
@@ -484,11 +478,12 @@ class Service extends Model\AbstractModel
     }
 
     /**
-     * Pre-warm the RuntimeCache for a batch of element IDs with a single
-     * persistent-cache roundtrip. Mirrors the persistent-cache-hit path of the
-     * individual getById() methods (RuntimeCache::set + POST_LOAD event), so
-     * subsequent getById() calls return the same result, just without one
-     * cache backend roundtrip per element.
+     * Fetch the persistent-cache entries for a batch of element IDs with a
+     * single backend roundtrip. The results are buffered in the cache handler
+     * and consumed by the subsequent individual getById() calls, which then
+     * behave exactly as without prefetching (RuntimeCache registration,
+     * POST_LOAD event order, visibility checks) — just without one cache
+     * backend roundtrip per element.
      *
      * @internal
      *
@@ -505,53 +500,8 @@ class Service extends Model\AbstractModel
             }
         }
 
-        if (!$missingKeys) {
-            return;
-        }
-
-        $elements = Cache::loadMultiple(array_keys($missingKeys));
-        if (!$elements) {
-            return;
-        }
-
-        $dispatcher = OpenDxp::getEventDispatcher();
-        $eventName = match ($type) {
-            'asset' => AssetEvents::POST_LOAD,
-            'document' => DocumentEvents::POST_LOAD,
-            'object' => DataObjectEvents::POST_LOAD,
-        };
-        $expectedClass = match ($type) {
-            'asset' => Asset::class,
-            'document' => Document::class,
-            'object' => AbstractObject::class,
-        };
-        $hasListeners = $dispatcher->hasListeners($eventName);
-        $params = ['force' => false];
-
-        // iterate in the requested order so POST_LOAD events fire in the same
-        // order as sequential getById() calls would
-        foreach ($ids as $id) {
-            $cacheKey = self::getElementCacheTag($type, $id);
-            $element = $elements[$cacheKey] ?? null;
-            unset($elements[$cacheKey]);
-
-            if (!$element instanceof $expectedClass) {
-                continue;
-            }
-
-            RuntimeCache::set($cacheKey, $element);
-
-            if ($hasListeners) {
-                if ($element instanceof Asset) {
-                    $event = new AssetEvent($element, ['params' => $params]);
-                } elseif ($element instanceof Document) {
-                    $event = new DocumentEvent($element, ['params' => $params]);
-                } else {
-                    $event = new DataObjectEvent($element, ['params' => $params]);
-                }
-
-                $dispatcher->dispatch($event, $eventName);
-            }
+        if ($missingKeys) {
+            Cache::prefetch(array_keys($missingKeys));
         }
     }
 

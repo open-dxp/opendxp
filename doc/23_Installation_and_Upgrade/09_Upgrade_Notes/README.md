@@ -4,7 +4,7 @@
 - Improvement: Performance optimizations in element loading and caching (fully backwards compatible on the public API):
   - `Element\Service::prepareGetByIdParams()` uses a fast path for the common `[]` / `['force' => bool]` inputs; validation behavior is unchanged
   - `DataObject\AbstractObject::getById()` now fetches type discriminator and object row with a single query instead of two. Custom DataObject DAOs that override `Dao::getById()` for load-time logic should override the new `Dao::initByRow()` instead, since the model's `getById()` no longer calls `Dao::getById()` on the hot path
-  - Listing DAOs (DataObject, Asset, Document) pre-warm the RuntimeCache with a single batched persistent-cache read (`Cache::loadMultiple()` / `CoreCacheHandler::loadMultiple()`) before loading elements individually; element order, POST_LOAD events, and visibility filtering are unchanged
+  - Listing DAOs (DataObject, Asset, Document) fetch the persistent-cache entries of all elements with a single batched backend roundtrip (`Cache::prefetch()` / `CoreCacheHandler::prefetch()`) before loading elements individually; the buffered results are consumed by the individual `getById()` calls, so element order, POST_LOAD event order, and visibility filtering are unchanged
   - `Asset`, `Document` and `DataObject` `getById()` only construct and dispatch `POST_LOAD` events when listeners are registered
   - `Document::getById()` caches the per-class abstractness reflection check
   - `CoreCacheHandler` uses hash lookups for method-local tag bookkeeping (`writeSaveQueue()`, `normalizeClearTags()`, `prepareCacheTags()`); the protected tag list properties keep their array shape

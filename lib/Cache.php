@@ -70,15 +70,14 @@ class Cache
     }
 
     /**
-     * Load multiple items from the cache with a single backend roundtrip
+     * Fetch multiple items with a single backend roundtrip and buffer the
+     * results for the subsequent load() calls of the same keys
      *
      * @param string[] $keys
-     *
-     * @return array<string, mixed> data indexed by key, misses are omitted
      */
-    public static function loadMultiple(array $keys): array
+    public static function prefetch(array $keys): void
     {
-        return static::getHandler()->loadMultiple($keys);
+        static::getHandler()->prefetch($keys);
     }
 
     /**

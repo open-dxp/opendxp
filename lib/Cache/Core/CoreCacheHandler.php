@@ -110,6 +110,14 @@ class CoreCacheHandler implements LoggerAwareInterface
 
     protected bool $writeInProgress = false;
 
+    /**
+     * One-shot buffer filled by prefetch() and consumed by load(); holds the
+     * item data for hits and false for known misses
+     *
+     * @var array<string, mixed>
+     */
+    protected array $prefetchedItems = [];
+
     protected Closure $emptyCacheItemClosure;
 
     public function __construct(
@@ -228,6 +236,13 @@ class CoreCacheHandler implements LoggerAwareInterface
             return false;
         }
 
+        if (array_key_exists($key, $this->prefetchedItems)) {
+            $data = $this->prefetchedItems[$key];
+            unset($this->prefetchedItems[$key]);
+
+            return $data;
+        }
+
         $item = $this->getItem($key);
 
         if ($item->isHit()) {
@@ -238,28 +253,25 @@ class CoreCacheHandler implements LoggerAwareInterface
     }
 
     /**
-     * Load multiple items from the cache with a single backend roundtrip
+     * Fetch multiple items with a single backend roundtrip and buffer the
+     * results (hits and known misses) for the subsequent load() calls of the
+     * same keys, which then don't need a backend roundtrip of their own.
+     * Buffered entries are consumed on load() and invalidated on writes,
+     * removals, and tag/full clears.
      *
      * @param string[] $keys
-     *
-     * @return array<string, mixed> data indexed by key, misses are omitted
      */
-    public function loadMultiple(array $keys): array
+    public function prefetch(array $keys): void
     {
         if (!$this->enabled) {
-            $this->logger->debug('Not loading objects {keys} from cache (deactivated)', ['keys' => $keys]);
+            $this->logger->debug('Not prefetching objects {keys} from cache (deactivated)', ['keys' => $keys]);
 
-            return [];
+            return;
         }
 
-        $result = [];
         foreach ($this->pool->getItems($keys) as $key => $item) {
-            if ($item->isHit()) {
-                $result[$key] = $item->get();
-            }
+            $this->prefetchedItems[$key] = $item->isHit() ? $item->get() : false;
         }
-
-        return $result;
     }
 
     /**
@@ -444,6 +456,8 @@ class CoreCacheHandler implements LoggerAwareInterface
             return false;
         }
 
+        unset($this->prefetchedItems[$key]);
+
         $this->writeInProgress = true;
 
         if ($data instanceof ElementInterface) {
@@ -540,6 +554,8 @@ class CoreCacheHandler implements LoggerAwareInterface
     {
         CacheItem::validateKey($key);
 
+        unset($this->prefetchedItems[$key]);
+
         $this->writeLock->lock();
 
         return $this->pool->deleteItem($key);
@@ -550,6 +566,8 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function clearAll(): bool
     {
+        $this->prefetchedItems = [];
+
         $this->writeLock->lock();
 
         $this->logger->info('Clearing the whole cache');
@@ -575,6 +593,10 @@ class CoreCacheHandler implements LoggerAwareInterface
      */
     public function clearTags(array $tags): bool
     {
+        // the tag-to-key mapping is unknown here, so conservatively drop all
+        // prefetched entries
+        $this->prefetchedItems = [];
+
         $this->writeLock->lock();
 
         $originalTags = $tags;
@@ -611,6 +633,8 @@ class CoreCacheHandler implements LoggerAwareInterface
         if ($this->tagsClearedOnShutdown === []) {
             return true;
         }
+
+        $this->prefetchedItems = [];
 
         $this->logger->debug('Clearing shutdown cache tags', ['tags' => $this->tagsClearedOnShutdown]);
 
