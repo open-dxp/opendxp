@@ -34,6 +34,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Contracts\EventDispatcher\Event;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
 
 /**
@@ -45,7 +46,7 @@ use Throwable;
  *
  * @internal
  */
-class CoreCacheHandler implements LoggerAwareInterface
+class CoreCacheHandler implements LoggerAwareInterface, ResetInterface
 {
     use LoggerAwareTrait;
 
@@ -272,6 +273,17 @@ class CoreCacheHandler implements LoggerAwareInterface
         foreach ($this->pool->getItems($keys) as $key => $item) {
             $this->prefetchedItems[$key] = $item->isHit() ? $item->get() : false;
         }
+    }
+
+    /**
+     * Drops all buffered prefetch entries. Wired to kernel.reset (via service
+     * autoconfiguration) so that long-running processes such as Messenger
+     * workers cannot serve entries which were prefetched but never consumed
+     * (e.g. because a batch aborted) to later, unrelated work.
+     */
+    public function reset(): void
+    {
+        $this->prefetchedItems = [];
     }
 
     /**

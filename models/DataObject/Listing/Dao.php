@@ -17,6 +17,7 @@ namespace OpenDxp\Model\DataObject\Listing;
 
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 use Exception;
+use OpenDxp\Cache;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Listing\Dao\QueryBuilderHelperTrait;
@@ -65,10 +66,18 @@ class Dao extends Model\Listing\Dao\AbstractDao
         Model\Element\Service::prefetchElementsByIds('object', $list);
 
         $objects = [];
-        foreach ($list as $id) {
-            if ($object = DataObject::getById($id)) {
-                $objects[] = $object;
+
+        try {
+            foreach ($list as $id) {
+                if ($object = DataObject::getById($id)) {
+                    $objects[] = $object;
+                }
             }
+        } finally {
+            // drop prefetched entries the loop did not consume (e.g. when a
+            // POST_LOAD listener throws), they would otherwise serve stale
+            // data to later reads in long-running processes
+            Cache::getHandler()->reset();
         }
 
         $this->model->setObjects($objects);

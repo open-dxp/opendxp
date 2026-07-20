@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Pins down the prefetch buffer of {@see CoreCacheHandler}: prefetched hits
@@ -108,5 +109,31 @@ class PrefetchBufferTest extends \Codeception\Test\Unit
         // after consumption the pool is authoritative again
         $this->handler->save('onceKey', 'second-value', []);
         $this->assertSame('second-value', $this->handler->load('onceKey'));
+    }
+
+    public function testResetDropsBufferedEntries(): void
+    {
+        $this->handler->save('resetKey', 'stale-data', []);
+        $this->handler->prefetch(['resetKey']);
+
+        // another process updates the pool behind the handler's back
+        $item = $this->cache->getItem('resetKey');
+        $item->set('fresh-data');
+        $this->cache->save($item);
+
+        $this->handler->reset();
+
+        $this->assertSame(
+            'fresh-data',
+            $this->handler->load('resetKey'),
+            'reset() must drop buffered entries so the pool is authoritative again'
+        );
+    }
+
+    public function testHandlerIsResettableBetweenMessengerMessages(): void
+    {
+        // kernel.reset relies on the handler implementing ResetInterface
+        // (picked up by service autoconfiguration)
+        $this->assertInstanceOf(ResetInterface::class, $this->handler);
     }
 }
