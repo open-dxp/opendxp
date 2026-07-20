@@ -33,6 +33,7 @@ use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\ElementInterface;
 use Override;
+use ReflectionMethod;
 
 /**
  * @method AbstractObject\Dao getDao()
@@ -66,6 +67,13 @@ abstract class AbstractObject extends Model\Element\AbstractElement
     private static bool $hideUnpublished = false;
 
     private static bool $getInheritedValues = false;
+
+    /**
+     * Per DAO class: does it override getById() with custom logic?
+     *
+     * @var array<class-string, bool>
+     */
+    private static array $daoGetByIdOverrides = [];
 
     /**
      * @internal
@@ -224,7 +232,14 @@ abstract class AbstractObject extends Model\Element\AbstractElement
                     /** @var AbstractObject $object */
                     $object = self::getModelFactory()->build($className);
                     RuntimeCache::set($cacheKey, $object);
-                    $object->getDao()->initByRow($row);
+                    $dao = $object->getDao();
+                    if (self::daoOverridesGetById($dao::class)) {
+                        // project-specific DAOs overriding getById() must keep
+                        // their custom loading logic
+                        $dao->getById($id);
+                    } else {
+                        $dao->initByRow($row);
+                    }
                     if ($object->getModificationDate() !== null) {
                         $object->__setDataVersionTimestamp($object->getModificationDate());
                     }
@@ -262,6 +277,19 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         }
 
         return $object;
+    }
+
+    /**
+     * The single-query load in getById() bypasses the DAO's getById(). DAOs
+     * declaring their own getById() (project-specific customizations) must
+     * keep going through it, detected once per DAO class.
+     *
+     * @param class-string $daoClass
+     */
+    private static function daoOverridesGetById(string $daoClass): bool
+    {
+        return self::$daoGetByIdOverrides[$daoClass] ??= (new ReflectionMethod($daoClass, 'getById'))
+            ->getDeclaringClass()->getName() !== AbstractObject\Dao::class;
     }
 
     public static function getByPath(string $path, array $params = []): static|null
