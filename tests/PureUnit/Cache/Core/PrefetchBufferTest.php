@@ -111,6 +111,34 @@ class PrefetchBufferTest extends \Codeception\Test\Unit
         $this->assertSame('second-value', $this->handler->load('onceKey'));
     }
 
+    public function testInvalidatePrefetchedDropsOnlyTheGivenKeys(): void
+    {
+        $this->handler->save('batchKey', 'batch-data', []);
+        $this->handler->save('otherBatchKey', 'other-batch-data', []);
+        $this->handler->prefetch(['batchKey', 'otherBatchKey']);
+
+        // the pool is updated behind the handler's back, so a load can only
+        // return the original values while they are still buffered
+        foreach (['batchKey' => 'fresh-batch-data', 'otherBatchKey' => 'fresh-other-batch-data'] as $key => $value) {
+            $item = $this->cache->getItem($key);
+            $item->set($value);
+            $this->cache->save($item);
+        }
+
+        $this->handler->invalidatePrefetched(['batchKey']);
+
+        $this->assertSame(
+            'fresh-batch-data',
+            $this->handler->load('batchKey'),
+            'invalidated entries must be re-read from the pool'
+        );
+        $this->assertSame(
+            'other-batch-data',
+            $this->handler->load('otherBatchKey'),
+            'entries of other batches must stay buffered'
+        );
+    }
+
     public function testResetDropsBufferedEntries(): void
     {
         $this->handler->save('resetKey', 'stale-data', []);

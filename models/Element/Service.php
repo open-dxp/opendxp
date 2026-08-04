@@ -505,6 +505,27 @@ class Service extends Model\AbstractModel
         }
     }
 
+    /**
+     * Drops any still-buffered prefetch entries for the given element IDs
+     * without touching entries buffered for other batches, so that entries a
+     * batch did not consume (e.g. because it aborted) cannot serve stale data
+     * to later reads in long-running processes.
+     *
+     * @internal
+     *
+     * @param 'asset'|'document'|'object' $type
+     * @param int[] $ids
+     */
+    public static function invalidatePrefetchedElementsByIds(string $type, array $ids): void
+    {
+        $keys = [];
+        foreach ($ids as $id) {
+            $keys[] = self::getElementCacheTag($type, $id);
+        }
+
+        Cache::invalidatePrefetched($keys);
+    }
+
     public static function getElementType(ElementInterface $element): ?string
     {
         return match (true) {

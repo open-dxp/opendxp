@@ -276,6 +276,19 @@ class CoreCacheHandler implements LoggerAwareInterface, ResetInterface
     }
 
     /**
+     * Drops the given buffered prefetch entries without touching the rest of
+     * the buffer, e.g. entries prefetched by an outer, still running batch.
+     *
+     * @param string[] $keys
+     */
+    public function invalidatePrefetched(array $keys): void
+    {
+        foreach ($keys as $key) {
+            unset($this->prefetchedItems[$key]);
+        }
+    }
+
+    /**
      * Drops all buffered prefetch entries. Wired to kernel.reset (via service
      * autoconfiguration) so that long-running processes such as Messenger
      * workers cannot serve entries which were prefetched but never consumed

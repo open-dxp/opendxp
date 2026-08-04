@@ -16,7 +16,6 @@
 namespace OpenDxp\Model\Document\Listing;
 
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
-use OpenDxp\Cache;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Listing\Dao\QueryBuilderHelperTrait;
@@ -60,10 +59,10 @@ class Dao extends Model\Listing\Dao\AbstractDao
                 $documents[] = $doc;
             }
         } finally {
-            // drop prefetched entries the loop did not consume (e.g. when a
-            // POST_LOAD listener throws), they would otherwise serve stale
-            // data to later reads in long-running processes
-            Cache::getHandler()->reset();
+            // drop this batch's prefetched entries the loop did not consume
+            // (e.g. when a POST_LOAD listener throws), they would otherwise
+            // serve stale data to later reads in long-running processes
+            Model\Element\Service::invalidatePrefetchedElementsByIds('document', $ids);
         }
 
         $this->model->setDocuments($documents);

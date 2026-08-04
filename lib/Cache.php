@@ -81,6 +81,17 @@ class Cache
     }
 
     /**
+     * Drop the given buffered prefetch entries without touching entries
+     * buffered for other keys
+     *
+     * @param string[] $keys
+     */
+    public static function invalidatePrefetched(array $keys): void
+    {
+        static::getHandler()->invalidatePrefetched($keys);
+    }
+
+    /**
      * Save an item to the cache (deferred to shutdown if force is false and forceImmediateWrite is not set)
      */
     public static function save(mixed $data, string $key, array $tags = [], DateInterval|int|null $lifetime = null, int $priority = 0, bool $force = false): bool

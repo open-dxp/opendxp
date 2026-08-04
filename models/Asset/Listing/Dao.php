@@ -16,7 +16,6 @@
 namespace OpenDxp\Model\Asset\Listing;
 
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
-use OpenDxp\Cache;
 use OpenDxp\Model;
 use OpenDxp\Model\Listing\Dao\QueryBuilderHelperTrait;
 
@@ -57,10 +56,10 @@ class Dao extends Model\Listing\Dao\AbstractDao
                 $assets[] = $asset;
             }
         } finally {
-            // drop prefetched entries the loop did not consume (e.g. when a
-            // POST_LOAD listener throws), they would otherwise serve stale
-            // data to later reads in long-running processes
-            Cache::getHandler()->reset();
+            // drop this batch's prefetched entries the loop did not consume
+            // (e.g. when a POST_LOAD listener throws), they would otherwise
+            // serve stale data to later reads in long-running processes
+            Model\Element\Service::invalidatePrefetchedElementsByIds('asset', $ids);
         }
 
         $this->model->setAssets($assets);

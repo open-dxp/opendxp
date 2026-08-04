@@ -171,6 +171,47 @@ class OrphanedPrefetchAfterListingFailureTest extends ModelTestCase
         );
     }
 
+    public function testListingLoadDropsOnlyItsOwnBatchFromThePrefetchBuffer(): void
+    {
+        // an object belonging to a different, still running batch, e.g. an
+        // outer listing whose POST_LOAD listener triggered the load below
+        $outer = TestHelper::createEmptyObject('prefetch-outer-');
+        $outer->setInput('outer-batch');
+        $outer->save();
+        $this->simulateFreshRequestFor($outer);
+
+        $outerKey = Service::getElementCacheTag('object', $outer->getId());
+        $this->assertTrue(
+            Cache::save($outer, $outerKey, [], null, 0, true),
+            'The outer object must be storable in the persistent cache for this scenario'
+        );
+
+        $inner = TestHelper::createEmptyObject('prefetch-inner-');
+        $inner->setInput('inner-batch');
+        $inner->save();
+
+        RuntimeCache::clear();
+
+        Cache::prefetch([$outerKey]);
+
+        // remove the pool entry behind the handler's back: from here on the
+        // outer object can only be served by the prefetch buffer
+        $poolProperty = new ReflectionProperty(CoreCacheHandler::class, 'pool');
+        /** @var TagAwareAdapterInterface $pool */
+        $pool = $poolProperty->getValue(Cache::getHandler());
+        $pool->deleteItem($outerKey);
+
+        $listing = new Unittest\Listing();
+        $listing->setCondition("input = 'inner-batch'");
+        $listing->load();
+        $this->assertCount(1, $listing->getObjects(), 'The inner listing must load its own batch');
+
+        $this->assertNotFalse(
+            Cache::load($outerKey),
+            'a listing load must only drop its own batch from the prefetch buffer, not entries of other batches'
+        );
+    }
+
     public function testFrameworkServiceResetClearsUnconsumedPrefetchEntries(): void
     {
         $obj = TestHelper::createEmptyObject('prefetch-reset-');
