@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\ApplicationLoggerBundle;
 
+use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
+use OpenDxp\Bundle\ApplicationLoggerBundle\Schema\ApplicationLogSchema;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Security\ApplicationLoggerPermission;
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use OpenDxp\Security\PermissionAttribute;
@@ -47,26 +49,9 @@ class Installer extends SettingsStoreAwareInstaller
     {
         $db = \OpenDxp\Db::get();
 
-        $db->executeQuery("CREATE TABLE IF NOT EXISTS `application_logs` (
-          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-          `pid` INT(11) NULL DEFAULT NULL,
-          `timestamp` datetime NOT NULL,
-          `message` TEXT NULL,
-          `priority` ENUM('emergency','alert','critical','error','warning','notice','info','debug') DEFAULT NULL,
-          `fileobject` varchar(1024) DEFAULT NULL,
-          `info` varchar(1024) DEFAULT NULL,
-          `component` varchar(190) DEFAULT NULL,
-          `source` varchar(190) DEFAULT NULL,
-          `relatedobject` int(11) unsigned DEFAULT NULL,
-          `relatedobjecttype` enum('object','document','asset') DEFAULT NULL,
-          `maintenanceChecked` tinyint(1) DEFAULT NULL,
-          PRIMARY KEY (`id`),
-          KEY `component` (`component`),
-          KEY `timestamp` (`timestamp`),
-          KEY `relatedobject` (`relatedobject`),
-          KEY `priority` (`priority`),
-          KEY `maintenanceChecked` (`maintenanceChecked`)
-        ) DEFAULT CHARSET=utf8mb4;");
+        $db->executeQuery(ApplicationLogSchema::createLogTable(
+            $db->quoteIdentifier(ApplicationLoggerDb::TABLE_NAME)
+        ));
     }
 
     private function dropApplicationLogTable(): void
