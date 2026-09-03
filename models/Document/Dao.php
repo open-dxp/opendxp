@@ -62,14 +62,11 @@ class Dao extends Model\Element\Dao
      */
     public function getByPath(string $path): void
     {
-        $params = $this->extractKeyAndPath($path);
-        $data = $this->db->fetchAssociative('SELECT id FROM documents WHERE `path` = BINARY :path AND `key` = BINARY :key', $params);
+        $id = $this->getIdByPath($path);
 
-        if ($data) {
-            $this->assignVariablesToModel($data);
-        } else {
+        if (!$id) {
             // try to find a page with a pretty URL (use the original $path)
-            $data = $this->db->fetchAssociative(
+            $id = $this->db->fetchOne(
                 'SELECT documents_page.id FROM documents_page
                     JOIN documents ON documents.id = documents_page.id
                     WHERE documents_page.prettyUrl = :prettyUrl AND documents.type = :type',
@@ -78,13 +75,27 @@ class Dao extends Model\Element\Dao
                     'type'      => 'page',
                 ]
             );
-
-            if ($data) {
-                $this->assignVariablesToModel($data);
-            } else {
-                throw new Model\Exception\NotFoundException("document with path $path doesn't exist");
-            }
         }
+
+        if (!$id) {
+            throw new Model\Exception\NotFoundException(sprintf('document with path %s does not exist', $path));
+        }
+
+        $this->assignVariablesToModel(['id' => $id]);
+    }
+
+    /**
+     * Looks up the path in the tree only. A pretty URL is a routing alias,
+     * not a place in the tree, so it must not answer here.
+     */
+    public function getIdByPath(string $path): ?int
+    {
+        $id = $this->db->fetchOne(
+            'SELECT id FROM documents WHERE `path` = BINARY :path AND `key` = BINARY :key',
+            $this->extractKeyAndPath($path)
+        );
+
+        return $id ? (int) $id : null;
     }
 
     public function create(): void

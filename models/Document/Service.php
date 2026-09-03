@@ -307,9 +307,7 @@ class Service extends Model\Element\Service
             $document = new Document();
             // validate path
             if (self::isValidPath($path, 'document')) {
-                $document->getDao()->getByPath($path);
-
-                return true;
+                return $document->getDao()->getIdByPath($path) !== null;
             }
         } catch (Exception) {
         }
