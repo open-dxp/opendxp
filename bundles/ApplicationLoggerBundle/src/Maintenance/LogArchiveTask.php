@@ -20,8 +20,11 @@ use Carbon\Carbon;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use League\Flysystem\FilesystemOperator;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
+use OpenDxp\Bundle\ApplicationLoggerBundle\Schema\ApplicationLogSchema;
 use OpenDxp\Config;
 use OpenDxp\DateFormat;
 use OpenDxp\Maintenance\TaskInterface;
@@ -33,6 +36,8 @@ use Psr\Log\LoggerInterface;
  */
 class LogArchiveTask implements TaskInterface
 {
+    private const int BATCH_SIZE = 1000;
+
     public function __construct(
         private readonly Connection $db,
         private Config $config,
@@ -66,50 +71,25 @@ class LogArchiveTask implements TaskInterface
         );
 
         if ($count > 0) {
-            $this->db->executeStatement(sprintf(
-                "CREATE TABLE IF NOT EXISTS %s (
-                    id BIGINT(20) NOT NULL,
-                    `pid` INT(11) NULL DEFAULT NULL,
-                    `timestamp` DATETIME NOT NULL,
-                    message VARCHAR(1024),
-                    `priority` ENUM('emergency','alert','critical','error','warning','notice','info','debug') DEFAULT NULL,
-                    fileobject VARCHAR(1024),
-                    info VARCHAR(1024),
-                    component VARCHAR(255),
-                    source VARCHAR(255) NULL DEFAULT NULL,
-                    relatedobject BIGINT(20),
-                    relatedobjecttype ENUM('object', 'document', 'asset'),
-                    maintenanceChecked TINYINT(1)
-                ) ENGINE = ARCHIVE ROW_FORMAT = DEFAULT",
-                $archiveTable
-            ));
-
-            $this->db->executeStatement(
-                sprintf('INSERT INTO %s SELECT * FROM %s WHERE `timestamp` < ?', $archiveTable, $sourceTable),
-                $whereParams
-            );
+            $this->db->executeStatement(ApplicationLogSchema::createArchiveTable($archiveTable));
 
             $this->logger->debug(sprintf(
                 'Deleting referenced FileObjects of application_logs which are older than %d days',
                 $archiveThreshold
             ));
 
-            $fileObjectPaths = $this->db->fetchAllAssociative(
-                sprintf('SELECT fileobject FROM %s WHERE `timestamp` < ?', $sourceTable),
-                $whereParams
-            );
+            do {
+                $rows = $this->db->fetchAllAssociative(
+                    sprintf(
+                        'SELECT id, fileobject FROM %s WHERE `timestamp` < ? ORDER BY id LIMIT %d',
+                        $sourceTable,
+                        self::BATCH_SIZE
+                    ),
+                    $whereParams
+                );
 
-            foreach ($fileObjectPaths as $objectPath) {
-                $filePath = $objectPath['fileobject'];
-                if ($filePath !== null && $storage->fileExists($filePath)) {
-                    $storage->delete($filePath);
-                }
-            }
-
-            $this->db->executeStatement(
-                sprintf('DELETE FROM %s WHERE `timestamp` < ?', $sourceTable),
-                $whereParams
-            );
+                $this->archiveBatch($archiveTable, $sourceTable, $rows, $storage);
+            } while (count($rows) === self::BATCH_SIZE);
         }
 
         $archiveTables = $this->db->fetchFirstColumn(
@@ -138,6 +118,43 @@ class LogArchiveTask implements TaskInterface
                         $storage->deleteDirectory($folderName);
                     }
                 }
+            }
+        }
+    }
+
+    private function archiveBatch(
+        string $archiveTable,
+        string $sourceTable,
+        array $rows,
+        FilesystemOperator $storage
+    ): void {
+        if ($rows === []) {
+            return;
+        }
+
+        $ids = array_map(intval(...), array_column($rows, 'id'));
+
+        $this->db->executeStatement(
+            sprintf(
+                'INSERT INTO %1$s SELECT * FROM %2$s WHERE %2$s.id IN (?)
+                    ON DUPLICATE KEY UPDATE %1$s.`id` = %1$s.`id`',
+                $archiveTable,
+                $sourceTable
+            ),
+            [$ids],
+            [ArrayParameterType::INTEGER]
+        );
+
+        $this->db->executeStatement(
+            sprintf('DELETE FROM %s WHERE id IN (?)', $sourceTable),
+            [$ids],
+            [ArrayParameterType::INTEGER]
+        );
+
+        foreach ($rows as $row) {
+            $filePath = $row['fileobject'];
+            if ($filePath !== null && $storage->fileExists($filePath)) {
+                $storage->delete($filePath);
             }
         }
     }
