@@ -17,6 +17,9 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Model\Document;
 
 use Exception;
+use OpenDxp\Cache\RuntimeCache;
+use OpenDxp\Db;
+use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Editable\Input;
 use OpenDxp\Model\Document\Email;
 use OpenDxp\Model\Document\Link;
@@ -377,5 +380,23 @@ class DocumentTest extends ModelTestCase
         $loadedDocument = Service::getElementFromSession('document', $document->getId(), $session->getId());
 
         $this->assertEquals(count($document->getEditables()), count($loadedDocument->getEditables()));
+    }
+
+    public function testPrettyUrlIsNotResolvedAfterTypeChange(): void
+    {
+        $page = TestHelper::createEmptyDocumentPage();
+        $prettyUrl = '/pretty-url-' . uniqid();
+        $page->setPrettyUrl($prettyUrl);
+        $page->save();
+
+        $this->assertInstanceOf(Page::class, Document::getByPath($prettyUrl));
+
+        Db::get()->executeStatement(
+            'UPDATE documents SET type = ? WHERE id = ?',
+            ['link', $page->getId()]
+        );
+        RuntimeCache::clear();
+
+        $this->assertNull(Document::getByPath($prettyUrl));
     }
 }
