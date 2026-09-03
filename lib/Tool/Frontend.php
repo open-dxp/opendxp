@@ -87,7 +87,7 @@ final class Frontend
             foreach ($sites as $site) {
                 $siteMapping[$site->getRootPath()] = $site->getId();
             }
-            OpenDxp\Cache::save($siteMapping, $cacheKey, ['system', 'resource'], null, 997);
+            OpenDxp\Cache::save($siteMapping, $cacheKey, ['system', 'resource', 'site'], null, 997);
         }
         RuntimeCache::set($cacheKey, $siteMapping);
 

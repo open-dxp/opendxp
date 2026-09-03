@@ -37,6 +37,19 @@ class Dao extends Model\Dao\AbstractDao
         );
     }
 
+    /**
+     * @return int[]
+     */
+    public function getDocumentIdsByPrettyUrl(string $path): array
+    {
+        return array_map(intval(...), $this->db->fetchFirstColumn(
+            'SELECT documents_page.id FROM documents_page
+            JOIN documents ON documents.id = documents_page.id
+            WHERE documents_page.prettyUrl = ? AND documents.type = ?',
+            [rtrim($path, '/'), 'page']
+        ));
+    }
+
     public function getTranslationSourceId(Document $document): mixed
     {
         $sourceId = $this->db->fetchOne(

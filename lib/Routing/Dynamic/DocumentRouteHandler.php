@@ -24,6 +24,7 @@ use OpenDxp\Http\Request\Resolver\StaticPageResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Page;
+use OpenDxp\Model\Site;
 use OpenDxp\Routing\DocumentRoute;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Frontend;
@@ -87,30 +88,15 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
 
     public function matchRequest(RouteCollection $collection, DynamicRequestContext $context): void
     {
-        $document = Document::getByPath($context->getPath());
         $site = $this->siteResolver->getSite($context->getRequest());
 
-        // If the request is not from a site and the document is part of a site
-        // or the ID of the requested site does not match the site where the document is located.
-        // Then we have to throw a NotFoundHttpException
-        if (!$site && $document && !Tool::isFrontendRequestByAdmin()) {
-            $siteIdOfDocument = Frontend::getSiteIdForDocument($document);
-            if ($siteIdOfDocument) {
-                throw new NotFoundHttpException('The page does not exist on this configured site.');
-            }
-        }
-
-        // check for a pretty url inside a site
-        if (!$document && $this->siteResolver->isSiteRequest($context->getRequest())) {
-            $sitePrettyDocId = $this->documentService->getDao()->getDocumentIdByPrettyUrlInSite($site, $context->getOriginalPath());
-            if ($sitePrettyDocId && $sitePrettyDoc = Document::getById($sitePrettyDocId)) {
-                $document = $sitePrettyDoc;
-                // TODO set pretty path via siteResolver?
-                // undo the modification of the path by the site detection (prefixing with site root path)
-                // this is not necessary when using pretty-urls and will cause problems when validating the
-                // prettyUrl later (redirecting to the prettyUrl in the case the page was called by the real path)
-                $context->setPath($context->getOriginalPath());
-            }
+        if ($site) {
+            $document = $this->resolveInSite($context, $site);
+        } elseif (Tool::isFrontendRequestByAdmin()) {
+            // editmode and previews are not bound to a host
+            $document = Document::getByPath($context->getPath());
+        } else {
+            $document = $this->resolveInMainTree($context->getPath());
         }
 
         // check for a parent hardlink with children
@@ -124,6 +110,53 @@ final class DocumentRouteHandler implements DynamicRouteHandlerInterface
         if ($document && $document instanceof Document && $route = $this->buildRouteForDocument($document, $context)) {
             $collection->add($route->getRouteKey(), $route);
         }
+    }
+
+    private function resolveInSite(DynamicRequestContext $context, Site $site): ?Document
+    {
+        if ($document = Document::getByPath($context->getPath())) {
+            return $document;
+        }
+
+        $id = $this->documentService->getDao()->getDocumentIdByPrettyUrlInSite($site, $context->getOriginalPath());
+        if (!$id || !$document = Document::getById($id)) {
+            return null;
+        }
+
+        // TODO set pretty path via siteResolver?
+        // undo the modification of the path by the site detection (prefixing with site root path)
+        // this is not necessary when using pretty-urls and will cause problems when validating the
+        // prettyUrl later (redirecting to the prettyUrl in the case the page was called by the real path)
+        $context->setPath($context->getOriginalPath());
+
+        return $document;
+    }
+
+    /**
+     * getByPath() knows nothing about sites, so its pretty URL fallback can return a document
+     * from one. Skip those and take the one that lives in the main tree.
+     */
+    private function resolveInMainTree(string $path): ?Document
+    {
+        $document = Document::getByPath($path);
+
+        if ($document && !Frontend::getSiteIdForDocument($document)) {
+            return $document;
+        }
+
+        foreach ($this->documentService->getDao()->getDocumentIdsByPrettyUrl($path) as $id) {
+            $candidate = Document::getById($id);
+
+            if ($candidate && !Frontend::getSiteIdForDocument($candidate)) {
+                return $candidate;
+            }
+        }
+
+        if ($document) {
+            throw new NotFoundHttpException('The page does not exist on this configured site.');
+        }
+
+        return null;
     }
 
     /**
