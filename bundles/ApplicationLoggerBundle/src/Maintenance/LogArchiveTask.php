@@ -136,8 +136,7 @@ class LogArchiveTask implements TaskInterface
 
         $this->db->executeStatement(
             sprintf(
-                'INSERT INTO %1$s SELECT * FROM %2$s WHERE %2$s.id IN (?)
-                    ON DUPLICATE KEY UPDATE %1$s.`id` = %1$s.`id`',
+                'INSERT IGNORE INTO %s SELECT * FROM %s WHERE id IN (?)',
                 $archiveTable,
                 $sourceTable
             ),
