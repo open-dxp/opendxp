@@ -21,6 +21,7 @@ namespace OpenDxp\Bundle\ApplicationLoggerBundle\Schema;
 final class ApplicationLogSchema
 {
     private const string COLUMNS = <<<'SQL'
+        `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
         `pid` int(11) NULL DEFAULT NULL,
         `timestamp` datetime NOT NULL,
         `message` text NULL,
@@ -38,7 +39,6 @@ final class ApplicationLogSchema
     {
         return sprintf(
             'CREATE TABLE IF NOT EXISTS %s (
-                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                 %s,
                 PRIMARY KEY (`id`),
                 KEY `component` (`component`),
@@ -56,7 +56,6 @@ final class ApplicationLogSchema
     {
         return sprintf(
             'CREATE TABLE IF NOT EXISTS %s (
-                `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                 %s,
                 PRIMARY KEY (`id`)
             ) ENGINE=ARCHIVE DEFAULT CHARSET=utf8mb4',
