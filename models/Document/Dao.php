@@ -69,9 +69,15 @@ class Dao extends Model\Element\Dao
             $this->assignVariablesToModel($data);
         } else {
             // try to find a page with a pretty URL (use the original $path)
-            $data = $this->db->fetchAssociative('SELECT id FROM documents_page WHERE prettyUrl = :prettyUrl', [
-                'prettyUrl' => $path,
-            ]);
+            $data = $this->db->fetchAssociative(
+                'SELECT documents_page.id FROM documents_page
+                    JOIN documents ON documents.id = documents_page.id
+                    WHERE documents_page.prettyUrl = :prettyUrl AND documents.type = :type',
+                [
+                    'prettyUrl' => $path,
+                    'type'      => 'page',
+                ]
+            );
 
             if ($data) {
                 $this->assignVariablesToModel($data);
