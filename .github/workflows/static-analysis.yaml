@@ -34,10 +34,10 @@ jobs:
             matrix: ${{ steps.set-matrix.outputs.matrix }}
         steps:
             -   name: Checkout code
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
 
             -   name: Checkout reusable workflow repo
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
                 with:
                     repository: open-dxp/workflows-collection-public
                     ref: main

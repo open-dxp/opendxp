@@ -399,4 +399,16 @@ class DocumentTest extends ModelTestCase
 
         $this->assertNull(Document::getByPath($prettyUrl));
     }
+
+    public function testPathExistsIgnoresPrettyUrls(): void
+    {
+        $page = TestHelper::createEmptyDocumentPage();
+        $prettyUrl = '/pretty-url-' . uniqid();
+        $page->setPrettyUrl($prettyUrl);
+        $page->save();
+
+        $this->assertTrue(Service::pathExists($page->getRealFullPath()));
+        $this->assertFalse(Service::pathExists($page->getRealFullPath() . '-nope'));
+        $this->assertFalse(Service::pathExists($prettyUrl));
+    }
 }
