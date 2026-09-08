@@ -1,5 +1,12 @@
 # Upgrade Notes
 
+## OpenDXP 1.4.1
+- Bugfix: Fix NULL writes into NOT NULL columns in classificationstore configs [#179](https://github.com/open-dxp/opendxp/pull/179)
+- Bugfix: Fix application log archive growing with duplicate rows [#185](https://github.com/open-dxp/opendxp/pull/185)
+- Bugfix: Only resolve pretty URLs for documents that are still pages [#186](https://github.com/open-dxp/opendxp/pull/186)
+- Bugfix: Fix pretty URL resolving to a document from another site [#187](https://github.com/open-dxp/opendxp/pull/187)
+- Bugfix: Ignore pretty URLs when checking whether a document path exists [#188](https://github.com/open-dxp/opendxp/pull/188)
+
 ## OpenDXP 1.4.0
 - New Feature: Tag-based http cache invalidation [#153](https://github.com/open-dxp/opendxp/pull/153)
 - New Feature: Introduce Permission Voters (User / Element) [#171](https://github.com/open-dxp/opendxp/pull/171)
