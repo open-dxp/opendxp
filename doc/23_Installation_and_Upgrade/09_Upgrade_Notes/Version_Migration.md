@@ -60,7 +60,7 @@ class MigrateVersionFilesCommand extends Command
         $io->text(sprintf('Searching: %s', $basePath));
 
         $finder = new Finder();
-        $finder->files()->in($basePath)->sortByName();
+        $finder->files()->in($basePath);
 
         $totalFiles = 0;
         $migratedFiles = 0;
