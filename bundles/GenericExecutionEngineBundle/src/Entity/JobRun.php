@@ -66,7 +66,7 @@ class JobRun
     #[ORM\Column(type: 'text', length: 4294967295, nullable: true)]
     private ?string $serializedJob = null;
 
-    #[ORM\Column(type: 'text', length: 4294967295, nullable: true)]
+    #[ORM\Column(type: 'json', nullable: true)]
     private ?array $context = null;
 
     #[ORM\Column(nullable: true)]
