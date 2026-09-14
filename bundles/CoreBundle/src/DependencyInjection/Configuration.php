@@ -24,7 +24,8 @@ use OpenDxp\Config\LocationAwareConfigRepository;
 use OpenDxp\Model\Asset\Image\Thumbnail\Config as ImageThumbnailConfig;
 use OpenDxp\Model\Asset\Video\Thumbnail\Config as VideoThumbnailConfig;
 use OpenDxp\Model\Asset\Video\Thumbnail\Processor as VideoThumbnailProcessor;
-use OpenDxp\Security\User\User as OpenDxpUser;
+use OpenDxp\Model\User as ModelUser;
+use OpenDxp\Security\User\User as SecurityUser;
 use OpenDxp\Tool\SerializationScope;
 use OpenDxp\Video\Adapter\Ffmpeg;
 use OpenDxp\Workflow\EventSubscriber\ChangePublishedStateSubscriber;
@@ -1177,7 +1178,8 @@ final class Configuration implements ConfigurationInterface
                                         PostAuthenticationToken::class => true,
                                         TwoFactorRequiredToken::class => true,
                                         TwoFactorToken::class => true,
-                                        OpenDxpUser::class => true,
+                                        SecurityUser::class => true,
+                                        ModelUser::class => true,
                                     ])
                                     ->prototype('boolean')->end()
                                 ->end()
