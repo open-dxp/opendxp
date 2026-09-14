@@ -1178,17 +1178,6 @@ final class Configuration implements ConfigurationInterface
                                 ->arrayNode('allowed_classes')
                                     ->info('Classes the admin session token may deserialize into')
                                     ->useAttributeAsKey('class')
-                                    ->defaultValue([
-                                        PostAuthenticationToken::class => true,
-                                        UsernamePasswordToken::class => true,
-                                        TwoFactorRequiredToken::class => true,
-                                        TwoFactorToken::class => true,
-                                        SecurityUser::class => true,
-                                        ModelUser::class => true,
-                                        UserWorkspaceAsset::class => true,
-                                        UserWorkspaceDataObject::class => true,
-                                        UserWorkspaceDocument::class => true,
-                                    ])
                                     ->prototype('boolean')->end()
                                 ->end()
                             ->end()
@@ -1199,12 +1188,6 @@ final class Configuration implements ConfigurationInterface
                                 ->arrayNode('allowed_classes')
                                     ->info('Classes a TmpStore entry may deserialize into')
                                     ->useAttributeAsKey('class')
-                                    ->defaultValue([
-                                        ImageThumbnailConfig::class => true,
-                                        VideoThumbnailConfig::class => true,
-                                        VideoThumbnailProcessor::class => true,
-                                        Ffmpeg::class => true,
-                                    ])
                                     ->prototype('boolean')->end()
                                 ->end()
                             ->end()
@@ -2110,5 +2093,31 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
         ->end();
+    }
+
+    /**
+     * The classes core itself needs for a scope.
+     */
+    public static function getBuiltInAllowedClasses(SerializationScope $scope): array
+    {
+        return match ($scope) {
+            SerializationScope::Authentication => [
+                PostAuthenticationToken::class => true,
+                UsernamePasswordToken::class => true,
+                TwoFactorRequiredToken::class => true,
+                TwoFactorToken::class => true,
+                SecurityUser::class => true,
+                ModelUser::class => true,
+                UserWorkspaceAsset::class => true,
+                UserWorkspaceDataObject::class => true,
+                UserWorkspaceDocument::class => true,
+            ],
+            SerializationScope::TmpStore => [
+                ImageThumbnailConfig::class => true,
+                VideoThumbnailConfig::class => true,
+                VideoThumbnailProcessor::class => true,
+                Ffmpeg::class => true,
+            ],
+        };
     }
 }

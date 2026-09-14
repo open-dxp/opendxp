@@ -81,7 +81,7 @@ final class Serialize
             return false;
         }
 
-        $visitedObjects->attach($value);
+        $visitedObjects->offsetSet($value);
 
         // (array) sees every property regardless of visibility, unlike get_object_vars(), which
         // misses private properties from parent classes (e.g. Symfony's AbstractToken::$user).
