@@ -1306,7 +1306,7 @@ class Service extends Model\AbstractModel
                 // project defines, not something fixed this method could enumerate.
                 $element = Serialize::unserialize($data, ['allowed_classes' => true]);
 
-                if (!$element instanceof ElementInterface) {
+                if (!$element instanceof Asset && !$element instanceof Document && !$element instanceof AbstractObject) {
                     return null;
                 }
 
