@@ -348,11 +348,14 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
             $this->setId((string) $maxId);
         }
 
-        if (!preg_match('/[a-zA-Z]\w+/', $this->getName())) {
+        // Anchored with ^ and $ so the whole name/ID has to be a valid identifier, not just
+        // contain one. Both get used unquoted further down when building table names and
+        // other SQL, so anything extra slipping through here is a problem.
+        if (!preg_match('/^[a-zA-Z]\w+$/', $this->getName())) {
             throw new Exception(sprintf('Invalid name for class definition: %s', $this->getName()));
         }
 
-        if (!preg_match('/[a-zA-Z0-9](\w+)?/', $this->getId())) {
+        if (!preg_match('/^[a-zA-Z0-9]\w*$/', $this->getId())) {
             throw new Exception(sprintf('Invalid ID `%s` for class definition %s', $this->getId(), $this->getName()));
         }
 
