@@ -25,6 +25,9 @@ use OpenDxp\Model\Asset\Image\Thumbnail\Config as ImageThumbnailConfig;
 use OpenDxp\Model\Asset\Video\Thumbnail\Config as VideoThumbnailConfig;
 use OpenDxp\Model\Asset\Video\Thumbnail\Processor as VideoThumbnailProcessor;
 use OpenDxp\Model\User as ModelUser;
+use OpenDxp\Model\User\Workspace\Asset as UserWorkspaceAsset;
+use OpenDxp\Model\User\Workspace\DataObject as UserWorkspaceDataObject;
+use OpenDxp\Model\User\Workspace\Document as UserWorkspaceDocument;
 use OpenDxp\Security\User\User as SecurityUser;
 use OpenDxp\Tool\SerializationScope;
 use OpenDxp\Video\Adapter\Ffmpeg;
@@ -37,6 +40,7 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * @internal
@@ -1176,10 +1180,14 @@ final class Configuration implements ConfigurationInterface
                                     ->useAttributeAsKey('class')
                                     ->defaultValue([
                                         PostAuthenticationToken::class => true,
+                                        UsernamePasswordToken::class => true,
                                         TwoFactorRequiredToken::class => true,
                                         TwoFactorToken::class => true,
                                         SecurityUser::class => true,
                                         ModelUser::class => true,
+                                        UserWorkspaceAsset::class => true,
+                                        UserWorkspaceDataObject::class => true,
+                                        UserWorkspaceDocument::class => true,
                                     ])
                                     ->prototype('boolean')->end()
                                 ->end()

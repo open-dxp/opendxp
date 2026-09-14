@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace OpenDxp\Tool;
 
 use __PHP_Incomplete_Class;
-use Closure;
 use OpenDxp;
 use OpenDxp\Config;
 use SplObjectStorage;
@@ -84,8 +83,9 @@ final class Serialize
 
         $visitedObjects->attach($value);
 
-        $properties = (Closure::bind(fn () => get_object_vars($this), $value, $value::class))();
-        foreach ($properties as $property) {
+        // (array) sees every property regardless of visibility, unlike get_object_vars(), which
+        // misses private properties from parent classes (e.g. Symfony's AbstractToken::$user).
+        foreach ((array) $value as $property) {
             if (self::hasIncompleteClass($property, $visitedObjects)) {
                 return true;
             }
