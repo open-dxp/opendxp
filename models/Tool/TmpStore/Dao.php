@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Tool\TmpStore;
 use Exception;
 use OpenDxp\Db\Helper;
 use OpenDxp\Model;
+use OpenDxp\Tool\SerializationScope;
 use OpenDxp\Tool\Serialize;
 
 /**
@@ -62,7 +63,7 @@ class Dao extends Model\Dao\AbstractDao
 
         if ($item) {
             if ($item['serialized']) {
-                $item['data'] = Serialize::unserialize($item['data']);
+                $item['data'] = Serialize::unserializeWithScope(SerializationScope::TmpStore, $item['data']);
             }
 
             $item['serialized'] = (bool)$item['serialized'];

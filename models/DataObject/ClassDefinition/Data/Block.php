@@ -724,7 +724,8 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
         $data = null;
 
         if ($object instanceof DataObject\Concrete) {
-            $query = 'select ' . $db->quoteIdentifier($field) . ' from object_store_' . $object->getClassId() . ' where oo_id  = ' . $object->getId();
+            $table = $db->quoteIdentifier('object_store_' . $object->getClassId());
+            $query = 'select ' . $db->quoteIdentifier($field) . ' from ' . $table . ' where oo_id  = ' . $object->getId();
             $data = $db->fetchOne($query);
             $data = $this->getDataFromResource($data, $object, $params);
         } elseif ($object instanceof DataObject\Localizedfield) {
@@ -733,11 +734,14 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
             $containerType = $context['containerType'] ?? null;
 
             if ($containerType === 'fieldcollection') {
-                $query = 'select ' . $db->quoteIdentifier($field) . ' from object_collection_' . $context['containerKey'] . '_localized_' . $object->getClassId() . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($context['fieldname']) . ' and `index` =  ' . $context['index'];
+                $table = $db->quoteIdentifier('object_collection_' . $context['containerKey'] . '_localized_' . $object->getClassId());
+                $query = 'select ' . $db->quoteIdentifier($field) . ' from ' . $table . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($context['fieldname']) . ' and `index` =  ' . $context['index'];
             } elseif ($containerType === 'objectbrick') {
-                $query = 'select ' . $db->quoteIdentifier($field) . ' from object_brick_localized_' . $context['containerKey'] . '_' . $object->getClassId() . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($context['fieldname']);
+                $table = $db->quoteIdentifier('object_brick_localized_' . $context['containerKey'] . '_' . $object->getClassId());
+                $query = 'select ' . $db->quoteIdentifier($field) . ' from ' . $table . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($context['fieldname']);
             } else {
-                $query = 'select ' . $db->quoteIdentifier($field) . ' from object_localized_data_' . $object->getClassId() . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId();
+                $table = $db->quoteIdentifier('object_localized_data_' . $object->getClassId());
+                $query = 'select ' . $db->quoteIdentifier($field) . ' from ' . $table . ' where language = ' . $db->quote($params['language']) . ' and  ooo_id  = ' . $object->getId();
             }
             $data = $db->fetchOne($query);
             $data = $this->getDataFromResource($data, $object, $params);
@@ -748,7 +752,8 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
             $brickType = $context['containerKey'];
             $brickField = $context['brickField'];
             $fieldname = $context['fieldname'];
-            $query = 'select ' . $db->quoteIdentifier($brickField) . ' from object_brick_store_' . $brickType . '_' . $object->getClassId()
+            $table = $db->quoteIdentifier('object_brick_store_' . $brickType . '_' . $object->getClassId());
+            $query = 'select ' . $db->quoteIdentifier($brickField) . ' from ' . $table
                 . ' where  id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($fieldname);
             $data = $db->fetchOne($query);
             $data = $this->getDataFromResource($data, $object, $params);
@@ -760,7 +765,8 @@ class Block extends Data implements CustomResourcePersistingInterface, ResourceP
 
             //TODO index!!!!!!!!!!!!!!
 
-            $query = 'select ' . $db->quoteIdentifier($field) . ' from object_collection_' . $collectionType . '_' . $object->getClassId()
+            $table = $db->quoteIdentifier('object_collection_' . $collectionType . '_' . $object->getClassId());
+            $query = 'select ' . $db->quoteIdentifier($field) . ' from ' . $table
                 . ' where  id  = ' . $object->getId() . ' and fieldname = ' . $db->quote($fcField) . ' and `index` = ' . $context['index'];
             $data = $db->fetchOne($query);
             $data = $this->getDataFromResource($data, $object, $params);

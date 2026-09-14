@@ -31,11 +31,13 @@ use OpenDxp\Loader\ImplementationLoader\PrefixLoader;
 use OpenDxp\Model\Document\Editable\Loader\EditableLoader;
 use OpenDxp\Model\Document\Editable\Loader\PrefixLoader as DocumentEditablePrefixLoader;
 use OpenDxp\Model\Factory;
+use OpenDxp\Tool\SerializationScope;
 use Override;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
@@ -43,12 +45,27 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 /**
  * @internal
  */
-final class OpenDxpCoreExtension extends ConfigurableExtension
+final class OpenDxpCoreExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
     #[Override]
     public function getAlias(): string
     {
         return 'opendxp';
+    }
+
+    #[Override]
+    public function prepend(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('opendxp', [
+            'serialization' => [
+                SerializationScope::Authentication->value => [
+                    'allowed_classes' => Configuration::getBuiltInAllowedClasses(SerializationScope::Authentication),
+                ],
+                SerializationScope::TmpStore->value => [
+                    'allowed_classes' => Configuration::getBuiltInAllowedClasses(SerializationScope::TmpStore),
+                ],
+            ],
+        ]);
     }
 
     public function loadInternal(array $config, ContainerBuilder $container): void

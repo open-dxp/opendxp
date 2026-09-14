@@ -18,7 +18,6 @@ namespace OpenDxp\Tool;
 
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Exception\CryptoException;
-use ErrorException;
 use Exception;
 use OpenDxp;
 use OpenDxp\Config;
@@ -69,36 +68,22 @@ class Authentication
     protected static function safelyUnserialize(string $serializedToken): mixed
     {
         $token = null;
-        $prevUnserializeHandler = ini_set('unserialize_callback_func', self::class.'::handleUnserializeCallback');
-        $prevErrorHandler = set_error_handler(static function (int $type, string $msg, string $file, int $line, array $context = []) use (&$prevErrorHandler) {
-            if (__FILE__ === $file) {
-                throw new ErrorException($msg, 0x37313BC, $type, $file, $line);
-            }
-
-            return $prevErrorHandler ? $prevErrorHandler($type, $msg, $file, $line, $context) : false;
+        // Scoped to just the unserialize() call below via try/finally, so any warning raised
+        // while this handler is active belongs to it, regardless of which file reports it -
+        // unserialize() itself lives in Serialize.php, not here.
+        set_error_handler(static function (int $type, string $msg) {
+            throw new CorruptedSerializedDataException($msg);
         });
 
         try {
-            $token = Serialize::unserialize($serializedToken);
-        } catch (ErrorException $e) {
-            if (0x37313BC !== $e->getCode()) {
-                throw $e;
-            }
+            $token = Serialize::unserializeWithScope(SerializationScope::Authentication, $serializedToken);
+        } catch (CorruptedSerializedDataException $e) {
             Logger::warning('Failed to unserialize the security token from the session.', ['key' => 'opendxp_admin', 'received' => $serializedToken, 'exception' => $e]);
         } finally {
             restore_error_handler();
-            ini_set('unserialize_callback_func', $prevUnserializeHandler);
         }
 
         return $token;
-    }
-
-    /**
-     * @internal
-     */
-    public static function handleUnserializeCallback(string $class): never
-    {
-        throw new ErrorException('Class not found: '.$class, 0x37313BC);
     }
 
     protected static function refreshUser(TokenInterface $token, UserProvider $provider): ?TokenInterface

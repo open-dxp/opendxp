@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Model\Asset\WebDAV;
 
+use OpenDxp\Model\Asset;
 use OpenDxp\Tool\Serialize;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -56,5 +57,20 @@ class Service
 
         $filesystem = new Filesystem();
         $filesystem->dumpFile(self::getDeleteLogFile(), Serialize::serialize($log));
+    }
+
+    /**
+     * File::delete() dumps the whole asset into the log entry read here, so Tree::move() can
+     * restore it. Dump state keeps the asset's properties and children instead of stripping
+     * them. What a property or a child asset actually holds depends on the types this project
+     * configures, so there's no fixed set of classes this method could check against. The log
+     * is only ever written by File::delete(), so reading it back carries no more risk than any
+     * other data this class already persists.
+     */
+    public static function restoreDeletedAsset(string $payload): ?Asset
+    {
+        $asset = Serialize::unserialize($payload, ['allowed_classes' => true]);
+
+        return $asset instanceof Asset ? $asset : null;
     }
 }

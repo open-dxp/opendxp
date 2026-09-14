@@ -42,31 +42,29 @@ trait Dao
                     // multicolumn field
                     foreach (array_keys($columnType) as $fkey) {
                         $indexName = $field->getName().'__'.$fkey;
-                        $columnName = '`' . $indexName . '`';
-                        if ($unique) {
-                            if ($isLocalized) {
-                                $columnName .= ',`language`';
-                            } elseif ($isFieldcollection) {
-                                $columnName .= ',`fieldname`';
-                            }
-                        }
+                        $columns = $this->buildIndexColumnList($indexName, $unique, $isLocalized, $isFieldcollection);
                         if ($this->indexDoesNotExist($table, $prefix, $indexName)) {
-                            $this->db->executeQuery(sprintf('ALTER TABLE `%s` ADD %sINDEX `%s%s` (%s);', $table, $uniqueStr, $prefix, $indexName, $columnName));
+                            $this->db->executeQuery(sprintf(
+                                'ALTER TABLE %s ADD %sINDEX %s (%s);',
+                                $this->db->quoteIdentifier($table),
+                                $uniqueStr,
+                                $this->db->quoteIdentifier($prefix . $indexName),
+                                $columns
+                            ));
                         }
                     }
                 } else {
                     // single -column field
                     $indexName = $field->getName();
-                    $columnName = '`' . $indexName . '`';
-                    if ($unique) {
-                        if ($isLocalized) {
-                            $columnName .= ',`language`';
-                        } elseif ($isFieldcollection) {
-                            $columnName .= ',`fieldname`';
-                        }
-                    }
+                    $columns = $this->buildIndexColumnList($indexName, $unique, $isLocalized, $isFieldcollection);
                     if ($this->indexDoesNotExist($table, $prefix, $indexName)) {
-                        $this->db->executeQuery(sprintf('ALTER TABLE `%s` ADD %sINDEX `%s%s` (%s);', $table, $uniqueStr, $prefix, $indexName, $columnName));
+                        $this->db->executeQuery(sprintf(
+                            'ALTER TABLE %s ADD %sINDEX %s (%s);',
+                            $this->db->quoteIdentifier($table),
+                            $uniqueStr,
+                            $this->db->quoteIdentifier($prefix . $indexName),
+                            $columns
+                        ));
                     }
                 }
             } elseif (is_array($columnType)) {
@@ -74,17 +72,39 @@ trait Dao
                 foreach (array_keys($columnType) as $fkey) {
                     $indexName = $field->getName().'__'.$fkey;
                     if ($this->indexExists($table, $prefix, $indexName)) {
-                        $this->db->executeQuery(sprintf('ALTER TABLE `%s` DROP INDEX `%s%s`;', $table, $prefix, $indexName));
+                        $this->db->executeQuery(sprintf(
+                            'ALTER TABLE %s DROP INDEX %s;',
+                            $this->db->quoteIdentifier($table),
+                            $this->db->quoteIdentifier($prefix . $indexName)
+                        ));
                     }
                 }
             } else {
                 // single -column field
                 $indexName = $field->getName();
                 if ($this->indexExists($table, $prefix, $indexName)) {
-                    $this->db->executeQuery(sprintf('ALTER TABLE `%s` DROP INDEX `%s%s`;', $table, $prefix, $indexName));
+                    $this->db->executeQuery(sprintf(
+                        'ALTER TABLE %s DROP INDEX %s;',
+                        $this->db->quoteIdentifier($table),
+                        $this->db->quoteIdentifier($prefix . $indexName)
+                    ));
                 }
             }
         }
+    }
+
+    private function buildIndexColumnList(string $indexName, bool $unique, bool $isLocalized, bool $isFieldcollection): string
+    {
+        $columns = [$this->db->quoteIdentifier($indexName)];
+        if ($unique) {
+            if ($isLocalized) {
+                $columns[] = $this->db->quoteIdentifier('language');
+            } elseif ($isFieldcollection) {
+                $columns[] = $this->db->quoteIdentifier('fieldname');
+            }
+        }
+
+        return implode(',', $columns);
     }
 
     protected function addModifyColumn(string $table, string $colName, string $type, string $default, string $null): void
@@ -99,10 +119,25 @@ trait Dao
             $existingColName = current($matchingExisting);
         }
         if ($existingColName === null) {
-            $this->db->executeQuery(sprintf('ALTER TABLE `%s` ADD COLUMN `%s` %s%s %s;', $table, $colName, $type, $default, $null));
+            $this->db->executeQuery(sprintf(
+                'ALTER TABLE %s ADD COLUMN %s %s%s %s;',
+                $this->db->quoteIdentifier($table),
+                $this->db->quoteIdentifier($colName),
+                $type,
+                $default,
+                $null
+            ));
             $this->resetValidTableColumnsCache($table);
         } elseif (!DataObject\ClassDefinition\Service::skipColumn($this->tableDefinitions, $table, $colName, $type, $default, $null)) {
-            $this->db->executeQuery(sprintf('ALTER TABLE `%s` CHANGE COLUMN `%s` `%s` %s%s %s;', $table, $existingColName, $colName, $type, $default, $null));
+            $this->db->executeQuery(sprintf(
+                'ALTER TABLE %s CHANGE COLUMN %s %s %s%s %s;',
+                $this->db->quoteIdentifier($table),
+                $this->db->quoteIdentifier($existingColName),
+                $this->db->quoteIdentifier($colName),
+                $type,
+                $default,
+                $null
+            ));
         }
     }
 
@@ -116,12 +151,12 @@ trait Dao
         foreach ($columnsToRemove as $value) {
             //if (!in_array($value, $protectedColumns)) {
             if (!in_array(strtolower($value), array_map(strtolower(...), $protectedColumns))) {
-                $dropColumns[] = 'DROP COLUMN `' . $value . '`';
+                $dropColumns[] = 'DROP COLUMN ' . $this->db->quoteIdentifier($value);
                 $this->removeIndices($table, [$value], []);
             }
         }
         if ($dropColumns) {
-            $this->db->executeQuery(sprintf('ALTER TABLE `%s` %s;', $table, implode(', ', $dropColumns)));
+            $this->db->executeQuery(sprintf('ALTER TABLE %s %s;', $this->db->quoteIdentifier($table), implode(', ', $dropColumns)));
             $this->resetValidTableColumnsCache($table);
         }
     }
@@ -172,7 +207,11 @@ trait Dao
             $lowerCaseColumns = array_map(strtolower(...), $protectedColumns);
             foreach ($columnsToRemove as $value) {
                 if (!in_array(strtolower($value), $lowerCaseColumns) && $this->indexExists($table, 'u_index_', $value)) {
-                    $this->db->executeQuery(sprintf('ALTER TABLE `%s` DROP INDEX `u_index_%s`;', $table, $value));
+                    $this->db->executeQuery(sprintf(
+                        'ALTER TABLE %s DROP INDEX %s;',
+                        $this->db->quoteIdentifier($table),
+                        $this->db->quoteIdentifier('u_index_' . $value)
+                    ));
                 }
             }
             $this->resetValidTableColumnsCache($table);

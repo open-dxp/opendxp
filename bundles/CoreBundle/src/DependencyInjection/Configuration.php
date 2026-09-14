@@ -18,15 +18,29 @@ namespace OpenDxp\Bundle\CoreBundle\DependencyInjection;
 
 use const PASSWORD_ARGON2I;
 use const PASSWORD_ARGON2ID;
+use OpenDxp\Bundle\AdminBundle\Security\Authentication\Token\TwoFactorRequiredToken;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Config\Processor\PlaceholderProcessor;
 use OpenDxp\Config\LocationAwareConfigRepository;
+use OpenDxp\Model\Asset\Image\Thumbnail\Config as ImageThumbnailConfig;
+use OpenDxp\Model\Asset\Video\Thumbnail\Config as VideoThumbnailConfig;
+use OpenDxp\Model\Asset\Video\Thumbnail\Processor as VideoThumbnailProcessor;
+use OpenDxp\Model\User as ModelUser;
+use OpenDxp\Model\User\Workspace\Asset as UserWorkspaceAsset;
+use OpenDxp\Model\User\Workspace\DataObject as UserWorkspaceDataObject;
+use OpenDxp\Model\User\Workspace\Document as UserWorkspaceDocument;
+use OpenDxp\Security\User\User as SecurityUser;
+use OpenDxp\Tool\SerializationScope;
+use OpenDxp\Video\Adapter\Ffmpeg;
 use OpenDxp\Workflow\EventSubscriber\ChangePublishedStateSubscriber;
 use OpenDxp\Workflow\EventSubscriber\NotificationSubscriber;
 use OpenDxp\Workflow\Notification\NotificationEmailService;
 use OpenDxp\Workflow\Transition;
+use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorToken;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * @internal
@@ -123,6 +137,7 @@ final class Configuration implements ConfigurationInterface
         $this->addContextNode($rootNode);
         $this->addWebProfilerNode($rootNode);
         $this->addSecurityNode($rootNode);
+        $this->addSerializationNode($rootNode);
         $this->addEmailNode($rootNode);
         $this->addWorkflowNode($rootNode);
         $this->addHttpClientNode($rootNode);
@@ -1150,6 +1165,38 @@ final class Configuration implements ConfigurationInterface
             ->end();
     }
 
+    private function addSerializationNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('serialization')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode(SerializationScope::Authentication->value)
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('allowed_classes')
+                                    ->info('Classes the admin session token may deserialize into')
+                                    ->useAttributeAsKey('class')
+                                    ->prototype('boolean')->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode(SerializationScope::TmpStore->value)
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('allowed_classes')
+                                    ->info('Classes a TmpStore entry may deserialize into')
+                                    ->useAttributeAsKey('class')
+                                    ->prototype('boolean')->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
     /**
      * Configure exclude paths for web profiler toolbar
      */
@@ -2046,5 +2093,31 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
         ->end();
+    }
+
+    /**
+     * The classes core itself needs for a scope.
+     */
+    public static function getBuiltInAllowedClasses(SerializationScope $scope): array
+    {
+        return match ($scope) {
+            SerializationScope::Authentication => [
+                PostAuthenticationToken::class => true,
+                UsernamePasswordToken::class => true,
+                TwoFactorRequiredToken::class => true,
+                TwoFactorToken::class => true,
+                SecurityUser::class => true,
+                ModelUser::class => true,
+                UserWorkspaceAsset::class => true,
+                UserWorkspaceDataObject::class => true,
+                UserWorkspaceDocument::class => true,
+            ],
+            SerializationScope::TmpStore => [
+                ImageThumbnailConfig::class => true,
+                VideoThumbnailConfig::class => true,
+                VideoThumbnailProcessor::class => true,
+                Ffmpeg::class => true,
+            ],
+        };
     }
 }

@@ -67,8 +67,8 @@ class Tree extends DAV\Tree
                 // see: Asset\WebDAV\File::delete() why this is necessary
                 $log = Asset\WebDAV\Service::getDeleteLog();
                 if (!$asset && array_key_exists('/' .$destinationPath, $log)) {
-                    $asset = \OpenDxp\Tool\Serialize::unserialize($log['/' .$destinationPath]['data']);
-                    if ($asset) {
+                    $asset = Asset\WebDAV\Service::restoreDeletedAsset($log['/' .$destinationPath]['data']);
+                    if ($asset instanceof Asset) {
                         $sourceAsset = Asset::getByPath('/' . $sourcePath);
                         if (!$sourceAsset->isAllowed('delete') || !$asset->isAllowed('publish')) {
                             throw new DAV\Exception\Forbidden('Insufficient permissions to overwrite asset');

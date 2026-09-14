@@ -17,6 +17,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition;
 
 use Closure;
 use Exception;
+use InvalidArgumentException;
 use JsonSerializable;
 use OpenDxp\DateFormat;
 use OpenDxp\Db\Helper;
@@ -46,6 +47,10 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
         'types', 'usermodification', 'userowner', 'userpermissions', 'validtablecolumns', 'value', 'valueforfieldname',
         'valuefromparent', 'values', 'versioncount', 'versions',
     ];
+
+    private const int MAX_NAME_LENGTH = 63;
+
+    private const string VALID_NAME_PATTERN = '/^[a-zA-Z_][a-zA-Z0-9_]*\z/';
 
     public ?string $name = null;
 
@@ -160,9 +165,24 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
      */
     public function setName(string $name): static
     {
+        if ($name !== '' && !$this->isValidName($name)) {
+            throw new InvalidArgumentException(sprintf('Invalid field name "%s"', $name));
+        }
+
         $this->name = $name;
 
         return $this;
+    }
+
+    /**
+     * The class builder writes field names straight into generated PHP class files
+     * and the Dao writes them straight into ALTER TABLE statements, so only plain identifier characters are allowed here.
+     * The length leaves headroom under MySQL's 64-character identifier limit for the prefixes/suffixes that
+     * indexes and multi-column fields add on top of the field name.
+     */
+    private function isValidName(string $name): bool
+    {
+        return strlen($name) <= self::MAX_NAME_LENGTH && preg_match(self::VALID_NAME_PATTERN, $name) === 1;
     }
 
     /**

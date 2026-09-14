@@ -1299,7 +1299,16 @@ class Service extends Model\AbstractModel
         if ($tmpStore) {
             $data = $tmpStore->getData();
             if ($data) {
-                $element = Serialize::unserialize($data);
+                // Only saveElementToSession() ever writes this entry, so there's no request
+                // input to distrust here. A restricted class list isn't an option either way:
+                // saveElementToSession() dumps the element whole, properties and children
+                // included, and what those hold depends on the field and asset types this
+                // project defines, not something fixed this method could enumerate.
+                $element = Serialize::unserialize($data, ['allowed_classes' => true]);
+
+                if (!$element instanceof Asset && !$element instanceof Document && !$element instanceof AbstractObject) {
+                    return null;
+                }
 
                 $context = [
                     'source' => __METHOD__,
