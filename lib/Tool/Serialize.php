@@ -77,7 +77,7 @@ final class Serialize
         }
 
         $visitedObjects ??= new SplObjectStorage();
-        if ($visitedObjects->contains($value)) {
+        if ($visitedObjects->offsetExists($value)) {
             return false;
         }
 
