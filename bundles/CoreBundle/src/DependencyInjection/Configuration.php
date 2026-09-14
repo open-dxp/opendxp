@@ -18,15 +18,24 @@ namespace OpenDxp\Bundle\CoreBundle\DependencyInjection;
 
 use const PASSWORD_ARGON2I;
 use const PASSWORD_ARGON2ID;
+use OpenDxp\Bundle\AdminBundle\Security\Authentication\Token\TwoFactorRequiredToken;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Config\Processor\PlaceholderProcessor;
 use OpenDxp\Config\LocationAwareConfigRepository;
+use OpenDxp\Model\Asset\Image\Thumbnail\Config as ImageThumbnailConfig;
+use OpenDxp\Model\Asset\Video\Thumbnail\Config as VideoThumbnailConfig;
+use OpenDxp\Model\Asset\Video\Thumbnail\Processor as VideoThumbnailProcessor;
+use OpenDxp\Security\User\User as OpenDxpUser;
+use OpenDxp\Tool\SerializationScope;
+use OpenDxp\Video\Adapter\Ffmpeg;
 use OpenDxp\Workflow\EventSubscriber\ChangePublishedStateSubscriber;
 use OpenDxp\Workflow\EventSubscriber\NotificationSubscriber;
 use OpenDxp\Workflow\Notification\NotificationEmailService;
 use OpenDxp\Workflow\Transition;
+use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorToken;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
 /**
  * @internal
@@ -123,6 +132,7 @@ final class Configuration implements ConfigurationInterface
         $this->addContextNode($rootNode);
         $this->addWebProfilerNode($rootNode);
         $this->addSecurityNode($rootNode);
+        $this->addSerializationNode($rootNode);
         $this->addEmailNode($rootNode);
         $this->addWorkflowNode($rootNode);
         $this->addHttpClientNode($rootNode);
@@ -1143,6 +1153,50 @@ final class Configuration implements ConfigurationInterface
                             ->beforeNormalization()->ifString()->then(fn ($v) => ['id' => $v])->end()
                             ->children()
                             ->scalarNode('id')->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addSerializationNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('serialization')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode(SerializationScope::Authentication->value)
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('allowed_classes')
+                                    ->info('Classes the admin session token may deserialize into')
+                                    ->useAttributeAsKey('class')
+                                    ->defaultValue([
+                                        PostAuthenticationToken::class => true,
+                                        TwoFactorRequiredToken::class => true,
+                                        TwoFactorToken::class => true,
+                                        OpenDxpUser::class => true,
+                                    ])
+                                    ->prototype('boolean')->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode(SerializationScope::TmpStore->value)
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('allowed_classes')
+                                    ->info('Classes a TmpStore entry may deserialize into')
+                                    ->useAttributeAsKey('class')
+                                    ->defaultValue([
+                                        ImageThumbnailConfig::class => true,
+                                        VideoThumbnailConfig::class => true,
+                                        VideoThumbnailProcessor::class => true,
+                                        Ffmpeg::class => true,
+                                    ])
+                                    ->prototype('boolean')->end()
+                                ->end()
                             ->end()
                         ->end()
                     ->end()
