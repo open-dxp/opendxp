@@ -24,14 +24,11 @@ use OpenDxp\Tool\Authentication;
 /**
  * @internal
  */
-final readonly class PermissionService implements PermissionServiceInterface
+final class PermissionService implements PermissionServiceInterface
 {
-    private ?UserInterface $user;
+    private ?UserInterface $user = null;
 
-    public function __construct(
-    ) {
-        $this->user = Authentication::authenticateSession();
-    }
+    private bool $userResolved = false;
 
     public function allowedToSeeJobRuns(): void
     {
@@ -51,19 +48,33 @@ final readonly class PermissionService implements PermissionServiceInterface
 
     public function isAllowedToSeeJobRuns(): bool
     {
-        if (!$this->user) {
+        $user = $this->getUser();
+
+        if (!$user) {
             return false;
         }
 
-        return $this->user->isAllowed(PermissionAttribute::for(GenericExecutionEnginePermission::JobRun->value));
+        return $user->isAllowed(PermissionAttribute::for(GenericExecutionEnginePermission::JobRun->value));
     }
 
     public function isAllowedToSeeAllJobRuns(): bool
     {
-        if (!$this->user) {
+        $user = $this->getUser();
+
+        if (!$user) {
             return false;
         }
 
-        return $this->user->isAllowed(PermissionAttribute::for(GenericExecutionEnginePermission::SeeAllJobRuns->value));
+        return $user->isAllowed(PermissionAttribute::for(GenericExecutionEnginePermission::SeeAllJobRuns->value));
+    }
+
+    private function getUser(): ?UserInterface
+    {
+        if (!$this->userResolved) {
+            $this->user = Authentication::authenticateSession();
+            $this->userResolved = true;
+        }
+
+        return $this->user;
     }
 }
