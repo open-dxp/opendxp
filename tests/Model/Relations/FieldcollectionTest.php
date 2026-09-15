@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Model\DataObject\RelationTest;
 use OpenDxp\Model\DataObject\Service;
+use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Support\Test\ModelTestCase;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
@@ -241,6 +242,44 @@ class FieldcollectionTest extends ModelTestCase
         $loadedFieldcollectionItem = $object->getFieldcollection()->get(1);
         $lrel = $loadedFieldcollectionItem->getLRelation('en');
         $this->assertEquals(null, $lrel);
+    }
+
+    public function testLocalizedFieldInsideFieldCollectionListing(): void
+    {
+        $object = TestHelper::createEmptyObject();
+
+        $items = new Fieldcollection();
+
+        $item1 = new FieldCollection\Data\Unittestfieldcollection();
+        $item1->setFieldinput1('one');
+        $item1->setLinput('hugo', 'en');
+
+        $item2 = new FieldCollection\Data\Unittestfieldcollection();
+        $item2->setFieldinput1('two');
+        $item2->setLinput('franz', 'en');
+
+        $items->add($item1);
+        $items->add($item2);
+
+        $object->setFieldcollection($items);
+        $object->save();
+
+        // item1's plain attribute together with item1's own localized attribute must match
+        $list = new Unittest\Listing();
+        $list->setLocale('en');
+        $list->addFieldCollection('unittestfieldcollection', 'fieldcollection');
+        $list->setCondition("`unittestfieldcollection~fieldcollection`.fieldinput1 = 'one' AND `unittestfieldcollection~fieldcollection_localized`.linput = 'hugo'");
+        $list->load();
+        $this->assertCount(1, $list->getObjects());
+        $this->assertEquals($object->getId(), $list->getObjects()[0]->getId());
+
+        // item1's plain attribute must never be paired with item2's localized attribute
+        $list = new Unittest\Listing();
+        $list->setLocale('en');
+        $list->addFieldCollection('unittestfieldcollection', 'fieldcollection');
+        $list->setCondition("`unittestfieldcollection~fieldcollection`.fieldinput1 = 'one' AND `unittestfieldcollection~fieldcollection_localized`.linput = 'franz'");
+        $list->load();
+        $this->assertCount(0, $list->getObjects());
     }
 
     public function testInputFieldWithNullAndThenDefaultValue(): void
