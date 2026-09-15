@@ -121,7 +121,7 @@ final class Installer extends SettingsStoreAwareInstaller
                     'length' => 4294967295,
                 ]
             );
-            $jobRunTable->addColumn('context', 'text', ['notnull' => false, 'length' => 4294967295]);
+            $jobRunTable->addColumn('context', 'json', ['notnull' => false]);
             $jobRunTable->addColumn('creationDate', 'integer', ['notnull' => false]);
             $jobRunTable->addColumn('modificationDate', 'integer', ['notnull' => false]);
             $jobRunTable->addColumn('executionContext', 'string', [
