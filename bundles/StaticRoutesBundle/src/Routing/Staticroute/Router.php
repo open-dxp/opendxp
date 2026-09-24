@@ -186,6 +186,10 @@ final class Router implements RouterInterface, RequestMatcherInterface, Versatil
 
         $params = $this->context->getParameters();
 
+        // Symfony's LocaleListener puts the default locale into the router context before routing.
+        // Kept here, it would override the document locale on every static route without a _locale variable.
+        unset($params['_locale']);
+
         foreach ($this->getStaticRoutes() as $route) {
             if ($request instanceof \Symfony\Component\HttpFoundation\Request && 0 !== count($route->getMethods())) {
                 $method = $request->getMethod();
