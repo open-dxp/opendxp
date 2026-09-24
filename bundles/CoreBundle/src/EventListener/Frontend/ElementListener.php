@@ -28,6 +28,7 @@ use OpenDxp\Model\Version;
 use OpenDxp\Security\User\UserLoader;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -101,7 +102,9 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
                 // for public versions
                 $document = $this->handleVersion($request, $document);
 
-                $this->documentResolver->setDocument($request, $document);
+                // The locale is settled on kernel.request. setDocument() would change it here, after the translator
+                // was synced, and override an explicit _locale of the route.
+                $request->attributes->set(DynamicRouter::CONTENT_KEY, $document);
             }
         }
     }
