@@ -22,6 +22,7 @@ use OpenDxp\Http\Request\Resolver\DocumentResolver;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Http\Request\Resolver\SiteResolver;
 use OpenDxp\Model\Document;
+use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -149,7 +150,9 @@ class DocumentFallbackListener implements EventSubscriberInterface
         }
 
         if ($this->fallbackDocument && $event->isMainRequest()) {
-            $this->documentResolver->setDocument($event->getRequest(), $this->fallbackDocument);
+            // The locale is settled on kernel.request. setDocument() would change it here, after the translator
+            // was synced, and override an explicit _locale of the route.
+            $event->getRequest()->attributes->set(DynamicRouter::CONTENT_KEY, $this->fallbackDocument);
             $this->fallbackDocument = null;
         }
     }
