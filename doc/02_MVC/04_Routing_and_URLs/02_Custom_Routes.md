@@ -169,15 +169,13 @@ As an example a simple route matching `/{_locale}/test`:
 Whatever is matched in `_locale` will be automatically used as site-wide locale for the request.
 
 
-#### Mappping other parameters to `_locale`
+#### Mapping other parameters to `_locale`
 
-When migrating an existing site to OpenDXP 5/6 you may already have static routes which rely on another parameter (e.g. `language`)
-to define the locale for the request. To avoid having to migrate those static routes and locations where the routes are 
-generated, you can use the following configuration setting to map parameters to `_locale`. This mapping is only used if 
-no `_locale` is set for the matched route.
+A static route can carry the locale in a parameter with a different name, for example `language`.
+Add that parameter to `locale_params` and OpenDXP uses its value as `_locale`.
+The mapping only applies if the matched route has no `_locale` of its own.
 
 ```yaml
-# will map the static route parameter "language" to "_locale"
 opendxp:
     routing:
         static:
