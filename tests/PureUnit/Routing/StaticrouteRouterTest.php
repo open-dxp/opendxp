@@ -21,6 +21,7 @@ use OpenDxp\Bundle\StaticRoutesBundle\Model\Staticroute;
 use OpenDxp\Bundle\StaticRoutesBundle\Routing\Staticroute\Router;
 use OpenDxp\Config;
 use OpenDxp\Http\Request\Host\GeneralHostResolver;
+use ReflectionProperty;
 use Symfony\Component\Routing\RequestContext;
 
 /**
@@ -81,7 +82,7 @@ class StaticrouteRouterTest extends TestCase
 
         $router = new Router($context, new Config(), new GeneralHostResolver());
 
-        $staticRoutes = new \ReflectionProperty(Router::class, 'staticRoutes');
+        $staticRoutes = new ReflectionProperty(Router::class, 'staticRoutes');
         $staticRoutes->setValue($router, [$route]);
 
         return $router;
