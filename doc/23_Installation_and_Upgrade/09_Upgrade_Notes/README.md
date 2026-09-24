@@ -1,5 +1,10 @@
 # Upgrade Notes
 
+## OpenDXP 1.4.3
+- Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
+- Bugfix: An explicit `_locale` of a static route is no longer overwritten by the language of the nearest document [#199](https://github.com/open-dxp/opendxp/pull/199)
+- Chore: Remove the abandoned `doctrine/annotations` dependency. If your project uses it directly, add it to your own composer.json [#196](https://github.com/open-dxp/opendxp/issues/196)
+
 ## OpenDXP 1.4.2
 - Security: Validate DataObject field names against a strict identifier pattern and quote identifiers when building DDL, closing a SQL injection path via crafted class definition field names.
 - Security: Anchor the class definition name/ID validation and quote table names built from a class ID, closing a SQL injection path in `Block` field loading.
