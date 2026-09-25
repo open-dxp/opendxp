@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+    name: opendxp
+    description: The open source platform for digital experiences. Seamlessly
+        connect PIM, DAM, Headless CMS & Composable Commerce. API-First. 100%
+        open source.
+spec:
+    type: library
+    lifecycle: production
+    owner: team-opendxp
+    system: opendxp
