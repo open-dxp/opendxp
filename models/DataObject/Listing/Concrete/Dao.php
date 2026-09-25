@@ -182,6 +182,28 @@ CONDITION;
 
                 // add join
                 $queryBuilder->leftJoin($this->getTableName(), $table, $this->db->quoteIdentifier($name), $condition);
+
+                // add localizedfields block, if the fieldcollection contains localized fields
+                // same as in bricks below (line 235)
+                $fieldCollectionDefinition = DataObject\Fieldcollection\Definition::getByKey($fc['type']);
+
+                if ($fieldCollectionDefinition instanceof DataObject\Fieldcollection\Definition
+                    && $fieldCollectionDefinition->getFieldDefinition('localizedfields')
+                ) {
+                    $language = $this->db->quote($this->getLocalizedBrickLanguage());
+                    $localizedTable = 'object_collection_' . $fc['type'] . '_localized_' . $this->model->getClassId();
+                    $localizedName = $name . '_localized';
+
+                    $queryBuilder->leftJoin($this->getTableName(), $localizedTable, $this->db->quoteIdentifier($localizedName),
+                        <<<CONDITION
+1
+ AND {$this->db->quoteIdentifier($localizedName)}.ooo_id = {$this->db->quoteIdentifier($name)}.id
+ AND {$this->db->quoteIdentifier($localizedName)}.index = {$this->db->quoteIdentifier($name)}.index
+ AND {$this->db->quoteIdentifier($localizedName)}.fieldname = {$this->db->quoteIdentifier($name)}.fieldname
+ AND {$this->db->quoteIdentifier($localizedName)}.language = {$language}
+CONDITION
+                    );
+                }
             }
         }
 
