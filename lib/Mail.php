@@ -653,6 +653,7 @@ class Mail extends Email
 
         $content = null;
         if ($html) {
+            $html = $this->decodeUrlEncodedSpacesInTwigPrintTags($html);
             $content = $this->renderParams($html, 'body');
 
             // modifying the content e.g set absolute urls...
@@ -661,6 +662,19 @@ class Mail extends Email
         }
 
         return $content;
+    }
+
+    /**
+     * WYSIWYG editors URL-encode spaces in attributes like href, turning
+     * `mailto:{{ var }}` into `mailto:{{%20var%20}}`, which Twig cannot parse.
+     */
+    private function decodeUrlEncodedSpacesInTwigPrintTags(string $html): string
+    {
+        return preg_replace_callback(
+            '/\{\{(.*?)\}\}/s',
+            static fn (array $matches): string => '{{' . str_replace('%20', ' ', $matches[1]) . '}}',
+            $html
+        );
     }
 
     /**
