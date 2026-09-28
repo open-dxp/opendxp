@@ -363,6 +363,21 @@ The object listing of this example only delivers objects of the type Collectiont
 * a Fieldcollection of the type `MyCollection` and the value `testinput` in the attribute `myinput` and
 * a Fieldcollection in the field `collection` of the type `MyCollection` and the value `hugo` in the attribute `myinput`.
 
+### Filter Objects by localized attributes from Field Collections
+If a field collection has a `localizedfields` block, its localized attributes are joined under a separate alias
+with the suffix `_localized`: `FIELDCOLLECTIONTYPE_localized` or, with a fieldname, `FIELDCOLLECTIONTYPE~FIELDNAME_localized`.
+This alias is joined to the exact same field collection item (matched by `index` and `fieldname`, not just the
+object id), so it always lines up with the plain attributes of that item.
+
+```php
+$list = new DataObject\Collectiontest\Listing();
+$list->addFieldCollection("MyCollection", "collection");
+$list->setLocale("en");
+$list->setCondition("`MyCollection~collection_localized`.mylocalizedinput = 'hugo'");
+```
+
+The language used for the join is resolved the same way as for localized fields on the object itself: the
+listing's `setLocale()`, then the current request locale, then the system default language.
 
 <a name="zendPaginatorListing">&nbsp;</a>
 
