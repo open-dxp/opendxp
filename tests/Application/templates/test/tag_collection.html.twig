@@ -1,0 +1,6 @@
+{% set doc_id = app.request.attributes.get('test_doc_id') %}
+{% if doc_id %}{% set d = opendxp_document(doc_id, {force: true}) %}{{ d ? 'doc-ok' : 'doc-null' }}{% endif %}
+{% set asset_id = app.request.attributes.get('test_asset_id') %}
+{% if asset_id %}{% set a = opendxp_asset(asset_id, {force: true}) %}{{ a ? 'asset-ok' : 'asset-null' }}{% endif %}
+{% set obj_id = app.request.attributes.get('test_obj_id') %}
+{% if obj_id %}{% set o = opendxp_object(obj_id, {force: true}) %}{{ o ? 'obj-ok' : 'obj-null' }}{% endif %}

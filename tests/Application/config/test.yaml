@@ -1,0 +1,14 @@
+services:
+    OpenDxp\Tests\Application\Controller\TagCollectionController:
+        autowire: true
+        autoconfigure: true
+
+twig:
+    paths:
+        '%kernel.project_dir%/tests/Application/templates': ~
+
+fos_http_cache:
+    proxy_client:
+        noop: ~
+    tags:
+        enabled: true
