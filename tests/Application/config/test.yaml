@@ -25,3 +25,16 @@ fos_http_cache:
         noop: ~
     tags:
         enabled: true
+
+opendxp:
+    general:
+        fallback_languages:
+            de: en
+
+    email:
+        sender:
+            name: 'OpenDXP Tests'
+            email: 'sender@tests.local'
+        return:
+            name: 'OpenDXP Tests'
+            email: 'return@tests.local'
