@@ -1,6 +1,0 @@
-actor: TwigTester
-modules:
-    enabled:
-        - \OpenDxp\Tests\Support\Helper\OpenDxp:
-              connect_db: true
-        - \OpenDxp\Tests\Support\Helper\Unit

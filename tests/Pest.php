@@ -8,6 +8,6 @@ use OpenDxp\TestFoundation\TestCase;
 use Zenstruck\Foundry\Test\Factories;
 
 // Unit tests need no application, so they get no test case.
-pest()->extend(TestCase::class)->use(Factories::class)->in('Feature/ClassDefinition', 'Feature/Factory');
+pest()->extend(TestCase::class)->use(Factories::class)->in('Feature/ClassDefinition', 'Feature/Element', 'Feature/Factory', 'Feature/Twig', 'Feature/Version');
 pest()->extend(CacheTestCase::class)->use(Factories::class)->in('Feature/Cache');
 pest()->extend(HttpCacheTestCase::class)->use(Factories::class)->in('Feature/HttpCache');
