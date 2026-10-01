@@ -20,9 +20,9 @@ final class AssetImageFactory extends AbstractElementFactory
         return Image::class;
     }
 
-    public static function fixture(): string
+    public static function fixture(string $name = 'image.jpg'): string
     {
-        return dirname(__DIR__) . '/Fixtures/image.jpg';
+        return sprintf('%s/Fixtures/%s', dirname(__DIR__), $name);
     }
 
     protected function defaults(): array

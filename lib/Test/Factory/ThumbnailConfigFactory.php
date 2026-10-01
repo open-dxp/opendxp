@@ -28,8 +28,6 @@ use OpenDxp\Model\Asset\Image\Thumbnail\Config;
  */
 final class ThumbnailConfigFactory extends AbstractSavingFactory
 {
-    private const int ADD_ITEM = -2000;
-
     public static function class(): string
     {
         return Config::class;
@@ -51,9 +49,9 @@ final class ThumbnailConfigFactory extends AbstractSavingFactory
 
     private function transforming(string $transformation, array $parameters): static
     {
+        // The default priority puts this before AbstractSavingFactory's save.
         return $this->afterInstantiate(
             static fn (Config $config) => $config->addItem($transformation, $parameters, 'default'),
-            self::ADD_ITEM,
         );
     }
 

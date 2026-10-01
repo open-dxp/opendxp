@@ -28,6 +28,7 @@ fos_http_cache:
 
 opendxp:
     general:
+        domain: 'opendxp-testing.test'
         fallback_languages:
             de: en
 

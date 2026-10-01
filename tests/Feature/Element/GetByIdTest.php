@@ -76,10 +76,31 @@ it('fires its post load event for an element it loaded', function (string $eleme
     }
 
     expect($loaded)->toContain($saved->getId());
-})->with('elements');
-
-dataset('elements', [
+})->with([
     'an asset' => [Asset::class, AssetImageFactory::class, AssetEvents::POST_LOAD],
     'a document' => [Document::class, DocumentPageFactory::class, DocumentEvents::POST_LOAD],
     'an object' => [AbstractObject::class, UnittestFactory::class, DataObjectEvents::POST_LOAD],
 ]);
+
+
+it('hands back the instance it already holds on a second load', function (string $element, string $factory) {
+
+    $saved = $factory::createOne();
+    RuntimeCache::clear();
+
+    expect($element::getById($saved->getId()))->toBe($element::getById($saved->getId()));
+})->with('elements');
+
+it('builds a fresh instance when the load is forced', function (string $element, string $factory) {
+
+    $saved = $factory::createOne();
+    RuntimeCache::clear();
+
+    $cached = $element::getById($saved->getId());
+    $forced = $element::getById($saved->getId(), ['force' => true]);
+
+    expect($forced)
+        ->not->toBe($cached)
+        ->and($forced->getId())
+        ->toBe($saved->getId());
+})->with('elements');

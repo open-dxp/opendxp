@@ -17,6 +17,9 @@ declare(strict_types=1);
 use OpenDxp\Db;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element\AbstractElement;
+use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\Service;
+use OpenDxp\Model\Element\Tag;
 use OpenDxp\Test\Factory\AssetFolderFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\TestObjectFactory;
@@ -60,4 +63,9 @@ function workspace(string $type, int $ownerId, string $path, ?int $elementId, in
     ]);
 
     return $elementId;
+}
+
+function tagElement(Tag $tag, ElementInterface $element): void
+{
+    Tag::addTagToElement(Service::getElementType($element), $element->getId(), $tag);
 }
