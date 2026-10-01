@@ -24,10 +24,16 @@ use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
 use OpenDxp\Controller\KernelControllerEventInterface;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
+use OpenDxp\Model\Element;
 use OpenDxp\Tool\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -140,6 +146,43 @@ class LogController extends UserAwareController implements KernelControllerEvent
             'p_totalCount' => $total,
             'p_results' => $logEntries,
         ]);
+    }
+
+    #[Route('/log/export', name: 'opendxp_admin_bundle_applicationlogger_log_export', methods: ['GET'])]
+    public function exportAction(Request $request, Connection $db): Response
+    {
+        $format = $request->query->getString('format') === 'xlsx' ? 'xlsx' : 'csv';
+
+        $request->request->replace([...$request->query->all(), 'start' => 0, 'limit' => 10000]);
+        $logEntries = json_decode($this->showAction($request, $db)->getContent(), true)['p_results'];
+
+        $columns = json_decode($request->query->getString('columns'), true) ?: array_map(
+            static fn (string $key): array => ['key' => $key, 'label' => $key],
+            array_keys(array_diff_key($logEntries[0] ?? [], ['timestamp' => true]))
+        );
+        $header = match ($request->query->getString('header')) {
+            'no_header' => [],
+            'name' => [array_column($columns, 'key')],
+            default => [array_column($columns, 'label')],
+        };
+
+        $rows = array_map(static fn (array $logEntry): array => Element\Service::escapeCsvRecord(
+            array_map(static fn (array $column): string => match ($column['key']) {
+                'timestamp' => $logEntry['date'],
+                'relatedobject' => $logEntry['relatedobject'] ? $logEntry['relatedobjecttype'] . ' ' . $logEntry['relatedobject'] : '',
+                default => (string) ($logEntry[$column['key']] ?? ''),
+            }, $columns)
+        ), $logEntries);
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->fromArray([...$header, ...$rows]);
+
+        $writer = $format === 'xlsx' ? new Xlsx($spreadsheet) : (new Csv($spreadsheet))->setDelimiter($request->query->getString('delimiter') ?: ';')->setUseBOM(true);
+        $response = new StreamedResponse(static fn () => $writer->save('php://output'));
+        $response->headers->set('Content-Type', $format === 'xlsx' ? 'application/xlsx' : 'application/csv');
+        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, 'application-log.' . $format));
+
+        return $response;
     }
 
     private function parseDateObject(?string $date, ?string $time): ?DateTime
