@@ -44,6 +44,9 @@ use OpenDxp\Model\Document\PageSnippet;
 use OpenDxp\Tests\Support\Helper\AbstractTestDataHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class TestDataHelper extends AbstractTestDataHelper
 {
     public function assertAreablock(PageSnippet $pagesnippet, string $field, int $seed = 1): void

@@ -32,6 +32,8 @@ namespace OpenDxp\Tests\Support;
  * @method void pause($vars = [])
  *
  * @SuppressWarnings(PHPMD)
+ *
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
  */
 class TwigTester extends \Codeception\Actor
 {

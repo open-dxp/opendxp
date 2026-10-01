@@ -22,6 +22,9 @@ use OpenDxp\Model\Element\Service;
 use OpenDxp\Tests\Support\Helper\Element\PropertiesTestHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 abstract class AbstractPropertiesTest extends ModelTestCase
 {
     protected bool $cleanupDbInSetup = true;

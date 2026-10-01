@@ -25,6 +25,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 
 /**
  * @property ModelTester $tester
+ *
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
  */
 abstract class ModelTestCase extends TestCase
 {

@@ -24,6 +24,9 @@ use OpenDxp\Bundle\GlossaryBundle\Installer;
 use OpenDxp\Bundle\GlossaryBundle\Model\Glossary;
 use OpenDxp\Tests\Support\Util\Autoloader;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class Unit extends \Codeception\Module
 {
     public function __construct(ModuleContainer $moduleContainer, ?array $config = null)

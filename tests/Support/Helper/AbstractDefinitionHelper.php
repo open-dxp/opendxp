@@ -21,6 +21,9 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Tests\Support\Util\TestHelper;
 use ReflectionClass;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 abstract class AbstractDefinitionHelper extends Module
 {
     protected array $config = [
