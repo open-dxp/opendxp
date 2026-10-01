@@ -1,4 +1,4 @@
-actor: UnitTester
+actor: LegacyUnitTester
 modules:
     enabled:
         - \OpenDxp\Tests\Support\Helper\OpenDxp:
