@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OpenDxp\Tests\Feature;
+namespace OpenDxp\Tests\Feature\ClassDefinition;
 
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\TestObject;
