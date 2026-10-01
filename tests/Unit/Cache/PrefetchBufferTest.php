@@ -16,24 +16,13 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\Cache;
 
-use OpenDxp\Cache\Core\CoreCacheHandler;
-use OpenDxp\Cache\Core\WriteLock;
-use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Contracts\Service\ResetInterface;
 
 beforeEach(function () {
     $this->pool = new TagAwareAdapter(new ArrayAdapter());
-
-    $lock = new WriteLock($this->pool);
-    $lock->setLogger(new NullLogger());
-
-    $this->handler = new CoreCacheHandler($this->pool, $lock, new EventDispatcher());
-    $this->handler->setLogger(new NullLogger());
-    $this->handler->setHandleCli(true);
-    $this->handler->setForceImmediateWrite(true);
+    $this->handler = cacheHandler($this->pool);
 });
 
 it('serves a prefetched entry from the buffer', function () {
@@ -131,6 +120,5 @@ it('drops the buffer when it is reset', function () {
 // kernel.reset picks the handler up through autoconfiguration, so a messenger
 // worker only gets a clean buffer as long as this interface is implemented.
 it('can be reset between messenger messages', function () {
-
     expect($this->handler)->toBeInstanceOf(ResetInterface::class);
 });
