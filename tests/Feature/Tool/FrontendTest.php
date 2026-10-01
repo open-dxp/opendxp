@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * OpenDXP
+ *
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
+ */
+
+
+namespace OpenDxp\Tests\Feature\Tool;
+
+use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Tool\Frontend;
+
+beforeEach(function () {
+    $this->site = SiteFactory::createOne(['mainDomain' => 'example2.com']);
+    $this->otherSite = SiteFactory::createOne(['mainDomain' => 'example.com']);
+    $this->page = PageFactory::createOne(['key' => 'testing', 'parentId' => $this->site->getRootDocument()->getId()]);
+});
+
+it('counts a document below the root of a site as part of that site', function () {
+    expect(Frontend::isDocumentInSite($this->site, $this->page))->toBeTrue();
+});
+
+it('counts the root document itself as part of its site', function () {
+    expect(Frontend::isDocumentInSite($this->site, $this->site->getRootDocument()))->toBeTrue();
+});
+
+it('counts a document of one site as no part of another', function () {
+    expect(Frontend::isDocumentInSite($this->otherSite, $this->page))->toBeFalse();
+});
