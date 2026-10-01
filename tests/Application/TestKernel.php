@@ -21,9 +21,7 @@ use OpenDxp\TestFoundation\Kernel\TestKernel as Foundation;
 final class TestKernel extends Foundation
 {
     /**
-     * Core's services keep the names of their classes, so marking the whole OpenDxp namespace
-     * would keep every unused definition in the container, including the ones that are not
-     * services at all. The test container hands out private services anyway.
+     * Marking the OpenDxp namespace would keep definitions that are not services.
      */
     protected function getServicesClass(): string
     {
