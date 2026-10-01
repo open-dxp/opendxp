@@ -1429,7 +1429,9 @@
                                 "invisible": false,
                                 "visibleGridView": true,
                                 "visibleSearch": true,
-                                "allowedTypes": [],
+                                "allowedTypes": [
+                                    "unittestfieldcollection"
+                                ],
                                 "lazyLoading": false,
                                 "maxItems": null,
                                 "disallowAddRemove": false,
@@ -1487,7 +1489,9 @@
                                 "invisible": false,
                                 "visibleGridView": true,
                                 "visibleSearch": true,
-                                "allowedTypes": [],
+                                "allowedTypes": [
+                                    "unittestfieldcollection"
+                                ],
                                 "lazyLoading": false,
                                 "maxItems": null,
                                 "disallowAddRemove": false,
