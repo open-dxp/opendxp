@@ -16,10 +16,21 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Application;
 
+use OpenDxp\Bundle\StaticRoutesBundle\OpenDxpStaticRoutesBundle;
+use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\TestFoundation\Kernel\TestKernel as Foundation;
+use Override;
 
 final class TestKernel extends Foundation
 {
+    #[Override]
+    protected function registerCoreBundlesToCollection(BundleCollection $collection): void
+    {
+        parent::registerCoreBundlesToCollection($collection);
+
+        $collection->addBundle(new OpenDxpStaticRoutesBundle());
+    }
+
     /**
      * Marking the OpenDxp namespace would keep definitions that are not services.
      */

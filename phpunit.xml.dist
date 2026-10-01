@@ -12,6 +12,7 @@
     </testsuites>
     <extensions>
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
+        <bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallClassDefinitions"/>
     </extensions>
     <php>
         <env name="KERNEL_CLASS" value="OpenDxp\Tests\Application\TestKernel"/>
