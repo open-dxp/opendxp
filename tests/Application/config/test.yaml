@@ -3,6 +3,19 @@ services:
         autowire: true
         autoconfigure: true
 
+    # the Unittest class definition names this id for its calculated value
+    test.calculatorservice:
+        class: OpenDxp\Tests\Application\Service\Calculator
+        public: true
+
+    # the proxy lets a test swap the adapter at runtime, the default alias points at one adapter
+    OpenDxp\Model\Version\Adapter\ProxyVersionStorageAdapter:
+        autowire: true
+
+    OpenDxp\Model\Version\Adapter\VersionStorageAdapterInterface:
+        public: true
+        alias: OpenDxp\Model\Version\Adapter\ProxyVersionStorageAdapter
+
 twig:
     paths:
         '%kernel.project_dir%/tests/Application/templates': ~

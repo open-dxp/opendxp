@@ -26,7 +26,7 @@ use PHPUnit\TextUI\Configuration\Configuration;
 use RuntimeException;
 use Symfony\Component\Cache\Adapter\DoctrineDbalAdapter;
 
-final class CreateCacheTable implements Extension
+final class CreateMissingTables implements Extension
 {
     public function bootstrap(
         Configuration $configuration,
@@ -36,15 +36,39 @@ final class CreateCacheTable implements Extension
         $url = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL');
 
         if (!is_string($url) || $url === '') {
-            throw new RuntimeException('DATABASE_URL names no database, so the cache table cannot be created.');
+            throw new RuntimeException('DATABASE_URL names no database, so the missing tables cannot be created.');
         }
 
         // dama/doctrine-test-bundle wraps a test in a transaction, but only on the connections it hands out itself.
         // This one is built directly, so the CREATE TABLE commits nothing.
         $connection = DriverManager::getConnection((new DsnParser(['mysql' => 'pdo_mysql']))->parse($url));
 
-        if (!$connection->createSchemaManager()->tablesExist(['cache_items'])) {
+        $schema = $connection->createSchemaManager();
+
+        if (!$schema->tablesExist(['cache_items'])) {
             (new DoctrineDbalAdapter($connection))->createTable();
+        }
+
+        // DatabaseVersionStorageAdapter writes to versionsData, and nothing in core creates it.
+        // It is joined to versions on ctype, so both need the same collation.
+        if (!$schema->tablesExist(['versionsData'])) {
+            $collation = $connection->fetchOne(
+                'SELECT TABLE_COLLATION FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?',
+                ['versions'],
+            );
+
+            $connection->executeStatement(sprintf(
+                'CREATE TABLE `versionsData` (
+                    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                    `cid` int(11) unsigned DEFAULT NULL,
+                    `ctype` enum(\'document\',\'asset\',\'object\') DEFAULT NULL,
+                    `metaData` longblob DEFAULT NULL,
+                    `binaryData` longblob DEFAULT NULL,
+                    PRIMARY KEY (`id`)
+                ) COLLATE %s',
+                $collation,
+            ));
         }
 
         $connection->close();
