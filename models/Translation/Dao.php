@@ -32,6 +32,11 @@ class Dao extends Model\Dao\AbstractDao
 {
     public const string TABLE_PREFIX = 'translations_';
 
+    /**
+     * @var array<string, true>
+     */
+    private static array $existingTables = [];
+
     public function getDatabaseTableName(): string
     {
         return self::TABLE_PREFIX . $this->model->getDomain();
@@ -80,8 +85,9 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function save(): void
     {
-        //Create Domain table if doesn't exist
-        $this->createOrUpdateTable();
+        if (!$this->tableExists($this->getDatabaseTableName())) {
+            $this->createTable();
+        }
 
         $this->updateModificationInfos();
         $sanitizer = $this->model->getTranslationSanitizer();
@@ -167,21 +173,39 @@ class Dao extends Model\Dao\AbstractDao
      */
     public function isAValidDomain(string $domain): bool
     {
-        try {
-            $translationDomains = $this->model->getRegisteredDomains();
-            if (!in_array($domain, $translationDomains)) {
-                return false;
-            }
-
-            $this->db->fetchOne(sprintf('SELECT * FROM translations_%s LIMIT 1', $domain));
-
-            return true;
-        } catch (Exception) {
-            return false;
-        }
+        return in_array($domain, $this->model->getRegisteredDomains(), true)
+            && $this->tableExists(self::TABLE_PREFIX . $domain);
     }
 
+    private function tableExists(string $table): bool
+    {
+        if (isset(self::$existingTables[$table])) {
+            return true;
+        }
+
+        $exists = (bool) $this->db->fetchOne(
+            'SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?',
+            [$table],
+        );
+
+        if ($exists) {
+            self::$existingTables[$table] = true;
+        }
+
+        return $exists;
+    }
+
+    /**
+     * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+     */
     public function createOrUpdateTable(): void
+    {
+        trigger_deprecation('open-dxp/opendxp', '1.5', 'Method "%s()" is deprecated and will be removed in 2.0.', __METHOD__);
+
+        $this->createTable();
+    }
+
+    private function createTable(): void
     {
         $table = $this->getDatabaseTableName();
 
@@ -204,6 +228,8 @@ class Dao extends Model\Dao\AbstractDao
                         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
             $table
         ));
+
+        self::$existingTables[$table] = true;
     }
 
     protected function updateModificationInfos(): void
