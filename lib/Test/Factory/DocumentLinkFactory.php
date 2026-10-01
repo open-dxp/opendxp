@@ -14,7 +14,7 @@ use OpenDxp\Model\Document\Link;
  * @method static Link createOne(array $attributes = [])
  * @method static list<Link> createMany(int $number, array $attributes = [])
  */
-final class LinkFactory extends AbstractDocumentFactory
+final class DocumentLinkFactory extends AbstractDocumentFactory
 {
     public static function class(): string
     {

@@ -13,7 +13,7 @@ use OpenDxp\Model\Document\Page;
  * @method static Page createOne(array $attributes = [])
  * @method static list<Page> createMany(int $number, array $attributes = [])
  */
-final class PageFactory extends AbstractPageSnippetFactory
+final class DocumentPageFactory extends AbstractPageSnippetFactory
 {
     public static function class(): string
     {

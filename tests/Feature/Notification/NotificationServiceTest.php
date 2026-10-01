@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Notification;
 
 use OpenDxp\Model\Notification\Service\NotificationService;
-use OpenDxp\Test\Factory\RoleFactory;
+use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -62,7 +62,7 @@ it('leaves a notification that points at the element it was sent about', functio
 it('leaves a notification with every user of the group it was sent to', function () {
 
     // sendToGroup skips a user who is not allowed to see notifications.
-    $group = RoleFactory::createOne(['permissions' => ['notifications']]);
+    $group = UserRoleFactory::createOne(['permissions' => ['notifications']]);
     $first = UserFactory::createOne(['roles' => [$group->getId()]]);
     $second = UserFactory::createOne(['roles' => [$group->getId()]]);
 

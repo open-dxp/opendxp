@@ -13,7 +13,7 @@ use OpenDxp\Model\DataObject\Folder;
  * @method static Folder createOne(array $attributes = [])
  * @method static list<Folder> createMany(int $number, array $attributes = [])
  */
-final class ObjectFolderFactory extends AbstractElementFactory
+final class DataObjectFolderFactory extends AbstractElementFactory
 {
     public static function class(): string
     {

@@ -17,33 +17,33 @@ declare(strict_types=1);
 
 namespace OpenDxp\Test\Factory;
 
-use OpenDxp\Model\Asset\Video;
+use OpenDxp\Model\Asset\Document;
 
 /**
- * @extends AbstractElementFactory<Video>
+ * @extends AbstractElementFactory<Document>
  *
- * @method Video create(array|callable $attributes = [])
- * @method static Video createOne(array $attributes = [])
- * @method static list<Video> createMany(int $number, array $attributes = [])
+ * @method Document create(array|callable $attributes = [])
+ * @method static Document createOne(array $attributes = [])
+ * @method static list<Document> createMany(int $number, array $attributes = [])
  */
-final class VideoAssetFactory extends AbstractElementFactory
+final class AssetDocumentFactory extends AbstractElementFactory
 {
     public static function class(): string
     {
-        return Video::class;
+        return Document::class;
     }
 
     public static function fixture(): string
     {
-        return dirname(__DIR__) . '/Fixtures/video.mp4';
+        return dirname(__DIR__) . '/Fixtures/document.pdf';
     }
 
     protected function defaults(): array
     {
         return [
             ...parent::defaults(),
-            'type'     => 'video',
-            'filename' => sprintf('video-%s.mp4', self::faker()->unique()->numerify('##########')),
+            'type'     => 'document',
+            'filename' => sprintf('document-%s.pdf', self::faker()->unique()->numerify('##########')),
             'data'     => file_get_contents(self::fixture()),
         ];
     }

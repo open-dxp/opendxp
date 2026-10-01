@@ -11,14 +11,14 @@ use OpenDxp\Model\Asset\Image;
 use OpenDxp\Model\DataObject\Folder as ObjectFolder;
 use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\AssetFolderFactory;
-use OpenDxp\Test\Factory\ImageAssetFactory;
-use OpenDxp\Test\Factory\ObjectFolderFactory;
+use OpenDxp\Test\Factory\AssetImageFactory;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\StaticRouteFactory;
 use OpenDxp\Test\Factory\UserFactory;
 
 it('writes an image asset with a file behind it', function () {
 
-    $image = ImageAssetFactory::createOne();
+    $image = AssetImageFactory::createOne();
 
     expect($image)
         ->toBeInstanceOf(Image::class)
@@ -31,7 +31,7 @@ it('writes an image asset with a file behind it', function () {
 it('puts an asset into a folder', function () {
 
     $folder = AssetFolderFactory::createOne(['filename' => 'photos']);
-    $image = ImageAssetFactory::new()->withParent($folder)->create();
+    $image = AssetImageFactory::new()->withParent($folder)->create();
 
     expect($folder)
         ->toBeInstanceOf(AssetFolder::class)
@@ -42,7 +42,7 @@ it('puts an asset into a folder', function () {
 
 it('writes an object folder', function () {
 
-    $folder = ObjectFolderFactory::createOne(['key' => 'products']);
+    $folder = DataObjectFolderFactory::createOne(['key' => 'products']);
 
     expect($folder)
         ->toBeInstanceOf(ObjectFolder::class)

@@ -14,7 +14,7 @@ use OpenDxp\Model\Document\Hardlink;
  * @method static Hardlink createOne(array $attributes = [])
  * @method static list<Hardlink> createMany(int $number, array $attributes = [])
  */
-final class HardlinkFactory extends AbstractDocumentFactory
+final class DocumentHardlinkFactory extends AbstractDocumentFactory
 {
     public static function class(): string
     {

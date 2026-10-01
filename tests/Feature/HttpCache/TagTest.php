@@ -18,8 +18,8 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\HttpCache;
 
 use OpenDxp\Model\Document;
-use OpenDxp\Test\Factory\ImageAssetFactory;
-use OpenDxp\Test\Factory\ObjectFolderFactory;
+use OpenDxp\Test\Factory\AssetImageFactory;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use Symfony\Component\HttpFoundation\Request;
 
 it('names the document a request reached', function () {
@@ -46,7 +46,7 @@ it('names a document the template loads', function () {
 it('names an asset the template loads', function () {
 
     $page = $this->taggedPage();
-    $asset = ImageAssetFactory::createOne();
+    $asset = AssetImageFactory::createOne();
 
     $request = Request::create($page->getFullPath());
     $request->attributes->set('_template', 'test/tag_collection.html.twig');
@@ -60,7 +60,7 @@ it('names an asset the template loads', function () {
 it('names an object the template loads', function () {
 
     $page = $this->taggedPage();
-    $folder = ObjectFolderFactory::createOne();
+    $folder = DataObjectFolderFactory::createOne();
 
     $request = Request::create($page->getFullPath());
     $request->attributes->set('_template', 'test/tag_collection.html.twig');
@@ -73,7 +73,7 @@ it('names every element the template loads', function () {
 
     $page = $this->taggedPage();
     $document = $this->taggedPage();
-    $asset = ImageAssetFactory::createOne();
+    $asset = AssetImageFactory::createOne();
 
     $request = Request::create($page->getFullPath());
     $request->attributes->set('_template', 'test/tag_collection.html.twig');

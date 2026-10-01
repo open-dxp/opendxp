@@ -13,7 +13,7 @@ use OpenDxp\Model\Asset\Image;
  * @method static Image createOne(array $attributes = [])
  * @method static list<Image> createMany(int $number, array $attributes = [])
  */
-final class ImageAssetFactory extends AbstractElementFactory
+final class AssetImageFactory extends AbstractElementFactory
 {
     public static function class(): string
     {

@@ -6,7 +6,7 @@ namespace OpenDxp\Tests\Feature\ClassDefinition;
 
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\TestObject;
-use OpenDxp\Test\Factory\ObjectFolderFactory;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Tests\Factory\TestObjectFactory;
 
 it('has installed the class the definition beside the tests describes', function () {
@@ -32,7 +32,7 @@ it('creates objects of the installed class', function () {
 
 it('puts an object into a folder', function () {
 
-    $folder = ObjectFolderFactory::createOne(['key' => 'catalogue']);
+    $folder = DataObjectFolderFactory::createOne(['key' => 'catalogue']);
     $object = TestObjectFactory::new()->withParent($folder)->create(['key' => 'second-object']);
 
     expect($object->getFullPath())->toBe('/catalogue/second-object');

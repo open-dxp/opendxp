@@ -17,14 +17,14 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Tool;
 
-use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tool\Frontend;
 
 beforeEach(function () {
     $this->site = SiteFactory::createOne(['mainDomain' => 'example2.com']);
     $this->otherSite = SiteFactory::createOne(['mainDomain' => 'example.com']);
-    $this->page = PageFactory::createOne(['key' => 'testing', 'parentId' => $this->site->getRootDocument()->getId()]);
+    $this->page = DocumentPageFactory::createOne(['key' => 'testing', 'parentId' => $this->site->getRootDocument()->getId()]);
 });
 
 it('counts a document below the root of a site as part of that site', function () {

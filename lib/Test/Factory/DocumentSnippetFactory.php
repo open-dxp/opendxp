@@ -13,7 +13,7 @@ use OpenDxp\Model\Document\Snippet;
  * @method static Snippet createOne(array $attributes = [])
  * @method static list<Snippet> createMany(int $number, array $attributes = [])
  */
-final class SnippetFactory extends AbstractPageSnippetFactory
+final class DocumentSnippetFactory extends AbstractPageSnippetFactory
 {
     public static function class(): string
     {

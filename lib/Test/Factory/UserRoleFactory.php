@@ -26,7 +26,7 @@ use OpenDxp\Model\User\Role;
  * @method static Role createOne(array $attributes = [])
  * @method static list<Role> createMany(int $number, array $attributes = [])
  */
-final class RoleFactory extends AbstractSavingFactory
+final class UserRoleFactory extends AbstractSavingFactory
 {
     public static function class(): string
     {

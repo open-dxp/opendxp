@@ -21,13 +21,13 @@ use OpenDxp\Cache;
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element\Service;
-use OpenDxp\Test\Factory\ImageAssetFactory;
+use OpenDxp\Test\Factory\AssetImageFactory;
 
 beforeEach(fn () => $this->useApplicationCache());
 
 it('hands a cached element back', function () {
 
-    $asset = ImageAssetFactory::createOne(['customSettings' => ['storeMarker' => 'persisted-value']]);
+    $asset = AssetImageFactory::createOne(['customSettings' => ['storeMarker' => 'persisted-value']]);
     $key = Service::getElementCacheTag('asset', $asset->getId());
 
     $this->allowCachingAgain($asset);
@@ -46,7 +46,7 @@ it('hands a cached element back', function () {
 
 it('hands back a copy, so a later change to the original stays out', function () {
 
-    $asset = ImageAssetFactory::createOne(['customSettings' => ['storeMarker' => 'original']]);
+    $asset = AssetImageFactory::createOne(['customSettings' => ['storeMarker' => 'original']]);
     $key = Service::getElementCacheTag('asset', $asset->getId());
 
     $this->allowCachingAgain($asset);
@@ -66,7 +66,7 @@ it('hands back a copy, so a later change to the original stays out', function ()
 
 it('caches what the database holds, not what an outdated handle holds', function () {
 
-    $asset = ImageAssetFactory::createOne(['customSettings' => ['storeMarker' => 'first']]);
+    $asset = AssetImageFactory::createOne(['customSettings' => ['storeMarker' => 'first']]);
     $key = Service::getElementCacheTag('asset', $asset->getId());
 
     $fresh = Asset::getById($asset->getId(), ['force' => true]);
@@ -83,7 +83,7 @@ it('caches what the database holds, not what an outdated handle holds', function
 
 it('reads an element through the cache layer', function () {
 
-    $asset = ImageAssetFactory::createOne();
+    $asset = AssetImageFactory::createOne();
 
     RuntimeCache::clear();
 

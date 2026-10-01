@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Model\Element\Service;
-use OpenDxp\Test\Factory\RoleFactory;
+use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Test\Factory\UserFactory;
 
 beforeEach(function () {
@@ -162,7 +162,7 @@ describe('the paths a user may see', function () {
 describe('a path a role opens', function () {
     it('reaches the user who carries the role', function (string $type) {
 
-        $role = RoleFactory::createOne();
+        $role = UserRoleFactory::createOne();
         $this->user->setRoles([$role->getId()]);
         $this->user->save();
 
@@ -173,7 +173,7 @@ describe('a path a role opens', function () {
 
     it('loses against the user being closed for it', function (string $type) {
 
-        $role = RoleFactory::createOne();
+        $role = UserRoleFactory::createOne();
         $this->user->setRoles([$role->getId()]);
         $this->user->save();
 
@@ -189,7 +189,7 @@ describe('a path a role opens', function () {
 
     it('loses against the user being open for it', function (string $type) {
 
-        $role = RoleFactory::createOne();
+        $role = UserRoleFactory::createOne();
         $this->user->setRoles([$role->getId()]);
         $this->user->save();
 
@@ -205,8 +205,8 @@ describe('a path a role opens', function () {
 
     it('wins over another role that closes the same path', function (string $type) {
 
-        $closing = RoleFactory::createOne();
-        $opening = RoleFactory::createOne();
+        $closing = UserRoleFactory::createOne();
+        $opening = UserRoleFactory::createOne();
         $this->user->setRoles([$closing->getId(), $opening->getId()]);
         $this->user->save();
 

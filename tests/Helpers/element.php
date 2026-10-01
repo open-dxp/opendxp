@@ -18,7 +18,7 @@ use OpenDxp\Db;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element\AbstractElement;
 use OpenDxp\Test\Factory\AssetFolderFactory;
-use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\TestObjectFactory;
 
 function elementWithPathLength(int $length): Concrete
@@ -48,7 +48,7 @@ function workspace(string $type, int $ownerId, string $path, ?int $elementId, in
 {
     $elementId ??= match ($type) {
         'object' => TestObjectFactory::createOne()->getId(),
-        'document' => PageFactory::createOne()->getId(),
+        'document' => DocumentPageFactory::createOne()->getId(),
         'asset' => AssetFolderFactory::createOne()->getId(),
     };
 

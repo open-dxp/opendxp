@@ -20,7 +20,7 @@ namespace OpenDxp\Tests\Feature\Tool;
 use OpenDxp\Model\User;
 use OpenDxp\Security\User\User as SecurityUser;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
-use OpenDxp\Test\Factory\ObjectFolderFactory;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tool\Authentication;
 use ReflectionMethod;
@@ -34,7 +34,7 @@ function unserializedSafely(string $payload): mixed
 
 it('accepts the token of a user whose access is restricted to a workspace', function () {
 
-    $objects = ObjectFolderFactory::createOne();
+    $objects = DataObjectFolderFactory::createOne();
     $documents = DocumentFolderFactory::createOne();
 
     // A superadmin carries no workspace, so the restrictions would never be unserialized.

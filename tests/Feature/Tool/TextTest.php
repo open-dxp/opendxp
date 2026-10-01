@@ -18,14 +18,14 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Tool;
 
 use OpenDxp\Cache\RuntimeCache;
-use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tool\Text;
 
 it('rewrites a link to a document into the url of the site it belongs to', function () {
 
     $site = SiteFactory::createOne(['mainDomain' => 'example2.com']);
-    $page = PageFactory::createOne(['key' => 'testing', 'parentId' => $site->getRootDocument()->getId()]);
+    $page = DocumentPageFactory::createOne(['key' => 'testing', 'parentId' => $site->getRootDocument()->getId()]);
     RuntimeCache::clear();
 
     $text = sprintf(

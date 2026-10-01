@@ -67,7 +67,7 @@ final class SiteFactory extends AbstractSavingFactory
     {
         return parent::initialize()->beforeInstantiate(
             static function (array $parameters): array {
-                $parameters['rootId'] ??= PageFactory::createOne([
+                $parameters['rootId'] ??= DocumentPageFactory::createOne([
                     'key' => str_replace('.', '-', $parameters['mainDomain']),
                 ])->getId();
 

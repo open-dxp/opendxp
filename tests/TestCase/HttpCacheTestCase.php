@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\TestCase;
 
 use OpenDxp\HttpCache\HttpCacheTagCollectorInterface;
 use OpenDxp\Model\Document\Page;
-use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\TestFoundation\StateTestCase;
 use OpenDxp\Tests\Application\Controller\TagCollectionController;
@@ -35,7 +35,7 @@ abstract class HttpCacheTestCase extends StateTestCase
 
     protected function taggedPage(): Page
     {
-        return PageFactory::new()
+        return DocumentPageFactory::new()
             ->withController(TagCollectionController::class, 'defaultAction')
             ->create();
     }

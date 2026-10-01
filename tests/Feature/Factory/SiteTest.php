@@ -6,7 +6,7 @@ namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Model\Site;
-use OpenDxp\Test\Factory\PageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 
 it('brings a root document named after its domain', function () {
@@ -25,7 +25,7 @@ it('brings a root document named after its domain', function () {
 
 it('serves from a root document the caller built', function () {
 
-    $root = PageFactory::new()->withLocale('de')->create(['key' => 'de-root']);
+    $root = DocumentPageFactory::new()->withLocale('de')->create(['key' => 'de-root']);
     $site = SiteFactory::new()->withRoot($root)->create(['mainDomain' => 'test-domain2.test']);
 
     expect($site->getRootId())
