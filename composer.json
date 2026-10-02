@@ -133,10 +133,6 @@
     "require-dev": {
         "behat/gherkin": "4.16.0",
         "chrome-php/chrome": "^1.4.0",
-        "codeception/codeception": "^5.3.5",
-        "codeception/module-asserts": "^3.2",
-        "codeception/module-symfony": "^3.8",
-        "codeception/stub": "^4.3",
         "composer/composer": "*",
         "ergebnis/phpstan-rules": "^2.9",
         "friendsofsymfony/http-cache-bundle": "^3.0",

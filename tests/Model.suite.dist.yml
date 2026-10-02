@@ -1,7 +1,0 @@
-actor: ModelTester
-modules:
-    enabled:
-        - \OpenDxp\Tests\Support\Helper\OpenDxp:
-            connect_db: true
-        - \OpenDxp\Tests\Support\Helper\ClassManager
-        - \OpenDxp\Tests\Support\Helper\Model

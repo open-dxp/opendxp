@@ -1,4 +1,0 @@
-{% set doc_id = app.request.attributes.get('test_doc_id') %}
-{% if doc_id %}{% set d = opendxp_document(doc_id, {force: true}) %}{{ d ? 'main-doc-ok' : 'main-doc-null' }}{% endif %}
-{% set sub_doc_id = app.request.attributes.get('test_sub_doc_id') %}
-{% if sub_doc_id %}{{ render(controller('OpenDxp\\Tests\\Support\\Controller\\DefaultController::fragmentAction', {docId: sub_doc_id})) }}{% endif %}

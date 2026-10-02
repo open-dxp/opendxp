@@ -1,5 +1,10 @@
 # Upgrade Notes
 
+## OpenDXP 1.5.0
+- Chore: The test suite of this package runs on Pest instead of Codeception. `codeception/codeception`, `codeception/module-asserts`, `codeception/module-symfony` and `codeception/stub` are no longer in `require-dev`. A project whose own suite uses Codeception declares it itself.
+- Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0, because the testing documentation tells projects to reach them through an autoloader line. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
+- Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
+
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
 - Bugfix: An explicit `_locale` of a static route is no longer overwritten by the language of the nearest document [#199](https://github.com/open-dxp/opendxp/pull/199)
