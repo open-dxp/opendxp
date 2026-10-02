@@ -27,7 +27,8 @@ it('turns the term it finds into a link to the glossary entry', function (string
 
     GlossaryFactory::createOne(['text' => $term, 'link' => $link]);
 
-    expect($this->processor->parse($source, [], 'en', null, null))->toBe($expected);
+    // Depending on the libxml version, the processor keeps an entity or decodes it, so both sides are compared decoded.
+    expect(html_entity_decode($this->processor->parse($source, [], 'en', null, null)))->toBe(html_entity_decode($expected));
 })->with([
     'a term in a sentence' => [
         'Glossary',
