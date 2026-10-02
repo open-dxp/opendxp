@@ -31,13 +31,12 @@ use OpenDxp\Model\Property;
 use OpenDxp\Tool;
 use RuntimeException;
 
-/**
- * Registers `toEqualElement`, which compares two elements by a fingerprint of their own data
- * instead of by identity. A copy therefore equals the element it was copied from, and passing
- * `ignoringCopyDifferences` leaves out what a copy is expected to differ in.
- */
 final class Elements
 {
+    /**
+     * `toEqualElement` compares two elements by their own data instead of by identity, so a copy
+     * equals its original. `ignoringCopyDifferences` leaves out what a copy is expected to differ in.
+     */
     public static function register(): void
     {
         expect()->extend('toEqualElement', function (ElementInterface $expected, bool $ignoringCopyDifferences = false) {

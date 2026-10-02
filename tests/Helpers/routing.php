@@ -68,7 +68,7 @@ function staticrouteRouter(Staticroute $route): Router
 
     $router = new Router($context, new Config(), new GeneralHostResolver());
 
-    // a unit test has no database, so the route goes in directly
+    // A unit test has no database, so the route goes in directly.
     (new ReflectionProperty(Router::class, 'staticRoutes'))->setValue($router, [$route]);
 
     return $router;

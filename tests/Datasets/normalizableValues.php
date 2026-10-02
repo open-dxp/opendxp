@@ -20,10 +20,6 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data as Definition;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Model\User;
 
-/**
- * Every field type that normalizes a value, with a value to put through it. The value comes back out
- * of the normalized form unchanged, so the test compares the two directly.
- */
 dataset('normalizable values', [
     'a boolean select' => [fn () => new Definition\BooleanSelect(), fn () => true],
     'a checkbox' => [fn () => new Definition\Checkbox(), fn () => true],

@@ -22,9 +22,6 @@ use OpenDxp\TestFoundation\Container;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * Runs the backend search as the named user and hands back the paths it answered with.
- */
 function searchAs(string $userName, string $type, string $query, int $limit = 100): array
 {
     actingAs(User::getByName($userName));
@@ -43,8 +40,7 @@ function searchAs(string $userName, string $type, string $query, int $limit = 10
 }
 
 /**
- * Runs the backend quick search as the named user and hands back the paths it answered with. The
- * quick search reaches every kind of element at once, so it takes no type.
+ * The quick search reaches every kind of element at once, so it takes no type.
  */
 function quickSearchAs(string $userName, string $query, int $limit = 100): array
 {

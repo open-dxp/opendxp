@@ -29,8 +29,7 @@ use OpenDxp\Tests\Factory\BlockObjectFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 /**
- * Reads the object back the way a second request would, out of the cache, and writes it again. A
- * reference inside a block has to survive that round, which is what the two tests below are about.
+ * A second request reads the object from the cache before it saves it again.
  */
 function savedAgainFromTheCache(UnittestBlock $object): UnittestBlock
 {

@@ -34,7 +34,7 @@ function loaded(DataObject\Concrete $object): Inheritance
 }
 
 /**
- * The comma separated ids a relation leaves in the object view, which is what a listing reads.
+ * A listing reads a relation from this column of the object view, as comma separated ids.
  */
 function relationColumn(DataObject\Concrete $object): string|false
 {

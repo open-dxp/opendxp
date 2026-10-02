@@ -32,8 +32,7 @@ function fieldinput1Invisible(bool $invisible): void
 }
 
 /**
- * Builds what the backend sends back for one item of the collection. A field the editor did not show
- * is missing from that data, which is the whole point of the two tests below.
+ * The backend sends one item of the collection back without the fields the editor did not show.
  */
 function editmodeItem(?string $value, bool $submitted): array
 {

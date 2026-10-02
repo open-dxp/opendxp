@@ -20,10 +20,7 @@ namespace OpenDxp\Tests\TestCase;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use OpenDxp\TestFoundation\TestCase;
 
-/**
- * InnoDB writes a change to a full text index only when the transaction commits, so a test that
- * searches cannot run inside one. Such a test leaves what it wrote behind and has to take it back itself.
- */
+// InnoDB writes a full text index only on commit, so a test that searches cannot run in a transaction.
 #[SkipDatabaseRollback]
 abstract class SearchTestCase extends TestCase
 {

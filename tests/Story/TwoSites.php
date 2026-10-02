@@ -24,10 +24,6 @@ use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 use Zenstruck\Foundry\Story;
 
-/**
- * Two sites on domains of their own. The second one carries a hardlink onto a section of the
- * first, so a document of one site can be reached through the other.
- */
 final class TwoSites extends Story
 {
     public function build(): void
@@ -44,6 +40,7 @@ final class TwoSites extends Story
             'key' => 'subpage',
         ]));
 
+        // The hardlink lets a document of the first site be reached through the second.
         $this->addState('hardlink', DocumentHardlinkFactory::createOne([
             'parentId' => self::get('siteB')->getRootDocument()->getId(),
             'key' => 'hl',

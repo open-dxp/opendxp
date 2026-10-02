@@ -68,7 +68,6 @@ it('tells what changed in a relation after every edit', function () {
 
     $object->save();
 
-    // One taken away.
     array_pop($assigned);
     $object->setMultipleManyToMany($assigned);
 
@@ -76,21 +75,19 @@ it('tells what changed in a relation after every edit', function () {
 
     $object->save();
 
-    // All taken away.
     $object->setMultipleManyToMany([]);
 
     expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 0, 'updated' => 0, 'removed' => 4]);
 
     $object->save();
 
-    // The same four put back.
     $object->setMultipleManyToMany($assigned);
 
     expect(changed($field, $object))->toBe(['new' => 4, 'existing' => 0, 'updated' => 0, 'removed' => 0]);
 
     $object->save();
 
-    // Two of them swapped: their position changed, the relations did not.
+    // A swap changes the position of two relations, not the relations themselves.
     $object->setMultipleManyToMany(swapped($assigned, 1, 2));
 
     expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 2, 'updated' => 2, 'removed' => 0]);
@@ -99,7 +96,6 @@ it('tells what changed in a relation after every edit', function () {
 
     expect(notes($object->getMultipleManyToMany()))->toBe(['note 0', 'note 2', 'note 1', 'note 3']);
 
-    // Two swapped and the first one dropped in the same edit.
     $left = swapped($object->getMultipleManyToMany(), 0, 2);
     array_shift($left);
     $object->setMultipleManyToMany($left);

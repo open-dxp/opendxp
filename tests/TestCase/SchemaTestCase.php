@@ -20,10 +20,7 @@ namespace OpenDxp\Tests\TestCase;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use OpenDxp\TestFoundation\TestCase;
 
-/**
- * A test that changes the database schema cannot run inside a transaction, because any DDL commits
- * it. Such a test leaves what it wrote behind and has to take it back itself.
- */
+// DDL commits the transaction, so a test that changes the schema cannot be rolled back.
 #[SkipDatabaseRollback]
 abstract class SchemaTestCase extends TestCase
 {

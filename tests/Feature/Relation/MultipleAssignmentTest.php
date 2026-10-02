@@ -24,10 +24,7 @@ use OpenDxp\Model\DataObject\MultipleAssignments;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
-/**
- * Assigns every target twice, with a note of its own each time.
- */
-function twice(string $metadata, string $field, array $targets): array
+function assignEachTwice(string $metadata, string $field, array $targets): array
 {
     $assigned = [];
 
@@ -52,7 +49,7 @@ beforeEach(fn () => $this->targets = RelationTestFactory::createMany(3));
 it('refuses the same target twice on a field that allows one assignment', function (string $metadata, string $field) {
 
     $object = MultipleAssignmentsFactory::new()->unsaved()->create();
-    $object->{'set' . ucfirst($field)}(twice($metadata, $field, $this->targets));
+    $object->{'set' . ucfirst($field)}(assignEachTwice($metadata, $field, $this->targets));
 
     $object->save();
 })->with([
@@ -62,7 +59,7 @@ it('refuses the same target twice on a field that allows one assignment', functi
 
 it('keeps the same target twice on a field that allows it', function (string $metadata, string $field) {
 
-    $assigned = twice($metadata, $field, $this->targets);
+    $assigned = assignEachTwice($metadata, $field, $this->targets);
     $expected = notesOf($assigned);
 
     $object = MultipleAssignmentsFactory::createOne([$field => $assigned]);

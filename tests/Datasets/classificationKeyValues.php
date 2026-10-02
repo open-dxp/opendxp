@@ -20,8 +20,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data\Input;
 use OpenDxp\Model\DataObject\Data;
 
 /**
- * Every key of the shared classification store, with a value to write into it. The group is named too,
- * because a value is held per group and key.
+ * A classification store holds a value per group and key, so each entry names both.
  */
 dataset('classification key values', [
     'a date' => ['testgroup1', 'date', fn () => Carbon::createFromTimestamp(1700000000)],

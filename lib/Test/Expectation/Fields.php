@@ -48,9 +48,8 @@ final class Fields
     }
 
     /**
-     * The definition of a field, whether the class holds it directly or inside its localized fields.
-     * Public because Pest binds the closure above to the expectation, which reaches no private method
-     * of this class.
+     * Public because Pest binds the closure above to the expectation, which cannot reach a private
+     * method of this class.
      */
     public static function definitionOf(Concrete $object, string $field): EqualComparisonInterface
     {

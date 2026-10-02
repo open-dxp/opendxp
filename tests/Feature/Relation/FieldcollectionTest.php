@@ -25,9 +25,6 @@ use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-/**
- * Builds a collection of one item per value, each handed to the item through the given setter.
- */
 function collectionOf(string $setter, array $values): Fieldcollection
 {
     $items = new Fieldcollection();

@@ -19,8 +19,7 @@ use Carbon\Carbon;
 use OpenDxp\Model\DataObject\Data;
 
 /**
- * Every localized field type, with a value per language. The value takes the language, because the
- * original test wrote a different text into each one to tell them apart.
+ * Each language gets a value of its own, so a test can tell the languages apart.
  */
 dataset('localized field values', [
     'a line of text' => ['linput', fn (string $language) => $language . 'content1'],
@@ -40,7 +39,7 @@ dataset('localized field values', [
     'an image' => ['limage', fn () => anImage('image.jpg')],
     'a link to a document' => ['llink', fn () => aLink(aPage('document1'))],
     'a slug' => ['lurlSlug', fn (string $language) => [new Data\UrlSlug('/' . $language . '/content1')]],
-    // The original test wrote a different number of objects per language, to tell the languages apart.
+    // German gets one object more, so a test can tell the languages apart.
     'the objects it relates to' => ['lobjects', fn (string $language) => someObjects($language === 'de' ? 6 : 5)],
     'the elements it relates to lazily' => ['lmultihrefLazy', fn (string $language) => someObjects($language === 'de' ? 6 : 5)],
 ]);

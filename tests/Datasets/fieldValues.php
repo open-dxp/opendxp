@@ -20,8 +20,8 @@ use Carbon\CarbonPeriod;
 use OpenDxp\Model\DataObject\Data;
 
 /**
- * Every field type of the test class, with a value to write into it. The value is built in a closure,
- * because a dataset is read while the tests are collected, before any element exists.
+ * Each value is built in a closure, because Pest reads a dataset while it collects the tests, before
+ * any element exists.
  */
 dataset('field values', [
     'a line of text' => ['input', fn () => 'content1'],

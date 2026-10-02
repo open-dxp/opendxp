@@ -27,10 +27,6 @@ use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use Zenstruck\Foundry\Story;
 
-/**
- * A tree of object folders and objects, an asset beside it, and six users whose workspace rules reach
- * different parts of it. The permission tests read the tree back by path.
- */
 final class DataObjectPermissions extends Story
 {
     public const array USERS = ['admin', 'Permissiontest1', 'Permissiontest2'];
@@ -142,7 +138,7 @@ final class DataObjectPermissions extends Story
     }
 
     /**
-     * Deletes everything the story wrote. A test that cannot roll back has to take it back itself.
+     * A test that cannot roll back takes back what the story wrote.
      */
     public static function forget(): void
     {

@@ -18,9 +18,6 @@ namespace OpenDxp\Model\DataObject\Unittest;
 
 use OpenDxp\Model\DataObject\Concrete;
 
-/**
- * Stands in for the dao a project writes for one of its own data object classes.
- */
 class Dao extends Concrete\Dao
 {
     /**

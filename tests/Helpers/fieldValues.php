@@ -127,8 +127,7 @@ function structuredTable(): DataObject\Data\StructuredTable
 }
 
 /**
- * The owner a value object is told about. A normalizer hands it back on the value it builds, so the
- * value going in has to carry the same one.
+ * A normalizer sets this owner on the value it builds, so the value going in carries the same one.
  */
 function ownerInfo(): array
 {

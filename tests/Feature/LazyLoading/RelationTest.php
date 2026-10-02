@@ -34,7 +34,7 @@ function loaded(int $id): LazyLoading
 }
 
 /**
- * Both the object the relation was written on and the one below it, which inherits it.
+ * The child inherits the relation the parent was saved with.
  */
 function parentAndChild(LazyLoading $object): array
 {

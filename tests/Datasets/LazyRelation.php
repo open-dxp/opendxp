@@ -19,9 +19,6 @@ namespace OpenDxp\Tests\Datasets;
 
 use OpenDxp\Model\DataObject\Concrete;
 
-/**
- * One kind of relation, and the name it carries in each of the places the LazyLoading class offers.
- */
 final class LazyRelation
 {
     public function __construct(
@@ -37,8 +34,8 @@ final class LazyRelation
     }
 
     /**
-     * Builds what a field of this kind takes. An advanced relation is wrapped in metadata that names
-     * the field it belongs to, and a single relation is one target instead of a list.
+     * An advanced relation wraps each target in metadata that names its field. A single relation takes
+     * one target instead of a list.
      */
     public function value(string $field, array $targets): mixed
     {
@@ -54,8 +51,7 @@ final class LazyRelation
     }
 
     /**
-     * Counts what the field handed back. A single relation hands back the one target it points at
-     * instead of a list.
+     * A single relation hands back one target instead of a list.
      */
     public function counted(mixed $loaded): int
     {
