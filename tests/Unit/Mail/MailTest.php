@@ -156,4 +156,21 @@ class MailTest extends TestCase
 
         $this->assertStringContainsString('Hi, John Doe.', $mail->getBodyHtmlRendered());
     }
+
+    /**
+     * Test: Html body render with URL-encoded spaces inside Twig print tags (e.g. href from WYSIWYG editor)
+     */
+    public function testHtmlBodyRenderedWithUrlEncodedSpacesInTwigPrintTags(): void
+    {
+        $mail = new \OpenDxp\Mail();
+        $mail->html('<a href="mailto:{{%20regionMail%20}}">{{ regionMail }}</a> 100%20off');
+        $mail->setParams([
+            'regionMail' => 'region@example.com',
+        ]);
+
+        $this->assertStringContainsString(
+            '<a href="mailto:region@example.com">region@example.com</a> 100%20off',
+            $mail->getBodyHtmlRendered()
+        );
+    }
 }
