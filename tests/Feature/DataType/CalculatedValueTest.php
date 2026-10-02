@@ -51,7 +51,6 @@ it('works a value out of an expression and writes it into the query table', func
 });
 
 it('keeps a constant out of an expression', function () {
-
     expect(UnittestFactory::createOne()->getCalculatedValueExpressionConstant())
         ->not->toBe(OPENDXP_PROJECT_ROOT);
 });

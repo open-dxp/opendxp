@@ -50,7 +50,6 @@ it('hands a user only the results that user may see', function () {
 });
 
 it('hands a user nothing for an element that user may not see', function () {
-
     expect(searchAs('admin', 'asset', 'hugo'))
         ->toBe(['/permissionfoo/bars/hugo.gif'])
         ->and(searchAs('Permissiontest1', 'asset', 'hugo'))

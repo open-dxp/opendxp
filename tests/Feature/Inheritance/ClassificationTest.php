@@ -20,16 +20,13 @@ namespace OpenDxp\Tests\Feature\Inheritance;
 use OpenDxp;
 use OpenDxp\Model\DataObject\Service;
 use OpenDxp\Tests\Factory\InheritanceFactory;
-use OpenDxp\Tests\Story\Classification;
 
 beforeEach(function () {
     // Only the admin is handed an object that holds nothing of its own.
     OpenDxp::setAdminMode();
-    Classification::load();
-
-    $this->group = Classification::get('group')->getId();
-    $this->first = Classification::get('first')->getId();
-    $this->second = Classification::get('second')->getId();
+    $this->group = storeGroup('testgroup2')->getId();
+    $this->first = storeKey('input')->getId();
+    $this->second = storeKey('textarea')->getId();
 });
 
 it('hands a key down that the object below holds no value for', function () {

@@ -88,7 +88,6 @@ it('tells per user whether an element may be listed or viewed', function () {
 });
 
 it('hands a directly given permission down to the element below', function () {
-
     assertPermissions([
         '/permissionfoo/bars/groupfolder' => ['delete' => [1, 0, 1], 'publish' => [1, 0, 1], 'versions' => [1, 0, 0]],
         '/permissionfoo/bars/groupfolder/grouptestobject.gif' => ['delete' => [1, 0, 1], 'publish' => [1, 0, 1], 'versions' => [1, 0, 0]],
@@ -104,7 +103,6 @@ it('hands a directly given permission down to the element below', function () {
 });
 
 it('lets a user list a folder above an element that user may see, although no rule names it', function () {
-
     assertPermissions([
         '/permissioncpath/a' => ['list' => [1, 1, 0], 'delete' => [1, 0, 0], 'publish' => [1, 0, 0], 'versions' => [1, 0, 0]],
         '/permissioncpath/a/b' => ['list' => [1, 1, 0], 'delete' => [1, 0, 0], 'publish' => [1, 0, 0], 'versions' => [1, 0, 0]],
