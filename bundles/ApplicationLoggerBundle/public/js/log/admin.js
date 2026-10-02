@@ -173,6 +173,20 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
         this.resultpanel = new Ext.grid.GridPanel({
             store: this.store,
             title: t('log_applicationlog'),
+            header: {
+                items: [{
+                    xtype: 'splitbutton',
+                    ui: 'default-toolbar',
+                    text: t('export_csv'),
+                    iconCls: 'opendxp_icon_export',
+                    handler: this.export.bind(this, 'csv'),
+                    menu: [{
+                        text: t('export_xlsx'),
+                        iconCls: 'opendxp_icon_export',
+                        handler: this.export.bind(this, 'xlsx')
+                    }]
+                }]
+            },
             trackMouseOver: false,
             disableSelection: true,
             autoScroll: true,
@@ -429,6 +443,39 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
         });
     },
 
+
+    export: function (format) {
+        var exportType = Object.create(opendxp.globalmanager.get('opendxp.object.gridexport').find(function (type) {
+            return type.name === format;
+        }));
+        exportType.warningText = t('log_export_warning');
+        exportType.getObjectSettingsContainer = function () {
+            return null;
+        };
+
+        opendxp.helpers.exportWarning(exportType, this.download.bind(this, format));
+    },
+
+    download: function (format, settings) {
+        var params = Ext.apply({format: format}, settings),
+            sorter = this.store.getSorters().first();
+
+        params.columns = Ext.encode(this.resultpanel.getVisibleColumns().map(function (column) {
+            return {key: column.dataIndex, label: column.text};
+        }));
+
+        Ext.Object.each(this.store.getProxy().getExtraParams(), function (key, value) {
+            if (!Ext.isEmpty(value)) {
+                params[key] = Ext.isDate(value) ? Ext.Date.format(value, 'Y-m-d\\TH:i:s') : value;
+            }
+        });
+
+        if (sorter) {
+            params.sort = Ext.encode([{property: sorter.getProperty(), direction: sorter.getDirection()}]);
+        }
+
+        opendxp.helpers.download(Routing.generate('opendxp_admin_bundle_applicationlogger_log_export', params));
+    },
 
     find: function () {
 
