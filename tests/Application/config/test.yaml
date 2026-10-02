@@ -1,3 +1,7 @@
+parameters:
+    # An encrypted field needs a key. This one belongs to the test application and encrypts nothing else.
+    opendxp.encryption.secret: 'def0000021cc887a70b119fec21a31a040f3397e9481d22d18055f3c63740444af9836f5ea44de9dcdd66ae222bebda4537a9da8cd5446e0a222a4dd36716596a9146632'
+
 services:
     OpenDxp\Tests\Application\Controller\TagCollectionController:
         autowire: true
