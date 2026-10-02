@@ -176,7 +176,8 @@ class Processor
         $statusCacheEnabled = OpenDxpConfig::getSystemConfiguration('assets')['image']['thumbnails']['status_cache'];
         if ($statusCacheEnabled && $deferred) {
             $modificationDate = $asset->getDao()->getCachedThumbnailModificationDate($config->getName(), $filename);
-        } else {
+        } elseif ($storage->fileExists($storagePath)) {
+            // The adapter warns before it throws, so the file has to be there before we ask.
             try {
                 $modificationDate = $storage->lastModified($storagePath);
             } catch (FilesystemException) {
@@ -235,11 +236,13 @@ class Processor
 
         try {
             // check if file is already on the file-system and if it is still valid
-            $modificationDate = $storage->lastModified($storagePath);
-            if ($modificationDate < $asset->getModificationDate()) {
-                $storage->delete($storagePath);
-            } else {
-                $fileExists = true;
+            if ($storage->fileExists($storagePath)) {
+                $modificationDate = $storage->lastModified($storagePath);
+                if ($modificationDate < $asset->getModificationDate()) {
+                    $storage->delete($storagePath);
+                } else {
+                    $fileExists = true;
+                }
             }
         } catch (Exception $e) {
             Logger::debug($e->getMessage());
