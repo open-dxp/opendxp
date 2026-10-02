@@ -125,3 +125,71 @@ function structuredTable(): DataObject\Data\StructuredTable
 
     return $table;
 }
+
+/**
+ * The owner a value object is told about. A normalizer hands it back on the value it builds, so the
+ * value going in has to carry the same one.
+ */
+function ownerInfo(): array
+{
+    return ['owner' => 'dummy owner', 'fieldname' => 'dummy field', 'language' => 'en'];
+}
+
+function owned(object $value): object
+{
+    $value->_setOwner(ownerInfo()['owner']);
+    $value->_setOwnerFieldname(ownerInfo()['fieldname']);
+    $value->_setOwnerLanguage(ownerInfo()['language']);
+
+    return $value;
+}
+
+function croppedImage(int $index): DataObject\Data\Hotspotimage
+{
+    $image = new DataObject\Data\Hotspotimage();
+    $image->setImage(anImage(sprintf('cropped%d.jpg', $index)));
+    $image->setCrop([
+        'cropWidth' => 60 + $index,
+        'cropHeight' => 78 + $index,
+        'cropTop' => 4.1 + $index,
+        'cropLeft' => 4.2 + $index,
+        'cropPercent' => true,
+    ]);
+    $image->setMarker([['top' => 56 + $index, 'left' => 62 + $index]]);
+
+    return $image;
+}
+
+function aLinkToAnObject(): DataObject\Data\Link
+{
+    $link = new DataObject\Data\Link();
+    $link->setInternalType('object');
+    $link->setInternal(someObjects(1)[0]->getId());
+    $link->setTarget('_blank');
+    $link->setTitle('sometitle');
+
+    return $link;
+}
+
+function aStructuredTable(): DataObject\Data\StructuredTable
+{
+    $table = new DataObject\Data\StructuredTable();
+    $table->setData([
+        'row1' => ['col1' => '1', 'col2' => '2'],
+        'row2' => ['col1' => '3', 'col2' => '4'],
+    ]);
+
+    return $table;
+}
+
+function aVideoWithPoster(): DataObject\Data\Video
+{
+    $video = new DataObject\Data\Video();
+    $video->setType('asset');
+    $video->setData(anImage('clip.jpg'));
+    $video->setPoster(anImage('poster.jpg'));
+    $video->setTitle('title');
+    $video->setDescription('description');
+
+    return $video;
+}
