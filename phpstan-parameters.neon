@@ -9,6 +9,11 @@ parameters:
     bootstrapFiles:
         - phpstan-bootstrap.php
 
+    # The bootstrap defines these for the machine the analysis runs on, so their value must not be relied on.
+    dynamicConstantNames:
+        - OPENDXP_PROJECT_ROOT
+        - OPENDXP_KERNEL_CLASS
+
     excludePaths:
         - bundles/SimpleBackendSearchBundle/src/DataProvider/GDPR/Assets.php
         - bundles/SimpleBackendSearchBundle/src/DataProvider/GDPR/DataObjects.php

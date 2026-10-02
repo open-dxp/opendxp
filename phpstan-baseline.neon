@@ -133,12 +133,6 @@ parameters:
 			path: bundles/InstallBundle/src/BundleConfig/BundleWriter.php
 
 		-
-			message: '#^Path in include\(\) "/var/www/html/app/slot\-1/vendor/open\-dxp/opendxp/\.\./\.\./\.\./config/bundles\.php" is not a file or it does not exist\.$#'
-			identifier: include.fileNotFound
-			count: 1
-			path: bundles/InstallBundle/src/BundleConfig/BundleWriter.php
-
-		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
 			identifier: ergebnis.declareStrictTypes
 			count: 1
@@ -279,18 +273,6 @@ parameters:
 		-
 			message: '#^Method OpenDxp\\Bootstrap\:\:startup\(\) has invalid return type App\\Kernel\.$#'
 			identifier: class.notFound
-			count: 1
-			path: lib/Bootstrap.php
-
-		-
-			message: '#^Path in include_once\(\) "/var/www/html/app/slot\-1/vendor/open\-dxp/opendxp/\.\./\.\./\.\./config/opendxp/constants\.php" is not a file or it does not exist\.$#'
-			identifier: includeOnce.fileNotFound
-			count: 1
-			path: lib/Bootstrap.php
-
-		-
-			message: '#^Path in include_once\(\) "/var/www/html/app/slot\-1/vendor/open\-dxp/opendxp/\.\./\.\./\.\./config/opendxp/startup\.php" is not a file or it does not exist\.$#'
-			identifier: includeOnce.fileNotFound
 			count: 1
 			path: lib/Bootstrap.php
 
