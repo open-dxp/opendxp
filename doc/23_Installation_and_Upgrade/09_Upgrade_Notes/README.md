@@ -1,8 +1,10 @@
 # Upgrade Notes
 
 ## OpenDXP 1.5.0
-- Chore: The test suite of this package runs on Pest instead of Codeception. `codeception/codeception`, `codeception/module-asserts`, `codeception/module-symfony` and `codeception/stub` are no longer in `require-dev`. A project whose own suite uses Codeception declares it itself.
-- Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0, because the testing documentation tells projects to reach them through an autoloader line. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
+- Chore: Remove `tests/bin`, the Codeception container setup.
+- Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
+- Chore: Replace Codeception with Pest and remove `codeception/codeception`, `codeception/module-asserts`, `codeception/module-symfony` and `codeception/stub` from `require-dev`.
+- Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
 - Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
 
 ## OpenDXP 1.4.3
