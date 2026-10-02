@@ -39,15 +39,15 @@ function validatePathLength(AbstractElement $element): void
 
 function allowPath(string $type, int $ownerId, string $path, ?int $elementId = null): int
 {
-    return workspace($type, $ownerId, $path, $elementId, list: 1);
+    return writeWorkspace($type, $ownerId, $path, $elementId, list: 1);
 }
 
 function forbidPath(string $type, int $ownerId, string $path, ?int $elementId = null): int
 {
-    return workspace($type, $ownerId, $path, $elementId, list: 0);
+    return writeWorkspace($type, $ownerId, $path, $elementId, list: 0);
 }
 
-function workspace(string $type, int $ownerId, string $path, ?int $elementId, int $list): int
+function writeWorkspace(string $type, int $ownerId, string $path, ?int $elementId, int $list): int
 {
     $elementId ??= match ($type) {
         'object' => TestObjectFactory::createOne()->getId(),

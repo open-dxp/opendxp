@@ -35,8 +35,14 @@ final class TwoSites extends Story
         $this->addState('siteA', SiteFactory::createOne(['mainDomain' => 'domain-a.test']));
         $this->addState('siteB', SiteFactory::createOne(['mainDomain' => 'domain-b.test']));
 
-        $this->addState('section', self::below(self::get('siteA')->getRootDocument(), 'section'));
-        $this->addState('subpage', self::below(self::get('section'), 'subpage'));
+        $this->addState('section', DocumentPageFactory::createOne([
+            'parentId' => self::get('siteA')->getRootDocument()->getId(),
+            'key' => 'section',
+        ]));
+        $this->addState('subpage', DocumentPageFactory::createOne([
+            'parentId' => self::get('section')->getId(),
+            'key' => 'subpage',
+        ]));
 
         $this->addState('hardlink', DocumentHardlinkFactory::createOne([
             'parentId' => self::get('siteB')->getRootDocument()->getId(),
@@ -47,10 +53,5 @@ final class TwoSites extends Story
 
         // A site is only found under its domain once the mapping is built again.
         RuntimeCache::getInstance()->offsetUnset('sites_path_mapping');
-    }
-
-    private static function below(Page $parent, string $key): Page
-    {
-        return DocumentPageFactory::createOne(['parentId' => $parent->getId(), 'key' => $key]);
     }
 }

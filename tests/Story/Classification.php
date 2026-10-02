@@ -17,8 +17,10 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Story;
 
-use OpenDxp\Model\DataObject\ClassDefinition;
-use OpenDxp\Model\DataObject\Classificationstore;
+use OpenDxp\Test\Factory\ClassificationGroupFactory;
+use OpenDxp\Test\Factory\ClassificationKeyFactory;
+use OpenDxp\Test\Factory\ClassificationKeyGroupRelationFactory;
+use OpenDxp\Test\Factory\ClassificationStoreFactory;
 use Zenstruck\Foundry\Story;
 
 /**
@@ -28,71 +30,24 @@ final class Classification extends Story
 {
     public function build(): void
     {
-        $store = Classificationstore\StoreConfig::getByName('teststore');
+        $store = ClassificationStoreFactory::createOne(['name' => 'teststore']);
 
-        if (!$store instanceof Classificationstore\StoreConfig) {
-            $store = new Classificationstore\StoreConfig();
-            $store->setName('teststore');
-            $store->save();
+        $group = ClassificationGroupFactory::createOne(['storeId' => $store->getId(), 'name' => 'group1']);
+
+        // The store knows the keys as key1 and key2, the tests reach them as the first and the second.
+        foreach (['first' => 'key1', 'second' => 'key2'] as $position => $name) {
+            $key = ClassificationKeyFactory::createOne(['storeId' => $store->getId(), 'name' => $name]);
+
+            ClassificationKeyGroupRelationFactory::createOne([
+                'groupId' => $group->getId(),
+                'keyId' => $key->getId(),
+                'sorter' => $name === 'key1' ? 1 : 2,
+            ]);
+
+            self::addState($position, $key);
         }
 
-        $this->addState('store', $store);
-        $this->addState('group', self::group($store, 'group1'));
-        $this->addState('first', self::key($store, 'field1'));
-        $this->addState('second', self::key($store, 'field2'));
-
-        self::addKeyToGroup(self::get('first'), self::get('group'), 1);
-        self::addKeyToGroup(self::get('second'), self::get('group'), 2);
-    }
-
-    private static function group(Classificationstore\StoreConfig $store, string $name): Classificationstore\GroupConfig
-    {
-        $group = Classificationstore\GroupConfig::getByName($name, $store->getId());
-
-        if ($group instanceof Classificationstore\GroupConfig) {
-            return $group;
-        }
-
-        $group = new Classificationstore\GroupConfig();
-        $group->setStoreId($store->getId());
-        $group->setName($name);
-        $group->save();
-
-        return $group;
-    }
-
-    private static function key(Classificationstore\StoreConfig $store, string $name): Classificationstore\KeyConfig
-    {
-        $key = Classificationstore\KeyConfig::getByName($name, $store->getId());
-
-        if ($key instanceof Classificationstore\KeyConfig) {
-            return $key;
-        }
-
-        $key = new Classificationstore\KeyConfig();
-        $key->setStoreId($store->getId());
-        $key->setName($name);
-        $key->setType('input');
-        $key->setDefinition(json_encode(new ClassDefinition\Data\Input()));
-        $key->setEnabled(true);
-        $key->save();
-
-        return $key;
-    }
-
-    private static function addKeyToGroup(
-        Classificationstore\KeyConfig $key,
-        Classificationstore\GroupConfig $group,
-        int $position,
-    ): void {
-        if (Classificationstore\KeyGroupRelation::getByGroupAndKeyId($group->getId(), $key->getId())) {
-            return;
-        }
-
-        $relation = new Classificationstore\KeyGroupRelation();
-        $relation->setGroupId($group->getId());
-        $relation->setKeyId($key->getId());
-        $relation->setSorter($position);
-        $relation->save();
+        self::addState('store', $store);
+        self::addState('group', $group);
     }
 }

@@ -17,32 +17,29 @@ declare(strict_types=1);
 
 namespace OpenDxp\Test\Factory;
 
-use OpenDxp\Model\Element\Tag;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Input;
+use OpenDxp\Model\DataObject\Classificationstore\KeyConfig;
 
 /**
- * @extends AbstractSavingFactory<Tag>
+ * @extends AbstractSavingFactory<KeyConfig>
  *
- * @method Tag create(array|callable $attributes = [])
- * @method static Tag createOne(array $attributes = [])
- * @method static list<Tag> createMany(int $number, array $attributes = [])
+ * @method KeyConfig create(array|callable $attributes = [])
+ * @method static KeyConfig createOne(array $attributes = [])
+ * @method static list<KeyConfig> createMany(int $number, array $attributes = [])
  */
-final class TagFactory extends AbstractSavingFactory
+final class ClassificationKeyFactory extends AbstractSavingFactory
 {
     public static function class(): string
     {
-        return Tag::class;
-    }
-
-    public function withParent(Tag $parent): static
-    {
-        return $this->with(['parentId' => $parent->getId()]);
+        return KeyConfig::class;
     }
 
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('tag-%s', uniqid()),
-            'parentId' => 0,
+            'type' => 'input',
+            'definition' => json_encode(new Input()),
+            'enabled' => true,
         ];
     }
 }
