@@ -40,9 +40,9 @@ final class UserFactory extends AbstractSavingFactory
     protected function initialize(): static
     {
         return parent::initialize()->afterInstantiate(
-            static fn (User $user) => $user->setPassword(
-                Authentication::getPasswordHash($user->getName(), self::PASSWORD),
-            ),
+            static function (User $user): void {
+                $user->setPassword(Authentication::getPasswordHash($user->getName(), self::PASSWORD));
+            },
         );
     }
 }

@@ -51,7 +51,9 @@ final class ThumbnailConfigFactory extends AbstractSavingFactory
     {
         // The default priority puts this before AbstractSavingFactory's save.
         return $this->afterInstantiate(
-            static fn (Config $config) => $config->addItem($transformation, $parameters, 'default'),
+            static function (Config $config) use ($transformation, $parameters): void {
+                $config->addItem($transformation, $parameters, 'default');
+            },
         );
     }
 

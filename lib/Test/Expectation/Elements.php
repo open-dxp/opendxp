@@ -66,13 +66,25 @@ final class Elements
         return implode(',', [...$parts, ...self::ofProperties($element->getProperties())]);
     }
 
+    /**
+     * What a copy of an element differs in: where it sits, what it is called, and when it was made.
+     */
+    private static function ofIdentity(ElementInterface $element): array
+    {
+        return [
+            'key' => (string) $element->getKey(),
+            'id' => (string) $element->getId(),
+            'path' => (string) $element->getPath(),
+            'parentId' => (string) $element->getParentId(),
+            'creation' => (string) $element->getCreationDate(),
+            'modification' => (string) $element->getModificationDate(),
+            'userModified' => (string) $element->getUserModification(),
+        ];
+    }
+
     private static function ofAsset(Asset $asset): array
     {
-        $parts = [];
-
-        if (is_array($asset->getCustomSettings())) {
-            $parts['customSettings'] = serialize($asset->getCustomSettings());
-        }
+        $parts = ['customSettings' => serialize($asset->getCustomSettings())];
 
         if ($asset->getData()) {
             $parts['data'] = base64_encode($asset->getData());
@@ -130,7 +142,7 @@ final class Elements
         return $parts;
     }
 
-    private static function ofField(string $name, Data $definition, AbstractObject $object): string
+    private static function ofField(string $name, Data $definition, Concrete $object): string
     {
         $getter = 'get' . ucfirst($name);
 
@@ -173,7 +185,7 @@ final class Elements
         return serialize($items);
     }
 
-    private static function ofLocalizedFields(Data\Localizedfields $definition, AbstractObject $object, mixed $fields): string
+    private static function ofLocalizedFields(Data\Localizedfields $definition, Concrete $object, mixed $fields): string
     {
         if (!$fields instanceof Localizedfield) {
             return '';

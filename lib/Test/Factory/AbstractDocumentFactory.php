@@ -44,7 +44,9 @@ abstract class AbstractDocumentFactory extends AbstractElementFactory
     public function withLocale(string $locale): static
     {
         return $this->afterInstantiate(
-            static fn (Document $document) => $document->setProperty('language', 'text', $locale, false, true),
+            static function (Document $document) use ($locale): void {
+                $document->setProperty('language', 'text', $locale, false, true);
+            },
         );
     }
 
