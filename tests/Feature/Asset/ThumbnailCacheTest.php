@@ -37,7 +37,7 @@ function servedThumbnail(Asset $asset, string $thumbnail, string $filename): voi
         'filename' => $filename,
         'type' => 'image',
         'prefix' => '',
-    ]))->sendContent();
+    ]));
 }
 
 beforeEach(function () {
