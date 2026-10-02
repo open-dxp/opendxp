@@ -67,7 +67,8 @@ final class Elements
     }
 
     /**
-     * What a copy of an element differs in: where it sits, what it is called, and when it was made.
+     * A copy of an element differs in where it sits, what it is called and when it was made. Those
+     * values are left out of the comparison.
      */
     private static function ofIdentity(ElementInterface $element): array
     {

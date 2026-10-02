@@ -29,8 +29,19 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
  */
 final class RelationTestFactory extends AbstractDataObjectFactory
 {
+    /**
+     * The text every target carries. A test looks for it in a serialized object to tell whether the
+     * target was written along with it.
+     */
+    public const string CONTENT = 'the text of a relation target';
+
     public static function class(): string
     {
         return RelationTest::class;
+    }
+
+    protected function defaults(): array
+    {
+        return [...parent::defaults(), 'someAttribute' => self::CONTENT];
     }
 }
