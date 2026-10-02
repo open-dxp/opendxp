@@ -60,7 +60,7 @@ final class ThumbnailConfigFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name' => sprintf('thumbnail-%s', self::faker()->unique()->numerify('##########')),
+            'name' => sprintf('thumbnail-%s', uniqid()),
         ];
     }
 }

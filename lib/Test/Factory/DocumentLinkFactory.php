@@ -30,7 +30,7 @@ final class DocumentLinkFactory extends AbstractDocumentFactory
     {
         return [
             ...parent::defaults(),
-            'key'          => sprintf('link-%s', self::faker()->unique()->numerify('##########')),
+            'key'          => sprintf('link-%s', uniqid()),
             'type'         => 'link',
             'linktype'     => 'internal',
             'internalType' => 'document',

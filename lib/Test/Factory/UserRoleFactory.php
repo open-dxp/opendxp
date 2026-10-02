@@ -36,7 +36,7 @@ final class UserRoleFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('role-%s', self::faker()->unique()->numerify('##########')),
+            'name'     => sprintf('role-%s', uniqid()),
             'parentId' => 0,
         ];
     }

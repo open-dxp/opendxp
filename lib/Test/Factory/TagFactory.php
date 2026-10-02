@@ -41,7 +41,7 @@ final class TagFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('tag-%s', self::faker()->unique()->numerify('##########')),
+            'name'     => sprintf('tag-%s', uniqid()),
             'parentId' => 0,
         ];
     }

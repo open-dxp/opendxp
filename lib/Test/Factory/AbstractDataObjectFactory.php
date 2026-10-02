@@ -22,7 +22,7 @@ abstract class AbstractDataObjectFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'key'       => sprintf('object-%s', self::faker()->unique()->numerify('##########')),
+            'key'       => sprintf('object-%s', uniqid()),
             'published' => true,
         ];
     }

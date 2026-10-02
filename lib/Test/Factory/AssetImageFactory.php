@@ -30,7 +30,7 @@ final class AssetImageFactory extends AbstractElementFactory
         return [
             ...parent::defaults(),
             'type'     => 'image',
-            'filename' => sprintf('image-%s.jpg', self::faker()->unique()->numerify('##########')),
+            'filename' => sprintf('image-%s.jpg', uniqid()),
             'data'     => file_get_contents(self::fixture()),
         ];
     }

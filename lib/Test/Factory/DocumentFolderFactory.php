@@ -37,7 +37,7 @@ final class DocumentFolderFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'key'  => sprintf('document-folder-%s', self::faker()->unique()->numerify('##########')),
+            'key'  => sprintf('document-folder-%s', uniqid()),
             'type' => 'folder',
         ];
     }

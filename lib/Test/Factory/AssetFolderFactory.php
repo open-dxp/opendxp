@@ -24,7 +24,7 @@ final class AssetFolderFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'filename' => sprintf('asset-folder-%s', self::faker()->unique()->numerify('##########')),
+            'filename' => sprintf('asset-folder-%s', uniqid()),
             'type'     => 'folder',
         ];
     }

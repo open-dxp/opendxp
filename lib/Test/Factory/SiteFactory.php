@@ -59,7 +59,7 @@ final class SiteFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'mainDomain' => sprintf('site-%s.test', self::faker()->unique()->numerify('##########')),
+            'mainDomain' => sprintf('site-%s.test', uniqid()),
         ];
     }
 

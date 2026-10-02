@@ -36,7 +36,7 @@ final class StaticRouteFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('route_%s', self::faker()->unique()->numerify('##########')),
+            'name'     => sprintf('route_%s', uniqid()),
             'priority' => 0,
             'siteId'   => [],
         ];

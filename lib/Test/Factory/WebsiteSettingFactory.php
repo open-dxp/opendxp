@@ -36,7 +36,7 @@ final class WebsiteSettingFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name' => sprintf('setting-%s', self::faker()->unique()->numerify('##########')),
+            'name' => sprintf('setting-%s', uniqid()),
             'type' => 'text',
         ];
     }

@@ -34,7 +34,7 @@ final class DocumentHardlinkFactory extends AbstractDocumentFactory
     {
         return [
             ...parent::defaults(),
-            'key'  => sprintf('hardlink-%s', self::faker()->unique()->numerify('##########')),
+            'key'  => sprintf('hardlink-%s', uniqid()),
             'type' => 'hardlink',
         ];
     }

@@ -36,7 +36,7 @@ final class GlossaryFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'text'     => sprintf('term-%s', self::faker()->unique()->numerify('##########')),
+            'text'     => sprintf('term-%s', uniqid()),
             'link'     => '/test',
             'language' => 'en',
         ];

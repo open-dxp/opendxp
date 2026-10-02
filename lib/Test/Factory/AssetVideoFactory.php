@@ -43,7 +43,7 @@ final class AssetVideoFactory extends AbstractElementFactory
         return [
             ...parent::defaults(),
             'type'     => 'video',
-            'filename' => sprintf('video-%s.mp4', self::faker()->unique()->numerify('##########')),
+            'filename' => sprintf('video-%s.mp4', uniqid()),
             'data'     => file_get_contents(self::fixture()),
         ];
     }

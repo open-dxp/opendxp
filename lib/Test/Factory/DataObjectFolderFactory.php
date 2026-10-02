@@ -24,7 +24,7 @@ final class DataObjectFolderFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'key'  => sprintf('object-folder-%s', self::faker()->unique()->numerify('##########')),
+            'key'  => sprintf('object-folder-%s', uniqid()),
             'type' => 'folder',
         ];
     }

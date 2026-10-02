@@ -43,7 +43,7 @@ final class AssetDocumentFactory extends AbstractElementFactory
         return [
             ...parent::defaults(),
             'type'     => 'document',
-            'filename' => sprintf('document-%s.pdf', self::faker()->unique()->numerify('##########')),
+            'filename' => sprintf('document-%s.pdf', uniqid()),
             'data'     => file_get_contents(self::fixture()),
         ];
     }

@@ -24,7 +24,7 @@ final class DocumentSnippetFactory extends AbstractPageSnippetFactory
     {
         return [
             ...parent::defaults(),
-            'key'  => sprintf('snippet-%s', self::faker()->unique()->numerify('##########')),
+            'key'  => sprintf('snippet-%s', uniqid()),
             'type' => 'snippet',
         ];
     }

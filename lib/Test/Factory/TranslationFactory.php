@@ -36,7 +36,7 @@ final class TranslationFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'key'    => sprintf('key.%s', self::faker()->unique()->numerify('##########')),
+            'key'    => sprintf('key.%s', uniqid()),
             'domain' => Translation::DOMAIN_DEFAULT,
         ];
     }

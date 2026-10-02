@@ -31,7 +31,7 @@ final class UserFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('user-%s', self::faker()->unique()->numerify('##########')),
+            'name'     => sprintf('user-%s', uniqid()),
             'admin'    => false,
             'parentId' => 0,
         ];

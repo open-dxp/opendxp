@@ -36,7 +36,7 @@ final class QuantityValueUnitFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'abbreviation' => sprintf('unit-%s', self::faker()->unique()->numerify('####')),
+            'abbreviation' => sprintf('unit-%s', uniqid()),
         ];
     }
 }

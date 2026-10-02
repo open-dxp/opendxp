@@ -37,7 +37,7 @@ final class DocumentEmailFactory extends AbstractPageSnippetFactory
     {
         return [
             ...parent::defaults(),
-            'key' => sprintf('email-%s', self::faker()->unique()->numerify('##########')),
+            'key' => sprintf('email-%s', uniqid()),
         ];
     }
 }
