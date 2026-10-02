@@ -38,6 +38,7 @@ jobs:
             dependencies: ${{ matrix.matrix.dependencies }}
             experimental: ${{ matrix.matrix.experimental }}
             opendxp_version: ${{ matrix.matrix.opendxp_version }}
+            enable_redis_service: true
         secrets:
             CLA_ACTION_ACCESS_TOKEN: ${{ secrets.CLA_ACTION_ACCESS_TOKEN }}
             COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
