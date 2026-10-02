@@ -18,8 +18,10 @@ declare(strict_types=1);
 namespace OpenDxp\Test\Expectation;
 
 use OpenDxp\Model\DataObject\ClassDefinition\Data\EqualComparisonInterface;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
 use OpenDxp\Model\DataObject\Concrete;
 use Pest\Expectation;
+use RuntimeException;
 
 /**
  * Compares a field of an object with the value it was given. Every field type brings its own idea of
@@ -33,13 +35,7 @@ final class Fields
             /** @var Concrete $object */
             $object = $this->value;
 
-            $definition = $object->getClass()->getFieldDefinition($field)
-                ?? $object->getClass()->getFieldDefinition('localizedfields')->getFieldDefinition($field);
-
-            expect($definition)->toBeInstanceOf(
-                EqualComparisonInterface::class,
-                sprintf('the definition of %s says nothing about equality', $field),
-            );
+            $definition = Fields::definitionOf($object, $field);
 
             $getter = 'get' . ucfirst($field);
             $carried = $language === null ? $object->{$getter}() : $object->{$getter}($language);
@@ -49,5 +45,29 @@ final class Fields
 
             return $this;
         });
+    }
+
+    /**
+     * The definition of a field, whether the class holds it directly or inside its localized fields.
+     * Public because Pest binds the closure above to the expectation, which reaches no private method
+     * of this class.
+     */
+    public static function definitionOf(Concrete $object, string $field): EqualComparisonInterface
+    {
+        $definition = $object->getClass()->getFieldDefinition($field);
+
+        if ($definition === null) {
+            $localized = $object->getClass()->getFieldDefinition('localizedfields');
+
+            $definition = $localized instanceof Localizedfields
+                ? $localized->getFieldDefinition($field)
+                : null;
+        }
+
+        if (!$definition instanceof EqualComparisonInterface) {
+            throw new RuntimeException(sprintf('The definition of %s says nothing about equality.', $field));
+        }
+
+        return $definition;
     }
 }

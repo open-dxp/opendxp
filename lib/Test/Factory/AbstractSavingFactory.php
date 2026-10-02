@@ -35,6 +35,7 @@ abstract class AbstractSavingFactory extends ObjectFactory
         return $this->afterInstantiate(
             static function (AbstractModel $model, array $parameters, self $factory): void {
                 if ($factory->writes) {
+                    // Not every model declares save(), several reach their dao through __call.
                     $model->save();
                 }
             },

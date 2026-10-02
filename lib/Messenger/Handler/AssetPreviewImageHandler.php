@@ -41,7 +41,6 @@ class AssetPreviewImageHandler implements BatchHandlerInterface
         return $this->handle($message, $ack);
     }
 
-    // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
         foreach ($jobs as [$message, $ack]) {
@@ -79,7 +78,6 @@ class AssetPreviewImageHandler implements BatchHandlerInterface
         }
     }
 
-    // @phpstan-ignore-next-line
     private function shouldFlush(): bool
     {
         return 5 <= count($this->jobs);

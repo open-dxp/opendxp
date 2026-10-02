@@ -31,6 +31,23 @@ fos_http_cache:
         enabled: true
 
 opendxp:
+    config_location:
+        image_thumbnails:
+            write_target:
+                type: settings-store
+        video_thumbnails:
+            write_target:
+                type: settings-store
+        document_types:
+            write_target:
+                type: settings-store
+        predefined_properties:
+            write_target:
+                type: settings-store
+        predefined_asset_metadata:
+            write_target:
+                type: settings-store
+
     general:
         domain: 'opendxp-testing.test'
         fallback_languages:
@@ -43,3 +60,9 @@ opendxp:
         return:
             name: 'OpenDXP Tests'
             email: 'return@tests.local'
+
+opendxp_static_routes:
+    config_location:
+        staticroutes:
+            write_target:
+                type: settings-store

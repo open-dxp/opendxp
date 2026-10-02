@@ -47,7 +47,7 @@ class CollectionServiceLocator extends ServiceLocator implements IteratorAggrega
     public function getIterator(): Traversable
     {
         foreach ($this->ids as $id) {
-            yield $this->get($id); // @phpstan-ignore-line
+            yield $this->get($id);
         }
     }
 }
