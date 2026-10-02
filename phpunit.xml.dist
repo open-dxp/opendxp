@@ -12,7 +12,7 @@
     </testsuites>
     <extensions>
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
-        <bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallClassDefinitions"/>
+        <bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallDefinitions"/>
         <bootstrap class="OpenDxp\Tests\PHPUnit\CreateMissingTables"/>
     </extensions>
     <php>
