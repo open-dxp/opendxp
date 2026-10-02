@@ -14,24 +14,17 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Model\DataObject\Unittest;
 
-use OpenDxp\Model\DataObject\Concrete;
+namespace OpenDxp\Tests\TestCase;
+
+use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
+use OpenDxp\TestFoundation\TestCase;
 
 /**
- * Stands in for the dao a project writes for one of its own data object classes.
+ * A test that changes the database schema cannot run inside a transaction, because any DDL commits
+ * it. Such a test leaves what it wrote behind and has to take it back itself.
  */
-class Dao extends Concrete\Dao
+#[SkipDatabaseRollback]
+abstract class SchemaTestCase extends TestCase
 {
-    /**
-     * @var int[]
-     */
-    public static array $getByIdCalls = [];
-
-    public function getById(int $id): void
-    {
-        self::$getByIdCalls[] = $id;
-
-        parent::getById($id);
-    }
 }

@@ -1,0 +1,14 @@
+/**
+* Set linput - linput
+* @param string|null $linput
+* @return $this
+*/
+public function setLinput(?string $linput): static
+{
+	$this->markFieldDirty("linput", true);
+
+	$this->linput = $linput;
+
+	return $this;
+}
+

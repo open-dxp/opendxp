@@ -19,6 +19,7 @@ namespace OpenDxp\Tests\Feature\DataObject;
 
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Folder;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -46,4 +47,20 @@ it('loads every column of the row it was stored in', function () {
         ->toBe($object->getPublished())
         ->and(DataObject::getById($object->getId())->getModificationDate())
         ->toBe($object->getModificationDate());
+});
+
+it('loads a concrete object through the concrete class', function () {
+
+    $object = UnittestFactory::createOne();
+    RuntimeCache::clear();
+
+    expect(Concrete::getById($object->getId(), ['force' => true]))->toBeInstanceOf($object::class);
+});
+
+it('hands back nothing for a folder asked for through the concrete class', function () {
+
+    $folder = DataObjectFolderFactory::createOne();
+    RuntimeCache::clear();
+
+    expect(Concrete::getById($folder->getId(), ['force' => true]))->toBeNull();
 });
