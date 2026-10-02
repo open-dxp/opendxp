@@ -1,0 +1,45 @@
+name: Pest tests
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - "[0-9]+.[0-9]+"
+            - "[0-9]+.x"
+        paths-ignore:
+            - 'doc/**'
+    pull_request:
+        types: [ opened, synchronize, reopened ]
+        paths-ignore:
+            - 'doc/**'
+
+jobs:
+    setup-matrix:
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.matrix.outputs.matrix }}
+        steps:
+            -   uses: actions/checkout@v7
+
+            -   id: matrix
+                uses: open-dxp/workflows-collection-public/.github/actions/test-matrix@main
+                with:
+                    configuration: tests-configuration
+
+    pest-tests:
+        needs: setup-matrix
+        strategy:
+            matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-pest-tests.yaml@main
+        with:
+            php_version: ${{ matrix.matrix.php-version }}
+            database: ${{ matrix.matrix.database }}
+            server_version: ${{ matrix.matrix.server_version }}
+            dependencies: ${{ matrix.matrix.dependencies }}
+            experimental: ${{ matrix.matrix.experimental }}
+            opendxp_version: ${{ matrix.matrix.opendxp_version }}
+        secrets:
+            CLA_ACTION_ACCESS_TOKEN: ${{ secrets.CLA_ACTION_ACCESS_TOKEN }}
+            COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+            OPENDXP_INSTANCE_IDENTIFIER: ${{ secrets.OPENDXP_INSTANCE_IDENTIFIER }}
+            OPENDXP_ENCRYPTION_SECRET: ${{ secrets.OPENDXP_ENCRYPTION_SECRET }}
