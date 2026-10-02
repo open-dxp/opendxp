@@ -51,8 +51,8 @@ A test under `SchemaTestCase` or `SearchTestCase` cleans up its data itself, in 
 
 The suite installs its class definitions once, before the first test. They live in
 `tests/Fixtures/`: classification stores, field collections, classes and object bricks, installed in
-this order. A class names its field collections and stores, and a brick registers itself on its
-classes, so the order matters.
+this order. Classes refer to classification stores and field collections, and object bricks refer to
+classes. Each kind is installed after the kinds it refers to.
 
 ## Static analysis
 

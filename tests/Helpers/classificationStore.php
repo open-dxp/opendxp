@@ -21,8 +21,7 @@ use OpenDxp\Model\DataObject\Classificationstore\KeyConfig;
 use OpenDxp\Model\DataObject\Classificationstore\StoreConfig;
 
 /**
- * The store every test shares. It is installed from tests/Fixtures/classificationstores before the
- * suite runs, because a class that holds a store names it by id.
+ * All tests use this store. It is installed from tests/Fixtures/classificationstores before the first test.
  */
 function theStore(): StoreConfig
 {

@@ -24,12 +24,11 @@ use OpenDxp\Model\DataObject\Classificationstore\KeyGroupRelation;
 use OpenDxp\Model\DataObject\Classificationstore\StoreConfig;
 use RuntimeException;
 
-/**
- * Installs a classification store from a definition file. A class that holds a store names it by id,
- * so the store has to exist before the classes are installed.
- */
 final class ClassificationStores
 {
+    /**
+     * Classes refer to a classification store by its id, so the store is installed before them.
+     */
     public static function install(string $name, string $definition): StoreConfig
     {
         $json = file_get_contents($definition);

@@ -34,7 +34,7 @@ final class LazyRelation
     }
 
     /**
-     * An advanced relation wraps each target in metadata that names its field. A single relation takes
+     * An advanced relation wraps each target in metadata that holds the name of its field. A single relation takes
      * one target instead of a list.
      */
     public function value(string $field, array $targets): mixed
