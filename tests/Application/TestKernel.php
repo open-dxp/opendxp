@@ -36,12 +36,4 @@ final class TestKernel extends Foundation
         $collection->addBundle(new OpenDxpStaticRoutesBundle());
         $collection->addBundle(new FOSHttpCacheBundle());
     }
-
-    /**
-     * Marking the OpenDxp namespace would keep definitions that are not services.
-     */
-    protected function getServicesClass(): string
-    {
-        return self::class;
-    }
 }
