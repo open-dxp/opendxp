@@ -315,6 +315,16 @@ EOT;
         return parent::setCustomSetting($key, $value);
     }
 
+    #[Override]
+    public function removeCustomSetting(string $key): void
+    {
+        if (in_array($key, ['focalPointX', 'focalPointY']) && $this->getCustomSetting($key) !== null) {
+            $this->clearThumbnailsOnSave = true;
+        }
+
+        parent::removeCustomSetting($key);
+    }
+
     public function isVectorGraphic(): bool
     {
         // we use a simple file-extension check, for performance reasons
