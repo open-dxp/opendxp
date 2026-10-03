@@ -20,6 +20,7 @@ namespace OpenDxp\Bundle\SeoBundle\EventListener;
 use OpenDxp;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
+use OpenDxp\Db;
 use OpenDxp\Event\DocumentEvents;
 use OpenDxp\Event\Model\DocumentEvent;
 use OpenDxp\Model\Document;
@@ -27,10 +28,20 @@ use OpenDxp\Model\Document\Hardlink;
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Model\Site;
 use OpenDxp\Tool\Frontend;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class DocumentListener implements EventSubscriberInterface
 {
+    /**
+     * @param array{auto_create_redirects: bool} $redirects
+     */
+    public function __construct(
+        #[Autowire(param: 'opendxp_seo.redirects')]
+        private readonly array $redirects,
+    ) {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -66,8 +77,7 @@ class DocumentListener implements EventSubscriberInterface
         }
 
         $page = $event->getDocument();
-        $opendxp_seo_redirects = OpenDxp::getContainer()->getParameter('opendxp_seo.redirects');
-        if ($page instanceof Page && $opendxp_seo_redirects['auto_create_redirects']) {
+        if ($page instanceof Page && $this->redirects['auto_create_redirects']) {
             $oldPage = $event->getArgument('oldPage');
             $task = $event->getArgument('task');
             if (($task === 'publish' || $task === 'unpublish') && ($page->getPrettyUrl() !== $oldPage->getPrettyUrl() && empty($oldPage->getPrettyUrl()) === false && empty($page->getPrettyUrl()) === false)) {
@@ -93,27 +103,40 @@ class DocumentListener implements EventSubscriberInterface
         $this->createRedirectForFormerPath($document, $oldPath, $oldDocument);
     }
 
+    /**
+     * A page with a pretty URL is reached under that URL, so its former path in the tree needs no redirect.
+     */
     private function createRedirectForFormerPath(Document $document, string $oldPath, Document $oldDocument): void
     {
-        $opendxp_seo_redirects = OpenDxp::getContainer()->getParameter('opendxp_seo.redirects');
-        if (($document instanceof Document\Page || $document instanceof Document\Hardlink) && (OpenDxp\Tool\Admin::getCurrentUser()->isAllowed('redirects') && $opendxp_seo_redirects['auto_create_redirects'])) {
+        // Without a backend user, for example in a command, there is nobody whose permission could be missing.
+        $user = OpenDxp\Tool\Admin::getCurrentUser();
+        if (($document instanceof Document\Page || $document instanceof Document\Hardlink) && $this->redirects['auto_create_redirects'] && ($user === null || $user->isAllowed('redirects'))) {
             $sourceSite = Frontend::getSiteForDocument($oldDocument);
             if ($sourceSite) {
                 $oldPath = preg_replace('@^' . preg_quote($sourceSite->getRootPath(), '@') . '@', '', $oldPath);
             }
             $targetSite = Frontend::getSiteForDocument($document);
-            $this->doCreateRedirectForFormerPath($oldPath, $document->getId(), $sourceSite, $targetSite);
+            if (!$document instanceof Page || !$document->getPrettyUrl()) {
+                $this->doCreateRedirectForFormerPath($oldPath, $document->getId(), $sourceSite, $targetSite);
+            }
             if ($document->hasChildren()) {
                 $list = new Document\Listing();
-                $list->setCondition('`path` LIKE :path', [
-                    'path' => $list->escapeLike($document->getRealFullPath()) . '/%',
-                ]);
+                $childrenPath = $list->escapeLike($document->getRealFullPath()) . '/%';
+                $list->setCondition('`path` LIKE :path', ['path' => $childrenPath]);
 
                 $childrenList = $list->loadIdPathList();
+                $childrenWithPrettyUrl = Db::get()->fetchFirstColumn(
+                    "SELECT page.id FROM documents_page page INNER JOIN documents document ON document.id = page.id WHERE document.`path` LIKE :path AND page.prettyUrl <> ''",
+                    ['path' => $childrenPath],
+                );
 
                 $count = 0;
 
                 foreach ($childrenList as $child) {
+                    if (in_array($child['id'], $childrenWithPrettyUrl)) {
+                        continue;
+                    }
+
                     $source = preg_replace('@^' . preg_quote($document->getRealFullPath(), '@') . '@', $oldDocument->getRealFullPath(), $child['path']);
                     if ($sourceSite) {
                         $source = preg_replace('@^' . preg_quote($sourceSite->getRootPath(), '@') . '@', '', $source);

@@ -46,6 +46,9 @@ opendxp_seo:
         auto_create_redirects: true
 ```
 
+A page with a pretty URL gets no redirect for its former path when it is moved, because visitors
+reach it under its pretty URL.
+
 
 #### Creating custom redirect status codes
 The redirect status codes list can be extended by adding custom codes in config.yaml:
