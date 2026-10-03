@@ -213,7 +213,7 @@
     ],
     "extra": {
         "branch-alias": {
-            "dev-1.x": "1.2.x-dev"
+            "dev-1.x": "1.5.x-dev"
         }
     },
     "config": {
