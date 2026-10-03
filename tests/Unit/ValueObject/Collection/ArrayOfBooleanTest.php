@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * OpenDXP
@@ -10,48 +10,27 @@ declare(strict_types = 1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\ValueObject\Collection;
 
-use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\ValueObject\Collection\ArrayOfBoolean;
 use ValueError;
 
-/**
- * @internal
- */
-final class ArrayOfBooleanTest extends TestCase
-{
-    public function testItShouldThrowExceptionWhenProvidedArrayContainsNonBooleanValues(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided array must contain only boolean values. (integer given)');
+it('refuses an array holding something that is not a boolean', function () {
+    new ArrayOfBoolean([true, false, 1]);
+})->throws(ValueError::class, 'Provided array must contain only boolean values. (integer given)');
 
-        new ArrayOfBoolean([true, false, 1]);
-    }
+it('answers with the booleans it was given', function () {
+    expect((new ArrayOfBoolean([true, false, true]))->getValue())->toBe([true, false, true]);
+});
 
-    public function testItShouldReturnValues(): void
-    {
-        $values = [true, false, true];
-        $booleanArray = new ArrayOfBoolean($values);
+it('checks the booleans again when they come back from a serialized form', function () {
 
-        $this->assertSame($values, $booleanArray->getValue());
-    }
+    $serialized = str_replace('b:1', 's:4:"true"', serialize(new ArrayOfBoolean([true, false])));
 
-    public function testItShouldBeValidatedAfterUnSerialization(): void
-    {
-        $stringArray = new ArrayOfBoolean([true, false]);
-        $serialized = serialize($stringArray);
-
-        $serialized =  str_replace('i:42', 's:2:"42"', $serialized);
-        $serialized = str_replace('b:1', 's:4:"true"', $serialized);
-
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided array must contain only boolean values. (string given)');
-        unserialize($serialized);
-    }
-}
+    unserialize($serialized);
+})->throws(ValueError::class, 'Provided array must contain only boolean values. (string given)');

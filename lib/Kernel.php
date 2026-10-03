@@ -123,7 +123,6 @@ abstract class Kernel extends SymfonyKernel
                 }
                 $configDir = "$configDir/";
                 if (is_dir($configDir)) {
-                    // @phpstan-ignore-next-line
                     $loader->import($configDir);
                 }
             }

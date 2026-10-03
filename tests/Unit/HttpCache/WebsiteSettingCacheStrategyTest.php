@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -13,58 +14,41 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\HttpCache;
 
 use OpenDxp\Bundle\CoreBundle\HttpCache\Strategy\WebsiteSettingCacheStrategy;
 use OpenDxp\Event\Model\WebsiteSettingLoadEvent;
 use OpenDxp\Model\WebsiteSetting;
-use OpenDxp\Tests\Support\Test\TestCase;
 
-class WebsiteSettingCacheStrategyTest extends TestCase
+function setting(int $id): WebsiteSetting
 {
-    private WebsiteSettingCacheStrategy $strategy;
+    $setting = new WebsiteSetting();
+    $setting->setId($id);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->strategy = new WebsiteSettingCacheStrategy();
-    }
-
-    public function testSingleLoadOnlyTagsTheSetting(): void
-    {
-        $setting = new WebsiteSetting();
-        $setting->setId(5);
-
-        $event = new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_SINGLE, setting: $setting);
-        $tags  = array_map(strval(...), $this->strategy->getTags($event));
-
-        $this->assertSame(['website_setting_5'], $tags);
-    }
-
-    public function testDataLoadOnlyTagsTheSetting(): void
-    {
-        $event = new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_DATA, key: 'featureToggleX', id: 5);
-        $tags  = array_map(strval(...), $this->strategy->getTags($event));
-
-        $this->assertSame(['website_setting_5'], $tags);
-    }
-
-    public function testListLoadOnlyTagsTheList(): void
-    {
-        $event = new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_LIST, values: []);
-        $tags  = array_map(strval(...), $this->strategy->getTags($event));
-
-        $this->assertSame(['website_setting_list'], $tags);
-    }
-
-    public function testChangeInvalidatesBothTheSettingAndTheList(): void
-    {
-        $setting = new WebsiteSetting();
-        $setting->setId(5);
-
-        $tags = array_map(strval(...), $this->strategy->getTags($setting));
-
-        $this->assertSame(['website_setting_5', 'website_setting_list'], $tags);
-    }
+    return $setting;
 }
+
+it('names the tags a website setting is cached under', function (callable $subject, array $expected) {
+
+    $tags = (new WebsiteSettingCacheStrategy())->getTags($subject());
+
+    expect(array_map(strval(...), $tags))->toBe($expected);
+})->with([
+    'a single setting that was loaded' => [
+        fn () => new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_SINGLE, setting: setting(5)),
+        ['website_setting_5'],
+    ],
+    'the data of a setting that was loaded' => [
+        fn () => new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_DATA, key: 'featureToggleX', id: 5),
+        ['website_setting_5'],
+    ],
+    'a listing that was loaded' => [
+        fn () => new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_LIST, values: []),
+        ['website_setting_list'],
+    ],
+    'a setting that changed' => [
+        fn () => setting(5),
+        ['website_setting_5', 'website_setting_list'],
+    ],
+]);

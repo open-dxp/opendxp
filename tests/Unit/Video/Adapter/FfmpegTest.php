@@ -14,50 +14,21 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\Video\Adapter;
 
-use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\Video\Adapter\Ffmpeg;
 use ReflectionProperty;
 
-class FfmpegTest extends TestCase
-{
-    private function getVideoFilter(Ffmpeg $ffmpeg): array
-    {
-        $prop = new ReflectionProperty(Ffmpeg::class, 'videoFilter');
+it('builds the scale filter ffmpeg is called with', function (string $scale, array $arguments, string $expected) {
 
-        return $prop->getValue($ffmpeg);
-    }
+    $ffmpeg = new Ffmpeg();
+    $ffmpeg->{$scale}(...$arguments);
 
-    public function testScaleByWidthDefaultIsForceResize(): void
-    {
-        $ffmpeg = new Ffmpeg();
-        $ffmpeg->scaleByWidth(500);
-
-        $this->assertSame(['scale=500:trunc(ow/a/2)*2'], $this->getVideoFilter($ffmpeg));
-    }
-
-    public function testScaleByWidthNoForceResize(): void
-    {
-        $ffmpeg = new Ffmpeg();
-        $ffmpeg->scaleByWidth(500, false);
-
-        $this->assertSame(['scale=if(gte(iw\,500)\,500\,iw):trunc(ow/a/2)*2'], $this->getVideoFilter($ffmpeg));
-    }
-
-    public function testScaleByHeightDefaultIsForceResize(): void
-    {
-        $ffmpeg = new Ffmpeg();
-        $ffmpeg->scaleByHeight(300);
-
-        $this->assertSame(['scale=trunc(oh/(ih/iw)/2)*2:300'], $this->getVideoFilter($ffmpeg));
-    }
-
-    public function testScaleByHeightNoForceResize(): void
-    {
-        $ffmpeg = new Ffmpeg();
-        $ffmpeg->scaleByHeight(300, false);
-
-        $this->assertSame(['scale=trunc(oh/(ih/iw)/2)*2:if(gte(ih\,300)\,300\,ih)'], $this->getVideoFilter($ffmpeg));
-    }
-}
+    expect((new ReflectionProperty(Ffmpeg::class, 'videoFilter'))->getValue($ffmpeg))->toBe([$expected]);
+})->with([
+    'a width it resizes to' => ['scaleByWidth', [500], 'scale=500:trunc(ow/a/2)*2'],
+    'a width it only shrinks to' => ['scaleByWidth', [500, false], 'scale=if(gte(iw\,500)\,500\,iw):trunc(ow/a/2)*2'],
+    'a height it resizes to' => ['scaleByHeight', [300], 'scale=trunc(oh/(ih/iw)/2)*2:300'],
+    'a height it only shrinks to' => ['scaleByHeight', [300, false], 'scale=trunc(oh/(ih/iw)/2)*2:if(gte(ih\,300)\,300\,ih)'],
+]);

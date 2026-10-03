@@ -36,6 +36,9 @@ use OpenDxp\Tests\Support\Util\TestHelper;
 use OpenDxp\Tool\Authentication;
 use TypeError;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class TestDataHelper extends AbstractTestDataHelper
 {
     public const string IMAGE = 'sampleimage.jpg';

@@ -1,0 +1,262 @@
+{
+    "parentClass": null,
+    "implementsInterfaces": null,
+    "title": null,
+    "group": null,
+    "layoutDefinitions": {
+        "name": null,
+        "type": null,
+        "region": null,
+        "title": null,
+        "width": 0,
+        "height": 0,
+        "collapsible": false,
+        "collapsed": false,
+        "bodyStyle": null,
+        "datatype": "layout",
+        "permissions": null,
+        "children": [
+            {
+                "name": "Layout",
+                "type": null,
+                "region": null,
+                "title": null,
+                "width": 0,
+                "height": 0,
+                "collapsible": false,
+                "collapsed": false,
+                "bodyStyle": null,
+                "datatype": "layout",
+                "permissions": null,
+                "children": [
+                    {
+                        "name": "MyLayout",
+                        "type": null,
+                        "region": null,
+                        "title": null,
+                        "width": 0,
+                        "height": 0,
+                        "collapsible": false,
+                        "collapsed": false,
+                        "bodyStyle": null,
+                        "datatype": "layout",
+                        "permissions": null,
+                        "children": [
+                            {
+                                "name": "objects",
+                                "title": "objects",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": true,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "classes": [
+                                    {
+                                        "classes": "RelationTest"
+                                    }
+                                ],
+                                "displayMode": null,
+                                "pathFormatterClass": null,
+                                "maxItems": null,
+                                "visibleFields": null,
+                                "allowToCreateNewObject": true,
+                                "allowToClearRelation": true,
+                                "optimizedAdminLoading": false,
+                                "enableTextSelection": false,
+                                "visibleFieldDefinitions": [],
+                                "width": null,
+                                "height": null,
+                                "fieldtype": "manyToManyObjectRelation",
+                                "datatype": "data"
+                            },
+                            {
+                                "name": "relation",
+                                "title": "relation",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": true,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "classes": [
+                                    {
+                                        "classes": "RelationTest"
+                                    }
+                                ],
+                                "displayMode": null,
+                                "pathFormatterClass": null,
+                                "assetInlineDownloadAllowed": false,
+                                "allowToClearRelation": true,
+                                "objectsAllowed": true,
+                                "assetsAllowed": false,
+                                "assetTypes": [],
+                                "documentsAllowed": false,
+                                "documentTypes": [],
+                                "width": null,
+                                "fieldtype": "manyToOneRelation",
+                                "datatype": "data"
+                            },
+                            {
+                                "name": "relations",
+                                "title": "relations",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": true,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "classes": [
+                                    {
+                                        "classes": "RelationTest"
+                                    }
+                                ],
+                                "displayMode": null,
+                                "pathFormatterClass": null,
+                                "maxItems": null,
+                                "assetInlineDownloadAllowed": false,
+                                "allowToClearRelation": true,
+                                "objectsAllowed": true,
+                                "assetsAllowed": false,
+                                "assetTypes": [],
+                                "documentsAllowed": false,
+                                "documentTypes": [],
+                                "enableTextSelection": false,
+                                "width": null,
+                                "height": null,
+                                "fieldtype": "manyToManyRelation",
+                                "datatype": "data"
+                            },
+                            {
+                                "name": "advancedObjects",
+                                "title": "advancedObjects",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": true,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "classes": [],
+                                "displayMode": null,
+                                "pathFormatterClass": null,
+                                "maxItems": null,
+                                "visibleFields": null,
+                                "allowToCreateNewObject": true,
+                                "allowToClearRelation": true,
+                                "optimizedAdminLoading": false,
+                                "enableTextSelection": false,
+                                "visibleFieldDefinitions": [],
+                                "width": null,
+                                "height": null,
+                                "allowedClassId": "RelationTest",
+                                "columns": [
+                                    {
+                                        "position": 1,
+                                        "key": "metadataUpper",
+                                        "type": "text",
+                                        "label": "metadata"
+                                    }
+                                ],
+                                "columnKeys": [
+                                    "metadataUpper"
+                                ],
+                                "enableBatchEdit": false,
+                                "allowMultipleAssignments": false,
+                                "fieldtype": "advancedManyToManyObjectRelation",
+                                "datatype": "data"
+                            },
+                            {
+                                "name": "advancedRelations",
+                                "title": "advancedRelations",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": true,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "classes": [
+                                    {
+                                        "classes": "RelationTest"
+                                    }
+                                ],
+                                "displayMode": null,
+                                "pathFormatterClass": null,
+                                "maxItems": null,
+                                "assetInlineDownloadAllowed": false,
+                                "allowToClearRelation": true,
+                                "objectsAllowed": true,
+                                "assetsAllowed": false,
+                                "assetTypes": [],
+                                "documentsAllowed": false,
+                                "documentTypes": [],
+                                "enableTextSelection": false,
+                                "width": null,
+                                "height": null,
+                                "columns": [
+                                    {
+                                        "position": 1,
+                                        "key": "metadataUpper",
+                                        "type": "text",
+                                        "label": "meta"
+                                    }
+                                ],
+                                "columnKeys": [
+                                    "metadataUpper"
+                                ],
+                                "phpdocType": "\\OpenDxp\\Model\\DataObject\\Data\\ElementMetadata[]",
+                                "optimizedAdminLoading": false,
+                                "enableBatchEdit": false,
+                                "allowMultipleAssignments": false,
+                                "fieldtype": "advancedManyToManyRelation",
+                                "datatype": "data"
+                            }
+                        ],
+                        "locked": false,
+                        "fieldtype": "panel",
+                        "layout": null,
+                        "border": false,
+                        "icon": null,
+                        "labelWidth": 100,
+                        "labelAlign": "left"
+                    }
+                ],
+                "locked": false,
+                "fieldtype": "tabpanel",
+                "border": false,
+                "tabPosition": "top"
+            }
+        ],
+        "locked": false,
+        "fieldtype": "panel",
+        "layout": null,
+        "border": false,
+        "icon": null,
+        "labelWidth": 100,
+        "labelAlign": "left"
+    }
+}

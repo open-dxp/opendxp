@@ -1,0 +1,95 @@
+{
+    "description": "A data object the foundation installs to prove its own installer.",
+    "parentClass": "",
+    "listingParentClass": "",
+    "useTraits": "",
+    "listingUseTraits": "",
+    "allowInherit": false,
+    "allowVariants": false,
+    "showVariants": false,
+    "icon": "",
+    "previewUrl": "",
+    "group": "",
+    "linkGeneratorReference": "",
+    "propertyVisibility": {
+        "grid": {
+            "id": true,
+            "key": true,
+            "path": true,
+            "published": true
+        },
+        "search": {
+            "id": true,
+            "key": true,
+            "path": true,
+            "published": true
+        }
+    },
+    "layoutDefinitions": {
+        "name": "opendxp_root",
+        "type": null,
+        "region": null,
+        "title": null,
+        "width": 0,
+        "height": 0,
+        "collapsible": false,
+        "collapsed": false,
+        "bodyStyle": null,
+        "datatype": "layout",
+        "children": [
+            {
+                "name": "layout",
+                "type": null,
+                "region": null,
+                "title": "layout",
+                "width": "",
+                "height": "",
+                "collapsible": false,
+                "collapsed": false,
+                "bodyStyle": "",
+                "datatype": "layout",
+                "children": [
+                    {
+                        "name": "title",
+                        "title": "title",
+                        "tooltip": "",
+                        "mandatory": false,
+                        "noteditable": false,
+                        "index": 0,
+                        "locked": false,
+                        "style": "",
+                        "permissions": null,
+                        "fieldtype": "input",
+                        "relationType": false,
+                        "invisible": false,
+                        "visibleGridView": true,
+                        "visibleSearch": true,
+                        "defaultValue": null,
+                        "columnLength": 190,
+                        "regex": "",
+                        "regexFlags": [],
+                        "unique": false,
+                        "showCharCount": false,
+                        "width": "",
+                        "defaultValueGenerator": "",
+                        "datatype": "data"
+                    }
+                ],
+                "locked": false,
+                "fieldtype": "panel",
+                "layout": null,
+                "border": false,
+                "icon": "",
+                "labelWidth": 100,
+                "labelAlign": "left"
+            }
+        ],
+        "locked": false,
+        "fieldtype": "panel",
+        "layout": null,
+        "border": false,
+        "icon": "",
+        "labelWidth": 100,
+        "labelAlign": "left"
+    }
+}

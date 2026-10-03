@@ -370,7 +370,6 @@ class HeadScript extends CacheBusterAware implements RuntimeExtensionInterface
 
         $container = OpenDxp::getContainer();
 
-        //@phpstan-ignore-next-line
         if ($container->has('opendxp_admin_bundle.content_security_policy_handler')) {
             $cspHandler = $container->get('opendxp_admin_bundle.content_security_policy_handler');
             $attrString .= $cspHandler->getNonceHtmlAttribute();

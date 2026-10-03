@@ -1760,6 +1760,11 @@ class Asset extends Element\AbstractElement
             foreach (['thumbnail', 'asset_cache'] as $storageName) {
                 $storage = Storage::get($storageName);
 
+                // Nothing was ever written for this asset, and rename() warns before it fails.
+                if (!$storage->directoryExists($oldThumbnailsPath)) {
+                    continue;
+                }
+
                 try {
                     $storage->move($oldThumbnailsPath, $newThumbnailsPath);
                 } catch (UnableToMoveFile) {

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * OpenDXP
@@ -10,57 +10,37 @@ declare(strict_types = 1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\ValueObject\Integer;
 
-use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\ValueObject\Integer\PositiveInteger;
 use ValueError;
 
-/**
- * @internal
- */
-final class PositiveIntegerTest extends TestCase
-{
-    public function testItShouldThrowExceptionWhenProvidedIntegerIsNotPositive(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided integer must be positive. (-1 given)');
+it('refuses an integer that is not positive', function () {
+    new PositiveInteger(-1);
+})->throws(ValueError::class, 'Provided integer must be positive. (-1 given)');
 
-        new PositiveInteger(-1);
-    }
+it('answers with the integer it was given', function () {
+    expect((new PositiveInteger(1))->getValue())->toBe(1);
+});
 
-    public function testItShouldReturnValue(): void
-    {
-        $value = 1;
-        $positiveInteger = new PositiveInteger($value);
+it('equals another one holding the same integer', function () {
 
-        $this->assertSame($value, $positiveInteger->getValue());
-    }
+    $one = new PositiveInteger(1);
 
-    public function testEquals(): void
-    {
-        $positiveInteger = new PositiveInteger(1);
-        $positiveInteger2 = new PositiveInteger(1);
-        $positiveInteger3 = new PositiveInteger(2);
+    expect($one->equals(new PositiveInteger(1)))
+        ->toBeTrue()
+        ->and($one->equals(new PositiveInteger(2)))
+        ->toBeFalse();
+});
 
-        $this->assertTrue($positiveInteger->equals($positiveInteger2));
-        $this->assertFalse($positiveInteger->equals($positiveInteger3));
-    }
+it('checks the integer again when it comes back from a serialized form', function () {
 
-    public function testItShouldBeValidatedAfterUnSerialization(): void
-    {
-        $positiveInteger = new PositiveInteger(42);
-        $serialized = serialize($positiveInteger);
+    $serialized = str_replace('42', '-42', serialize(new PositiveInteger(42)));
 
-        $serialized = str_replace('42', '-42', $serialized);
-
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided integer must be positive. (-42 given)');
-        unserialize($serialized);
-    }
-}
+    unserialize($serialized);
+})->throws(ValueError::class, 'Provided integer must be positive. (-42 given)');

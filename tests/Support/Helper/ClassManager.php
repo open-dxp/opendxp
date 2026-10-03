@@ -25,6 +25,9 @@ use OpenDxp\Model\DataObject\Fieldcollection\Definition as FieldcollectionDefini
 use OpenDxp\Model\DataObject\Objectbrick\Definition as ObjectbrickDefinition;
 use Symfony\Component\Filesystem\Filesystem;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class ClassManager extends Module
 {
     /**

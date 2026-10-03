@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -13,6 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\HttpCache;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\HttpCacheScopeListener;
@@ -22,7 +24,6 @@ use OpenDxp\HttpCache\HttpCache;
 use OpenDxp\HttpCache\HttpCacheScope;
 use OpenDxp\Model\Document;
 use OpenDxp\Routing\HttpCacheTaggableInterface;
-use OpenDxp\Tests\Support\Test\TestCase;
 use stdClass;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,239 +32,33 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-class HttpCacheScopeListenerTest extends TestCase
-{
-    private HttpCache $httpCache;
+beforeEach(function () {
+    $this->cache = $this->createMock(HttpCache::class);
+    $this->scope = $this->createMock(HttpCacheScope::class);
+    $this->context = $this->createMock(OpenDxpContextResolver::class);
+    $this->documents = $this->createMock(DocumentResolver::class);
+    $this->kernel = $this->createMock(HttpKernelInterface::class);
 
-    private HttpCacheScope $scope;
+    $this->makeListener = fn (bool $fromRequest = false, bool $tagFallback = true) => new HttpCacheScopeListener(
+        $this->cache,
+        $this->scope,
+        $this->context,
+        $this->documents,
+        collectFromRequest: $fromRequest,
+        tagFallbackDocument: $tagFallback,
+    );
 
-    private OpenDxpContextResolver $resolver;
+    $this->request = fn (bool $isMain, string $method = 'GET') => new RequestEvent(
+        $this->kernel,
+        Request::create('/', $method),
+        $isMain ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST,
+    );
 
-    private DocumentResolver $documentResolver;
-
-    private HttpCacheScopeListener $listener;
-
-    private HttpKernelInterface $kernel;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->httpCache        = $this->createMock(HttpCache::class);
-        $this->scope            = $this->createMock(HttpCacheScope::class);
-        $this->resolver         = $this->createMock(OpenDxpContextResolver::class);
-        $this->documentResolver = $this->createMock(DocumentResolver::class);
-        $this->kernel           = $this->createMock(HttpKernelInterface::class);
-
-        $this->listener = $this->makeListener();
-    }
-
-    public function testEnablesScopeForMainRequest(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->once())->method('enable');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true));
-    }
-
-    public function testDoesNotEnableScopeForSubRequest(): void
-    {
-        $this->scope->expects($this->never())->method('enable');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: false));
-    }
-
-    public function testDoesNotEnableScopeForAdminContext(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(true);
-        $this->scope->expects($this->never())->method('enable');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true));
-    }
-
-    public function testDoesNotEnableScopeForNonCacheableMethod(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->never())->method('enable');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true, method: 'POST'));
-    }
-
-    public function testCollectsRouteTagForMainRequest(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $element = new stdClass();
-        $route   = $this->createMock(HttpCacheTaggableInterface::class);
-        $route->method('getCacheElement')->willReturn($element);
-
-        $this->httpCache->expects($this->once())->method('collectTagsFor')->with($element);
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: $route));
-    }
-
-    public function testSkipsRouteTagWhenElementIsNull(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $route = $this->createMock(HttpCacheTaggableInterface::class);
-        $route->method('getCacheElement')->willReturn(null);
-
-        $this->httpCache->expects($this->never())->method('collectTagsFor');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: $route));
-    }
-
-    public function testSkipsRouteTagWhenRouteNotTaggable(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->httpCache->expects($this->never())->method('collectTagsFor');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: new stdClass()));
-    }
-
-    public function testCollectsContentKeyTag(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $content = new Document();
-        $this->documentResolver->method('getDocument')->willReturn($content);
-        $this->httpCache->expects($this->once())->method('collectTagsFor')->with($content);
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true));
-    }
-
-    public function testCollectsFallbackDocumentTagWhenRouteResolvedToNonDocumentElement(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $object = new stdClass();
-        $route  = $this->createMock(HttpCacheTaggableInterface::class);
-        $route->method('getCacheElement')->willReturn($object);
-
-        $content = new Document();
-        $this->documentResolver->method('getDocument')->willReturn($content);
-
-        // both the route's own element (e.g. a DataObject) and the fallback document get tagged
-        $this->httpCache->expects($this->exactly(2))->method('collectTagsFor');
-
-        $this->listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: $route));
-    }
-
-    public function testDoesNotDoubleTagWhenRouteAlreadyResolvedToADocument(): void
-    {
-        $listener = $this->makeListener(tagFallbackDocument: false);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $document = new Document();
-        $route    = $this->createMock(HttpCacheTaggableInterface::class);
-        $route->method('getCacheElement')->willReturn($document);
-        $this->documentResolver->method('getDocument')->willReturn($document);
-
-        // must be tagged exactly once (via the route element), regardless of tagFallbackDocument
-        $this->httpCache->expects($this->once())->method('collectTagsFor')->with($document);
-
-        $listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: $route));
-    }
-
-    public function testSkipsFallbackDocumentTagWhenTaggingDisabled(): void
-    {
-        $listener = $this->makeListener(tagFallbackDocument: false);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-
-        $object = new stdClass();
-        $route  = $this->createMock(HttpCacheTaggableInterface::class);
-        $route->method('getCacheElement')->willReturn($object);
-
-        $content = new Document();
-        $this->documentResolver->method('getDocument')->willReturn($content);
-
-        // only the route's own element gets tagged, the fallback document is skipped
-        $this->httpCache->expects($this->once())->method('collectTagsFor')->with($object);
-
-        $listener->onKernelController($this->makeControllerEvent(isMain: true, routeDocument: $route));
-    }
-
-    public function testRequestScopeEnablesOnKernelRequest(): void
-    {
-        $listener = $this->makeListener(collectFromRequest: true);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->once())->method('enable');
-
-        $listener->onKernelRequest($this->makeRequestEvent(isMain: true));
-    }
-
-    public function testRequestScopeDoesNotEnableForAdminContext(): void
-    {
-        $listener = $this->makeListener(collectFromRequest: true);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(true);
-        $this->scope->expects($this->never())->method('enable');
-
-        $listener->onKernelRequest($this->makeRequestEvent(isMain: true));
-    }
-
-    public function testRequestScopeDoesNotEnableForNonCacheableMethod(): void
-    {
-        $listener = $this->makeListener(collectFromRequest: true);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->never())->method('enable');
-
-        $listener->onKernelRequest($this->makeRequestEvent(isMain: true, method: 'POST'));
-    }
-
-    public function testRequestScopeDoesNotEnableForSubRequest(): void
-    {
-        $listener = $this->makeListener(collectFromRequest: true);
-        $this->scope->expects($this->never())->method('enable');
-
-        $listener->onKernelRequest($this->makeRequestEvent(isMain: false));
-    }
-
-    public function testControllerScopeDoesNotEnableOnKernelRequest(): void
-    {
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->never())->method('enable');
-
-        $this->listener->onKernelRequest($this->makeRequestEvent(isMain: true));
-    }
-
-    public function testRequestScopeDoesNotEnableAgainOnKernelController(): void
-    {
-        $listener = $this->makeListener(collectFromRequest: true);
-        $this->resolver->method('matchesOpenDxpContext')->willReturn(false);
-        $this->scope->expects($this->never())->method('enable');
-
-        $listener->onKernelController($this->makeControllerEvent(isMain: true));
-    }
-
-    private function makeListener(bool $collectFromRequest = false, bool $tagFallbackDocument = true): HttpCacheScopeListener
-    {
-        return new HttpCacheScopeListener(
-            $this->httpCache,
-            $this->scope,
-            $this->resolver,
-            $this->documentResolver,
-            collectFromRequest: $collectFromRequest,
-            tagFallbackDocument: $tagFallbackDocument,
-        );
-    }
-
-    private function makeRequestEvent(bool $isMain, string $method = 'GET'): RequestEvent
-    {
+    $this->controller = function (bool $isMain, mixed $route = null, string $method = 'GET') {
         $request = Request::create('/', $method);
 
-        return new RequestEvent(
-            $this->kernel,
-            $request,
-            $isMain ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST,
-        );
-    }
-
-    private function makeControllerEvent(bool $isMain, mixed $routeDocument = null, string $method = 'GET'): ControllerEvent
-    {
-        $request = Request::create('/', $method);
-        if ($routeDocument !== null) {
-            $request->attributes->set(DynamicRouter::ROUTE_KEY, $routeDocument);
+        if ($route !== null) {
+            $request->attributes->set(DynamicRouter::ROUTE_KEY, $route);
         }
 
         return new ControllerEvent(
@@ -272,5 +67,141 @@ class HttpCacheScopeListenerTest extends TestCase
             $request,
             $isMain ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST,
         );
-    }
-}
+    };
+});
+
+it('opens the scope for a request a controller answers', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $this->scope->expects($this->once())->method('enable');
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true));
+});
+
+it('leaves the scope closed', function (bool $isMain, bool $adminContext, string $method) {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn($adminContext);
+    $this->scope->expects($this->never())->method('enable');
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: $isMain, method: $method));
+})->with([
+    'for a sub request' => [false, false, 'GET'],
+    'in the admin context' => [true, true, 'GET'],
+    'for a method that is never cached' => [true, false, 'POST'],
+]);
+
+it('collects the tags of the element a route resolved to', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $element = new stdClass();
+    $route = $this->createMock(HttpCacheTaggableInterface::class);
+    $route->method('getCacheElement')->willReturn($element);
+
+    $this->cache->expects($this->once())->method('collectTagsFor')->with($element);
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true, route: $route));
+});
+
+it('collects no tags for a route that resolved to nothing', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $route = $this->createMock(HttpCacheTaggableInterface::class);
+    $route->method('getCacheElement')->willReturn(null);
+
+    $this->cache->expects($this->never())->method('collectTagsFor');
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true, route: $route));
+});
+
+it('collects no tags for a route that carries none', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $this->cache->expects($this->never())->method('collectTagsFor');
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true, route: new stdClass()));
+});
+
+it('collects the tags of the document the request resolved to', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $document = new Document();
+    $this->documents->method('getDocument')->willReturn($document);
+
+    $this->cache->expects($this->once())->method('collectTagsFor')->with($document);
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true));
+});
+
+it('collects the document next to an element that is not one', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $route = $this->createMock(HttpCacheTaggableInterface::class);
+    $route->method('getCacheElement')->willReturn(new stdClass());
+    $this->documents->method('getDocument')->willReturn(new Document());
+
+    $this->cache->expects($this->exactly(2))->method('collectTagsFor');
+
+    ($this->makeListener)()->onKernelController(($this->controller)(isMain: true, route: $route));
+});
+
+it('collects a document the route already resolved to only once', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $document = new Document();
+    $route = $this->createMock(HttpCacheTaggableInterface::class);
+    $route->method('getCacheElement')->willReturn($document);
+    $this->documents->method('getDocument')->willReturn($document);
+
+    $this->cache->expects($this->once())->method('collectTagsFor')->with($document);
+
+    ($this->makeListener)(tagFallback: false)->onKernelController(($this->controller)(isMain: true, route: $route));
+});
+
+it('leaves the document out while tagging it is turned off', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $element = new stdClass();
+    $route = $this->createMock(HttpCacheTaggableInterface::class);
+    $route->method('getCacheElement')->willReturn($element);
+    $this->documents->method('getDocument')->willReturn(new Document());
+
+    $this->cache->expects($this->once())->method('collectTagsFor')->with($element);
+
+    ($this->makeListener)(tagFallback: false)->onKernelController(($this->controller)(isMain: true, route: $route));
+});
+
+it('opens the scope on the request already when it collects from the request', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $this->scope->expects($this->once())->method('enable');
+
+    ($this->makeListener)(fromRequest: true)->onKernelRequest(($this->request)(isMain: true));
+});
+
+it('leaves the scope closed on the request while it collects from the request', function (bool $isMain, bool $adminContext, string $method) {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn($adminContext);
+    $this->scope->expects($this->never())->method('enable');
+
+    ($this->makeListener)(fromRequest: true)->onKernelRequest(($this->request)(isMain: $isMain, method: $method));
+})->with([
+    'in the admin context' => [true, true, 'GET'],
+    'for a method that is never cached' => [true, false, 'POST'],
+    'for a sub request' => [false, false, 'GET'],
+]);
+
+it('leaves the scope closed on the request while it collects from the controller', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $this->scope->expects($this->never())->method('enable');
+
+    ($this->makeListener)()->onKernelRequest(($this->request)(isMain: true));
+});
+
+it('opens the scope once, not again on the controller', function () {
+
+    $this->context->method('matchesOpenDxpContext')->willReturn(false);
+    $this->scope->expects($this->never())->method('enable');
+
+    ($this->makeListener)(fromRequest: true)->onKernelController(($this->controller)(isMain: true));
+});

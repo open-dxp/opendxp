@@ -549,8 +549,14 @@ final class ClassDefinition extends Model\AbstractModel implements ClassDefiniti
         // delete the class files
         @unlink($this->getPhpClassFile());
         @unlink($this->getPhpListingClassFile());
-        @rmdir(dirname($this->getPhpListingClassFile()));
         @unlink($this->getDefinitionFile());
+
+        // A brick or a field collection of this class lives in the same directory and stays.
+        $directory = dirname($this->getPhpListingClassFile());
+
+        if (is_dir($directory) && (glob($directory . '/*') === [])) {
+            rmdir($directory);
+        }
     }
 
     /**

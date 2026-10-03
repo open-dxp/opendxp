@@ -1,0 +1,14 @@
+/**
+* Set quantityValue - quantityValue
+* @param \OpenDxp\Model\DataObject\Data\QuantityValue|null $quantityValue
+* @return $this
+*/
+public function setQuantityValue(?\OpenDxp\Model\DataObject\Data\QuantityValue $quantityValue): static
+{
+	$this->markFieldDirty("quantityValue", true);
+
+	$this->quantityValue = $quantityValue;
+
+	return $this;
+}
+

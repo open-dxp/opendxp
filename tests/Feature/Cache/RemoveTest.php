@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * OpenDXP
+ *
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
+ */
+
+
+namespace OpenDxp\Tests\Feature\Cache;
+
+describe('removing from the cache', function () {
+    it('takes a single entry out', function (callable $pool) {
+
+        $this->useCachePool($pool);
+        $this->handler->save('itemA', 'test');
+        $this->handler->writeSaveQueue();
+
+        expect($this->poolHasItem('itemA'))->toBeTrue();
+
+        $this->handler->remove('itemA');
+
+        expect($this->poolHasItem('itemA'))->toBeFalse();
+    });
+
+    it('takes every entry out at once', function (callable $pool) {
+
+        $this->useCachePool($pool);
+        $this->queueSampleEntries();
+        $this->handler->writeSaveQueue();
+
+        expect($this->keptEntries())->toBe(['A', 'B', 'C']);
+
+        $this->handler->clearAll();
+
+        expect($this->keptEntries())->toBeEmpty();
+    });
+})->with('cache pools');

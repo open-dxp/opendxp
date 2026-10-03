@@ -1,89 +1,46 @@
-name: Static analysis [centralised]
+name: Static analysis
 
 on:
     workflow_dispatch:
     schedule:
         -   cron: '0 3 * * *'
-    pull_request:
-        branches:
-            - "[0-9]+.[0-9]+"
-            - "[0-9]+.x"
-        paths-ignore:
-            - 'doc/**'
-            - 'bundles/**/public/**'
     push:
         branches:
             - "[0-9]+.[0-9]+"
             - "[0-9]+.x"
-            - "*_actions"
         paths-ignore:
             - 'doc/**'
             - 'bundles/**/public/**'
-
-env:
-    OPENDXP_PROJECT_ROOT: ${{ github.workspace }}
-
-permissions:
-  contents: read
+    pull_request:
+        types: [ opened, synchronize, reopened ]
+        paths-ignore:
+            - 'doc/**'
+            - 'bundles/**/public/**'
 
 jobs:
     setup-matrix:
         runs-on: ubuntu-latest
         outputs:
-            php_versions: ${{ steps.parse-php-versions.outputs.php_versions }}
-            matrix: ${{ steps.set-matrix.outputs.matrix }}
+            matrix: ${{ steps.matrix.outputs.matrix }}
         steps:
-            -   name: Checkout code
-                uses: actions/checkout@v7
+            -   uses: actions/checkout@v7
 
-            -   name: Checkout reusable workflow repo
-                uses: actions/checkout@v7
+            -   id: matrix
+                uses: open-dxp/workflows-collection-public/.github/actions/test-matrix@main
                 with:
-                    repository: open-dxp/workflows-collection-public
-                    ref: main
-                    path: reusable-workflows
-
-            -   name: Parse PHP versions from composer.json
-                id: parse-php-versions
-                run: |
-                    if [ -f composer.json ]; then
-                      php_versions=$(jq -r '.require.php' composer.json | grep -oP '\d+\.\d+' | tr '\n' ',' | sed 's/,$//')
-                      if [ -z "$php_versions" ]; then
-                        echo "No PHP versions found in composer.json, using default"
-                        php_versions="default"
-                      fi
-                      echo "php_versions=$php_versions" >> $GITHUB_OUTPUT
-                    else
-                      echo "composer.json not found"
-                      exit 1
-                    fi
-
-            -   name: Set up matrix
-                id: set-matrix
-                run: |
-                     
-                     php_versions="${{ steps.parse-php-versions.outputs.php_versions }}"
-      
-                     matrix_json=$(jq -c --arg php_versions "$php_versions" \
-                        '{matrix: [.configs[] | select(.php_version == $php_versions) | .matrix[]]}' \
-                        reusable-workflows/phpstan-configuration/matrix-config.json)
-                      
-                     echo "matrix=${matrix_json}" >> $GITHUB_OUTPUT
+                    configuration: phpstan-configuration
 
     static-analysis:
         needs: setup-matrix
         strategy:
             matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
-        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-static-analysis-centralized.yaml@main
+        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-static-analysis.yaml@main
         with:
-            app_env: test
-            opendxp_test: 1
             php_version: ${{ matrix.matrix.php-version }}
-            symfony: ${{ matrix.matrix.symfony }}
-            dependencies: ${{ matrix.matrix.dependencies }}
             experimental: ${{ matrix.matrix.experimental }}
             opendxp_version: ${{ matrix.matrix.opendxp_version }}
-            opendxp_admin_version: ${{ matrix.matrix.opendxp_admin_version }}
-            composer_options: ${{ matrix.matrix.composer_options }}
-            composer_root_version: ${{ matrix.matrix.composer_root_version || '1.99.9' }}
-            cache_clear: true
+        secrets:
+            CLA_ACTION_ACCESS_TOKEN: ${{ secrets.CLA_ACTION_ACCESS_TOKEN }}
+            COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+            OPENDXP_INSTANCE_IDENTIFIER: ${{ secrets.OPENDXP_INSTANCE_IDENTIFIER }}
+            OPENDXP_ENCRYPTION_SECRET: ${{ secrets.OPENDXP_ENCRYPTION_SECRET }}

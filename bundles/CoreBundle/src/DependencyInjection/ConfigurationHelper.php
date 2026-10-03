@@ -139,7 +139,6 @@ final class ConfigurationHelper
         $containerConfig = array_merge(...$containerConfig);
 
         $processor = new Processor();
-        // @phpstan-ignore-next-line
         $configuration = $container->getExtension($nodeName)->getConfiguration($containerConfig, $container);
         $containerConfig = $processor->processConfiguration($configuration, [$nodeName => $containerConfig]);
 

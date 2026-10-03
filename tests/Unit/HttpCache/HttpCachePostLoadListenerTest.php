@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -13,6 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\HttpCache;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\HttpCachePostLoadListener;
@@ -23,55 +25,23 @@ use OpenDxp\HttpCache\HttpCache;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
-use OpenDxp\Tests\Support\Test\TestCase;
 
-class HttpCachePostLoadListenerTest extends TestCase
-{
-    private HttpCache $invalidator;
+beforeEach(function () {
+    $this->invalidator = $this->createMock(HttpCache::class);
+    $this->listener = new HttpCachePostLoadListener($this->invalidator);
+});
 
-    private HttpCachePostLoadListener $listener;
+it('hands an element that was loaded to the invalidator', function (string $event, string $element, string $listens) {
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    $loaded = $this->createMock($element);
+    $fired = $this->createMock($event);
+    $fired->method('getElement')->willReturn($loaded);
 
-        $this->invalidator = $this->createMock(HttpCache::class);
-        $this->listener = new HttpCachePostLoadListener($this->invalidator);
-    }
+    $this->invalidator->expects($this->once())->method('collectTagsFor')->with($loaded);
 
-    public function testDocumentPostLoadDelegatesToInvalidator(): void
-    {
-        $document = $this->createMock(Document::class);
-
-        $event = $this->createMock(DocumentEvent::class);
-        $event->method('getElement')->willReturn($document);
-
-        $this->invalidator->expects($this->once())->method('collectTagsFor')->with($document);
-
-        $this->listener->onDocumentPostLoad($event);
-    }
-
-    public function testDataObjectPostLoadDelegatesToInvalidator(): void
-    {
-        $object = $this->createMock(DataObject::class);
-
-        $event = $this->createMock(DataObjectEvent::class);
-        $event->method('getElement')->willReturn($object);
-
-        $this->invalidator->expects($this->once())->method('collectTagsFor')->with($object);
-
-        $this->listener->onDataObjectPostLoad($event);
-    }
-
-    public function testAssetPostLoadDelegatesToInvalidator(): void
-    {
-        $asset = $this->createMock(Asset::class);
-
-        $event = $this->createMock(AssetEvent::class);
-        $event->method('getElement')->willReturn($asset);
-
-        $this->invalidator->expects($this->once())->method('collectTagsFor')->with($asset);
-
-        $this->listener->onAssetPostLoad($event);
-    }
-}
+    $this->listener->{$listens}($fired);
+})->with([
+    'a document' => [DocumentEvent::class, Document::class, 'onDocumentPostLoad'],
+    'an object' => [DataObjectEvent::class, DataObject::class, 'onDataObjectPostLoad'],
+    'an asset' => [AssetEvent::class, Asset::class, 'onAssetPostLoad'],
+]);

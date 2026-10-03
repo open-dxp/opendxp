@@ -1,0 +1,103 @@
+{
+    "description": "The store the csstore class holds, one key per field type.",
+    "groups": {
+        "testgroup1": {
+            "date": {
+                "type": "date",
+                "description": "keyDescdateDesc"
+            },
+            "datetime": {
+                "type": "datetime",
+                "description": "keyDescdatetimeDesc"
+            },
+            "encryptedField": {
+                "type": "encryptedField",
+                "description": "keyDescencryptedFieldDesc"
+            }
+        },
+        "testgroup2": {
+            "input": {
+                "type": "input",
+                "description": "keyDescinputDesc"
+            },
+            "rgbaColor": {
+                "type": "rgbaColor",
+                "description": "keyDescrgbaColorDesc"
+            },
+            "select": {
+                "type": "select",
+                "description": "keyDescselectDesc"
+            },
+            "time": {
+                "type": "time",
+                "description": "keyDesctimeDesc"
+            },
+            "numeric": {
+                "type": "numeric",
+                "description": "keyDescnumericDesc"
+            },
+            "booleanSelect": {
+                "type": "booleanSelect",
+                "description": "keyDescbooleanSelectDesc"
+            },
+            "user": {
+                "type": "user",
+                "description": "keyDescuserDesc"
+            },
+            "textarea": {
+                "type": "textarea",
+                "description": "keyDesctextareaDesc"
+            },
+            "wysiwyg": {
+                "type": "wysiwyg",
+                "description": "keyDescwysiwygDesc"
+            },
+            "checkbox": {
+                "type": "checkbox",
+                "description": "keyDesccheckboxDesc"
+            },
+            "slider": {
+                "type": "slider",
+                "description": "keyDescsliderDesc"
+            },
+            "table": {
+                "type": "table",
+                "description": "keyDesctableDesc"
+            },
+            "country": {
+                "type": "country",
+                "description": "keyDesccountryDesc"
+            },
+            "language": {
+                "type": "language",
+                "description": "keyDesclanguageDesc"
+            },
+            "multiselect": {
+                "type": "multiselect",
+                "description": "keyDescmultiselectDesc"
+            },
+            "countrymultiselect": {
+                "type": "countrymultiselect",
+                "description": "keyDesccountrymultiselectDesc"
+            },
+            "languagemultiselect": {
+                "type": "languagemultiselect",
+                "description": "keyDesclanguagemultiselectDesc"
+            },
+            "quantityValue": {
+                "type": "quantityValue",
+                "description": "keyDescquantityValueDesc"
+            },
+            "inputQuantityValue": {
+                "type": "inputQuantityValue",
+                "description": "keyDescinputQuantityValueDesc"
+            }
+        },
+        "testgroupQvalue": {
+            "qValue": {
+                "type": "quantityValue",
+                "description": "Quantity Value Field"
+            }
+        }
+    }
+}

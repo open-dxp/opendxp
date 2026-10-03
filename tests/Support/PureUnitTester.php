@@ -18,6 +18,8 @@ namespace OpenDxp\Tests\Support;
 
 /**
  * @SuppressWarnings(PHPMD)
+ *
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
  */
 class PureUnitTester extends \Codeception\Actor
 {

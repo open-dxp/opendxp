@@ -18,6 +18,9 @@ namespace OpenDxp\Tests\Support\Util;
 
 use Codeception\Util\Autoload;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class Autoloader extends Autoload
 {
     protected static bool $reg = false;
