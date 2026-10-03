@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Asset;
 
-use League\Flysystem\UnableToReadFile;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\ThumbnailConfigFactory;
 use OpenDxp\Tool\Storage;
@@ -123,12 +122,17 @@ it('hands the thumbnail back in the format it is asked for', function (string $f
 
 it('loses the thumbnails it wrote once they are cleared', function () {
 
-    $config = ThumbnailConfigFactory::new()->scalingByWidth(256)->create();
+    $config = ThumbnailConfigFactory::new()
+        ->scalingByWidth(256)
+        ->create();
     $thumbnail = $this->image->getThumbnail($config->getName(), false);
+    $storagePath = $thumbnail->getPathReference(true)['storagePath'];
 
-    expect($thumbnail->getStream())->toBeResource();
+    expect(Storage::get('thumbnail')->fileExists($storagePath))
+        ->toBeTrue();
 
     $this->image->clearThumbnails(true);
 
-    expect(fn () => $thumbnail->getStream())->toThrow(UnableToReadFile::class);
+    expect(Storage::get('thumbnail')->fileExists($storagePath))
+        ->toBeFalse();
 });
