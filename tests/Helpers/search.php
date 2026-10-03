@@ -18,13 +18,14 @@ declare(strict_types=1);
 use OpenDxp\Bundle\AdminBundle\Helper\GridHelperService;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Controller\SearchController;
 use OpenDxp\Model\User;
+use OpenDxp\TestFoundation\Admin;
 use OpenDxp\TestFoundation\Container;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 function searchAs(string $userName, string $type, string $query, int $limit = 100): array
 {
-    actingAs(User::getByName($userName));
+    Admin::actingAs(User::getByName($userName));
 
     $response = Container::get(SearchController::class)->findAction(
         new Request(['type' => $type, 'query' => $query, 'start' => 0, 'limit' => $limit]),
@@ -44,7 +45,7 @@ function searchAs(string $userName, string $type, string $query, int $limit = 10
  */
 function quickSearchAs(string $userName, string $query, int $limit = 100): array
 {
-    actingAs(User::getByName($userName));
+    Admin::actingAs(User::getByName($userName));
 
     $response = Container::get(SearchController::class)->quicksearchAction(
         new Request(['query' => $query, 'start' => 0, 'limit' => $limit]),
