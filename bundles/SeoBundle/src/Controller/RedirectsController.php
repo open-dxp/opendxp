@@ -22,6 +22,7 @@ use OpenDxp\Bundle\AdminBundle\Helper\QueryParams;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\Csv;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Logger;
@@ -43,8 +44,16 @@ class RedirectsController extends UserAwareController
 {
     use JsonHelperTrait;
 
+    /**
+     * The fields an editor may set. Everything else, like the owner or the dates, is kept by the model.
+     */
+    private const array EDITABLE_FIELDS = [
+        'type', 'source', 'sourceSite', 'target', 'targetSite', 'statusCode', 'priority', 'regex',
+        'passThroughParameters', 'passThroughPath', 'active', 'validFrom', 'expiry', 'protected',
+    ];
+
     #[Route('/list', name: 'opendxp_bundle_seo_redirects_redirects', methods: ['POST'])]
-    public function redirectsAction(Request $request, RedirectHandler $redirectHandler): JsonResponse
+    public function redirectsAction(Request $request, RedirectHandler $redirectHandler, RedirectValidator $validator): JsonResponse
     {
         // check permission for both update and listing
         $this->checkPermission('redirects');
@@ -52,114 +61,134 @@ class RedirectsController extends UserAwareController
         if ($request->request->has('data')) {
             $data = $this->decodeJson($request->request->getString('data'));
 
-            if ($request->query->getString('xaction') === 'destroy') {
-
-                $id = $data['id'] ?? null;
-                if ($id) {
-                    $redirect = Redirect::getById($id);
-                    $redirect?->delete();
-                }
-
-                return $this->jsonResponse(['success' => true, 'data' => []]);
-            }
-            if ($request->query->getString('xaction') === 'update') {
-                // save redirect
-                $redirect = Redirect::getById($data['id']);
-
-                if (!$redirect) {
-                    return $this->jsonResponse(['success' => false]);
-                }
-
-                if ($data['target'] && $doc = Document::getByPath($data['target'])) {
-                    $data['target'] = $doc->getId();
-                }
-
-                if (!$data['regex'] && $data['source']) {
-                    $data['source'] = str_replace('+', ' ', $data['source']);
-                }
-
-                $redirect->setValues($data);
-
-                $redirect->save();
-
-                $redirectTarget = $redirect->getTarget();
-                if (is_numeric($redirectTarget) && $doc = Document::getById((int)$redirectTarget)) {
-                    $redirect->setTarget($doc->getRealFullPath());
-                }
-
-                return $this->jsonResponse(['data' => $redirect->getObjectVars(), 'success' => true]);
-            }
-            if ($request->query->getString('xaction') === 'create') {
-                unset($data['id']);
-
-                // save route
-                $redirect = new Redirect();
-
-                if (!empty($data['target']) && $doc = Document::getByPath($data['target'])) {
-                    $data['target'] = $doc->getId();
-                }
-
-                if (isset($data['regex']) && !$data['regex'] && isset($data['source']) && $data['source']) {
-                    $data['source'] = str_replace('+', ' ', $data['source']);
-                }
-
-                $redirect->setValues($data);
-
-                $redirect->save();
-
-                $redirectTarget = $redirect->getTarget();
-                if (is_numeric($redirectTarget) && $doc = Document::getById((int)$redirectTarget)) {
-                    $redirect->setTarget($doc->getRealFullPath());
-                }
-
-                return $this->jsonResponse(['data' => $redirect->getObjectVars(), 'success' => true]);
-            }
-        } else {
-            // get list of routes
-            $list = new Redirect\Listing();
-            $list->setLimit($request->request->getInt('limit', 50));
-            $list->setOffset($request->request->getInt('start'));
-
-            $sortingSettings = QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
-            if ($sortingSettings['orderKey']) {
-                $list->setOrderKey($sortingSettings['orderKey']);
-                $list->setOrder($sortingSettings['order']);
-            }
-
-            if ($filterValue = $request->request->getString('filter')) {
-                if (is_numeric($filterValue)) {
-                    $list->setCondition('id = ?', [$filterValue]);
-                } elseif (preg_match('@^https?://@', $filterValue)) {
-                    $dummyRequest = Request::create($filterValue);
-                    $site = Site::getByDomain($dummyRequest->getHost());
-                    $dummyResponse = $redirectHandler->checkForRedirect($dummyRequest, false, $site);
-                    if ($dummyResponse && $redirectId = $dummyResponse->headers->get(RedirectHandler::RESPONSE_HEADER_NAME_ID)) {
-                        $list->setCondition('id = ?', [$redirectId]);
-                    } else {
-                        // do not return any results
-                        $list->setCondition('1 = 2');
-                    }
-                } else {
-                    $list->setCondition('`source` LIKE ' . $list->quote('%' . $filterValue . '%') . ' OR `target` LIKE ' . $list->quote('%' . $filterValue . '%'));
-                }
-            }
-
-            $list->load();
-
-            $redirects = [];
-            foreach ($list->getRedirects() as $redirect) {
-                $link = $redirect->getTarget();
-                if (is_numeric($link) && $doc = Document::getById((int)$link)) {
-                    $redirect->setTarget($doc->getRealFullPath());
-                }
-
-                $redirects[] = $redirect->getObjectVars();
-            }
-
-            return $this->jsonResponse(['data' => $redirects, 'success' => true, 'total' => $list->getTotalCount()]);
+            return match ($request->query->getString('xaction')) {
+                'destroy' => $this->deleteRedirect($data),
+                'update' => $this->saveRedirect(Redirect::getById((int) ($data['id'] ?? 0)), $data, $validator),
+                'create' => $this->saveRedirect(new Redirect(), $data, $validator),
+                default => $this->jsonResponse(['success' => false]),
+            };
         }
 
-        return $this->jsonResponse(['success' => false]);
+        // get list of routes
+        $list = new Redirect\Listing();
+        $list->setLimit($request->request->getInt('limit', 50));
+        $list->setOffset($request->request->getInt('start'));
+
+        $sortingSettings = QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
+        if ($sortingSettings['orderKey']) {
+            $list->setOrderKey($sortingSettings['orderKey']);
+            $list->setOrder($sortingSettings['order']);
+        }
+
+        $conditions = $this->mayManageProtected() ? [] : ['protected = 0'];
+        $variables = [];
+
+        if ($filterValue = $request->request->getString('filter')) {
+            if (is_numeric($filterValue)) {
+                $conditions[] = 'id = ?';
+                $variables[] = $filterValue;
+            } elseif (preg_match('@^https?://@', $filterValue)) {
+                $dummyRequest = Request::create($filterValue);
+                $site = Site::getByDomain($dummyRequest->getHost());
+                $dummyResponse = $redirectHandler->checkForDomainRedirect($dummyRequest)
+                    ?? $redirectHandler->checkForRedirect($dummyRequest, false, $site);
+
+                $conditions[] = 'id = ?';
+                $variables[] = (int) $dummyResponse?->headers->get(RedirectHandler::RESPONSE_HEADER_NAME_ID);
+            } else {
+                $conditions[] = '(`source` LIKE ? OR `target` LIKE ?)';
+                $variables[] = '%' . $filterValue . '%';
+                $variables[] = '%' . $filterValue . '%';
+            }
+        }
+
+        if ($conditions !== []) {
+            $list->setCondition(implode(' AND ', $conditions), $variables);
+        }
+
+        $list->load();
+
+        $redirects = [];
+        foreach ($list->getRedirects() as $redirect) {
+            $redirects[] = $this->redirectData($redirect);
+        }
+
+        return $this->jsonResponse(['data' => $redirects, 'success' => true, 'total' => $list->getTotalCount()]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function saveRedirect(?Redirect $redirect, array $data, RedirectValidator $validator): JsonResponse
+    {
+        if (!$redirect instanceof Redirect) {
+            return $this->jsonResponse(['success' => false]);
+        }
+
+        $mayManageProtected = $this->mayManageProtected();
+        if ($redirect->isProtected() && !$mayManageProtected) {
+            throw $this->createAccessDeniedException('Only users with the permission redirects_protected change a protected redirect.');
+        }
+
+        $values = array_intersect_key($data, array_flip(self::EDITABLE_FIELDS));
+        if (!$mayManageProtected) {
+            unset($values['protected']);
+        }
+
+        if (!empty($values['target']) && $doc = Document::getByPath($values['target'])) {
+            $values['target'] = $doc->getId();
+        }
+
+        if (empty($values['regex'] ?? $redirect->getRegex()) && !empty($values['source'])) {
+            $values['source'] = str_replace('+', ' ', $values['source']);
+        }
+
+        $redirect->setValues($values);
+
+        $validation = $validator->validate($redirect, $mayManageProtected);
+        if (!$validation->isValid()) {
+            return $this->jsonResponse(['success' => false, 'errors' => $validation->errors], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $redirect->save();
+
+        return $this->jsonResponse(['data' => $this->redirectData($redirect), 'success' => true, 'warnings' => $validation->warnings]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function deleteRedirect(array $data): JsonResponse
+    {
+        $redirect = Redirect::getById((int) ($data['id'] ?? 0));
+
+        if ($redirect?->isProtected() && !$this->mayManageProtected()) {
+            throw $this->createAccessDeniedException('Only users with the permission redirects_protected delete a protected redirect.');
+        }
+
+        $redirect?->delete();
+
+        return $this->jsonResponse(['success' => true, 'data' => []]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function redirectData(Redirect $redirect): array
+    {
+        $data = $redirect->getObjectVars();
+
+        $target = $redirect->getTarget();
+        if (is_numeric($target) && $doc = Document::getById((int) $target)) {
+            $data['target'] = $doc->getRealFullPath();
+        }
+
+        return $data;
+    }
+
+    private function mayManageProtected(): bool
+    {
+        return (bool) $this->getOpenDxpUser()?->isAllowed('redirects_protected');
     }
 
     #[Route('/csv-export', name: 'opendxp_bundle_seo_redirects_csvexport', methods: ['GET'])]
@@ -170,6 +199,9 @@ class RedirectsController extends UserAwareController
         $list = new Redirect\Listing();
         $list->setOrderKey('id');
         $list->setOrder('ASC');
+        if (!$this->mayManageProtected()) {
+            $list->setCondition('protected = 0');
+        }
         $list->load();
 
         $writer = $csv->createExportWriter($list);
@@ -199,7 +231,7 @@ class RedirectsController extends UserAwareController
             throw new BadRequestHttpException('Missing file');
         }
 
-        $result = $csv->import($file->getRealPath());
+        $result = $csv->import($file->getRealPath(), $this->mayManageProtected());
 
         return $this->jsonResponse([
             'success' => true,
@@ -215,7 +247,7 @@ class RedirectsController extends UserAwareController
         try {
             $now = time();
             $expiredRedirects = new Redirect\Listing();
-            $expiredRedirects->setCondition("expiry IS NOT NULL AND expiry < $now");
+            $expiredRedirects->setCondition("expiry IS NOT NULL AND expiry < $now" . ($this->mayManageProtected() ? '' : ' AND protected = 0'));
             $expiredRedirects = $expiredRedirects->load();
 
             foreach ($expiredRedirects as $expiredRedirect) {

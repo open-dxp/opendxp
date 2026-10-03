@@ -40,12 +40,30 @@ class RoutingListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            // run with high priority as we need to set the site early
-            KernelEvents::REQUEST => ['onKernelRequest', 256],
+            KernelEvents::REQUEST => [
+                // a domain redirect runs before the core redirects a host to its main domain
+                ['onKernelRequestForDomain', 520],
+                // run with high priority as we need to set the site early
+                ['onKernelRequest', 256],
+            ],
 
             // run with high priority before handling real errors
             KernelEvents::EXCEPTION => ['onKernelException', 64],
         ];
+    }
+
+    public function onKernelRequestForDomain(RequestEvent $event): void
+    {
+        $request = $event->getRequest();
+        if (!$event->isMainRequest() || !$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
+            return;
+        }
+
+        $response = $this->redirectHandler->checkForDomainRedirect($request);
+        if ($response) {
+            $event->setResponse($response);
+            $this->hitCounter?->count($response);
+        }
     }
 
     public function onKernelRequest(RequestEvent $event): void

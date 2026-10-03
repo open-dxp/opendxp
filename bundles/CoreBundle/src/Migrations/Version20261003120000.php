@@ -14,7 +14,7 @@ final class Version20261003120000 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Count redirect hits, allow long redirect sources and targets, and key the HTTP error log by a hash of the URI';
+        return 'Count redirect hits, add domain, protected and scheduled redirects, allow long sources and targets, and key the HTTP error log by a hash of the URI';
     }
 
     public function up(Schema $schema): void
@@ -42,6 +42,20 @@ final class Version20261003120000 extends AbstractMigration
         }
 
         $this->addSql('ALTER TABLE `redirects` MODIFY `source` VARCHAR(1024) DEFAULT NULL, MODIFY `target` VARCHAR(1024) DEFAULT NULL');
+        $this->addSql("ALTER TABLE `redirects` MODIFY `type` ENUM('entire_uri','path_query','path','auto_create','domain') NOT NULL");
+
+        foreach ([
+            'validFrom' => 'INT(11) UNSIGNED DEFAULT NULL AFTER `active`',
+            'passThroughPath' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER `passThroughParameters`',
+            'protected' => 'TINYINT(1) NOT NULL DEFAULT 0 AFTER `active`',
+        ] as $column => $definition) {
+            if (!$redirects->hasColumn($column)) {
+                $this->addSql(sprintf('ALTER TABLE `redirects` ADD `%s` %s', $column, $definition));
+            }
+        }
+
+        // The installer grants the permissions of the bundle. An installed bundle gets the new one here.
+        $this->addSql("INSERT IGNORE INTO `users_permission_definitions` (`key`, `category`) VALUES ('redirects_protected', 'OpenDxp Seo Bundle')");
 
         if (!$redirects->hasIndex('source')) {
             $this->addSql('ALTER TABLE `redirects` ADD INDEX `source` (`source`(191))');

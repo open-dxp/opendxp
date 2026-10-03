@@ -59,6 +59,45 @@ An exact source is tried before any regular expression. Among regular expression
 wins. A redirect without a source site applies only to requests outside of a site.
 
 
+#### Domain Redirects
+
+A redirect of the type `domain` sends every request to a host somewhere else, whatever its path. Its source is the host
+name, for example `summer2026.example.com`, and its target is a full URL or a path on a target site. With "pass
+through path", the path of the request is appended to the target, which moves a whole domain:
+`old-brand.com/products/shoes` goes to `new-brand.com/products/shoes`.
+
+A domain redirect runs before a site or the system settings send an additional domain to its main domain.
+
+
+#### Scheduling
+
+A redirect can be valid from a date, until a date, or both. Outside of that time it does not apply. Two redirects can
+share a source when their times differ, for example a campaign target for the summer and a permanent one for the rest
+of the year. The one with the higher priority applies while both are valid.
+
+
+#### Protected Redirects
+
+A protected redirect is visible only to users with the permission "Manage protected redirects" (`redirects_protected`).
+Administrators have it. Use it for redirects an agency or the SEO team owns, like the redirects of a relaunch.
+
+Nobody without the permission can override a protected redirect:
+
+* Within its stage, a protected redirect wins over every redirect that is not protected, whatever their priorities.
+* Creating, importing or changing an exact source that a protected redirect already uses is refused. The message does
+  not reveal the protected redirect.
+* A protected redirect cannot be changed, deleted, exported or imported without the permission.
+
+
+#### Validation
+
+The editor refuses a redirect that cannot work: a regular expression that does not compile, a redirect whose target is
+its own source, and a domain redirect whose target would stay on the same domain. It warns about a source that another
+redirect already uses and about a target that redirects again, and saves the redirect anyway.
+
+To tell search engines that a page has been removed for good, answer with the status code `410 Gone`.
+
+
 #### Hit Statistics
 
 OpenDXP counts how often each redirect answers a request, and when it did last. The count is written after the

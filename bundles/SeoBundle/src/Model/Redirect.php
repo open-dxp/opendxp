@@ -44,11 +44,17 @@ final class Redirect extends AbstractModel
 
     public const string TYPE_AUTO_CREATE = 'auto_create';
 
+    /**
+     * Matches every request to the host in the source, whatever its path.
+     */
+    public const string TYPE_DOMAIN = 'domain';
+
     public const array TYPES = [
         self::TYPE_ENTIRE_URI,
         self::TYPE_PATH_QUERY,
         self::TYPE_PATH,
         self::TYPE_AUTO_CREATE,
+        self::TYPE_DOMAIN,
     ];
 
     protected ?int $id = null;
@@ -74,6 +80,19 @@ final class Redirect extends AbstractModel
     protected bool $active = true;
 
     protected int|string|null $expiry = null;
+
+    protected ?int $validFrom = null;
+
+    /**
+     * A domain redirect appends the path of the request to its target.
+     */
+    protected bool $passThroughPath = false;
+
+    /**
+     * Only users with the permission redirects_protected see and change a protected redirect, and it wins over every
+     * other redirect of its stage.
+     */
+    protected bool $protected = false;
 
     protected ?int $creationDate = null;
 
@@ -271,6 +290,45 @@ final class Redirect extends AbstractModel
     public function getExpiry(): ?int
     {
         return $this->expiry;
+    }
+
+    public function setValidFrom(int|string|null $validFrom): static
+    {
+        if (is_string($validFrom)) {
+            $validFrom = is_numeric($validFrom) ? (int) $validFrom : (strtotime($validFrom) ?: null);
+        }
+        $this->validFrom = $validFrom ?: null;
+
+        return $this;
+    }
+
+    public function getValidFrom(): ?int
+    {
+        return $this->validFrom;
+    }
+
+    public function setPassThroughPath(bool $passThroughPath): static
+    {
+        $this->passThroughPath = $passThroughPath;
+
+        return $this;
+    }
+
+    public function getPassThroughPath(): bool
+    {
+        return $this->passThroughPath;
+    }
+
+    public function setProtected(bool $protected): static
+    {
+        $this->protected = $protected;
+
+        return $this;
+    }
+
+    public function isProtected(): bool
+    {
+        return $this->protected;
     }
 
     public function getRegex(): ?bool

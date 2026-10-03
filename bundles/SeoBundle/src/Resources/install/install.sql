@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `http_error_log` (
 
 CREATE TABLE IF NOT EXISTS `redirects` (
      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-     `type` ENUM('entire_uri','path_query','path','auto_create') NOT NULL,
+     `type` ENUM('entire_uri','path_query','path','auto_create','domain') NOT NULL,
      `source` varchar(1024) DEFAULT NULL,
      `sourceSite` int(11) DEFAULT NULL,
      `target` varchar(1024) DEFAULT NULL,
@@ -25,7 +25,10 @@ CREATE TABLE IF NOT EXISTS `redirects` (
      `priority` int(2) DEFAULT '0',
      `regex` tinyint(1) DEFAULT NULL,
      `passThroughParameters` tinyint(1) DEFAULT NULL,
+     `passThroughPath` tinyint(1) NOT NULL DEFAULT 0,
      `active` tinyint(1) DEFAULT NULL,
+     `protected` tinyint(1) NOT NULL DEFAULT 0,
+     `validFrom` int(11) unsigned DEFAULT NULL,
      `expiry` int(11) unsigned DEFAULT NULL,
      `creationDate` int(11) unsigned DEFAULT '0',
      `modificationDate` int(11) unsigned DEFAULT '0',

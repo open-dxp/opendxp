@@ -10,10 +10,15 @@ use Transliterator;
 /**
  * The active redirects, arranged for the lookup of a request.
  *
- * A request is checked in two stages. Before routing, only redirects with priority 99 apply, so they win over existing
- * pages. When nothing answers the request, every exact source applies and every regular expression below priority 99.
- * Exact sources are kept in hash maps by the part of the URL they compare. Regular expressions are kept in the order
- * they are tried in.
+ * A domain redirect applies to every request to its host, before anything else. A request is then checked in two
+ * stages. Before routing, only redirects with priority 99 apply, so they win over existing pages. When nothing answers
+ * the request, every exact source applies and every regular expression below priority 99.
+ *
+ * Within a stage, protected redirects come first. A protected exact source wins over a protected regular expression,
+ * which wins over an exact source that is not protected. That way nobody without the permission can override a
+ * protected redirect.
+ *
+ * Exact sources and hosts are kept in hash maps. Regular expressions are kept in the order they are tried in.
  *
  * A row is the database row of a redirect, so a hit turns into the same model that Redirect::getById() loads.
  *
@@ -40,7 +45,7 @@ final class RedirectTable
     private static ?Transliterator $accentFolding = null;
 
     /**
-     * @param array{installed: bool, exact: array<string, array<string, array<string, array<string, list<array<string, mixed>>>>>>, regex: array<string, list<array<string, mixed>>>} $data
+     * @param array{installed: bool, host: array<string, list<array<string, mixed>>>, exact: array<string, array<string, array<string, array<string, list<array<string, mixed>>>>>>, regex: array<string, array<int, list<array<string, mixed>>>>} $data
      */
     private function __construct(private readonly array $data)
     {
@@ -51,11 +56,17 @@ final class RedirectTable
      */
     public static function fromRows(iterable $rows): self
     {
-        $data = ['installed' => true, 'exact' => [], 'regex' => []];
+        $data = ['installed' => true, 'host' => [], 'exact' => [], 'regex' => []];
 
         foreach ($rows as $row) {
             // The model ignores empty values, so the table leaves them out.
             $row = array_filter($row, static fn (mixed $value): bool => $value !== null);
+
+            if (($row['type'] ?? '') === Redirect::TYPE_DOMAIN) {
+                $data['host'][self::normalize((string) $row['source'])][] = $row;
+
+                continue;
+            }
 
             $part = self::PART_OF_TYPE[$row['type'] ?? ''] ?? null;
             if ($part === null) {
@@ -65,7 +76,12 @@ final class RedirectTable
             $overrides = (int) ($row['priority'] ?? 0) === self::OVERRIDE_PRIORITY;
 
             if (!empty($row['regex'])) {
-                $data['regex'][$overrides ? self::BEFORE_ROUTING : self::NOT_FOUND][] = $row;
+                // A pattern that does not compile never matches. Leaving it out spares every request the attempt.
+                if (!self::compiles((string) ($row['source'] ?? ''))) {
+                    continue;
+                }
+
+                $data['regex'][$overrides ? self::BEFORE_ROUTING : self::NOT_FOUND][(int) !empty($row['protected'])][] = $row;
 
                 continue;
             }
@@ -89,7 +105,14 @@ final class RedirectTable
         }
         unset($sites, $parts, $sources, $candidates);
 
-        foreach ($data['regex'] as &$candidates) {
+        foreach ($data['regex'] as &$lists) {
+            foreach ($lists as &$candidates) {
+                usort($candidates, self::compareByPriority(...));
+            }
+        }
+        unset($lists, $candidates);
+
+        foreach ($data['host'] as &$candidates) {
             usort($candidates, self::compareByPriority(...));
         }
         unset($candidates);
@@ -99,11 +122,11 @@ final class RedirectTable
 
     public static function notInstalled(): self
     {
-        return new self(['installed' => false, 'exact' => [], 'regex' => []]);
+        return new self(['installed' => false, 'host' => [], 'exact' => [], 'regex' => []]);
     }
 
     /**
-     * @param array{installed: bool, exact: array<string, mixed>, regex: array<string, mixed>} $data
+     * @param array{installed: bool, host: array<string, mixed>, exact: array<string, mixed>, regex: array<string, mixed>} $data
      */
     public static function fromArray(array $data): self
     {
@@ -111,7 +134,7 @@ final class RedirectTable
     }
 
     /**
-     * @return array{installed: bool, exact: array<string, mixed>, regex: array<string, mixed>}
+     * @return array{installed: bool, host: array<string, mixed>, exact: array<string, mixed>, regex: array<string, mixed>}
      */
     public function toArray(): array
     {
@@ -124,7 +147,22 @@ final class RedirectTable
     }
 
     /**
-     * Finds the exact source with the highest priority among the parts of the request URL.
+     * @return array<string, mixed>|null
+     */
+    public function domainMatch(string $host, int $now): ?array
+    {
+        foreach ($this->data['host'][self::normalize($host)] ?? [] as $row) {
+            if (self::hasStarted($row, $now) && (empty($row['expiry']) || (int) $row['expiry'] > $now)) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds the exact source that comes first among the parts of the request URL: a protected one before any other,
+     * then the one with the highest priority.
      *
      * @return array<string, mixed>|null
      */
@@ -134,7 +172,7 @@ final class RedirectTable
 
         foreach ($this->data['exact'][$stage][(string) ($siteId ?? '')] ?? [] as $part => $sources) {
             foreach ($sources[self::normalize($request->getRequestUriPart($part))] ?? [] as $row) {
-                if (isset($row['expiry']) && (int) $row['expiry'] <= $now) {
+                if ((isset($row['expiry']) && (int) $row['expiry'] <= $now) || !self::hasStarted($row, $now)) {
                     continue;
                 }
 
@@ -152,9 +190,17 @@ final class RedirectTable
     /**
      * @return list<array<string, mixed>> the regular expressions of the stage, in the order they are tried in
      */
-    public function regularExpressions(string $stage): array
+    public function regularExpressions(string $stage, bool $protected): array
     {
-        return $this->data['regex'][$stage] ?? [];
+        return $this->data['regex'][$stage][(int) $protected] ?? [];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    public static function hasStarted(array $row, int $now): bool
+    {
+        return empty($row['validFrom']) || (int) $row['validFrom'] <= $now;
     }
 
     /**
@@ -171,12 +217,24 @@ final class RedirectTable
         return self::$accentFolding?->transliterate($value) ?: mb_strtolower($value);
     }
 
+    private static function compiles(string $pattern): bool
+    {
+        set_error_handler(static fn (): bool => true);
+
+        try {
+            return preg_match($pattern, '') !== false;
+        } finally {
+            restore_error_handler();
+        }
+    }
+
     /**
      * @param array<string, mixed> $a
      * @param array<string, mixed> $b
      */
     private static function compareByPriority(array $a, array $b): int
     {
-        return [(int) ($b['priority'] ?? 0), (int) $a['id']] <=> [(int) ($a['priority'] ?? 0), (int) $b['id']];
+        return [(int) !empty($b['protected']), (int) ($b['priority'] ?? 0), (int) $a['id']]
+            <=> [(int) !empty($a['protected']), (int) ($a['priority'] ?? 0), (int) $b['id']];
     }
 }

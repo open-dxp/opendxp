@@ -136,3 +136,39 @@ it('redirects to the main domain of the target site', function () {
 
     expect(answerTo('/to-site')['location'])->toBe('http://' . $site->getMainDomain() . '/welcome');
 });
+
+it('redirects only once the redirect is valid', function (bool $regex, int $validFrom, bool $redirected) {
+    RedirectFactory::createOne(['source' => $regex ? '@^/scheduled$@' : '/scheduled', 'target' => '/campaign', 'regex' => $regex, 'validFrom' => $validFrom]);
+
+    expect(answerTo('/scheduled')['status'])->toBe($redirected ? 301 : 404);
+})->with([
+    'an exact source that starts later' => [false, time() + 3600, false],
+    'a regular expression that starts later' => [true, time() + 3600, false],
+    'an exact source that has started' => [false, time() - 3600, true],
+    'a regular expression that has started' => [true, time() - 3600, true],
+]);
+
+it('takes a protected exact source before an unprotected one with a higher priority', function () {
+    $protected = RedirectFactory::createOne(['source' => '/relaunch', 'target' => '/kept', 'priority' => 1, 'protected' => true]);
+    RedirectFactory::createOne(['source' => '/relaunch', 'target' => '/override', 'priority' => 10]);
+
+    expect(answerTo('/relaunch')['redirect'])->toBe($protected->getId());
+});
+
+it('takes a protected regular expression before an unprotected exact source', function () {
+    $protected = RedirectFactory::createOne(['source' => '@^/legacy/.*@', 'target' => '/kept', 'regex' => true, 'protected' => true]);
+    RedirectFactory::createOne(['source' => '/legacy/page', 'target' => '/override', 'priority' => 10]);
+
+    expect(answerTo('/legacy/page')['redirect'])->toBe($protected->getId());
+});
+
+it('offers 410 Gone for removed content', function () {
+    expect(Redirect::getStatusCodes())->toHaveKey(410);
+});
+
+it('ignores a regular expression that does not compile', function () {
+    RedirectFactory::createOne(['source' => '@^/broken(@', 'target' => '/x', 'regex' => true]);
+    $valid = RedirectFactory::createOne(['source' => '@^/broken@', 'target' => '/y', 'regex' => true]);
+
+    expect(answerTo('/broken(')['redirect'])->toBe($valid->getId());
+});

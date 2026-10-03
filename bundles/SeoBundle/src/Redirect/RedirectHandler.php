@@ -73,13 +73,49 @@ final class RedirectHandler
         $now = time();
 
         $exactMatch = $table->exactMatch($stage, $sourceSite?->getId(), $partResolver, $now);
-        if ($exactMatch !== null && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
+        $exactMatchIsProtected = !empty($exactMatch['protected']);
+
+        if ($exactMatch !== null && $exactMatchIsProtected && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
             return $response;
         }
 
-        foreach ($table->regularExpressions($stage) as $row) {
+        if (($response = $this->matchRegularExpressions($table->regularExpressions($stage, true), $request, $partResolver, $sourceSite, $now)) instanceof Response) {
+            return $response;
+        }
+
+        if ($exactMatch !== null && !$exactMatchIsProtected && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
+            return $response;
+        }
+
+        return $this->matchRegularExpressions($table->regularExpressions($stage, false), $request, $partResolver, $sourceSite, $now);
+    }
+
+    /**
+     * A domain redirect answers every request to its host, whatever its path.
+     *
+     * @throws Exception
+     */
+    public function checkForDomainRedirect(Request $request): ?Response
+    {
+        if ($this->requestHelper->isFrontendRequestByAdmin($request)) {
+            return null;
+        }
+
+        $row = $this->tables->get()->domainMatch($request->getHost(), time());
+
+        return $row === null ? null : $this->buildRedirectResponse($this->hydrate($row), $request);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     *
+     * @throws Exception
+     */
+    private function matchRegularExpressions(array $rows, Request $request, RedirectUrlPartResolver $partResolver, ?Site $sourceSite, int $now): ?Response
+    {
+        foreach ($rows as $row) {
             // this is the case when maintenance did't deactivate the redirect yet but it is already expired
-            if (!empty($row['expiry']) && (int) $row['expiry'] < $now) {
+            if ((!empty($row['expiry']) && (int) $row['expiry'] < $now) || !RedirectTable::hasStarted($row, $now)) {
                 continue;
             }
 
@@ -182,6 +218,10 @@ final class RedirectHandler
                     $url = $request->getScheme().'://'.$redirectDomain.$url;
                 }
             }
+        }
+
+        if ($redirect->getType() === Redirect::TYPE_DOMAIN && $redirect->getPassThroughPath()) {
+            $url = rtrim($url, '/') . $request->getPathInfo();
         }
 
         // pass-through parameters if specified

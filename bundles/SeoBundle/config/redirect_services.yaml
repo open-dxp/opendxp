@@ -10,6 +10,8 @@ services:
 
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter: ~
 
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator: ~
+
     #
     # REDIRECTS Export
     #
