@@ -15,7 +15,21 @@ Depending on their priority, Redirects come second (priority 99) or fifth (all o
 
 
 ## Setting up Redirects
-Redirects are configured in the Redirects editor, accessible via the Tools menu. 
+Redirects are configured in the Redirects editor, accessible via the Tools menu.
+
+The grid edits the common fields of a redirect in its row. The pencil of a row opens all fields, also the ones the grid
+does not show, like the domain options, the validity, the protection and the usage of the redirect. A document dragged
+onto the target field becomes the target.
+
+The grid shows how often each redirect was hit and when it was last. A view above the grid narrows it to active,
+inactive, not yet valid, expired or protected redirects, or to redirects without a hit for 90 days. "Selection"
+activates, deactivates or deletes the selected redirects.
+
+#### Creating Redirects From the HTTP Error Log
+
+A URL that is not found shows up in Marketing > SEO > HTTP Errors. The redirect button of a row opens a new redirect
+with the path and the site of the URL. Once the redirect is saved, the URL leaves the log, because the redirect answers
+it from now on.
 
 #### Regular Expression and Back-Reference Syntax
 

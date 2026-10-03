@@ -14,6 +14,8 @@
 - Feature: Protected redirects are visible only to users with the new permission `redirects_protected`. They win over every other redirect of their stage, and nobody without the permission can take over their source [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Improvement: The redirect editor refuses invalid regular expressions, redirects to their own source and domain redirects that would stay on their domain. It warns about duplicate sources and chains. It saves only the fields an editor may set [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Improvement: `410 Gone` is one of the default redirect status codes [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: The redirect editor shows the hits of each redirect, edits all fields of a redirect in a window, narrows the grid to a view like "no hit for 90 days" and changes several redirects at once [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Seo;
 
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
+use OpenDxp\Db;
 use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\RedirectFactory;
 use OpenDxp\Test\Factory\UserFactory;
@@ -99,7 +100,7 @@ it('keeps an editor from taking over the source of a protected redirect', functi
 
     $browser = redirectGrid(editor(), 'create', ['type' => Redirect::TYPE_PATH, 'source' => '/Relaunch', 'target' => '/mine', 'statusCode' => 301, 'priority' => 99, 'active' => true]);
 
-    $browser->assertStatus(422);
+    expect(gridResponse($browser->assertSuccessful())['success'])->toBeFalse();
     expect(gridResponse($browser)['errors'])->toBe([['field' => 'source', 'message' => 'redirect_source_protected']])
         ->and($browser->content())->not->toContain('secret-target');
 });
@@ -127,7 +128,7 @@ it('saves only the fields an editor may set', function () {
 it('refuses a redirect that cannot work', function (array $values, string $field, string $message) {
     $browser = redirectGrid(seoSpecialist(), 'create', ['type' => Redirect::TYPE_PATH, 'statusCode' => 301, 'priority' => 1, 'active' => true, ...$values]);
 
-    $browser->assertStatus(422);
+    expect(gridResponse($browser->assertSuccessful())['success'])->toBeFalse();
     expect(gridResponse($browser)['errors'])->toContain(['field' => $field, 'message' => $message]);
 })->with([
     'an invalid regular expression' => [['source' => '@^/broken(@', 'target' => '/x', 'regex' => true], 'source', 'redirect_regex_invalid'],
@@ -174,4 +175,59 @@ it('imports a file of an older export without the new columns', function () {
     ]);
 
     expect($result)->toMatchArray(['created' => 1, 'errored' => 0]);
+});
+
+/**
+ * @return array<int, array<string, mixed>> the listed redirects by ID
+ */
+function listedRedirectData(User $user, array $parameters = []): array
+{
+    $response = json_decode(redirectGrid($user, parameters: ['limit' => '1000', ...$parameters])->assertSuccessful()->content(), true);
+
+    return array_column($response['data'], null, 'id');
+}
+
+it('lists how often each redirect was hit and when it was last', function () {
+    $hit = RedirectFactory::createOne(['source' => '/hit-' . uniqid()]);
+    $unhit = RedirectFactory::createOne(['source' => '/unhit-' . uniqid()]);
+    Db::get()->insert('redirect_hits', ['redirectId' => $hit->getId(), 'hits' => 7, 'lastHit' => 1700000000]);
+
+    $listed = listedRedirectData(editor());
+
+    expect($listed[$hit->getId()])->toMatchArray(['hits' => 7, 'lastHit' => 1700000000])
+        ->and($listed[$unhit->getId()])->toMatchArray(['hits' => 0, 'lastHit' => null]);
+});
+
+it('sorts the redirects by their hits', function () {
+    $few = RedirectFactory::createOne(['source' => '/few-' . uniqid()]);
+    $many = RedirectFactory::createOne(['source' => '/many-' . uniqid()]);
+    Db::get()->insert('redirect_hits', ['redirectId' => $few->getId(), 'hits' => 1, 'lastHit' => time()]);
+    Db::get()->insert('redirect_hits', ['redirectId' => $many->getId(), 'hits' => 100, 'lastHit' => time()]);
+
+    $ids = array_keys(listedRedirectData(editor(), ['sort' => json_encode([['property' => 'hits', 'direction' => 'DESC']])]));
+
+    expect(array_search($many->getId(), $ids, true))->toBeLessThan(array_search($few->getId(), $ids, true));
+});
+
+it('shows the redirects of a view', function (string $view, array $values, bool $shown) {
+    $redirect = RedirectFactory::createOne(['source' => '/view-' . uniqid(), ...$values]);
+
+    expect(array_key_exists($redirect->getId(), listedRedirectData(seoSpecialist(), ['show' => $view])))->toBe($shown);
+})->with([
+    'active shows an active one' => ['active', [], true],
+    'active hides an inactive one' => ['active', ['active' => false], false],
+    'inactive shows an inactive one' => ['inactive', ['active' => false], true],
+    'expired shows an expired one' => ['expired', ['expiry' => time() - 60], true],
+    'expired hides a running one' => ['expired', ['expiry' => time() + 3600], false],
+    'scheduled shows one that starts later' => ['scheduled', ['validFrom' => time() + 3600], true],
+    'protected shows a protected one' => ['protected', ['protected' => true], true],
+    'protected hides an open one' => ['protected', [], false],
+    'unused shows one that was never hit' => ['unused', [], true],
+]);
+
+it('hides a redirect hit lately from the unused view', function () {
+    $redirect = RedirectFactory::createOne(['source' => '/used-' . uniqid()]);
+    Db::get()->insert('redirect_hits', ['redirectId' => $redirect->getId(), 'hits' => 1, 'lastHit' => time()]);
+
+    expect(listedRedirectData(seoSpecialist(), ['show' => 'unused']))->not->toHaveKey($redirect->getId());
 });

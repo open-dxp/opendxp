@@ -10,6 +10,9 @@ use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
 use OpenDxp\Db;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Test\Factory\RedirectFactory;
+use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Test\Factory\UserFactory;
+use OpenDxp\TestFoundation\Browser;
 use OpenDxp\TestFoundation\Container;
 use Psr\Log\NullLogger;
 use RuntimeException;
@@ -78,4 +81,28 @@ it('does not log a URL that a redirect answers', function () {
     answerTo('http://localhost/redirected-away');
 
     expect(loggedErrors('http://localhost/redirected-away'))->toBe([]);
+});
+
+it('offers the path and the site of a logged URL', function () {
+    $site = SiteFactory::createOne();
+    $uri = 'http://' . $site->getMainDomain() . '/old/' . rawurlencode('Über uns') . '?x=1';
+    logHttpError($uri, new NotFoundHttpException());
+
+    $logged = json_decode(Browser::actingAs(UserFactory::new()->admin()->create())
+        ->post('/admin/bundle/seo/http-error-log', ['body' => ['filter' => $site->getMainDomain()]])
+        ->assertSuccessful()->content(), true)['items'];
+
+    expect($logged)->toHaveCount(1)
+        ->and($logged[0])->toMatchArray(['path' => '/old/Über uns', 'siteId' => $site->getId()]);
+});
+
+it('removes a URL from the log', function () {
+    $uri = 'http://localhost/handled-' . uniqid();
+    logHttpError($uri, new NotFoundHttpException());
+
+    Browser::actingAs(UserFactory::new()->admin()->create())
+        ->delete('/admin/bundle/seo/http-error-log-entry?' . http_build_query(['uri' => $uri]))
+        ->assertSuccessful();
+
+    expect(loggedErrors($uri))->toBe([]);
 });

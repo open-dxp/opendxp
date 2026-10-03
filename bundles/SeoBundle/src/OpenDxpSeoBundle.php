@@ -53,6 +53,7 @@ class OpenDxpSeoBundle extends AbstractOpenDxpBundle implements DependentBundleI
     {
         return [
             '/bundles/opendxpseo/js/startup.js',
+            '/bundles/opendxpseo/js/redirectEditor.js',
             '/bundles/opendxpseo/js/httpErrorLog.js',
             '/bundles/opendxpseo/js/robotstxt.js',
             '/bundles/opendxpseo/js/seopanel.js',
