@@ -18,8 +18,8 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle\EventListener;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
-use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -31,8 +31,10 @@ class RoutingListener implements EventSubscriberInterface
 {
     use OpenDxpContextAwareTrait;
 
-    public function __construct(protected RedirectHandler $redirectHandler)
-    {
+    public function __construct(
+        protected RedirectHandler $redirectHandler,
+        protected ?RedirectHitCounter $hitCounter = null,
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -48,10 +50,6 @@ class RoutingListener implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!OpenDxpSeoBundle::isInstalled()) {
-            return;
-        }
-
         $request = $event->getRequest();
         if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
             return;
@@ -60,15 +58,12 @@ class RoutingListener implements EventSubscriberInterface
         $response = $this->redirectHandler->checkForRedirect($request, true);
         if ($response) {
             $event->setResponse($response);
+            $this->hitCounter?->count($response);
         }
     }
 
     public function onKernelException(ExceptionEvent $event): void
     {
-        if (!OpenDxpSeoBundle::isInstalled()) {
-            return;
-        }
-
         $request = $event->getRequest();
         if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
             return;
@@ -80,6 +75,7 @@ class RoutingListener implements EventSubscriberInterface
             $response = $this->redirectHandler->checkForRedirect($request, false);
             if ($response) {
                 $event->setResponse($response);
+                $this->hitCounter?->count($response);
             }
         }
     }

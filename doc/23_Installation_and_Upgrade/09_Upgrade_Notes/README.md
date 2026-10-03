@@ -7,6 +7,9 @@
 - Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
 - Improvement: Allow `symfony/process` 8.
 - Bugfix: Moving a page with a pretty URL no longer creates a redirect for its former path in the document tree. Visitors reach the page under its pretty URL, which stays the same [#194](https://github.com/open-dxp/opendxp/issues/194)
+- Improvement: Redirects are resolved from a compiled table in OPcache instead of the database. A request costs a single cache lookup instead of three to four queries, and saving a redirect no longer makes the next request load every redirect one by one. Run the core migrations: they add the table `redirect_hits`, allow redirect sources and targets of up to 1024 characters and key the `http_error_log` by a hash of the URI. A system without `OpenDxpSeoBundle` is left alone [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Count how often each redirect answers a request, and when it did last. Switch it off with `opendxp_seo.redirects.count_hits: false` [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
 
 ## OpenDXP 1.4.3

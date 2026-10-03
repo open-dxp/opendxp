@@ -6,6 +6,10 @@ services:
     # redirect handler used to handle redirects before/after routing
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler: ~
 
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider: ~
+
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter: ~
+
     #
     # REDIRECTS Export
     #

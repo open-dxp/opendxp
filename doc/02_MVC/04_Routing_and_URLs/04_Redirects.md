@@ -50,6 +50,39 @@ A page with a pretty URL gets no redirect for its former path when it is moved, 
 reach it under its pretty URL.
 
 
+#### Matching
+
+A redirect compares the part of the URL its type names: the path, the path with the query, or the entire URI. An exact
+source matches regardless of upper and lower case and regardless of accents, so `/Über-Uns` matches `/uber-uns`.
+
+An exact source is tried before any regular expression. Among regular expressions, the one with the highest priority
+wins. A redirect without a source site applies only to requests outside of a site.
+
+
+#### Hit Statistics
+
+OpenDXP counts how often each redirect answers a request, and when it did last. The count is written after the
+response has been sent, so a visitor does not wait for it. It shows whether a redirect is still needed.
+
+Counting can be switched off:
+
+```yaml
+opendxp_seo:
+    redirects:
+        count_hits: false
+```
+
+
+#### Performance
+
+OpenDXP compiles the active redirects into a PHP file in the cache directory. OPcache keeps the file in shared memory,
+so a request reads the redirects without querying them. A request costs a single lookup in the cache for the revision
+of the redirects, however many redirects there are.
+
+Saving, deleting or importing a redirect clears the cache tag `redirect`, and the next request compiles the redirects
+again. Every server of a cluster compiles its own file from the shared cache revision.
+
+
 #### Creating custom redirect status codes
 The redirect status codes list can be extended by adding custom codes in config.yaml:
 

@@ -20,7 +20,6 @@ use Exception;
 use OpenDxp\Bundle\SeoBundle\Event\Model\RedirectEvent;
 use OpenDxp\Bundle\SeoBundle\Event\RedirectEvents;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
-use OpenDxp\Cache;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Helper\StringHelper;
 use OpenDxp\Http\Request\Host\GeneralHostResolver;
@@ -33,8 +32,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
 
 /**
  * @internal
@@ -45,22 +42,14 @@ final class RedirectHandler
 
     public const string RESPONSE_HEADER_NAME_ID = 'X-OpenDxp-Redirect-ID';
 
-    /**
-     * @var Redirect[]|null
-     */
-    private ?array $redirects = null;
-
-    private ?LockInterface $lock = null;
-
     public function __construct(
         private RequestHelper $requestHelper,
         private SiteResolver $siteResolver,
-        LockFactory $lockFactory,
+        private RedirectTableProvider $tables,
         private LoggerInterface $logger,
         private LoggerInterface $redirectLogger,
         private GeneralHostResolver $generalHostResolver,
     ) {
-        $this->lock = $lockFactory->createLock(self::class);
     }
 
     /**
@@ -78,13 +67,23 @@ final class RedirectHandler
             $sourceSite = $this->siteResolver->getSite($request);
         }
 
-        if ((($redirect = Redirect::getByExactMatch($request, $sourceSite, $override))) && ($response = $this->buildRedirectResponse($redirect, $request)) instanceof \Symfony\Component\HttpFoundation\Response) {
+        $table = $this->tables->get();
+        $stage = $override ? RedirectTable::BEFORE_ROUTING : RedirectTable::NOT_FOUND;
+        $partResolver = new RedirectUrlPartResolver($request);
+        $now = time();
+
+        $exactMatch = $table->exactMatch($stage, $sourceSite?->getId(), $partResolver, $now);
+        if ($exactMatch !== null && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
             return $response;
         }
 
-        $partResolver = new RedirectUrlPartResolver($request);
-        foreach ($this->getRegexFilteredRedirects($override) as $redirect) {
-            if (($response = $this->matchRegexRedirect($redirect, $request, $partResolver, $sourceSite)) instanceof \Symfony\Component\HttpFoundation\Response) {
+        foreach ($table->regularExpressions($stage) as $row) {
+            // this is the case when maintenance did't deactivate the redirect yet but it is already expired
+            if (!empty($row['expiry']) && (int) $row['expiry'] < $now) {
+                continue;
+            }
+
+            if (($response = $this->matchRegexRedirect($row, $request, $partResolver, $sourceSite)) instanceof Response) {
                 return $response;
             }
         }
@@ -93,39 +92,41 @@ final class RedirectHandler
     }
 
     /**
+     * @param array<string, mixed> $row
+     *
      * @throws Exception
      */
     private function matchRegexRedirect(
-        Redirect $redirect,
+        array $row,
         Request $request,
         RedirectUrlPartResolver $partResolver,
         ?Site $sourceSite = null
     ): ?Response {
-        if (empty($redirect->getType())) {
-            return null;
-        }
-
-        $matchPart = $partResolver->getRequestUriPart($redirect->getType());
         $matches = [];
-
-        $doesMatch = false;
-        if ($redirect->isRegex()) {
-            $doesMatch = (bool)@preg_match($redirect->getSource(), $matchPart, $matches);
-        } else {
-            $source = str_replace('+', ' ', $redirect->getSource()); // see #2202
-            $doesMatch = $source === $matchPart;
-        }
-
-        if (!$doesMatch) {
+        if (!@preg_match((string) $row['source'], $partResolver->getRequestUriPart($row['type']), $matches)) {
             return null;
         }
 
         // check for a site
-        if (($redirect->getSourceSite() || $sourceSite) && (!$sourceSite || $sourceSite->getId() !== $redirect->getSourceSite())) {
+        $redirectSite = (int) ($row['sourceSite'] ?? 0);
+        if (($redirectSite || $sourceSite) && (!$sourceSite || $sourceSite->getId() !== $redirectSite)) {
             return null;
         }
 
-        return $this->buildRedirectResponse($redirect, $request, $matches);
+        return $this->buildRedirectResponse($this->hydrate($row), $request, $matches);
+    }
+
+    /**
+     * Turns a row of the redirect table into the model that Redirect::getById() would load.
+     *
+     * @param array<string, mixed> $row
+     */
+    private function hydrate(array $row): Redirect
+    {
+        $redirect = new Redirect();
+        $redirect->setValues($row);
+
+        return $redirect;
     }
 
     /**
@@ -207,75 +208,5 @@ final class RedirectHandler
         $this->redirectLogger->info(Tool::getAnonymizedClientIp() ?? 'Anonymous', ['Custom-Redirect ID: ' . $redirect->getId() . ', Source: ' . $request->getRequestUri() . ' -> ' . $url]);
 
         return $response;
-    }
-
-    /**
-     * @return Redirect[]
-     */
-    private function getRegexRedirects(): array
-    {
-        if (is_array($this->redirects)) {
-            return $this->redirects;
-        }
-
-        $cacheKey = 'system_route_redirect';
-        $valueFromCache = Cache::load($cacheKey);
-        $this->redirects = $valueFromCache === false ? null : $valueFromCache;
-        if ($this->redirects === null) {
-            // acquire lock to avoid concurrent redirect cache warm-up
-            $this->lock->acquire(true);
-
-            //check again if redirects are cached to avoid re-warming cache
-            $valueFromCache = Cache::load($cacheKey);
-            $this->redirects = $valueFromCache === false ? null : $valueFromCache;
-            if ($this->redirects === null) {
-                try {
-                    $list = new Redirect\Listing();
-                    $list->setCondition('active = 1 AND regex = 1');
-                    $list->setOrder('DESC');
-                    $list->setOrderKey('priority');
-
-                    $this->redirects = $list->load();
-
-                    Cache::save($this->redirects, $cacheKey, ['system', 'redirect', 'route'], null, 998, true);
-                } catch (Exception) {
-                    $this->logger->error('Failed to load redirects');
-                }
-            }
-
-            $this->lock->release();
-        }
-
-        if (!is_array($this->redirects)) {
-            $this->logger->warning('Failed to load redirects', [
-                'redirects' => $this->redirects,
-            ]);
-
-            $this->redirects = [];
-        }
-
-        return $this->redirects;
-    }
-
-    /**
-     * @return Redirect[]
-     */
-    private function getRegexFilteredRedirects(bool $override = false): array
-    {
-        $now = time();
-
-        return array_filter($this->getRegexRedirects(), function (Redirect $redirect) use ($override, $now) {
-            // this is the case when maintenance did't deactivate the redirect yet but it is already expired
-            if (!empty($redirect->getExpiry()) && $redirect->getExpiry() < $now) {
-                return false;
-            }
-
-            if ($override) {
-                // if override is true the priority has to be 99 which means that overriding is ok
-                return $redirect->getPriority() === 99;
-            }
-
-            return $redirect->getPriority() !== 99;
-        });
     }
 }

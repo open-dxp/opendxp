@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle;
 
 use OpenDxp\Bundle\SeoBundle\Security\SeoPermission;
+use OpenDxp\Cache;
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use OpenDxp\Security\PermissionAttribute;
 use Override;
@@ -31,6 +32,7 @@ class Installer extends SettingsStoreAwareInstaller
         $this->installDatabaseTable();
         $this->addUserPermission();
         parent::install();
+        Cache::clearTag('redirect');
     }
 
     #[Override]
@@ -39,6 +41,7 @@ class Installer extends SettingsStoreAwareInstaller
         $this->uninstallDatabaseTable();
         $this->removeUserPermission();
         parent::uninstall();
+        Cache::clearTag('redirect');
     }
 
     private function addUserPermission(): void
