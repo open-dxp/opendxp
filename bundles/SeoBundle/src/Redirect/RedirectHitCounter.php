@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Contracts\Service\ResetInterface;
 use Throwable;
@@ -16,8 +17,9 @@ use Throwable;
 /**
  * Counts how often each redirect answers a request.
  *
- * The count is written once the response has been sent, so a visitor never waits for it. Counting can be switched off
- * with opendxp_seo.redirects.count_hits.
+ * Every response a redirect answers carries the header X-OpenDxp-Redirect-ID, whichever listener produced it. The
+ * counter reads it from the main response and writes the count once the response has been sent, so a visitor never
+ * waits for it. Counting can be switched off with opendxp_seo.redirects.count_hits.
  *
  * @internal
  */
@@ -42,8 +44,16 @@ final class RedirectHitCounter implements EventSubscriberInterface, ResetInterfa
     public static function getSubscribedEvents(): array
     {
         return [
+            KernelEvents::RESPONSE => 'onKernelResponse',
             KernelEvents::TERMINATE => 'flush',
         ];
+    }
+
+    public function onKernelResponse(ResponseEvent $event): void
+    {
+        if ($event->isMainRequest()) {
+            $this->count($event->getResponse());
+        }
     }
 
     public function count(Response $response): void

@@ -19,7 +19,6 @@ namespace OpenDxp\Bundle\SeoBundle\EventListener;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -31,39 +30,19 @@ class RoutingListener implements EventSubscriberInterface
 {
     use OpenDxpContextAwareTrait;
 
-    public function __construct(
-        protected RedirectHandler $redirectHandler,
-        protected ?RedirectHitCounter $hitCounter = null,
-    ) {
+    public function __construct(protected RedirectHandler $redirectHandler)
+    {
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::REQUEST => [
-                // a domain redirect runs before the core redirects a host to its main domain
-                ['onKernelRequestForDomain', 520],
-                // run with high priority as we need to set the site early
-                ['onKernelRequest', 256],
-            ],
+            // run with high priority as we need to set the site early
+            KernelEvents::REQUEST => ['onKernelRequest', 256],
 
             // run with high priority before handling real errors
             KernelEvents::EXCEPTION => ['onKernelException', 64],
         ];
-    }
-
-    public function onKernelRequestForDomain(RequestEvent $event): void
-    {
-        $request = $event->getRequest();
-        if (!$event->isMainRequest() || !$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
-            return;
-        }
-
-        $response = $this->redirectHandler->checkForDomainRedirect($request);
-        if ($response) {
-            $event->setResponse($response);
-            $this->hitCounter?->count($response);
-        }
     }
 
     public function onKernelRequest(RequestEvent $event): void
@@ -76,7 +55,6 @@ class RoutingListener implements EventSubscriberInterface
         $response = $this->redirectHandler->checkForRedirect($request, true);
         if ($response) {
             $event->setResponse($response);
-            $this->hitCounter?->count($response);
         }
     }
 
@@ -93,7 +71,6 @@ class RoutingListener implements EventSubscriberInterface
             $response = $this->redirectHandler->checkForRedirect($request, false);
             if ($response) {
                 $event->setResponse($response);
-                $this->hitCounter?->count($response);
             }
         }
     }
