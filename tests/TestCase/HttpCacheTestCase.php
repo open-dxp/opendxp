@@ -21,14 +21,14 @@ use OpenDxp\HttpCache\HttpCacheTagCollectorInterface;
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\TestFoundation\StateTestCase;
+use OpenDxp\TestFoundation\EnvironmentTestCase;
 use OpenDxp\Tests\Application\Controller\TagCollectionController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-abstract class HttpCacheTestCase extends StateTestCase
+abstract class HttpCacheTestCase extends EnvironmentTestCase
 {
-    protected static function state(): string
+    protected static function environment(): string
     {
         return 'http_cache';
     }
