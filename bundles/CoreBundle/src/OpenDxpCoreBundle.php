@@ -24,6 +24,7 @@ use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\HtmlSanitizerPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\ImageAdapterAliasPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\LongRunningHelperPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\MessageBusPublicPass;
+use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\MigrationsPrefixOptionPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\MonologPsrLogMessageProcessorPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\MonologPublicLoggerPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\NavigationRendererPass;
@@ -78,6 +79,7 @@ class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
         $container->addCompilerPass(new TranslationSanitizerPass());
         $container->addCompilerPass(new SerializerPass());
         $container->addCompilerPass(new ImageAdapterAliasPass());
+        $container->addCompilerPass(new MigrationsPrefixOptionPass());
         $container->addCompilerPass(new DoctrineEntityCacheStrategyPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 10);
     }
 
