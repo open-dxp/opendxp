@@ -50,6 +50,7 @@ class Dao extends Model\Dao\AbstractDao
             LEFT JOIN assets ON dependencies.targettype="asset" AND dependencies.targetid=assets.id
             LEFT JOIN documents ON dependencies.targettype="document" AND dependencies.targetid=documents.id
             WHERE dependencies.sourceid = ? AND dependencies.sourcetype = ?
+                AND (objects.id IS NOT NULL OR assets.id IS NOT NULL OR documents.id IS NOT NULL)
             ORDER BY objects.path, objects.key, documents.path, documents.key, assets.path, assets.filename',
             [$this->model->getSourceId(), $this->model->getSourceType()]);
 
@@ -174,17 +175,17 @@ class Dao extends Model\Dao\AbstractDao
         FROM (
             SELECT d.sourceid as id, d.sourcetype as type
             FROM dependencies d
-            INNER JOIN objects o ON o.id = d.sourceid AND d.targettype= "object"
+            INNER JOIN objects o ON o.id = d.sourceid AND d.sourcetype = "object"
             WHERE d.targettype = :targetType AND d.targetid = :targetId AND LOWER(CONCAT(o.path, o.key)) RLIKE :value
             UNION
             SELECT d.sourceid as id, d.sourcetype as type
             FROM dependencies d
-            INNER JOIN documents doc ON doc.id = d.sourceid AND d.targettype= "document"
+            INNER JOIN documents doc ON doc.id = d.sourceid AND d.sourcetype = "document"
             WHERE d.targettype = :targetType AND d.targetid = :targetId AND LOWER(CONCAT(doc.path, doc.key)) RLIKE :value
             UNION
             SELECT d.sourceid as id, d.sourcetype as type
             FROM dependencies d
-            INNER JOIN assets a ON a.id = d.sourceid AND d.targettype= "asset"
+            INNER JOIN assets a ON a.id = d.sourceid AND d.sourcetype = "asset"
             WHERE d.targettype = :targetType AND d.targetid = :targetId AND LOWER(CONCAT(a.path, a.filename)) RLIKE :value
         ) dep
         ORDER BY %s %s',
@@ -205,7 +206,7 @@ class Dao extends Model\Dao\AbstractDao
     }
 
     /**
-     * Clear all relations in the database
+     * The dependencies on the element go right away. The sanity check of a source may never run or fail to save it.
      */
     public function cleanAllForElement(Element\ElementInterface $element): void
     {
@@ -225,8 +226,8 @@ class Dao extends Model\Dao\AbstractDao
             }
 
             $this->db->executeStatement(
-                'DELETE FROM dependencies WHERE sourceid = ? AND sourcetype = ?',
-                [$id, $type]
+                'DELETE FROM dependencies WHERE (sourceid = ? AND sourcetype = ?) OR (targetid = ? AND targettype = ?)',
+                [$id, $type, $id, $type]
             );
         } catch (Exception $e) {
             Logger::error((string) $e);
@@ -324,6 +325,7 @@ class Dao extends Model\Dao\AbstractDao
             LEFT JOIN assets ON dependencies.sourceid=assets.id AND dependencies.sourcetype="asset"
             LEFT JOIN documents ON dependencies.sourceid=documents.id AND dependencies.sourcetype="document"
             WHERE dependencies.targettype = ? AND dependencies.targetid = ?
+                AND (objects.id IS NOT NULL OR assets.id IS NOT NULL OR documents.id IS NOT NULL)
             ORDER BY objects.path, objects.key, documents.path, documents.key, assets.path, assets.filename
         ';
 
@@ -409,7 +411,12 @@ class Dao extends Model\Dao\AbstractDao
     public function getRequiredByTotalCount(): int
     {
         return (int) $this->db->fetchOne(
-            'SELECT COUNT(*) FROM dependencies WHERE targettype = ? AND targetid = ?',
+            'SELECT COUNT(*) FROM dependencies
+                LEFT JOIN objects ON dependencies.sourceid=objects.id AND dependencies.sourcetype="object"
+                LEFT JOIN assets ON dependencies.sourceid=assets.id AND dependencies.sourcetype="asset"
+                LEFT JOIN documents ON dependencies.sourceid=documents.id AND dependencies.sourcetype="document"
+                WHERE dependencies.targettype = ? AND dependencies.targetid = ?
+                    AND (objects.id IS NOT NULL OR assets.id IS NOT NULL OR documents.id IS NOT NULL)',
             [$this->model->getSourceType(), $this->model->getSourceId()]
         );
     }
