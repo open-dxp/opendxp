@@ -1,0 +1,13 @@
+/**
+* Set fieldcollection - fieldcollection
+* @param \OpenDxp\Model\DataObject\Fieldcollection|null $fieldcollection
+* @return $this
+*/
+public function setFieldcollection(?\OpenDxp\Model\DataObject\Fieldcollection $fieldcollection): static
+{
+	/** @var \OpenDxp\Model\DataObject\ClassDefinition\Data\Fieldcollections $fd */
+	$fd = $this->getClass()->getFieldDefinition("fieldcollection");
+	$this->fieldcollection = $fd->preSetData($this, $fieldcollection);
+	return $this;
+}
+

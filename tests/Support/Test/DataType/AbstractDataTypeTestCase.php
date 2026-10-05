@@ -32,6 +32,9 @@ use OpenDxp\Tests\Support\Helper\DataType\TestDataHelper;
 use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 abstract class AbstractDataTypeTestCase extends TestCase
 {
     protected bool $cleanupDbInSetup = true;

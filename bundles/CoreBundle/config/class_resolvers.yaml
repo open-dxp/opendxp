@@ -3,9 +3,6 @@ services:
         autowire: true
         autoconfigure: true
 
-    # Class resolver for all types
-    OpenDxp\Resolver\ClassResolver: ~
-
     opendxp.class.resolver.document:
         public: true
         class: OpenDxp\Resolver\ClassResolver

@@ -10,10 +10,10 @@ declare(strict_types=1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
+
 
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
@@ -21,347 +21,182 @@ use InvalidArgumentException;
 use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
-use OpenDxp\Tests\Support\Test\TestCase;
+use OpenDxp\Tests\Fixtures\Bundle\BundleA;
+use OpenDxp\Tests\Fixtures\Bundle\BundleB;
+use OpenDxp\Tests\Fixtures\Bundle\BundleC;
+use OpenDxp\Tests\Fixtures\Bundle\BundleD;
+use OpenDxp\Tests\Fixtures\Bundle\BundleE;
+use OpenDxp\Tests\Fixtures\Bundle\BundleF;
+use OpenDxp\Tests\Fixtures\Bundle\BundleG;
+use OpenDxp\Tests\Fixtures\Bundle\BundleH;
+use OpenDxp\Tests\Fixtures\Bundle\BundleI;
+use OpenDxp\Tests\Fixtures\Bundle\BundleJ;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
-class BundleCollectionTest extends TestCase
-{
-    private BundleCollection $collection;
+beforeEach(function () {
+    $this->collection = new BundleCollection();
+    $this->bundles = [new BundleA(), new BundleB(), new BundleC(), new BundleD()];
+});
 
-    /**
-     * @var BundleInterface[]
-     */
-    private array $bundles;
+it('takes a bundle instance', function () {
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->collection = new BundleCollection();
-
-        $this->bundles = [
-            new BundleA,
-            new BundleB,
-            new BundleC,
-            new BundleD,
-        ];
+    foreach ($this->bundles as $bundle) {
+        $this->collection->addBundle($bundle);
     }
 
-    public function testAddBundle(): void
-    {
-        foreach ($this->bundles as $bundle) {
-            $this->collection->addBundle($bundle);
-        }
+    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
+});
 
-        $this->assertEquals($this->bundles, $this->collection->getBundles('prod'));
+it('takes a bundle class name', function () {
+
+    $names = array_map('get_class', $this->bundles);
+
+    foreach ($names as $name) {
+        $this->collection->addBundle($name);
     }
 
-    public function testAddBundleAsString(): void
-    {
-        $identifiers = [];
+    expect($this->collection->getIdentifiers())->toBe($names);
+});
 
-        foreach ($this->bundles as $bundle) {
-            $className = get_class($bundle);
-            $identifiers[] = $className;
+it('takes several bundle instances at once', function () {
 
-            $this->collection->addBundle($className);
-        }
+    $this->collection->addBundles($this->bundles);
 
-        $this->assertEquals($identifiers, $this->collection->getIdentifiers());
+    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
+});
+
+it('takes several bundle class names at once', function () {
+
+    $names = array_map('get_class', $this->bundles);
+
+    $this->collection->addBundles($names);
+
+    expect($this->collection->getIdentifiers())->toBe($names);
+});
+
+it('takes an item', function () {
+
+    foreach ($this->bundles as $bundle) {
+        $this->collection->add(new Item($bundle));
     }
 
-    public function testAddBundles(): void
-    {
-        $this->collection->addBundles($this->bundles);
+    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
+});
 
-        $this->assertEquals($this->bundles, $this->collection->getBundles('prod'));
+it('knows an item only once it was added', function () {
+
+    $item = new Item($this->bundles[0]);
+
+    expect($this->collection->hasItem($item->getBundleIdentifier()))->toBeFalse();
+
+    $this->collection->add($item);
+
+    expect($this->collection->hasItem($item->getBundleIdentifier()))->toBeTrue();
+});
+
+it('hands an item back by the name of its bundle', function () {
+
+    $item = new Item($this->bundles[0]);
+    $this->collection->add($item);
+
+    expect($this->collection->getItem($item->getBundleIdentifier()))->toBe($item);
+});
+
+it('refuses to hand back an item it does not hold', function () {
+    (new BundleCollection())->getItem(BundleA::class);
+})->throws(InvalidArgumentException::class, sprintf('Bundle "%s" is not registered', BundleA::class));
+
+it('hands every item back', function () {
+
+    $items = array_map(static fn (Bundle $bundle) => new Item($bundle), $this->bundles);
+
+    foreach ($items as $item) {
+        $this->collection->add($item);
     }
 
-    public function testAddBundlesAsString(): void
-    {
-        $identifiers = [];
+    expect($this->collection->getItems())->toBe($items);
+});
 
-        foreach ($this->bundles as $bundle) {
-            $className = get_class($bundle);
-            $identifiers[] = $className;
-        }
+it('names every bundle it holds', function () {
 
-        $this->collection->addBundles($identifiers);
-
-        $this->assertEquals($identifiers, $this->collection->getIdentifiers());
+    foreach ($this->bundles as $bundle) {
+        $this->collection->add(new Item($bundle));
     }
 
-    public function testAddItem(): void
-    {
-        foreach ($this->bundles as $bundle) {
-            $this->collection->add(new Item($bundle));
-        }
+    expect($this->collection->getIdentifiers())->toBe(array_map('get_class', $this->bundles));
+});
 
-        $this->assertEquals($this->bundles, $this->collection->getBundles('prod'));
-    }
+it('hands the bundles back by priority, the highest first', function () {
 
-    public function testHasItem(): void
-    {
-        foreach ($this->bundles as $bundle) {
-            $item = new Item($bundle);
+    [$a, $b, $c, $d] = $this->bundles;
 
-            $this->assertFalse($this->collection->hasItem($item->getBundleIdentifier()));
-            $this->collection->add($item);
-            $this->assertTrue($this->collection->hasItem($item->getBundleIdentifier()));
-        }
-    }
+    $this->collection->addBundle($a, 10);
+    $this->collection->addBundle($b, 5);
+    $this->collection->addBundle($c, -10);
+    $this->collection->addBundle($d, 50);
 
-    public function testGetItem(): void
-    {
-        foreach ($this->bundles as $bundle) {
-            $item = new Item($bundle);
+    expect($this->collection->getBundles('prod'))->toBe([$d, $a, $b, $c]);
+});
 
-            $this->collection->add($item);
-            $this->assertEquals($item, $this->collection->getItem($item->getBundleIdentifier()));
-        }
-    }
+it('hands back only the bundles of the environment it is asked for', function (string $environment, array $expected) {
 
-    public function testGetItemThrowsException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Bundle "OpenDxp\Tests\Unit\HttpKernel\BundleCollection\BundleA" is not registered');
-        $item = new Item($this->bundles[0]);
+    [$always, $dev, $both, $test] = $this->bundles;
 
-        $this->assertFalse($this->collection->hasItem($item->getBundleIdentifier()));
-        $this->collection->getItem($item->getBundleIdentifier());
-    }
+    $this->collection->addBundle($always);
+    $this->collection->addBundle($dev, 0, ['dev']);
+    $this->collection->addBundle($both, 0, ['dev', 'test']);
+    $this->collection->addBundle($test, 0, ['test']);
 
-    public function testGetItems(): void
-    {
-        $items = [];
-        foreach ($this->bundles as $bundle) {
-            $item = new Item($bundle);
-            $items[] = $item;
+    expect($this->collection->getBundles($environment))
+        ->toBe(array_map(fn (int $index) => $this->bundles[$index], $expected));
+})->with([
+    'production' => ['prod', [0]],
+    'development' => ['dev', [0, 1, 2]],
+    'test' => ['test', [0, 2, 3]],
+]);
 
-            $this->collection->add($item);
-        }
+it('registers what a bundle depends on', function () {
 
-        $this->assertEquals($items, $this->collection->getItems());
-    }
+    $this->collection->addBundle(new BundleE());
 
-    public function testGetIdentifiers(): void
-    {
-        $identifiers = [];
-        foreach ($this->bundles as $bundle) {
-            $item = new Item($bundle);
-            $identifiers[] = $item->getBundleIdentifier();
+    expect($this->collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
+});
 
-            $this->collection->add($item);
-        }
+it('registers a dependency of a dependency', function () {
 
-        $this->assertEquals($identifiers, $this->collection->getIdentifiers());
-    }
+    $this->collection->addBundle(new BundleI());
 
-    public function testBundlesAreOrderedByPriority(): void
-    {
-        $collection = $this->collection;
-        $bundles = $this->bundles;
+    expect($this->collection->getIdentifiers())->toBe([
+        BundleI::class,
+        BundleA::class,
+        BundleB::class,
+        BundleE::class,
+        BundleF::class,
+    ]);
+});
 
-        $collection->addBundle($bundles[0], 10);
-        $collection->addBundle($bundles[1], 5);
-        $collection->addBundle($bundles[2], -10);
-        $collection->addBundle($bundles[3], 50);
+it('stops at a dependency that points back at the bundle itself', function () {
 
-        $result = $collection->getBundles('prod');
+    $this->collection->addBundle(new BundleG(), 10);
 
-        $this->assertEquals($bundles[3], $result[0]);
-        $this->assertEquals($bundles[0], $result[1]);
-        $this->assertEquals($bundles[1], $result[2]);
-        $this->assertEquals($bundles[2], $result[3]);
-    }
+    expect($this->collection->getIdentifiers())
+        ->toBe([BundleG::class, BundleH::class])
+        ->and($this->collection->getItem(BundleG::class)->getPriority())
+        ->toBe(10)
+        ->and($this->collection->getItem(BundleH::class)->getPriority())
+        ->toBe(8);
+});
 
-    public function testBundlesAreFilteredByEnvironment(): void
-    {
-        $collection = $this->collection;
+it('keeps the priority a bundle was added with against a lower one from a dependency', function () {
 
-        $bundles = $this->bundles;
-        $bundles[] = new BundleD;
+    $this->collection->addBundle(new BundleH(), 50);
+    $this->collection->addBundle(new BundleG(), 10);
+    $this->collection->addBundle(new BundleJ());
 
-        $collection->addBundle($bundles[0]); // this will always be loaded
-        $collection->addBundle($bundles[1], 0, ['dev']);
-        $collection->addBundle($bundles[2], 0, ['dev', 'test']);
-        $collection->addBundle($bundles[3], 0, ['test']);
-
-        // dev and test will be excluded
-        $this->assertEquals([
-            $bundles[0],
-        ], $collection->getBundles('prod'));
-
-        // dev environment excludes the test-only bundle
-        $this->assertEquals([
-            $bundles[0],
-            $bundles[1],
-            $bundles[2],
-        ], $collection->getBundles('dev'));
-
-        // test environment excludes the dev-only bundle
-        $this->assertEquals([
-            $bundles[0],
-            $bundles[2],
-            $bundles[3],
-        ], $collection->getBundles('test'));
-    }
-
-    /**
-     * @group only
-     */
-    public function testDependenciesAreRegistered(): void
-    {
-        $collection = new BundleCollection();
-        $collection->addBundle(new BundleE());
-
-        $this->assertEquals([
-            BundleE::class,
-            BundleF::class,
-        ], $collection->getIdentifiers());
-
-        $this->assertTrue($collection->hasItem(BundleE::class));
-        $this->assertTrue($collection->hasItem(BundleF::class));
-    }
-
-    /**
-     * @group only
-     */
-    public function testDependenciesOfDependenciesAreRegistered(): void
-    {
-        $collection = new BundleCollection();
-        $collection->addBundle(new BundleI());
-
-        $this->assertEquals([
-            BundleI::class,
-            BundleA::class,
-            BundleB::class,
-            BundleE::class,
-            BundleF::class,
-        ], $collection->getIdentifiers());
-
-        $this->assertTrue($collection->hasItem(BundleA::class));
-        $this->assertTrue($collection->hasItem(BundleB::class));
-        $this->assertTrue($collection->hasItem(BundleE::class));
-        $this->assertTrue($collection->hasItem(BundleF::class));
-        $this->assertTrue($collection->hasItem(BundleI::class));
-    }
-
-    /**
-     * @group only2
-     */
-    public function testDependentCircularReferencesAreIgnored(): void
-    {
-        $collection = new BundleCollection();
-
-        // BundleH is now implicitely added and tries to add BundleG with prio 5
-        $collection->addBundle(new BundleG, 10);
-
-        $this->assertEquals([
-            BundleG::class,
-            BundleH::class,
-        ], $collection->getIdentifiers());
-
-        $this->assertTrue($collection->hasItem(BundleG::class));
-        $this->assertTrue($collection->hasItem(BundleH::class));
-
-        $this->assertEquals(10, $collection->getItem(BundleG::class)->getPriority());
-        $this->assertEquals(8, $collection->getItem(BundleH::class)->getPriority());
-    }
-
-    /**
-     * @group only2
-     */
-    public function testItemsAreNotOverwrittenByDependencies(): void
-    {
-        $collection = new BundleCollection();
-
-        // add BundleH explicitly
-        $collection->addBundle(new BundleH, 50);
-
-        // BundleG tries to add BundleH, but it will be ignored as it is already registered with a higher priority
-        // BundleG is registered with priority 10, which is higher than in BundleH and will so the new prio will be 10
-        $collection->addBundle(new BundleG, 10);
-
-        // BundleJ will try to add BundleH again with prio 9
-        $collection->addBundle(new BundleJ());
-
-        $this->assertEquals([
-            BundleH::class,
-            BundleG::class,
-            BundleJ::class,
-        ], $collection->getIdentifiers());
-
-        $this->assertTrue($collection->hasItem(BundleG::class));
-        $this->assertTrue($collection->hasItem(BundleH::class));
-        $this->assertTrue($collection->hasItem(BundleJ::class));
-
-        // will be overwritten because of higher prio
-        $this->assertEquals(10, $collection->getItem(BundleG::class)->getPriority());
-        // as set here when adding the item
-        $this->assertEquals(50, $collection->getItem(BundleH::class)->getPriority());
-    }
-}
-
-class BundleA extends Bundle
-{
-}
-
-class BundleB extends Bundle
-{
-}
-
-class BundleC extends Bundle
-{
-}
-
-class BundleD extends Bundle
-{
-}
-
-class BundleE extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->addBundle(new BundleF());
-    }
-}
-
-class BundleF extends Bundle
-{
-}
-
-class BundleG extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->addBundle(new BundleH, 8);
-    }
-}
-
-class BundleH extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->addBundle(new BundleG, 5);
-    }
-}
-
-class BundleI extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->addBundle(new BundleA);
-        $collection->addBundle(new BundleB);
-        $collection->addBundle(new BundleE);
-    }
-}
-
-class BundleJ extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->addBundle(new BundleH(), 9);
-    }
-}
+    expect($this->collection->getIdentifiers())
+        ->toBe([BundleH::class, BundleG::class, BundleJ::class])
+        ->and($this->collection->getItem(BundleH::class)->getPriority())
+        ->toBe(50)
+        ->and($this->collection->getItem(BundleG::class)->getPriority())
+        ->toBe(10);
+});

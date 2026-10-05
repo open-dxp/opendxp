@@ -44,7 +44,6 @@ class OptimizeImageHandler implements BatchHandlerInterface
         return $this->handle($message, $ack);
     }
 
-    // @phpstan-ignore-next-line
     private function process(array $jobs): void
     {
         foreach ($jobs as [$message, $ack]) {
@@ -69,7 +68,6 @@ class OptimizeImageHandler implements BatchHandlerInterface
         }
     }
 
-    // @phpstan-ignore-next-line
     private function shouldFlush(): bool
     {
         return 100 <= count($this->jobs);

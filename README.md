@@ -111,7 +111,7 @@ cd ./my-project
 | [Issue Tracker](https://github.com/open-dxp/opendxp/issues)                                                                      | Report bugs or request features           |
 | [Discussions](https://github.com/orgs/open-dxp/discussions)                                                                      | Community support                         |
 | [Upgrade Notes](https://docs.opendxp.io/docs/core-framework/Installation_and_Upgrade/Upgrade_Notes/#get-started-with-opendxp-10) | Get started with OpenDXP 1.0              |
-| [Testing with AI (Claude)](doc/19_Development_Tools_and_Details/50_Testing_with_AI.md)                                           | Write, run and fix tests with Claude Code |
+| [Testing](doc/19_Development_Tools_and_Details/29_Testing/README.md)                                                             | Test your project, bundle or OpenDXP itself |
 
 ## Contributing
 

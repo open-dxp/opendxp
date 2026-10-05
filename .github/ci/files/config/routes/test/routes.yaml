@@ -1,2 +1,0 @@
-_opendxp:
-    resource: '@OpenDxpCoreBundle/config/routing.yaml'

@@ -10,10 +10,10 @@ declare(strict_types=1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
+
 
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
@@ -21,86 +21,45 @@ use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
-use OpenDxp\Tests\Support\Test\TestCase;
+use OpenDxp\Tests\Fixtures\Bundle\BundleA;
+use OpenDxp\Tests\Fixtures\Bundle\BundleE;
+use OpenDxp\Tests\Fixtures\Bundle\BundleF;
+use OpenDxp\Tests\Fixtures\Bundle\OpenDxpBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class ItemTest extends TestCase
-{
-    public function testGetBundle(): void
-    {
-        $bundle = new ItemTestBundleA();
-        $item = new Item(new ItemTestBundleA());
+it('hands back the bundle it holds', function () {
+    expect((new Item(new BundleA()))->getBundle())->toBeInstanceOf(BundleA::class);
+});
 
-        $this->assertEquals($bundle, $item->getBundle());
-    }
+it('is named after the class of its bundle', function () {
+    expect((new Item(new BundleA()))->getBundleIdentifier())->toBe(BundleA::class);
+});
 
-    public function testGetBundleIdentifier(): void
-    {
-        $item = new Item(new ItemTestBundleA());
+it('matches any environment while it names none', function (string $environment) {
+    expect((new Item(new BundleA(), 0, []))->matchesEnvironment($environment))->toBeTrue();
+})->with(['prod', 'dev', 'test']);
 
-        $this->assertEquals(ItemTestBundleA::class, $item->getBundleIdentifier());
-    }
+it('matches only the environments it names', function (array $named, string $environment, bool $matches) {
+    expect((new Item(new BundleA(), 0, $named))->matchesEnvironment($environment))->toBe($matches);
+})->with([
+    'the one it names' => [['dev'], 'dev', true],
+    'another one' => [['dev'], 'prod', false],
+    'the first of two' => [['dev', 'test'], 'dev', true],
+    'the second of two' => [['dev', 'test'], 'test', true],
+    'none of two' => [['dev', 'test'], 'prod', false],
+]);
 
-    public function testEmptyEnvironmentsMatchesAnyEnvironment(): void
-    {
-        $item = new Item(new ItemTestBundleA(), 0, []);
-        foreach (['prod', 'dev', 'test'] as $environment) {
-            $this->assertTrue($item->matchesEnvironment($environment));
-        }
-    }
+it('says whether its bundle is an opendxp bundle', function () {
+    expect((new Item(new BundleA()))->isOpenDxpBundle())
+        ->toBeFalse()
+        ->and((new Item(new OpenDxpBundle()))->isOpenDxpBundle())
+        ->toBeTrue();
+});
 
-    public function testItemMatchesEnvironment(): void
-    {
-        $item = new Item(new ItemTestBundleA(), 0, ['dev']);
+it('brings the bundles its own depends on', function () {
 
-        $this->assertTrue($item->matchesEnvironment('dev'));
-        $this->assertFalse($item->matchesEnvironment('prod'));
-        $this->assertFalse($item->matchesEnvironment('test'));
-    }
+    $collection = new BundleCollection();
+    $collection->add(new Item(new BundleE()));
 
-    public function testItemWithMultipleEnvironments(): void
-    {
-        $item = new Item(new ItemTestBundleA(), 0, ['dev', 'test']);
-
-        $this->assertTrue($item->matchesEnvironment('dev'));
-        $this->assertTrue($item->matchesEnvironment('test'));
-        $this->assertFalse($item->matchesEnvironment('prod'));
-    }
-
-    public function testisOpenDxpBundle(): void
-    {
-        $itemA = new Item(new ItemTestBundleA());
-        $itemB = new Item(new ItemTestBundleB());
-
-        $this->assertFalse($itemA->isOpenDxpBundle());
-        $this->assertTrue($itemB->isOpenDxpBundle());
-    }
-
-    public function testRegistersDependencies(): void
-    {
-        $collection = new BundleCollection();
-
-        $collection->add(new Item(new ItemTestBundleC()));
-
-        $this->assertEquals([
-            ItemTestBundleC::class,
-            ItemTestBundleA::class,
-        ], $collection->getIdentifiers());
-    }
-}
-
-class ItemTestBundleA extends Bundle
-{
-}
-
-class ItemTestBundleB extends AbstractOpenDxpBundle
-{
-}
-
-class ItemTestBundleC extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->add(new Item(new ItemTestBundleA()));
-    }
-}
+    expect($collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
+});

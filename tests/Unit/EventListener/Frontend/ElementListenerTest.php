@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -13,6 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\EventListener\Frontend;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\Frontend\ElementListener;
@@ -22,53 +24,51 @@ use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Model\Document;
 use OpenDxp\Security\User\UserLoader;
-use OpenDxp\Tests\Support\Test\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-class ElementListenerTest extends TestCase
-{
-    public function testDocumentDoesNotChangeLocaleOnKernelController(): void
-    {
-        $document = $this->createMock(Document\Page::class);
-        $document->method('isPublished')->willReturn(true);
-        $document->method('getProperty')->with('language')->willReturn('de');
+it('keeps the locale the route asked for over the language of the document', function () {
 
-        $contextResolver = $this->createMock(OpenDxpContextResolver::class);
-        $contextResolver->method('matchesOpenDxpContext')->willReturn(true);
+    $document = $this->createMock(Document\Page::class);
+    $document->method('isPublished')->willReturn(true);
+    $document->method('getProperty')->with('language')->willReturn('de');
 
-        $requestHelper = $this->createMock(RequestHelper::class);
-        $requestHelper->method('isFrontendRequestByAdmin')->willReturn(false);
+    $context = $this->createMock(OpenDxpContextResolver::class);
+    $context->method('matchesOpenDxpContext')->willReturn(true);
 
-        $request = Request::create('/de/product/it');
+    $requestHelper = $this->createMock(RequestHelper::class);
+    $requestHelper->method('isFrontendRequestByAdmin')->willReturn(false);
 
-        $requestStack = new RequestStack();
-        $requestStack->push($request);
-        $documentResolver = new DocumentResolver($requestStack);
-        $documentResolver->setDocument($request, $document);
+    $request = Request::create('/de/product/it');
+    $requests = new RequestStack();
+    $requests->push($request);
 
-        // what Symfony's LocaleListener does for a route with _locale = it
-        $request->setLocale('it');
+    $resolver = new DocumentResolver($requests);
+    $resolver->setDocument($request, $document);
 
-        $listener = new ElementListener(
-            $documentResolver,
-            $this->createMock(EditmodeResolver::class),
-            $requestHelper,
-            $this->createMock(UserLoader::class)
-        );
-        $listener->setOpenDxpContextResolver($contextResolver);
+    // Symfony's own locale listener has run by now and taken the locale from the route.
+    $request->setLocale('it');
 
-        $listener->onKernelController(new ControllerEvent(
-            $this->createMock(HttpKernelInterface::class),
-            static fn () => new Response(),
-            $request,
-            HttpKernelInterface::MAIN_REQUEST
-        ));
+    $listener = new ElementListener(
+        $resolver,
+        $this->createMock(EditmodeResolver::class),
+        $requestHelper,
+        $this->createMock(UserLoader::class),
+    );
+    $listener->setOpenDxpContextResolver($context);
 
-        $this->assertSame($document, $documentResolver->getDocument($request));
-        $this->assertSame('it', $request->getLocale());
-    }
-}
+    $listener->onKernelController(new ControllerEvent(
+        $this->createMock(HttpKernelInterface::class),
+        static fn () => new Response(),
+        $request,
+        HttpKernelInterface::MAIN_REQUEST,
+    ));
+
+    expect($resolver->getDocument($request))
+        ->toBe($document)
+        ->and($request->getLocale())
+        ->toBe('it');
+});

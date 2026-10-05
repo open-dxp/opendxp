@@ -1,0 +1,6 @@
+imports:
+    - { resource: test.yaml }
+
+opendxp:
+    http_cache:
+        enabled: true

@@ -1,0 +1,68 @@
+parameters:
+    # An encrypted field needs a key. This one belongs to the test application and encrypts nothing else.
+    opendxp.encryption.secret: 'def0000021cc887a70b119fec21a31a040f3397e9481d22d18055f3c63740444af9836f5ea44de9dcdd66ae222bebda4537a9da8cd5446e0a222a4dd36716596a9146632'
+
+services:
+    OpenDxp\Tests\Application\Controller\TagCollectionController:
+        autowire: true
+        autoconfigure: true
+
+    # the Unittest class definition names this id for its calculated value
+    test.calculatorservice:
+        class: OpenDxp\Tests\Application\Service\Calculator
+        public: true
+
+    # the proxy lets a test swap the adapter at runtime, the default alias points at one adapter
+    OpenDxp\Model\Version\Adapter\ProxyVersionStorageAdapter:
+        autowire: true
+
+    OpenDxp\Model\Version\Adapter\VersionStorageAdapterInterface:
+        public: true
+        alias: OpenDxp\Model\Version\Adapter\ProxyVersionStorageAdapter
+
+twig:
+    paths:
+        '%kernel.project_dir%/tests/Application/templates': ~
+
+fos_http_cache:
+    proxy_client:
+        noop: ~
+    tags:
+        enabled: true
+
+opendxp:
+    config_location:
+        image_thumbnails:
+            write_target:
+                type: settings-store
+        video_thumbnails:
+            write_target:
+                type: settings-store
+        document_types:
+            write_target:
+                type: settings-store
+        predefined_properties:
+            write_target:
+                type: settings-store
+        predefined_asset_metadata:
+            write_target:
+                type: settings-store
+
+    general:
+        domain: 'opendxp-testing.test'
+        fallback_languages:
+            de: en
+
+    email:
+        sender:
+            name: 'OpenDXP Tests'
+            email: 'sender@tests.local'
+        return:
+            name: 'OpenDXP Tests'
+            email: 'return@tests.local'
+
+opendxp_static_routes:
+    config_location:
+        staticroutes:
+            write_target:
+                type: settings-store

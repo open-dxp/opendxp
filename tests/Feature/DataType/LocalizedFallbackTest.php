@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * OpenDXP
+ *
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
+ */
+
+
+namespace OpenDxp\Tests\Feature\DataType;
+
+use Exception;
+use OpenDxp\Model\DataObject\Fieldcollection;
+use OpenDxp\Model\DataObject\Localizedfield;
+use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Tests\Factory\UnittestFactory;
+
+function countedWithLocale(string $locale, string $condition): int
+{
+    $listing = new Unittest\Listing();
+    $listing->setLocale($locale);
+    $listing->setCondition($condition);
+
+    return count($listing->load());
+}
+
+afterEach(fn () => Localizedfield::setStrictMode((bool) Localizedfield::STRICT_DISABLED));
+
+it('takes a value with and without a language while strict mode is off', function () {
+
+    $object = UnittestFactory::new()->unsaved()->create();
+
+    $object->setLinput('Test');
+    $object->setLinput('TestKo', 'ko');
+
+    expect($object->getLinput())
+        ->toBe('Test')
+        ->and($object->getLinput('ko'))
+        ->toBe('TestKo');
+});
+
+it('refuses a value in strict mode', function (?string $language, string $complaint) {
+
+    $object = UnittestFactory::new()->unsaved()->create();
+    Localizedfield::setStrictMode(Localizedfield::STRICT_ENABLED);
+
+    expect(fn () => $object->setLinput('Test', $language))
+        ->toThrow(Exception::class, $complaint);
+})->with([
+    'a value that names no language' => [null, 'Language  not accepted in strict mode'],
+    'a value in a language the object does not hold' => ['ko', 'Language ko not accepted in strict mode'],
+]);
+
+it('keeps a language of a field collection item when another one is written on it later', function () {
+
+    $item = new Fieldcollection\Data\Unittestfieldcollection();
+    $item->setLinput('textEN', 'en');
+
+    $object = UnittestFactory::createOne([
+        'fieldcollection' => new Fieldcollection([$item], 'fieldcollection'),
+    ]);
+
+    $loaded = Unittest::getById($object->getId(), ['force' => true]);
+    $loaded->getFieldcollection()->get(0)->setLinput('textDE', 'de');
+    $loaded->save();
+
+    $written = Unittest::getById($object->getId(), ['force' => true])->getFieldcollection()->get(0);
+
+    expect($written->getLinput('en'))
+        ->toBe('textEN')
+        ->and($written->getLinput('de'))
+        ->toBe('textDE');
+});
+
+it('reaches the value of the fallback language for a field that holds none', function () {
+
+    $object = UnittestFactory::new()->unsaved()->create();
+
+    foreach (['en' => ['TestEN', true, 123], 'de' => ['TestDE', true, 456]] as $language => [$text, $flag, $number]) {
+        $object->setLinput($text, $language);
+        $object->setLcheckbox($flag, $language);
+        $object->setLnumber($number, $language);
+    }
+
+    $object->save();
+
+    expect($object->getLinput('de'))
+        ->toBe('TestDE')
+        ->and($object->getLnumber('de'))
+        ->toEqual(456);
+
+    $object->setLinput('', 'de');
+    $object->setLcheckbox(null, 'de');
+    $object->setLnumber(null, 'de');
+    $object->save();
+
+    $written = Unittest::getById($object->getId(), ['force' => true]);
+
+    expect($written->getLinput('de'))
+        ->toBe('TestEN')
+        ->and($written->getLnumber('de'))
+        ->toEqual(123)
+        ->and($written->getLcheckbox('de'))
+        ->toBeTrue();
+
+    expect(countedWithLocale('de', "lcheckbox = '1'"))
+        ->toBe(1)
+        ->and(countedWithLocale('de', "lnumber = '123'"))
+        ->toBe(1);
+});
+
+it('hands back a value of its own that only looks empty instead of reaching the fallback', function (string $field, mixed $fallback, mixed $own) {
+
+    $setter = 'set' . ucfirst($field);
+    $object = UnittestFactory::new()->unsaved()->create();
+
+    $object->{$setter}($fallback, 'en');
+    $object->{$setter}($own, 'de');
+    $object->save();
+
+    expect(Unittest::getById($object->getId(), ['force' => true])->{'get' . ucfirst($field)}('de'))
+        ->toEqual($own);
+})->with([
+    'a checkbox that is not ticked' => ['lcheckbox', true, false],
+    'a number that is zero' => ['lnumber', 123, 0],
+]);
+
+it('finds no object through a listing for a value it holds as empty itself', function (string $field, mixed $fallback, mixed $own, string $condition) {
+
+    $setter = 'set' . ucfirst($field);
+    $object = UnittestFactory::new()->unsaved()->create();
+
+    $object->{$setter}($fallback, 'en');
+    $object->{$setter}($own, 'de');
+    $object->save();
+
+    expect(countedWithLocale('de', $condition))->toBe(0);
+})->with([
+    'a checkbox that is not ticked' => ['lcheckbox', true, false, "lcheckbox = '1'"],
+    'a number that is zero' => ['lnumber', 123, 0, "lnumber = '123'"],
+]);

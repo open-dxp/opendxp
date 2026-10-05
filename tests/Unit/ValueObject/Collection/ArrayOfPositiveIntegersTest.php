@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * OpenDXP
@@ -10,55 +10,31 @@ declare(strict_types = 1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\ValueObject\Collection;
 
-use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\ValueObject\Collection\ArrayOfPositiveIntegers;
 use ValueError;
 
-/**
- * @internal
- */
-final class ArrayOfPositiveIntegersTest extends TestCase
-{
-    public function testItShouldThrowExceptionWhenProvidedIntegerArrayIsNotPositive(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided integer must be positive. (-1 given)');
+it('refuses an array holding an integer that is not positive', function () {
+    new ArrayOfPositiveIntegers([-1]);
+})->throws(ValueError::class, 'Provided integer must be positive. (-1 given)');
 
-        new ArrayOfPositiveIntegers([-1]);
-    }
+it('refuses an array holding something that is not an integer', function () {
+    new ArrayOfPositiveIntegers([1, 2, '3']);
+})->throws(ValueError::class, 'Provided array must contain only integer values. (string given)');
 
-    public function testItShouldThrowExceptionWhenProvidedArrayContainsNonIntegerValues(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided array must contain only integer values. (string given)');
+it('answers with the integers it was given', function () {
+    expect((new ArrayOfPositiveIntegers([1, 2, 3]))->getValue())->toBe([1, 2, 3]);
+});
 
-        new ArrayOfPositiveIntegers([1, 2, '3']);
-    }
+it('checks the integers again when they come back from a serialized form', function () {
 
-    public function testItShouldReturnValues(): void
-    {
-        $values = [1, 2, 3];
-        $positiveIntegerArray = new ArrayOfPositiveIntegers($values);
+    $serialized = str_replace('42', '-42', serialize(new ArrayOfPositiveIntegers([1, 2, 42])));
 
-        $this->assertSame($values, $positiveIntegerArray->getValue());
-    }
-
-    public function testItShouldBeValidatedAfterUnSerialization(): void
-    {
-        $array = new ArrayOfPositiveIntegers([1, 2, 42]);
-        $serialized = serialize($array);
-
-        $serialized =  str_replace('42', '-42', $serialized);
-
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Provided integer must be positive. (-42 given)');
-        unserialize($serialized);
-    }
-}
+    unserialize($serialized);
+})->throws(ValueError::class, 'Provided integer must be positive. (-42 given)');

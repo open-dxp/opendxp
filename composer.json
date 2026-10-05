@@ -99,7 +99,7 @@
         "symfony/monolog-bundle": "^3.8",
         "symfony/options-resolver": "^7.4",
         "symfony/password-hasher": "^7.4",
-        "symfony/process": "^7.4",
+        "symfony/process": "^7.4 || ^8.1",
         "symfony/property-access": "^7.4",
         "symfony/rate-limiter": "^7.4",
         "symfony/routing": "^7.4",
@@ -132,18 +132,12 @@
     },
     "require-dev": {
         "composer/composer": "*",
-        "behat/gherkin": "4.16.0",
-        "friendsofsymfony/http-cache-bundle": "^3.0",
-        "chrome-php/chrome": "^1.4.0",
-        "codeception/codeception": "^5.3.5",
-        "codeception/stub": "^4.3",
-        "codeception/module-asserts": "^3.2",
-        "codeception/module-symfony": "^3.8",
         "ergebnis/phpstan-rules": "^2.9",
+        "friendsofsymfony/http-cache-bundle": "^3.0",
         "gotenberg/gotenberg-php": "^2.4",
-        "phpstan/phpstan": "2.1.33",
+        "open-dxp/test-foundation": "^1.0",
+        "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-symfony": "^2.0.9",
-        "phpunit/phpunit": "^10.5",
         "symfony/dotenv": "^7.4",
         "symfony/runtime": "^7.4",
         "webmozarts/console-parallelization": "^2.1"
@@ -219,7 +213,7 @@
     ],
     "extra": {
         "branch-alias": {
-            "dev-1.x": "1.2.x-dev"
+            "dev-1.x": "1.5.x-dev"
         }
     },
     "config": {

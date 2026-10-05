@@ -77,7 +77,6 @@ trait JsonHelperTrait
             $context['json_decode_associative'] = true;
         }
 
-        // @phpstan-ignore-next-line
         return $serializer->decode($json, 'json', $context);
     }
 }

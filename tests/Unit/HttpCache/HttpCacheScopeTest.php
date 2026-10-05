@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -13,148 +14,133 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\HttpCache;
 
 use OpenDxp\HttpCache\HttpCacheScope;
-use OpenDxp\Tests\Support\Test\TestCase;
 use RuntimeException;
 
-class HttpCacheScopeTest extends TestCase
-{
-    private HttpCacheScope $scope;
+beforeEach(fn () => $this->scope = new HttpCacheScope());
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->scope = new HttpCacheScope();
+it('is inactive until something enables it', function () {
+    expect($this->scope->isActive())->toBeFalse();
+});
+
+it('is active once it was enabled', function () {
+
+    $this->scope->enable();
+
+    expect($this->scope->isActive())->toBeTrue();
+});
+
+it('is inactive once it was disabled', function () {
+
+    $this->scope->enable();
+    $this->scope->disable();
+
+    expect($this->scope->isActive())->toBeFalse();
+});
+
+it('stays inactive when it was disabled before anything enabled it', function () {
+
+    $this->scope->disable();
+    $this->scope->enable();
+
+    expect($this->scope->isActive())->toBeFalse();
+});
+
+it('forgets a disable when it is reset', function () {
+
+    $this->scope->enable();
+    $this->scope->disable();
+    $this->scope->reset();
+
+    expect($this->scope->isActive())->toBeFalse();
+
+    $this->scope->enable();
+
+    expect($this->scope->isActive())->toBeTrue();
+});
+
+it('is inactive inside a suspended block and active again after it', function () {
+
+    $this->scope->enable();
+    $inside = null;
+    $this->scope->suspended(function () use (&$inside) {
+        $inside = $this->scope->isActive();
+    });
+
+    expect($inside)
+        ->toBeFalse()
+        ->and($this->scope->isActive())
+        ->toBeTrue();
+});
+
+it('is active again when a suspended block throws', function () {
+
+    $this->scope->enable();
+
+    try {
+        $this->scope->suspended(fn () => throw new RuntimeException('test'));
+    } catch (RuntimeException) {
     }
 
-    public function testInactiveByDefault(): void
-    {
-        $this->assertFalse($this->scope->isActive());
-    }
+    expect($this->scope->isActive())->toBeTrue();
+});
 
-    public function testEnableActivates(): void
-    {
-        $this->scope->enable();
-        $this->assertTrue($this->scope->isActive());
-    }
+it('hands back what a suspended block returns', function () {
 
-    public function testDisableDeactivates(): void
-    {
-        $this->scope->enable();
-        $this->scope->disable();
-        $this->assertFalse($this->scope->isActive());
-    }
+    $this->scope->enable();
 
-    public function testDisableBeforeEnableSurvivesEnable(): void
-    {
-        $this->scope->disable();
-        $this->scope->enable(); // listener fires after dev disabled in kernel.request
-        $this->assertFalse($this->scope->isActive());
-    }
+    expect($this->scope->suspended(fn () => 42))->toBe(42);
+});
 
-    public function testResetRestoresInitialState(): void
-    {
-        $this->scope->enable();
-        $this->scope->disable();
-        $this->scope->reset();
-        $this->assertFalse($this->scope->isActive());
+it('is inactive inside a suspended block while it is disabled', function () {
 
-        $this->scope->enable();
-        $this->assertTrue($this->scope->isActive());
-    }
+    $this->scope->enable();
+    $this->scope->disable();
+    $inside = true;
+    $this->scope->suspended(function () use (&$inside) {
+        $inside = $this->scope->isActive();
+    });
 
-    public function testSuspendedSuppressesCollectionForDuration(): void
-    {
-        $this->scope->enable();
+    expect($inside)->toBeFalse();
+});
 
-        $activeInsideSuspended = null;
-        $this->scope->suspended(function () use (&$activeInsideSuspended) {
-            $activeInsideSuspended = $this->scope->isActive();
-        });
+it('is active inside a collecting block, whatever it was before', function (bool $disableFirst) {
 
-        $this->assertFalse($activeInsideSuspended);
-        $this->assertTrue($this->scope->isActive());
-    }
-
-    public function testSuspendedRestoresOnException(): void
-    {
-        $this->scope->enable();
-
-        try {
-            $this->scope->suspended(function () {
-                throw new RuntimeException('test');
-            });
-        } catch (RuntimeException) {
-        }
-
-        $this->assertTrue($this->scope->isActive());
-    }
-
-    public function testSuspendedReturnsCallableResult(): void
-    {
-        $this->scope->enable();
-        $result = $this->scope->suspended(fn () => 42);
-        $this->assertSame(42, $result);
-    }
-
-    public function testCollectingForceEnablesRegardlessOfState(): void
-    {
-        $activeInsideCollecting = false;
-        $this->scope->collecting(function () use (&$activeInsideCollecting) {
-            $activeInsideCollecting = $this->scope->isActive();
-        });
-
-        $this->assertTrue($activeInsideCollecting);
-        $this->assertFalse($this->scope->isActive()); // restored
-    }
-
-    public function testCollectingOverridesDisable(): void
-    {
+    if ($disableFirst) {
         $this->scope->enable();
         $this->scope->disable();
-
-        $activeInsideCollecting = false;
-        $this->scope->collecting(function () use (&$activeInsideCollecting) {
-            $activeInsideCollecting = $this->scope->isActive();
-        });
-
-        $this->assertTrue($activeInsideCollecting);
-        $this->assertFalse($this->scope->isActive()); // disable restored
     }
 
-    public function testCollectingRestoresStateOnException(): void
-    {
-        $this->scope->enable();
-        $this->scope->disable();
+    $inside = false;
+    $this->scope->collecting(function () use (&$inside) {
+        $inside = $this->scope->isActive();
+    });
 
-        try {
-            $this->scope->collecting(function () {
-                throw new RuntimeException('test');
-            });
-        } catch (RuntimeException) {
-        }
+    expect($inside)
+        ->toBeTrue()
+        ->and($this->scope->isActive())
+        ->toBeFalse();
+})->with([
+    'untouched before' => [false],
+    'disabled before' => [true],
+]);
 
-        $this->assertFalse($this->scope->isActive()); // disabled restored
+it('is disabled again when a collecting block throws', function () {
+
+    $this->scope->enable();
+    $this->scope->disable();
+
+    try {
+        $this->scope->collecting(fn () => throw new RuntimeException('test'));
+    } catch (RuntimeException) {
     }
 
-    public function testCollectingReturnsCallableResult(): void
-    {
-        $result = $this->scope->collecting(fn () => 42);
-        $this->assertSame(42, $result);
-    }
+    expect($this->scope->isActive())->toBeFalse();
+});
 
-    public function testDisabledTakesPrecedenceOverSuspended(): void
-    {
-        $this->scope->enable();
-        $this->scope->disable();
-
-        $activeInsideSuspended = true;
-        $this->scope->suspended(function () use (&$activeInsideSuspended) {
-            $activeInsideSuspended = $this->scope->isActive();
-        });
-
-        $this->assertFalse($activeInsideSuspended);
-    }
-}
+it('hands back what a collecting block returns', function () {
+    expect($this->scope->collecting(fn () => 42))->toBe(42);
+});

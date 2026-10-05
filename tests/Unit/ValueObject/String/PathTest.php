@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 /**
  * OpenDXP
@@ -10,66 +10,41 @@ declare(strict_types = 1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Unit\ValueObject\String;
 
-use OpenDxp\Tests\Support\Test\TestCase;
 use OpenDxp\ValueObject\String\Path;
 use ValueError;
 
-/**
- * @internal
- */
-final class PathTest extends TestCase
-{
-    public function testItShouldThrowExceptionWhenProvidedPathDoesNotStartWithSlash(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Path must start with a slash.');
+it('refuses a path that does not start with a slash', function () {
+    new Path('path');
+})->throws(ValueError::class, 'Path must start with a slash.');
 
-        new Path('path');
-    }
+it('refuses a path with two slashes in a row', function () {
+    new Path('/path//path');
+})->throws(ValueError::class, 'Path must not contain consecutive slashes.');
 
-    public function testItShouldThrowExceptionWhenProvidedPathContainsConsecutiveSlashes(): void
-    {
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Path must not contain consecutive slashes.');
+it('answers with the path it was given', function () {
+    expect((new Path('/path'))->getValue())->toBe('/path');
+});
 
-        new Path('/path//path');
-    }
+it('equals another one holding the same path', function () {
 
-    public function testItShouldReturnValue(): void
-    {
-        $value = '/path';
-        $path = new Path($value);
+    $path = new Path('/path');
 
-        $this->assertSame($value, $path->getValue());
-    }
+    expect($path->equals(new Path('/path')))
+        ->toBeTrue()
+        ->and($path->equals(new Path('/path2')))
+        ->toBeFalse();
+});
 
-    public function testEquals(): void
-    {
-        $path = new Path('/path');
-        $path2 = new Path('/path');
-        $path3 = new Path('/path2');
+it('checks the path again when it comes back from a serialized form', function () {
 
-        $this->assertTrue($path->equals($path2));
-        $this->assertFalse($path->equals($path3));
-    }
+    $serialized = str_replace('/mypath', '!mypath', serialize(new Path('/mypath')));
 
-    public function testItShouldBeValidatedAfterUnSerialization(): void
-    {
-        $path = new Path('/mypath');
-        $serialized = serialize($path);
-
-        $serialized = str_replace('/mypath', '!mypath', $serialized);
-
-        $this->expectException(ValueError::class);
-        $this->expectExceptionMessage('Path must start with a slash.');
-
-        unserialize($serialized);
-    }
-}
+    unserialize($serialized);
+})->throws(ValueError::class, 'Path must start with a slash.');

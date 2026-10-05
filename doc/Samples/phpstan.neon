@@ -1,8 +1,0 @@
-includes:
-    - vendor/phpstan/phpstan-symfony/extension.neon
-    - vendor/open-dxp/opendxp/phpstan-parameters.neon
-    - vendor/open-dxp/opendxp/phpstan-baseline.neon
-
-parameters:
-    symfony:
-        container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml

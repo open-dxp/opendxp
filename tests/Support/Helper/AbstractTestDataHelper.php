@@ -22,6 +22,9 @@ use OpenDxp\Model\DataObject\AbstractObject;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 abstract class AbstractTestDataHelper extends Module
 {
     public function assertElementsEqual(ElementInterface $e1, ElementInterface $e2): void

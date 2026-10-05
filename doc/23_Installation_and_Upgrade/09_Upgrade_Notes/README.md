@@ -1,5 +1,12 @@
 # Upgrade Notes
 
+## OpenDXP 1.5.0
+- Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
+- Chore: Replace Codeception with Pest and `open-dxp/test-foundation`
+- Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
+- Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
+- Improvement: Allow `symfony/process` 8.
+
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
 - Bugfix: An explicit `_locale` of a static route is no longer overwritten by the language of the nearest document [#199](https://github.com/open-dxp/opendxp/pull/199)

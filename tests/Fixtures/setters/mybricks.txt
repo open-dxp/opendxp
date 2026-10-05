@@ -1,0 +1,13 @@
+/**
+* Set mybricks - mybricks
+* @param \OpenDxp\Model\DataObject\Objectbrick|null $mybricks
+* @return $this
+*/
+public function setMybricks(?\OpenDxp\Model\DataObject\Objectbrick $mybricks): static
+{
+	/** @var \OpenDxp\Model\DataObject\ClassDefinition\Data\Objectbricks $fd */
+	$fd = $this->getClass()->getFieldDefinition("mybricks");
+	$this->mybricks = $fd->preSetData($this, $mybricks);
+	return $this;
+}
+

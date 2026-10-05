@@ -21,6 +21,9 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class Model extends AbstractDefinitionHelper
 {
     public function _beforeSuite(array $settings = []): void

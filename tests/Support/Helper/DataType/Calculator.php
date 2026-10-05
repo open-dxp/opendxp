@@ -21,6 +21,9 @@ use OpenDxp\Model\DataObject\ClassDefinition\CalculatorClassInterface;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\CalculatedValue;
 
+/**
+ * @deprecated since OpenDXP 1.5 and will be removed in 2.0
+ */
 class Calculator implements CalculatorClassInterface
 {
     public function compute(Concrete $object, CalculatedValue $context): string

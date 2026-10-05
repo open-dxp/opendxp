@@ -10,10 +10,10 @@ declare(strict_types=1);
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
- * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
+
 
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
@@ -22,158 +22,86 @@ use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\LazyLoadedItem;
-use OpenDxp\Tests\Support\Test\TestCase;
+use OpenDxp\Tests\Fixtures\Bundle\CountingBundle;
+use OpenDxp\Tests\Fixtures\Bundle\CountingOpenDxpBundle;
+use OpenDxp\Tests\Fixtures\Bundle\BundleE;
+use OpenDxp\Tests\Fixtures\Bundle\BundleF;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class LazyLoadedItemTest extends TestCase
-{
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function () {
+    CountingBundle::forgetInstances();
+    CountingOpenDxpBundle::forgetInstances();
+});
 
-        LazyLoadedItemTestBundleA::resetCounter();
-        LazyLoadedItemTestBundleB::resetCounter();
-    }
+it('builds its bundle on the first ask and keeps it', function () {
 
-    public function testGetBundle(): void
-    {
-        $item = new LazyLoadedItem(LazyLoadedItemTestBundleA::class);
+    $item = new LazyLoadedItem(CountingBundle::class);
 
-        $this->assertEquals(0, LazyLoadedItemTestBundleA::getCounter());
+    expect(CountingBundle::instances())->toBe(0);
 
-        $bundle = $item->getBundle();
+    $bundle = $item->getBundle();
+    $item->getBundle();
 
-        $this->assertEquals(1, LazyLoadedItemTestBundleA::getCounter());
+    expect($bundle)
+        ->toBeInstanceOf(CountingBundle::class)
+        ->and(CountingBundle::instances())
+        ->toBe(1);
+});
 
+it('is named after the class it was given', function () {
+    expect((new LazyLoadedItem(CountingBundle::class))->getBundleIdentifier())->toBe(CountingBundle::class);
+});
+
+it('refuses a class that does not exist', function () {
+    new LazyLoadedItem('FooBarBazingaDummyClassName');
+})->throws(InvalidArgumentException::class, 'The class "FooBarBazingaDummyClassName" does not exist');
+
+it('says whether its bundle is an opendxp bundle without building it', function () {
+
+    $plain = new LazyLoadedItem(CountingBundle::class);
+    $openDxp = new LazyLoadedItem(CountingOpenDxpBundle::class);
+
+    expect($plain->isOpenDxpBundle())
+        ->toBeFalse()
+        ->and($openDxp->isOpenDxpBundle())
+        ->toBeTrue()
+        ->and(CountingBundle::instances())
+        ->toBe(0)
+        ->and(CountingOpenDxpBundle::instances())
+        ->toBe(0);
+});
+
+it('says the same once its bundle is built', function () {
+
+    $plain = new LazyLoadedItem(CountingBundle::class);
+    $openDxp = new LazyLoadedItem(CountingOpenDxpBundle::class);
+
+    $plain->getBundle();
+    $openDxp->getBundle();
+
+    expect($plain->isOpenDxpBundle())
+        ->toBeFalse()
+        ->and($openDxp->isOpenDxpBundle())
+        ->toBeTrue()
+        ->and(CountingBundle::instances())
+        ->toBe(1)
+        ->and(CountingOpenDxpBundle::instances())
+        ->toBe(1);
+});
+
+it('brings the bundles its own depends on', function (bool $buildFirst) {
+
+    $collection = new BundleCollection();
+    $item = new LazyLoadedItem(BundleE::class);
+
+    if ($buildFirst) {
         $item->getBundle();
-
-        $this->assertEquals(1, LazyLoadedItemTestBundleA::getCounter());
-
-        $this->assertInstanceOf(LazyLoadedItemTestBundleA::class, $bundle);
     }
 
-    public function testGetBundleIdentifier(): void
-    {
-        $item = new LazyLoadedItem(LazyLoadedItemTestBundleA::class);
+    $collection->add($item);
 
-        $this->assertEquals(LazyLoadedItemTestBundleA::class, $item->getBundleIdentifier());
-    }
-
-    public function testExceptionOnInvalidClass(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The class "FooBarBazingaDummyClassName" does not exist');
-        new LazyLoadedItem('FooBarBazingaDummyClassName');
-    }
-
-    public function testisOpenDxpBundle(): void
-    {
-        $itemA = new LazyLoadedItem(LazyLoadedItemTestBundleA::class);
-        $itemB = new LazyLoadedItem(LazyLoadedItemTestBundleB::class);
-
-        $this->assertEquals(0, LazyLoadedItemTestBundleA::getCounter());
-        $this->assertEquals(0, LazyLoadedItemTestBundleB::getCounter());
-
-        $this->assertFalse($itemA->isOpenDxpBundle());
-        $this->assertTrue($itemB->isOpenDxpBundle());
-
-        // item is not instantiated
-        $this->assertEquals(0, LazyLoadedItemTestBundleA::getCounter());
-        $this->assertEquals(0, LazyLoadedItemTestBundleB::getCounter());
-    }
-
-    public function testisOpenDxpBundleWithBundleInstance(): void
-    {
-        $itemA = new LazyLoadedItem(LazyLoadedItemTestBundleA::class);
-        $itemB = new LazyLoadedItem(LazyLoadedItemTestBundleB::class);
-
-        $this->assertEquals(0, LazyLoadedItemTestBundleA::getCounter());
-        $this->assertEquals(0, LazyLoadedItemTestBundleB::getCounter());
-
-        $itemA->getBundle();
-        $itemB->getBundle();
-
-        $this->assertEquals(1, LazyLoadedItemTestBundleA::getCounter());
-        $this->assertEquals(1, LazyLoadedItemTestBundleB::getCounter());
-
-        $this->assertFalse($itemA->isOpenDxpBundle());
-        $this->assertTrue($itemB->isOpenDxpBundle());
-    }
-
-    public function testRegistersDependencies(): void
-    {
-        $collection = new BundleCollection();
-
-        $item = new LazyLoadedItem(LazyLoadedItemTestBundleC::class);
-
-        $collection->add($item);
-
-        $this->assertEquals([
-            LazyLoadedItemTestBundleC::class,
-            LazyLoadedItemTestBundleA::class,
-        ], $collection->getIdentifiers());
-    }
-
-    public function testRegistersDependenciesWithBundleInstance(): void
-    {
-        $collection = new BundleCollection();
-
-        $item = new LazyLoadedItem(LazyLoadedItemTestBundleC::class);
-        $item->getBundle();
-
-        $collection->add($item);
-
-        $this->assertEquals([
-            LazyLoadedItemTestBundleC::class,
-            LazyLoadedItemTestBundleA::class,
-        ], $collection->getIdentifiers());
-    }
-}
-
-class LazyLoadedItemTestBundleA extends Bundle
-{
-    private static int $counter = 0;
-
-    public function __construct()
-    {
-        static::$counter++;
-    }
-
-    public static function resetCounter(): void
-    {
-        static::$counter = 0;
-    }
-
-    public static function getCounter(): int
-    {
-        return static::$counter;
-    }
-}
-
-class LazyLoadedItemTestBundleB extends AbstractOpenDxpBundle
-{
-    private static int $counter = 0;
-
-    public function __construct()
-    {
-        static::$counter++;
-    }
-
-    public static function resetCounter(): void
-    {
-        static::$counter = 0;
-    }
-
-    public static function getCounter(): int
-    {
-        return static::$counter;
-    }
-}
-
-class LazyLoadedItemTestBundleC extends Bundle implements DependentBundleInterface
-{
-    public static function registerDependentBundles(BundleCollection $collection): void
-    {
-        $collection->add(new LazyLoadedItem(LazyLoadedItemTestBundleA::class));
-    }
-}
+    expect($collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
+})->with([
+    'while it is still unbuilt' => [false],
+    'once it is built' => [true],
+]);
