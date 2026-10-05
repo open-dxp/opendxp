@@ -2,35 +2,151 @@
 
 declare(strict_types=1);
 
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
-use OpenDxp\Cache;
+use OpenDxp\Bundle\SeoBundle\EventListener\DocumentListener;
+use OpenDxp\Bundle\SeoBundle\Model\Redirect;
+use OpenDxp\Db;
+use OpenDxp\Event\Model\DocumentEvent;
+use OpenDxp\Model\Document;
+use OpenDxp\Model\User;
+use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\TestFoundation\Browser;
-use OpenDxp\TestFoundation\Container;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Zenstruck\Browser\KernelBrowser;
 
 /**
- * Sends the request without following a redirect.
+ * Sends what the redirect grid of the admin sends.
  *
- * @return array{status: int, location: ?string, redirect: ?int}
+ * @param array<string, mixed>|null $data
+ * @param array<string, string>     $parameters
  */
-function answerTo(string $uri): array
-{
-    $response = Browser::start()->interceptRedirects()->visit($uri)->client()->getResponse();
-    $redirectId = $response->headers->get(RedirectHandler::RESPONSE_HEADER_NAME_ID);
+function redirectGrid(
+    User $user,
+    ?string $action = null,
+    ?array $data = null,
+    array $parameters = [],
+): KernelBrowser {
+    $body = $data === null
+        ? $parameters
+        : ['data' => json_encode($data), ...$parameters];
 
-    return [
-        'status' => $response->getStatusCode(),
-        'location' => $response->headers->get('Location'),
-        'redirect' => $redirectId === null ? null : (int) $redirectId,
-    ];
+    $url = '/admin/bundle/seo/redirects/list';
+
+    if ($action !== null) {
+        $url .= '?xaction=' . $action;
+    }
+
+    return Browser::actingAs($user)->post($url, [
+        'body' => $body,
+    ]);
 }
 
 /**
- * Saving a redirect clears the cache tag "redirect", and the core cache refuses that tag for the rest of the request.
- * A test plays the next request by allowing the tag again.
+ * @return array<string, mixed>
  */
-function nextRequest(): void
+function gridResponse(KernelBrowser $browser): array
 {
-    Cache::getHandler()->removeClearedTags(['redirect']);
-    Container::get(RedirectTableProvider::class)->reset();
+    return json_decode($browser->content(), true);
+}
+
+/**
+ * @param array<string, string> $parameters
+ *
+ * @return array<int, array<string, mixed>> the listed redirects by ID
+ */
+function listedRedirects(User $user, array $parameters = []): array
+{
+    $browser = redirectGrid($user, parameters: [
+        'limit' => '1000',
+        ...$parameters,
+    ]);
+
+    return array_column(gridResponse($browser->assertSuccessful())['data'], null, 'id');
+}
+
+/**
+ * @param list<string> $lines
+ *
+ * @return array<string, mixed> the statistics of the import
+ */
+function importRedirects(User $user, array $lines): array
+{
+    $file = tempnam(sys_get_temp_dir(), 'redirects');
+    file_put_contents($file, implode("\n", $lines));
+
+    $browser = Browser::actingAs($user)->post('/admin/bundle/seo/redirects/csv-import', [
+        'files' => [
+            'redirects' => new UploadedFile($file, 'redirects.csv', 'text/csv', null, true),
+        ],
+    ]);
+
+    return json_decode($browser->assertSuccessful()->content(), true)['data'];
+}
+
+/**
+ * Moves the document into a new folder and lets the listener react as it does after a move in the backend.
+ *
+ * @return string the path the document had before
+ */
+function moveDocument(Document $document, bool $autoCreateRedirects = true): string
+{
+    $before = clone $document;
+    $formerPath = $document->getRealFullPath();
+
+    $document->setParentId(DocumentFolderFactory::createOne()->getId());
+    $document->save();
+
+    $listener = new DocumentListener([
+        'auto_create_redirects' => $autoCreateRedirects,
+    ]);
+
+    $listener->onPostMoveAction(new DocumentEvent($document, [
+        'oldDocument' => $before,
+        'oldPath' => $formerPath,
+    ]));
+
+    return $formerPath;
+}
+
+/**
+ * @return list<string> the targets of the automatic redirects away from the source
+ */
+function autoRedirectTargets(string $source): array
+{
+    $redirects = new Redirect\Listing();
+    $redirects->setCondition('source = ? AND type = ?', [
+        $source,
+        Redirect::TYPE_AUTO_CREATE,
+    ]);
+
+    return array_map(
+        static fn (Redirect $redirect): string => (string) $redirect->getTarget(),
+        $redirects->load(),
+    );
+}
+
+function hitsOf(Redirect $redirect): int
+{
+    return (int) Db::get()->fetchOne(
+        'SELECT hits FROM redirect_hits WHERE redirectId = ?',
+        [$redirect->getId()],
+    );
+}
+
+function lastHitOf(Redirect $redirect): ?int
+{
+    $lastHit = Db::get()->fetchOne(
+        'SELECT lastHit FROM redirect_hits WHERE redirectId = ?',
+        [$redirect->getId()],
+    );
+
+    return $lastHit === false || $lastHit === null ? null : (int) $lastHit;
+}
+
+function recordHits(Redirect $redirect, int $hits, int $lastHit): void
+{
+    Db::get()->insert('redirect_hits', [
+        'redirectId' => $redirect->getId(),
+        'hits' => $hits,
+        'lastHit' => $lastHit,
+    ]);
 }

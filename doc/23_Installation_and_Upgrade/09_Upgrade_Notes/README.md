@@ -16,6 +16,8 @@
 - Improvement: `410 Gone` is one of the default redirect status codes [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: The redirect editor shows the hits of each redirect, edits all fields of a redirect in a window, narrows the grid to a view like "no hit for 90 days" and changes the redirects selected by their checkbox at once [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: The Pest expectations `toRedirectTo()` and `toBeAnsweredBy()` test the redirects of a project. Register them with `OpenDxp\Test\Expectation\Redirects::register()`.
+- Feature: `UserFactory::withPermissions()` creates a user with the given permissions.
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
 - Bugfix: A long-running process, such as a Messenger worker, caches items with a tag again after an earlier request cleared that tag. Before, `CoreCacheHandler::reset()` kept the cleared tags, and the process refused to cache them until it restarted.
