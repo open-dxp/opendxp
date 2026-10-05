@@ -14,11 +14,9 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Asset;
 
 use OpenDxp\Model\Asset;
-use OpenDxp\Model\Asset\Metadata\Loader\DataLoader;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;

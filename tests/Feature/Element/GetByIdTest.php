@@ -14,7 +14,6 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp;
@@ -81,7 +80,6 @@ it('fires its post load event for an element it loaded', function (string $eleme
     'a document' => [Document::class, DocumentPageFactory::class, DocumentEvents::POST_LOAD],
     'an object' => [AbstractObject::class, UnittestFactory::class, DataObjectEvents::POST_LOAD],
 ]);
-
 
 it('hands back the instance it already holds on a second load', function (string $element, string $factory) {
 

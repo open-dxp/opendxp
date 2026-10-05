@@ -14,12 +14,11 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Model\Element\Service;
-use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Test\Factory\UserFactory;
+use OpenDxp\Test\Factory\UserRoleFactory;
 
 beforeEach(function () {
     $this->admin = UserFactory::new()->admin()->create();

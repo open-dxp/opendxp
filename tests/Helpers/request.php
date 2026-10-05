@@ -14,7 +14,6 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\TestFoundation\Container;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;

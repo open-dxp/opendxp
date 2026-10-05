@@ -14,13 +14,12 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Tool;
 
 use OpenDxp\Model\User;
 use OpenDxp\Security\User\User as SecurityUser;
-use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
+use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tool\Authentication;
 use ReflectionMethod;

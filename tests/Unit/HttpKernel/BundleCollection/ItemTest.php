@@ -14,18 +14,14 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
-use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
-use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
 use OpenDxp\Tests\Fixtures\Bundle\BundleA;
 use OpenDxp\Tests\Fixtures\Bundle\BundleE;
 use OpenDxp\Tests\Fixtures\Bundle\BundleF;
 use OpenDxp\Tests\Fixtures\Bundle\OpenDxpBundle;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 it('hands back the bundle it holds', function () {
     expect((new Item(new BundleA()))->getBundle())->toBeInstanceOf(BundleA::class);

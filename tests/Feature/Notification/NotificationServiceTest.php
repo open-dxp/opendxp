@@ -14,12 +14,11 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Notification;
 
 use OpenDxp\Model\Notification\Service\NotificationService;
-use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Test\Factory\UserFactory;
+use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use UnexpectedValueException;

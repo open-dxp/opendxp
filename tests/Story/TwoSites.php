@@ -14,11 +14,9 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Story;
 
 use OpenDxp\Cache\RuntimeCache;
-use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Factory\DocumentHardlinkFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;

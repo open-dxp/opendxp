@@ -14,14 +14,12 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Feature\Twig;
 
 use Carbon\Carbon;
 use OpenDxp\Model\Document\Editable\Date;
 use OpenDxp\Model\Document\Snippet;
 use OpenDxp\TestFoundation\Container;
-use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
 beforeEach(function () {

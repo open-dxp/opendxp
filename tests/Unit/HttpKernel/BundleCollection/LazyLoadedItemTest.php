@@ -14,19 +14,15 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
 use InvalidArgumentException;
-use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
-use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\LazyLoadedItem;
-use OpenDxp\Tests\Fixtures\Bundle\CountingBundle;
-use OpenDxp\Tests\Fixtures\Bundle\CountingOpenDxpBundle;
 use OpenDxp\Tests\Fixtures\Bundle\BundleE;
 use OpenDxp\Tests\Fixtures\Bundle\BundleF;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use OpenDxp\Tests\Fixtures\Bundle\CountingBundle;
+use OpenDxp\Tests\Fixtures\Bundle\CountingOpenDxpBundle;
 
 beforeEach(function () {
     CountingBundle::forgetInstances();

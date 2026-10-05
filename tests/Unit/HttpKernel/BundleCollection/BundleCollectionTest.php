@@ -14,11 +14,9 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
 use InvalidArgumentException;
-use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
 use OpenDxp\Tests\Fixtures\Bundle\BundleA;
