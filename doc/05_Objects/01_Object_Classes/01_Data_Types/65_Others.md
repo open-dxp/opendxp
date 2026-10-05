@@ -159,3 +159,65 @@ class ProductController extends FrontendController
     }
 }
 ```
+
+### Slug Generator
+
+A slug generator builds the prefix in front of a slug and formats what an editor types. Enter its class in the field
+setting "Slug Generator Service/Class". A public service is entered with an `@` in front of its name.
+The generator implements `OpenDxp\Model\DataObject\ClassDefinition\UrlSlugGeneratorInterface`:
+
+```php
+<?php
+
+namespace App\OpenDxp\UrlSlug;
+
+use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugContext;
+use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugGeneratorInterface;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+
+final class ProductSlugGenerator implements UrlSlugGeneratorInterface
+{
+    public function getPrefix(UrlSlugContext $context): ?string
+    {
+        return $context->language === 'de' ? '/de/produkte' : '/en/products';
+    }
+
+    public function formatSlug(string $text, UrlSlugContext $context): string
+    {
+        return (new AsciiSlugger())
+            ->slug($text, '-', $context->language)
+            ->lower()
+            ->toString();
+    }
+
+    public function getDefaultSlug(UrlSlugContext $context): ?string
+    {
+        return $context->object->getName($context->language);
+    }
+}
+```
+
+The context holds the object, the field definition, the language and the site. The language is `null` outside of
+localized fields. The site is `null` for the fallback slug.
+
+The object editor shows the prefix in front of the input, and the editor only writes the part behind it. When the
+editor leaves the input, the generator formats the text. A prefix of `null` means that the slug has no prefix, and the
+editor writes the whole path.
+
+![URL Slug with a slug generator](../../../img/classes-datatypes-urlslug-generator.png)
+
+The prefix is part of the stored slug. A slug keeps its path when the prefix changes later. The object editor then
+shows the whole stored path. Unlocking such a slug gives it the current prefix.
+
+A stored slug is locked in the object editor, because it is a public URL. The lock icon unlocks it, and a second click
+brings the stored slug back.
+
+#### Fill an Empty Slug
+
+With this setting, an empty fallback slug gets the text of `getDefaultSlug()`, formatted and behind the prefix. This
+happens on every save of the object, also in imports and through the PHP API. A slug with a value never changes.
+
+#### Extend Duplicate Slugs
+
+A slug must be unique on its site. Without this setting, the object is not saved when another object uses the slug.
+With it, the slug gets `-1`, `-2` and so on appended.

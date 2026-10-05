@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Exception;
+use OpenDxp;
 use OpenDxp\Db;
 use OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugEvent;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
@@ -26,13 +27,18 @@ use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
+use OpenDxp\Model\DataObject\ClassDefinition\Helper\UrlSlugGeneratorResolver;
+use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugContext;
+use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugGeneratorInterface;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
+use OpenDxp\Model\Site;
 use OpenDxp\Normalizer\NormalizerInterface;
+use OpenDxp\Tool;
 use Override;
 
-class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface
+class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface, DataContainerAwareInterface, LayoutDefinitionEnrichmentInterface
 {
     use DataObject\Traits\DataWidthTrait;
     use Model\DataObject\Traits\ContextPersistenceTrait;
@@ -54,6 +60,30 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
      * @var null|int[]
      */
     public ?array $availableSites = null;
+
+    /**
+     * @internal
+     */
+    public ?string $slugGeneratorClass = null;
+
+    /**
+     * @internal
+     */
+    public bool $fillEmptySlug = false;
+
+    /**
+     * @internal
+     */
+    public bool $extendDuplicateSlugs = false;
+
+    /**
+     * @internal
+     *
+     * The language outside of localized fields is '' and the site of the fallback slug is 0.
+     *
+     * @var array<string, array<int, string|null>>|null
+     */
+    public ?array $slugPrefixes = null;
 
     /**
      * @see Data::getDataForEditmode
@@ -171,15 +201,27 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
 
     public function save(Localizedfield|AbstractData|\OpenDxp\Model\DataObject\Objectbrick\Data\AbstractData|Concrete $object, array $params = []): void
     {
-        if (isset($params['isUntouchable']) && $params['isUntouchable']) {
+        $untouched = $params['isUntouchable'] ?? false;
+
+        if ($untouched && !$this->fillEmptySlug) {
             return;
         }
 
         $db = Db::get();
-        $data = $this->getDataFromObjectParam($object, $params);
+        $data = $untouched ? null : $this->getDataFromObjectParam($object, $params);
+
+        // An unchanged field arrives without data, and an empty slug in it still has to be filled.
+        if ($data === null && $this->fillEmptySlug) {
+            $loaded = $this->load($object, $params);
+            $data = $this->applyDefaultSlug($loaded, $object, $params);
+
+            if ($data === $loaded) {
+                return;
+            }
+        }
 
         if ($data !== null) {
-            $slugs = $this->prepareDataForPersistence($data, $object, $params);
+            $data = $this->applyDefaultSlug($data, $object, $params);
 
             // delete rows first
             $deleteDescriptor = [
@@ -191,6 +233,17 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
                 sprintf('DELETE FROM %s WHERE %s', Model\DataObject\Data\UrlSlug::TABLE_NAME, implode(' AND ', $conditionParts)),
                 $sqlParams
             );
+
+            if ($this->extendDuplicateSlugs) {
+                foreach ($data as $item) {
+                    if ($item->getSlug()) {
+                        $item->setSlug($this->getUniqueSlug($item->getSlug(), $item->getSiteId() ?? 0));
+                    }
+                }
+            }
+
+            $slugs = $this->prepareDataForPersistence($data, $object, $params);
+
             // now save the new data
             if (is_array($slugs)) {
                 foreach ($slugs as $slug) {
@@ -233,6 +286,57 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         }
         $event = new UrlSlugEvent($this, $data);
         $this->dispatchEvent($event, UrlSlugEvents::POST_SAVE);
+    }
+
+    /**
+     * @param Model\DataObject\Data\UrlSlug[] $slugs
+     *
+     * @return Model\DataObject\Data\UrlSlug[]
+     */
+    private function applyDefaultSlug(array $slugs, Localizedfield|AbstractData|Model\DataObject\Objectbrick\Data\AbstractData|Concrete $container, array $params): array
+    {
+        $fallback = current(array_filter($slugs, static fn ($slug): bool => !$slug->getSiteId())) ?: null;
+
+        if (!$this->fillEmptySlug || $fallback?->getSlug()) {
+            return $slugs;
+        }
+
+        $owner = $container instanceof Concrete ? $container : $container->getObject();
+        $language = $container instanceof Localizedfield ? $params['language'] : null;
+        $suggestion = $this->getDefaultSlug(new UrlSlugContext($owner, $this, $language, null));
+
+        if ($suggestion === null) {
+            return $slugs;
+        }
+
+        $filled = [
+            new Model\DataObject\Data\UrlSlug($suggestion, 0),
+            ...array_filter($slugs, static fn ($slug): bool => $slug !== $fallback),
+        ];
+
+        if ($container instanceof Localizedfield) {
+            $container->setLocalizedValue($this->getName(), $filled, $language, false);
+        } else {
+            $container->setObjectVar($this->getName(), $filled);
+        }
+
+        return $filled;
+    }
+
+    /**
+     * The field removed its own rows before, so a slug that exists belongs to someone else.
+     */
+    private function getUniqueSlug(string $slug, int $siteId): string
+    {
+        $query = sprintf('SELECT 1 FROM %s WHERE slug = ? AND siteId = ?', Model\DataObject\Data\UrlSlug::TABLE_NAME);
+        $candidate = $slug;
+        $number = 0;
+
+        while (Db::get()->fetchOne($query, [$candidate, $siteId]) || Model\Document::getByPath($candidate)) {
+            $candidate = $slug . '-' . ++$number;
+        }
+
+        return $candidate;
     }
 
     public function prepareDataForPersistence(mixed $data, Localizedfield|AbstractData|Model\DataObject\Objectbrick\Data\AbstractData|Concrete|null $object = null, array $params = []): ?array
@@ -471,6 +575,168 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         $this->domainLabelWidth = $domainLabelWidth;
 
         return $this;
+    }
+
+    public function getSlugGeneratorClass(): ?string
+    {
+        return $this->slugGeneratorClass;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setSlugGeneratorClass(?string $slugGeneratorClass): static
+    {
+        $this->slugGeneratorClass = $slugGeneratorClass ?: null;
+
+        return $this;
+    }
+
+    public function getSlugGenerator(): ?UrlSlugGeneratorInterface
+    {
+        return $this->slugGeneratorClass
+            ? UrlSlugGeneratorResolver::resolveGenerator($this->slugGeneratorClass)
+            : null;
+    }
+
+    public function getFillEmptySlug(): bool
+    {
+        return $this->fillEmptySlug;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setFillEmptySlug(bool $fillEmptySlug): static
+    {
+        $this->fillEmptySlug = $fillEmptySlug;
+
+        return $this;
+    }
+
+    public function getExtendDuplicateSlugs(): bool
+    {
+        return $this->extendDuplicateSlugs;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setExtendDuplicateSlugs(bool $extendDuplicateSlugs): static
+    {
+        $this->extendDuplicateSlugs = $extendDuplicateSlugs;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, array<int, string|null>>|null
+     */
+    public function getSlugPrefixes(): ?array
+    {
+        return $this->slugPrefixes;
+    }
+
+    public function getPrefix(UrlSlugContext $context): ?string
+    {
+        $prefix = $this->getSlugGenerator()?->getPrefix($context);
+
+        if ($prefix === null || trim($prefix, '/') === '') {
+            return null;
+        }
+
+        return '/' . trim($prefix, '/');
+    }
+
+    public function formatSlug(string $text, UrlSlugContext $context): string
+    {
+        $generator = $this->getSlugGenerator();
+
+        return trim($generator ? $generator->formatSlug($text, $context) : $text, '/');
+    }
+
+    public function getDefaultSlug(UrlSlugContext $context): ?string
+    {
+        $text = $this->getSlugGenerator()?->getDefaultSlug($context);
+        $part = $text === null ? '' : $this->formatSlug($text, $context);
+
+        if ($part === '') {
+            return null;
+        }
+
+        $prefix = $this->getPrefix($context);
+
+        return $prefix === null ? '/' . $part : $prefix . '/' . $part;
+    }
+
+    public function enrichLayoutDefinition(?Concrete $object, array $context = []): static
+    {
+        $this->slugPrefixes = null;
+
+        if (!$object instanceof Concrete || !$this->getSlugGenerator()) {
+            return $this;
+        }
+
+        $localized = ($context['ownerType'] ?? null) === 'localizedfield'
+            || ($context['subContainerType'] ?? null) === 'localizedfield';
+        $languages = $localized ? Tool::getValidLanguages() : [null];
+        $sites = array_filter(
+            (new Site\Listing())->getSites(),
+            fn (Site $site): bool => !$this->availableSites || in_array($site->getId(), $this->availableSites),
+        );
+
+        foreach ($languages as $language) {
+            $prefixes = [
+                0 => $this->getPrefix(new UrlSlugContext($object, $this, $language, null)),
+            ];
+
+            foreach ($sites as $site) {
+                $prefixes[$site->getId()] = $this->getPrefix(new UrlSlugContext($object, $this, $language, $site));
+            }
+
+            $this->slugPrefixes[$language ?? ''] = $prefixes;
+        }
+
+        return $this;
+    }
+
+    public function preSave(mixed $containerDefinition, array $params = []): void
+    {
+        $class = $this->slugGeneratorClass;
+
+        if ($class === null) {
+            if ($this->fillEmptySlug) {
+                throw new Exception(sprintf('Field %s: Filling an empty slug needs a slug generator.', $this->getName()));
+            }
+
+            return;
+        }
+
+        $exists = str_starts_with($class, '@')
+            ? OpenDxp::getContainer()->has(substr($class, 1))
+            : class_exists($class);
+
+        if (!$exists || !$this->getSlugGenerator()) {
+            throw new Exception(sprintf(
+                'Field %s: %s is no slug generator. Enter a class or a public service that implements %s.',
+                $this->getName(),
+                $class,
+                UrlSlugGeneratorInterface::class,
+            ));
+        }
+    }
+
+    public function postSave(mixed $containerDefinition, array $params = []): void
+    {
+    }
+
+    #[Override]
+    public function resolveBlockedVars(): array
+    {
+        return [
+            ...parent::resolveBlockedVars(),
+            'slugPrefixes',
+        ];
     }
 
     public function preGetData(mixed $container, array $params = []): mixed

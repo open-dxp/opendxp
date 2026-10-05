@@ -19,6 +19,8 @@
 - Feature: The Pest expectations `toRedirectTo()` and `toBeAnsweredBy()` test the redirects of a project. Register them with `OpenDxp\Test\Expectation\Redirects::register()`.
 - Feature: `UserFactory::withPermissions()` creates a user with the given permissions.
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: A URL slug field takes a slug generator. It builds the prefix in front of the slug, formats what an editor types and fills an empty slug. Duplicate slugs can be extended with `-1`, `-2` [#159](https://github.com/open-dxp/opendxp/issues/159)
+- Bugfix: Saving a class checks the fields inside localized fields.
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
 - Bugfix: A long-running process, such as a Messenger worker, caches items with a tag again after an earlier request cleared that tag. Before, `CoreCacheHandler::reset()` kept the cleared tags, and the process refused to cache them until it restarted.
 - Bugfix: The `Cache` facade uses the cache handler of the current kernel. After a kernel reboot in the same process, it kept talking to the handler of the old kernel.

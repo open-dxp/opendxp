@@ -337,6 +337,15 @@ class Localizedfields extends Data implements CustomResourcePersistingInterface,
         return $dataString;
     }
 
+    public function preSave(mixed $containerDefinition, array $params = []): void
+    {
+        foreach ($this->getFieldDefinitions() as $definition) {
+            if ($definition instanceof DataContainerAwareInterface) {
+                $definition->preSave($containerDefinition, $params);
+            }
+        }
+    }
+
     public function getChildren(): array
     {
         return $this->children;
