@@ -135,7 +135,7 @@
         "ergebnis/phpstan-rules": "^2.9",
         "friendsofsymfony/http-cache-bundle": "^3.0",
         "gotenberg/gotenberg-php": "^2.4",
-        "open-dxp/test-foundation": "1.x-dev",
+        "open-dxp/test-foundation": "^1.0",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-symfony": "^2.0.9",
         "symfony/dotenv": "^7.4",
