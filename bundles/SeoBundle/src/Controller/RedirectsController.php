@@ -17,8 +17,8 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\SeoBundle\Controller;
 
-use Exception;
 use Doctrine\DBAL\ArrayParameterType;
+use Exception;
 use OpenDxp\Bundle\AdminBundle\Helper\QueryParams;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\Csv;
