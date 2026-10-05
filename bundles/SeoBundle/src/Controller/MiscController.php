@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\SeoBundle\Controller;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Db;
+use OpenDxp\Model\Site;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -66,7 +67,13 @@ class MiscController extends UserAwareController
                ->setParameter('filter', '%' . $filter . '%');
         }
 
-        $logs = $qb->executeQuery()->fetchAllAssociative();
+        $logs = array_map(static function (array $log): array {
+            // The admin offers to create a redirect for the path, on the site the request went to.
+            $url = parse_url((string) $log['uri']);
+            $site = isset($url['host']) ? Site::getByDomain($url['host']) : null;
+
+            return [...$log, 'path' => urldecode($url['path'] ?? '/'), 'siteId' => $site?->getId()];
+        }, $qb->executeQuery()->fetchAllAssociative());
 
         $countQb = $db->createQueryBuilder()
             ->select('COUNT(*)')
@@ -105,6 +112,16 @@ class MiscController extends UserAwareController
         }
 
         return $this->render('@OpenDxpSeo/misc/http_error_log_detail.html.twig', ['data' => $data]);
+    }
+
+    #[Route('/http-error-log-entry', name: 'opendxp_bundle_seo_misc_httperrorlogentrydelete', methods: ['DELETE'])]
+    public function httpErrorLogEntryDeleteAction(Request $request): JsonResponse
+    {
+        $this->checkPermission('http_errors');
+
+        Db::get()->executeStatement('DELETE FROM http_error_log WHERE uriHash = ?', [sha1($request->query->getString('uri'), true)]);
+
+        return $this->jsonResponse(['success' => true]);
     }
 
     #[Route('/http-error-log-flush', name: 'opendxp_bundle_seo_misc_httperrorlogflush', methods: ['DELETE'])]

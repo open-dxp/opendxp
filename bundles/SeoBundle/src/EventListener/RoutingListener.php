@@ -18,7 +18,6 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle\EventListener;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
-use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -48,10 +47,6 @@ class RoutingListener implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!OpenDxpSeoBundle::isInstalled()) {
-            return;
-        }
-
         $request = $event->getRequest();
         if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
             return;
@@ -65,10 +60,6 @@ class RoutingListener implements EventSubscriberInterface
 
     public function onKernelException(ExceptionEvent $event): void
     {
-        if (!OpenDxpSeoBundle::isInstalled()) {
-            return;
-        }
-
         $request = $event->getRequest();
         if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
             return;

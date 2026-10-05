@@ -114,6 +114,13 @@ opendxp.settings.redirects = Class.create({
                         return v;
                     }
                 }},
+                {name: 'validFrom', type: "date", convert: function (v) {
+                    return opendxp.bundle.seo.redirectDate(v);
+                }},
+                {name: 'passThroughPath'},
+                {name: 'protected'},
+                {name: 'hits', persist: false},
+                {name: 'lastHit', persist: false},
                 {name: 'creationDate'},
                 {name: 'modificationDate'}
             ],
@@ -122,6 +129,29 @@ opendxp.settings.redirects = Class.create({
 
         this.store.getProxy().setBatchActions(false);
         var redirectStore = this.store;
+
+        // A refused redirect answers with success false. The row goes back to what was saved before.
+        this.store.getProxy().on("exception", function (proxy, response) {
+            var answer = {};
+            try {
+                answer = Ext.decode(response.responseText);
+            } catch (e) {
+                return;
+            }
+
+            if (answer.errors) {
+                opendxp.bundle.seo.showRedirectErrors(answer.errors);
+                redirectStore.rejectChanges();
+            }
+        });
+
+        this.store.on("write", function (store, operation) {
+            try {
+                opendxp.bundle.seo.showRedirectWarnings(Ext.decode(operation.getResponse().responseText).warnings || []);
+            } catch (e) {
+                // a deleted redirect answers without warnings
+            }
+        });
 
         this.pagingtoolbar = opendxp.helpers.grid.buildDefaultPagingToolbar(this.store);
 
@@ -224,27 +254,7 @@ opendxp.settings.redirects = Class.create({
                 triggerAction: "all"
             })},
             {text: t("priority"), flex: 60, sortable: true, dataIndex: 'priority',
-                editor: new Ext.form.ComboBox({
-                    store: [
-                        [1, "1 - " + t("lowest")],
-                        [2, 2],
-                        [3, 3],
-                        [4, 4],
-                        [5, 5],
-                        [6, 6],
-                        [7, 7],
-                        [8, 8],
-                        [9, 9],
-                        [10, "10 - " + t("highest")],
-                        [99, "99 - " + t("override_all")]
-                    ],
-                    mode: "local",
-                    typeAhead: false,
-                    listConfig: {minWidth: 200},
-                    editable: false,
-                    forceSelection: true,
-                    triggerAction: "all"
-            })},
+                editor: opendxp.bundle.seo.redirectPriorityCombo()},
             new Ext.grid.column.Check({
                 text: t("regex"),
                 dataIndex: "regex",
@@ -303,6 +313,35 @@ opendxp.settings.redirects = Class.create({
                         }
                     }
             },
+            {
+                text: t("redirect_valid_from") + ' (' + t('optional') + ')',
+                flex: 150, sortable: true, dataIndex: "validFrom", hidden: true,
+                editor: {
+                    xtype: 'datefield',
+                    format: 'Y-m-d'
+                },
+                renderer: function (d) {
+                    if (d instanceof Date) {
+                        return Ext.Date.format(d, "Y-m-d");
+                    }
+                }
+            },
+            {text: t("redirect_hits"), flex: 70, sortable: true, dataIndex: 'hits', align: 'right', hidden: true},
+            {text: t("redirect_last_hit"), flex: 120, sortable: true, dataIndex: 'lastHit', hidden: true,
+                renderer: function (d) {
+                    return d ? Ext.Date.format(new Date(d * 1000), "Y-m-d H:i") : t("redirect_never");
+                }
+            },
+            new Ext.grid.column.Check({
+                text: t("redirect_protected"),
+                dataIndex: "protected",
+                flex: 70,
+                hidden: true,
+                hideable: opendxp.globalmanager.get("user").isAllowed("redirects_protected"),
+                editor: {
+                    xtype: 'checkbox'
+                }
+            }),
             {text: t("creationDate"), sortable: true, dataIndex: 'creationDate', editable: false,
                 hidden: true,
                 flex: 150,
@@ -326,6 +365,21 @@ opendxp.settings.redirects = Class.create({
                         return "";
                     }
                 }
+            },
+            {
+                xtype: 'actioncolumn',
+                menuText: t('redirect_edit_all'),
+                flex: 30,
+                items: [{
+                    tooltip: t('redirect_edit_all'),
+                    icon: "/bundles/opendxpadmin/img/flat-color-icons/edit.svg",
+                    handler: function (grid, rowIndex) {
+                        this.rowEditing.cancelEdit();
+                        new opendxp.bundle.seo.redirectEditor(grid.getStore().getAt(rowIndex).getData(), function () {
+                            this.store.reload();
+                        }.bind(this));
+                    }.bind(this)
+                }]
             },
             {
                 xtype: 'actioncolumn',
@@ -398,6 +452,12 @@ opendxp.settings.redirects = Class.create({
                 delay: 1
             }
         });
+
+        // Runs before the delayed listener above and stops it, because only a listener without delay can cancel.
+        // A click on the checkbox only selects the row.
+        this.rowEditing.on("beforeedit", function (editor, context) {
+            return !context.column.isCheckerHd;
+        }, null, {priority: 1});
 
         var toolbar = Ext.create('Ext.Toolbar', {
             cls: 'opendxp_main_toolbar',
@@ -520,7 +580,26 @@ opendxp.settings.redirects = Class.create({
                         });
                     }.bind(this)
                 },
+                this.selectionButton = new Ext.button.Button({
+                    text: t("redirect_selection"),
+                    iconCls: "opendxp_icon_checkbox",
+                    disabled: true,
+                    menu: [{
+                        text: t("redirect_activate"),
+                        iconCls: "opendxp_icon_success",
+                        handler: this.setSelectedActive.bind(this, true)
+                    }, {
+                        text: t("redirect_deactivate"),
+                        iconCls: "opendxp_icon_hide",
+                        handler: this.setSelectedActive.bind(this, false)
+                    }, {
+                        text: t("delete"),
+                        iconCls: "opendxp_icon_delete",
+                        handler: this.deleteSelected.bind(this)
+                    }]
+                }),
                 "->",
+                this.getShowFilter(),
                 {
                     text: t("search") + " / " + t("test_url"),
                     xtype: "tbtext",
@@ -530,6 +609,11 @@ opendxp.settings.redirects = Class.create({
             ]
         });
 
+        this.selectionColumn = new Ext.selection.CheckboxModel({checkOnly: true});
+        this.selectionColumn.on("selectionchange", function (model, selected) {
+            this.selectionButton.setDisabled(selected.length === 0);
+        }.bind(this));
+
         this.grid = Ext.create('Ext.grid.Panel', {
             frame: false,
             autoScroll: true,
@@ -538,7 +622,7 @@ opendxp.settings.redirects = Class.create({
             trackMouseOver: true,
             columnLines: true,
             bodyCls: "opendxp_editable_grid",
-            selModel: Ext.create('Ext.selection.RowModel', {}),
+            selModel: this.selectionColumn,
             plugins: [
                 this.rowEditing
             ],
@@ -580,6 +664,55 @@ opendxp.settings.redirects = Class.create({
         });
 
         return this.grid;
+    },
+
+    getShowFilter: function () {
+        var shown = [
+            ["", t("redirect_show_all")],
+            ["active", t("redirect_show_active")],
+            ["inactive", t("redirect_show_inactive")],
+            ["scheduled", t("redirect_show_scheduled")],
+            ["expired", t("redirect_show_expired")],
+            ["unused", t("redirect_show_unused")]
+        ];
+
+        if (opendxp.globalmanager.get("user").isAllowed("redirects_protected")) {
+            shown.push(["protected", t("redirect_show_protected")]);
+        }
+
+        return new Ext.form.ComboBox({
+            store: shown,
+            value: "",
+            queryMode: "local",
+            editable: false,
+            width: 220,
+            style: "margin: 0 10px 0 0;",
+            listeners: {
+                select: function (combo) {
+                    this.store.getProxy().extraParams.show = combo.getValue();
+                    this.pagingtoolbar.moveFirst();
+                }.bind(this)
+            }
+        });
+    },
+
+    setSelectedActive: function (active) {
+        Ext.Array.each(this.grid.getSelectionModel().getSelection(), function (record) {
+            record.set("active", active);
+        });
+    },
+
+    deleteSelected: function () {
+        var selection = this.grid.getSelectionModel().getSelection();
+        if (selection.length === 0) {
+            return;
+        }
+
+        Ext.MessageBox.confirm(t("delete"), t("redirect_delete_selection").replace("%count%", selection.length), function (button) {
+            if (button === "yes") {
+                this.store.remove(selection);
+            }
+        }.bind(this));
     },
 
     cleanupExpiredRedirects: function () {
@@ -720,36 +853,6 @@ opendxp.settings.redirects = Class.create({
     },
 
     getRedirectTypeCombo: function (config) {
-
-        var redirectTypesStore = Ext.create('Ext.data.ArrayStore', {
-            fields: ['type', 'name'],
-            data : [
-                ["entire_uri", t('redirects_type_entire_uri') + ': https://host.com/foo?key=value'],
-                ["path_query", t('redirects_type_path_query') + ': /foo?key=value'],
-                ["path", t('redirects_type_path') + ': /foo'],
-                ["auto_create", t('auto_create')],
-            ]
-        });
-
-        if(!config) {
-            config = {};
-        }
-
-        config = Ext.merge({
-            store: redirectTypesStore,
-            mode: "local",
-            queryMode: "local",
-            typeAhead: false,
-            editable: false,
-            displayField: 'name',
-            valueField: 'type',
-            listConfig: {
-                minWidth: 350
-            },
-            forceSelection: true,
-            triggerAction: "all"
-        }, config);
-
-        return new Ext.form.ComboBox(config)
+        return opendxp.bundle.seo.redirectTypeCombo(config);
     }
 });

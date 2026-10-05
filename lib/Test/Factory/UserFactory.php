@@ -40,6 +40,11 @@ final class UserFactory extends AbstractSavingFactory
         return $this->with(['admin' => true]);
     }
 
+    public function withPermissions(string ...$permissions): static
+    {
+        return $this->with(['permissions' => $permissions]);
+    }
+
     protected function defaults(): array
     {
         return [

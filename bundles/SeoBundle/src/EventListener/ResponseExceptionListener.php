@@ -17,26 +17,43 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle\EventListener;
 
 use Doctrine\DBAL\Connection;
-use OpenDxp;
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
-use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
 use OpenDxp\Http\Exception\ResponseException;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Contracts\Service\ResetInterface;
+use Throwable;
 
 /**
+ * Logs the requests that end in an HTTP error to the HTTP error log.
+ *
+ * The entry is written once the response has been sent, so a visitor never waits for it. A single upsert keyed by the
+ * hash of the URI counts repeated errors, which keeps concurrent requests from creating duplicates.
+ *
  * @internal
  */
-class ResponseExceptionListener implements EventSubscriberInterface
+class ResponseExceptionListener implements EventSubscriberInterface, ResetInterface
 {
     use OpenDxpContextAwareTrait;
 
-    public function __construct(protected Connection $db)
-    {
+    /**
+     * @var array{uri: string, code: int, parametersGet: string}|null
+     */
+    private ?array $error = null;
+
+    public function __construct(
+        protected Connection $db,
+        private readonly RedirectTableProvider $tables,
+        private readonly LoggerInterface $logger,
+        #[Autowire('%kernel.debug%')]
+        private readonly bool $debug,
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -44,15 +61,12 @@ class ResponseExceptionListener implements EventSubscriberInterface
         return [
             // run with high priority before handling real errors
             KernelEvents::EXCEPTION => ['onKernelException', 64],
+            KernelEvents::TERMINATE => 'onKernelTerminate',
         ];
     }
 
     public function onKernelException(ExceptionEvent $event): void
     {
-        if (!OpenDxpSeoBundle::isInstalled()) {
-            return;
-        }
-
         $exception = $event->getThrowable();
 
         // handle ResponseException (can be used from any context)
@@ -62,40 +76,43 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
         // further checks are only valid for default context
         $request = $event->getRequest();
-        if ($this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
-            if (OpenDxp::inDebugMode()) {
-                return;
-            }
+        if ($this->debug || !$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
+            return;
+        }
 
-            $exception = $event->getThrowable();
+        if (!$this->tables->get()->isInstalled()) {
+            return;
+        }
 
-            $statusCode = 500;
+        $this->error = [
+            'uri' => $request->getUri(),
+            'code' => $exception instanceof HttpExceptionInterface ? $exception->getStatusCode() : 500,
+            'parametersGet' => serialize($request->query->all()),
+        ];
+    }
 
-            if ($exception instanceof HttpExceptionInterface) {
-                $statusCode = $exception->getStatusCode();
-            }
+    public function onKernelTerminate(): void
+    {
+        if ($this->error === null) {
+            return;
+        }
 
-            $this->logToHttpErrorLog($event->getRequest(), $statusCode);
+        $error = $this->error;
+        $this->error = null;
+
+        try {
+            $this->db->executeStatement(
+                'INSERT INTO http_error_log (uri, uriHash, code, parametersGet, date, count) VALUES (:uri, :uriHash, :code, :parametersGet, :date, 1)
+                    ON DUPLICATE KEY UPDATE count = count + 1, date = VALUES(date)',
+                [...$error, 'uriHash' => sha1($error['uri'], true), 'date' => time()]
+            );
+        } catch (Throwable $exception) {
+            $this->logger->warning('Could not log the HTTP error of {uri}: {message}', ['uri' => $error['uri'], 'message' => $exception->getMessage()]);
         }
     }
 
-    protected function logToHttpErrorLog(Request $request, int $statusCode): void
+    public function reset(): void
     {
-        $uri = $request->getUri();
-        $exists = $this->db->fetchOne('SELECT date FROM http_error_log WHERE uri = ?', [$uri]);
-        if ($exists) {
-            $this->db->executeStatement(
-                'UPDATE http_error_log SET `count` = `count` + 1, date = ? WHERE uri = ?',
-                [time(), $uri]
-            );
-        } else {
-            $this->db->insert('http_error_log', [
-                'uri' => $uri,
-                'code' => $statusCode,
-                'parametersGet' => serialize($_GET),
-                'date' => time(),
-                'count' => 1,
-            ]);
-        }
+        $this->error = null;
     }
 }

@@ -15,7 +15,25 @@ Depending on their priority, Redirects come second (priority 99) or fifth (all o
 
 
 ## Setting up Redirects
-Redirects are configured in the Redirects editor, accessible via the Tools menu. 
+Redirects are managed in Tools > Redirects.
+
+You edit a redirect directly in its row. The pencil icon opens a window with all fields, including the ones the grid
+does not show: the domain options, the validity, the protection and the usage. You can drag a document onto the
+target field.
+
+The columns for hits, last hit and protection are hidden by default. You can show them in the column menu of the grid.
+
+The dropdown above the grid filters the list. It shows active, inactive, scheduled, expired or protected redirects, or
+redirects without a hit in the last 90 days.
+
+The checkbox in front of a row selects the redirect. "Selection" then activates, deactivates or deletes all selected
+redirects.
+
+#### Creating Redirects From the HTTP Error Log
+
+The HTTP errors are listed in Marketing > SEO > HTTP Errors. For a URL that was not found (404), the redirect button
+of its row opens a new redirect, with the path and the site of the URL already filled in. Once you save the redirect,
+the URL disappears from the log.
 
 #### Regular Expression and Back-Reference Syntax
 
@@ -48,6 +66,87 @@ opendxp_seo:
 
 A page with a pretty URL gets no redirect for its former path when it is moved, because visitors
 reach it under its pretty URL.
+
+
+#### Matching
+
+The type of a redirect decides which part of the URL is compared: the path, the path with the query, or the entire
+URI. Exact sources ignore upper and lower case and accents, so `/Über-Uns` matches `/uber-uns`.
+
+Exact sources are checked before regular expressions. If several regular expressions match, the one with the highest
+priority wins. A redirect without a source site only applies to requests outside of any site.
+
+
+#### Domain Redirects
+
+A domain redirect sends every request for a host to another address, whatever the path. The source is the host name,
+for example `summer2026.example.com`. The target is a full URL or a path on a target site.
+
+With "Pass through path", the path of the request is added to the target. This moves a whole domain:
+`old-brand.com/products/shoes` goes to `new-brand.com/products/shoes`.
+
+Domain redirects run before OpenDXP sends an additional domain to the main domain of its site.
+
+
+#### Scheduling
+
+A redirect can have a start date, an end date, or both. Outside of this time it does not apply. The end date has to be
+after the start date.
+
+Two redirects can use the same source at different times, for example a summer campaign and a permanent target. If
+both are valid at the same time, the one with the higher priority wins.
+
+
+#### Protected Redirects
+
+Only users with the permission "Manage protected redirects" (`redirects_protected`) see protected redirects.
+Administrators have this permission. Use it for redirects that an agency or the SEO team is responsible for, for
+example after a relaunch.
+
+Users without the permission cannot override a protected redirect:
+
+* A protected redirect wins over redirects that are not protected, whatever their priority.
+* They cannot create, import or change a redirect with the same exact source. The error message does not reveal the
+  protected redirect.
+* They cannot change, delete, export or import a protected redirect.
+
+
+#### Validation
+
+The editor refuses a redirect that cannot work:
+
+* a regular expression that does not compile
+* a target that is the same as the source
+* a domain redirect whose target stays on the same domain
+* an end date before the start date
+
+The editor warns when another redirect already uses the same source, or when the target redirects again. It saves the
+redirect anyway.
+
+Use the status code `410 Gone` to tell search engines that a page was removed for good.
+
+
+#### Hit Statistics
+
+OpenDXP counts how often each redirect is used and when it was used last. This helps to decide whether a redirect is
+still needed. The count is written after the response is sent, so visitors do not wait for it.
+
+To switch counting off:
+
+```yaml
+opendxp_seo:
+    redirects:
+        count_hits: false
+```
+
+
+#### Performance
+
+OpenDXP compiles all active redirects into a PHP file in the cache directory. OPcache keeps this file in memory. A
+request therefore needs no database query for redirects, only one cache lookup, however many redirects exist.
+
+Saving, deleting or importing a redirect clears the cache tag `redirect`, and the next request compiles the file
+again. In a cluster, every server compiles its own file.
 
 
 #### Creating custom redirect status codes

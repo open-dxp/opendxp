@@ -55,6 +55,26 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
     },
 
 
+    /**
+     * Opens the redirect editor with the path and the site of the URL. Once the redirect is saved, the URL leaves the
+     * log, because the redirect answers it from now on.
+     */
+    createRedirect: function (record) {
+        new opendxp.bundle.seo.redirectEditor({
+            type: "path",
+            source: record.get("path"),
+            sourceSite: record.get("siteId")
+        }, function () {
+            Ext.Ajax.request({
+                url: Routing.generate('opendxp_bundle_seo_misc_httperrorlogentrydelete', {uri: record.get("uri")}),
+                method: "DELETE",
+                success: function () {
+                    this.store.reload();
+                }.bind(this)
+            });
+        }.bind(this));
+    },
+
     getGrid: function () {
 
         var itemsPerPage = opendxp.helpers.grid.getDefaultPageSize();
@@ -62,7 +82,7 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
 
         this.store = opendxp.helpers.grid.buildDefaultStore(
             url,
-            ["uri", "code", "date","count"],
+            ["uri", "code", "date", "count", "path", "siteId"],
             itemsPerPage
         );
 
@@ -74,7 +94,7 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
 
         var typesColumns = [
             {text: "Code", width: 60, sortable: true, dataIndex: 'code'},
-            {text: t("path"), width: 400, sortable: true, dataIndex: 'uri'},
+            {text: t("path"), flex: 1, minWidth: 300, sortable: true, dataIndex: 'uri'},
             {text: t("amount"), width: 60, sortable: true, dataIndex: 'count'},
             {text: t("date"), width: 200, sortable: true, dataIndex: 'date',
                                                                     renderer: function(d) {
@@ -91,6 +111,25 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
                     handler: function (grid, rowIndex) {
                         var data = grid.getStore().getAt(rowIndex);
                         window.open(data.get("uri"));
+                    }.bind(this)
+                }]
+            },
+            {
+                xtype: 'actioncolumn',
+                menuText: t('redirect_create'),
+                width: 30,
+                hidden: !opendxp.globalmanager.get("user").isAllowed("redirects"),
+                items: [{
+                    tooltip: t('redirect_create'),
+
+                    getClass: function (value, meta, record) {
+                        return parseInt(record.get("code"), 10) === 404 ? "opendxp_icon_redirects" : "x-hidden-display";
+                    },
+                    isActionDisabled: function (view, rowIndex, colIndex, item, record) {
+                        return parseInt(record.get("code"), 10) !== 404;
+                    },
+                    handler: function (grid, rowIndex) {
+                        this.createRedirect(grid.getStore().getAt(rowIndex));
                     }.bind(this)
                 }]
             }

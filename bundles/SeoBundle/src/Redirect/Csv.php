@@ -56,6 +56,21 @@ class Csv
         'expiry',
     ];
 
+    /**
+     * Columns that older exports do not have. An import without them takes the defaults.
+     *
+     * @var array<string, mixed>
+     */
+    private array $optionalColumns = [
+        'validFrom' => null,
+        'passThroughPath' => false,
+        'protected' => false,
+    ];
+
+    public function __construct(private readonly RedirectValidator $validator)
+    {
+    }
+
     private ?ArrayNormalizer $importNormalizer = null;
 
     private ?OptionsResolver $importResolver = null;
@@ -73,7 +88,7 @@ class Csv
         // force "" enclosure as it allows us to just open the file in excel
         EncloseField::addTo($writer, "\t\x1f");
 
-        $writer->insertOne($this->columns);
+        $writer->insertOne([...$this->columns, ...array_keys($this->optionalColumns)]);
 
         foreach ($list->getRedirects() as $redirect) {
             $target = $redirect->getTarget();
@@ -91,6 +106,11 @@ class Csv
                 $expiry = (new DateTime('@' . $redirect->getExpiry()))->format(DateFormat::ISO_8601);
             }
 
+            $validFrom = null;
+            if ($redirect->getValidFrom()) {
+                $validFrom = (new DateTime('@' . $redirect->getValidFrom()))->format(DateFormat::ISO_8601);
+            }
+
             $data = [
                 $redirect->getId(),
                 $redirect->getType(),
@@ -104,6 +124,9 @@ class Csv
                 $redirect->getPassThroughParameters(),
                 $redirect->getActive(),
                 $expiry,
+                $validFrom,
+                $redirect->getPassThroughPath(),
+                $redirect->isProtected(),
             ];
             $data = Service::escapeCsvRecord($data);
 
@@ -116,7 +139,10 @@ class Csv
     /**
      * @throws \League\Csv\Exception
      */
-    public function import(string $filename): array
+    /**
+     * @param bool $mayManageProtected whether the importing user holds the permission redirects_protected
+     */
+    public function import(string $filename, bool $mayManageProtected = true): array
     {
         if (!file_exists($filename) || !is_readable($filename)) {
             throw new InvalidArgumentException(sprintf('`%s`: failed to open stream: No such file or directory', $filename));
@@ -149,7 +175,7 @@ class Csv
         foreach ($result as $line => $record) {
             try {
                 $data = $this->preprocessImportData($record);
-                $this->processImportData($data, $stats);
+                $this->processImportData($data, $stats, $mayManageProtected);
 
                 $stats['imported']++;
             } catch (Throwable $e) {
@@ -176,27 +202,28 @@ class Csv
         return $data;
     }
 
-    private function processImportData(array $data, array &$stats): void
+    private function processImportData(array $data, array &$stats, bool $mayManageProtected): void
     {
-        $redirect = null;
+        $redirect = $data['id'] ? Redirect::getById($data['id']) : null;
 
-        if ($data['id']) {
-            $redirect = Redirect::getById($data['id']);
-            if ($redirect instanceof Redirect) {
-                $stats['updated']++;
-            }
-        }
-
-        if (!$redirect instanceof Redirect) {
-            $redirect = new Redirect();
-            $stats['created']++;
+        if (!$mayManageProtected && ($redirect?->isProtected() || $data['protected'])) {
+            throw new InvalidArgumentException('Only users with the permission redirects_protected import a protected redirect.');
         }
 
         // ID is already set or will be generated
         unset($data['id']);
 
+        $isNew = !$redirect instanceof Redirect;
+        $redirect ??= new Redirect();
         $redirect->setValues($data);
+
+        $validation = $this->validator->validate($redirect, $mayManageProtected);
+        if (!$validation->isValid()) {
+            throw new InvalidArgumentException(implode(', ', array_column($validation->errors, 'message')));
+        }
+
         $redirect->save();
+        $stats[$isNew ? 'created' : 'updated']++;
     }
 
     private function getImportNormalizer(): ArrayNormalizer
@@ -238,7 +265,7 @@ class Csv
             return (string)$value;
         });
 
-        $normalizer->addNormalizer(['regex', 'passThroughParameters', 'active'], function ($value) {
+        $normalizer->addNormalizer(['regex', 'passThroughParameters', 'active', 'passThroughPath', 'protected'], function ($value) {
             if (empty($value)) {
                 return false;
             }
@@ -246,7 +273,7 @@ class Csv
             return (bool)$value;
         });
 
-        $normalizer->addNormalizer(['expiry'], function ($value) {
+        $normalizer->addNormalizer(['expiry', 'validFrom'], function ($value) {
             if (empty($value)) {
                 return null;
             }
@@ -288,6 +315,11 @@ class Csv
         $resolver->setAllowedTypes('passThroughParameters', ['bool']);
         $resolver->setAllowedTypes('active', ['bool']);
         $resolver->setAllowedTypes('expiry', ['int', 'null']);
+
+        $resolver->setDefaults($this->optionalColumns);
+        $resolver->setAllowedTypes('validFrom', ['int', 'null']);
+        $resolver->setAllowedTypes('passThroughPath', ['bool']);
+        $resolver->setAllowedTypes('protected', ['bool']);
 
         $this->importResolver = $resolver;
 

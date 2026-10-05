@@ -7,7 +7,21 @@
 - Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
 - Improvement: Allow `symfony/process` 8.
 - Bugfix: Moving a page with a pretty URL no longer creates a redirect for its former path in the document tree. Visitors reach the page under its pretty URL, which stays the same [#194](https://github.com/open-dxp/opendxp/issues/194)
+- Improvement: Redirects are resolved from a compiled table in OPcache instead of the database. A request costs a single cache lookup instead of three to four queries, and saving a redirect no longer makes the next request load every redirect one by one. Run the core migrations: they add the table `redirect_hits`, allow redirect sources and targets of up to 1024 characters and key the `http_error_log` by a hash of the URI. A system without `OpenDxpSeoBundle` is left alone [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Count how often each redirect answers a request, and when it did last. Switch it off with `opendxp_seo.redirects.count_hits: false` [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Domain redirects send every request to a host somewhere else, optionally with the path of the request. They run before the redirect to the main domain [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Redirects can be valid from a date, in addition to the expiry [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Protected redirects are visible only to users with the new permission `redirects_protected`. They win over every redirect that is not protected, and nobody without the permission can take over their source [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: The redirect editor refuses invalid regular expressions, redirects to their own source, domain redirects that would stay on their domain and an expiry before the start. It warns about duplicate sources and chains. It saves only the fields an editor may set, and a field left empty keeps its default [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: `410 Gone` is one of the default redirect status codes [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: The redirect editor shows the hits of each redirect, edits all fields of a redirect in a window, narrows the grid to a view like "no hit for 90 days" and changes the redirects selected by their checkbox at once [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: The Pest expectations `toRedirectTo()` and `toBeAnsweredBy()` test the redirects of a project. Register them with `OpenDxp\Test\Expectation\Redirects::register()`.
+- Feature: `UserFactory::withPermissions()` creates a user with the given permissions.
+- Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
+- Bugfix: A long-running process, such as a Messenger worker, caches items with a tag again after an earlier request cleared that tag. Before, `CoreCacheHandler::reset()` kept the cleared tags, and the process refused to cache them until it restarted.
+- Bugfix: The `Cache` facade uses the cache handler of the current kernel. After a kernel reboot in the same process, it kept talking to the handler of the old kernel.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

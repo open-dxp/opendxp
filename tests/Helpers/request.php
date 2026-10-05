@@ -15,9 +15,11 @@ declare(strict_types=1);
  */
 
 use OpenDxp\Http\RequestHelper;
+use OpenDxp\TestFoundation\Browser;
 use OpenDxp\TestFoundation\Container;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Serves a frontend request. OpenDXP reads the main request to resolve a path across sites, so
@@ -46,4 +48,24 @@ function subRequest(string $url, mixed $content = null): Request
     Container::requestStack()->push($request);
 
     return $request;
+}
+
+/**
+ * Sends the request and returns the answer without following a redirect.
+ */
+function answerTo(string $uri): Response
+{
+    return Browser::start()
+        ->interceptRedirects()
+        ->visit($uri)
+        ->client()
+        ->getResponse();
+}
+
+/**
+ * Resets the services, as Symfony does between two requests.
+ */
+function nextRequest(): void
+{
+    Container::get('services_resetter')->reset();
 }

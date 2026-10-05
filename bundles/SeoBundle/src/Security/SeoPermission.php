@@ -20,4 +20,5 @@ enum SeoPermission: string
     case RobotsTxt          = 'opendxp:security:permission:robots.txt';
     case SeoDocumentEditor  = 'opendxp:security:permission:seo_document_editor';
     case HttpErrors         = 'opendxp:security:permission:http_errors';
+    case ProtectedRedirects = 'opendxp:security:permission:redirects_protected';
 }

@@ -13,6 +13,7 @@ opendxp_seo:
             302: Found
             303: See Other
             307: Temporary Redirect
+            410: Gone
         auto_create_redirects: false
 
 presta_sitemap:

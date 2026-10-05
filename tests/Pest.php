@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 use OpenDxp\Test\Expectation\Elements;
 use OpenDxp\Test\Expectation\Fields;
+use OpenDxp\Test\Expectation\Redirects;
 use OpenDxp\TestFoundation\TestCase;
 use OpenDxp\Tests\TestCase\CacheTestCase;
 use OpenDxp\Tests\TestCase\HttpCacheTestCase;
@@ -24,6 +25,7 @@ use OpenDxp\Tests\TestCase\SearchTestCase;
 
 Elements::register();
 Fields::register();
+Redirects::register();
 
 // Unit tests need no application, so they get no test case.
 pest()->extend(TestCase::class)->in('Feature/Asset', 'Feature/LazyLoading', 'Feature/Permissions', 'Feature/Site', 'Feature/ClassDefinition', 'Feature/ClassificationStore',

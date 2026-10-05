@@ -9,3 +9,4 @@ services:
     # Sitemap listener delegating work to configured generators
     OpenDxp\Bundle\SeoBundle\EventListener\SitemapGeneratorListener: ~
     OpenDxp\Bundle\SeoBundle\EventListener\RoutingListener: ~
+    OpenDxp\Bundle\SeoBundle\EventListener\DomainRedirectListener: ~
