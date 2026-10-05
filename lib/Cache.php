@@ -50,6 +50,9 @@ class Cache
      */
     public static function init(): void
     {
+        // A new container brings a handler of its own.
+        static::$handler = null;
+
         if (OpenDxp::hasKernel()) {
             OpenDxp::getContainer()
                 ->get('event_dispatcher')

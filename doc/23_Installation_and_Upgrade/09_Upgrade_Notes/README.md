@@ -18,6 +18,8 @@
 - Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
+- Bugfix: A long-running process, such as a Messenger worker, caches items with a tag again after an earlier request cleared that tag. Before, `CoreCacheHandler::reset()` kept the cleared tags, and the process refused to cache them until it restarted.
+- Bugfix: The `Cache` facade uses the cache handler of the current kernel. After a kernel reboot in the same process, it kept talking to the handler of the old kernel.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

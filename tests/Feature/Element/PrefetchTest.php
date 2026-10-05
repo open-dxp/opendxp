@@ -84,10 +84,6 @@ function asASiblingWorker(callable $work): void
 }
 
 beforeEach(function () {
-    // The kernel is rebooted per test while Cache::$handler survives statically, so the facade
-    // would point at a handler of a container that is gone.
-    (new ReflectionProperty(Cache::class, 'handler'))->setValue(null, null);
-
     $this->cacheWasEnabled = Cache::isEnabled();
     Cache::enable();
 
