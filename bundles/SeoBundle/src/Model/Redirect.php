@@ -59,7 +59,7 @@ final class Redirect extends AbstractModel
 
     protected ?int $id = null;
 
-    protected string $type;
+    protected string $type = self::TYPE_PATH;
 
     protected ?string $source = null;
 
@@ -79,7 +79,7 @@ final class Redirect extends AbstractModel
 
     protected bool $active = true;
 
-    protected int|string|null $expiry = null;
+    protected ?int $expiry = null;
 
     protected ?int $validFrom = null;
 
@@ -279,10 +279,10 @@ final class Redirect extends AbstractModel
 
     public function setExpiry(int|string|null $expiry): static
     {
-        if (is_string($expiry) && !is_numeric($expiry)) {
-            $expiry = strtotime($expiry);
+        if (is_string($expiry)) {
+            $expiry = is_numeric($expiry) ? (int) $expiry : (strtotime($expiry) ?: null);
         }
-        $this->expiry = $expiry;
+        $this->expiry = $expiry ?: null;
 
         return $this;
     }

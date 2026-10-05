@@ -12,6 +12,7 @@ redirect_domain_target_relative: 'The target of a domain redirect is a full URL 
 redirect_edit_all: 'Edit all fields'
 redirect_hits: 'Hits'
 redirect_last_hit: 'Last hit'
+redirect_expires_before_start: 'The redirect expires before it starts.'
 redirect_loop: 'The target is the source itself, so the redirect would never end.'
 redirect_never: 'never'
 redirect_new: 'New redirect'

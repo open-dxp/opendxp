@@ -94,7 +94,7 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
 
         var typesColumns = [
             {text: "Code", width: 60, sortable: true, dataIndex: 'code'},
-            {text: t("path"), width: 400, sortable: true, dataIndex: 'uri'},
+            {text: t("path"), flex: 1, minWidth: 300, sortable: true, dataIndex: 'uri'},
             {text: t("amount"), width: 60, sortable: true, dataIndex: 'count'},
             {text: t("date"), width: 200, sortable: true, dataIndex: 'date',
                                                                     renderer: function(d) {
@@ -121,7 +121,13 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
                 hidden: !opendxp.globalmanager.get("user").isAllowed("redirects"),
                 items: [{
                     tooltip: t('redirect_create'),
-                    iconCls: "opendxp_icon_redirects",
+
+                    getClass: function (value, meta, record) {
+                        return parseInt(record.get("code"), 10) === 404 ? "opendxp_icon_redirects" : "x-hidden-display";
+                    },
+                    isActionDisabled: function (view, rowIndex, colIndex, item, record) {
+                        return parseInt(record.get("code"), 10) !== 404;
+                    },
                     handler: function (grid, rowIndex) {
                         this.createRedirect(grid.getStore().getAt(rowIndex));
                     }.bind(this)

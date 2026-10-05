@@ -58,6 +58,23 @@ opendxp.bundle.seo.redirectEditor = Class.create({
                 defaults: {labelWidth: 170, anchor: "100%"}
             },
             items: [{
+                title: t("redirect_settings"),
+                items: [
+                    {xtype: "checkbox", name: "active", fieldLabel: t("active"), value: isNew ? true : !!data.active},
+                    {xtype: "checkbox", name: "protected", fieldLabel: t("redirect_protected"), value: !!data.protected,
+                        hidden: !opendxp.globalmanager.get("user").isAllowed("redirects_protected")},
+                    opendxp.bundle.seo.redirectPriorityCombo({name: "priority", fieldLabel: t("priority"), value: parseInt(data.priority || 1, 10)}),
+                    {
+                        xtype: "fieldcontainer",
+                        layout: "hbox",
+                        defaults: {format: "Y-m-d"},
+                        items: [
+                            {xtype: "datefield", name: "validFrom", fieldLabel: t("redirect_valid_from"), labelWidth: 170, width: 350, value: opendxp.bundle.seo.redirectDate(data.validFrom)},
+                            {xtype: "datefield", name: "expiry", fieldLabel: t("expiry"), labelWidth: 100, flex: 1, margin: "0 0 0 30", value: opendxp.bundle.seo.redirectDate(data.expiry)}
+                        ]
+                    }
+                ]
+            }, {
                 title: t("source"),
                 items: [
                     opendxp.bundle.seo.redirectTypeCombo({name: "type", fieldLabel: t("type"), value: data.type || "path", listeners: {
@@ -79,16 +96,6 @@ opendxp.bundle.seo.redirectEditor = Class.create({
                     {xtype: "checkbox", name: "passThroughPath", fieldLabel: t("redirect_pass_through_path"), value: !!data.passThroughPath}
                 ]
             }, {
-                title: t("redirect_settings"),
-                items: [
-                    opendxp.bundle.seo.redirectPriorityCombo({name: "priority", fieldLabel: t("priority"), value: parseInt(data.priority || 1, 10)}),
-                    {xtype: "checkbox", name: "active", fieldLabel: t("active"), value: isNew ? true : !!data.active},
-                    {xtype: "datefield", name: "validFrom", fieldLabel: t("redirect_valid_from"), format: "Y-m-d", value: opendxp.bundle.seo.redirectDate(data.validFrom)},
-                    {xtype: "datefield", name: "expiry", fieldLabel: t("expiry"), format: "Y-m-d", value: opendxp.bundle.seo.redirectDate(data.expiry)},
-                    {xtype: "checkbox", name: "protected", fieldLabel: t("redirect_protected"), value: !!data.protected,
-                        hidden: !opendxp.globalmanager.get("user").isAllowed("redirects_protected")}
-                ]
-            }, {
                 title: t("redirect_usage"),
                 hidden: isNew,
                 defaults: {xtype: "displayfield", labelWidth: 170, anchor: "100%"},
@@ -106,7 +113,7 @@ opendxp.bundle.seo.redirectEditor = Class.create({
             iconCls: "opendxp_icon_redirects",
             width: 720,
             maxHeight: Ext.getBody().getViewSize().height - 40,
-            modal: true,
+            modal: false,
             layout: "fit",
             items: [this.form],
             buttons: [{

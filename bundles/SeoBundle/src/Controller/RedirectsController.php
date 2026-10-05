@@ -59,6 +59,11 @@ class RedirectsController extends UserAwareController
         'passThroughParameters', 'passThroughPath', 'active', 'validFrom', 'expiry', 'protected',
     ];
 
+    /**
+     * The grid sends an empty field as null. These fields keep the value of the redirect then.
+     */
+    private const array FIELDS_WITHOUT_NULL = ['type', 'statusCode', 'priority', 'passThroughParameters', 'passThroughPath', 'active', 'protected'];
+
     #[Route('/list', name: 'opendxp_bundle_seo_redirects_redirects', methods: ['POST'])]
     public function redirectsAction(Request $request, RedirectHandler $redirectHandler, RedirectValidator $validator): JsonResponse
     {
@@ -156,7 +161,12 @@ class RedirectsController extends UserAwareController
             throw $this->createAccessDeniedException('Only users with the permission redirects_protected change a protected redirect.');
         }
 
-        $values = array_intersect_key($data, array_flip(self::EDITABLE_FIELDS));
+        $values = array_filter(
+            array_intersect_key($data, array_flip(self::EDITABLE_FIELDS)),
+            static fn (mixed $value, string $field): bool => ($value !== null && $value !== '') || !in_array($field, self::FIELDS_WITHOUT_NULL, true),
+            ARRAY_FILTER_USE_BOTH,
+        );
+
         if (!$mayManageProtected) {
             unset($values['protected']);
         }

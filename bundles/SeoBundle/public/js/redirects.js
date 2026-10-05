@@ -326,8 +326,8 @@ opendxp.settings.redirects = Class.create({
                     }
                 }
             },
-            {text: t("redirect_hits"), flex: 70, sortable: true, dataIndex: 'hits', align: 'right'},
-            {text: t("redirect_last_hit"), flex: 120, sortable: true, dataIndex: 'lastHit',
+            {text: t("redirect_hits"), flex: 70, sortable: true, dataIndex: 'hits', align: 'right', hidden: true},
+            {text: t("redirect_last_hit"), flex: 120, sortable: true, dataIndex: 'lastHit', hidden: true,
                 renderer: function (d) {
                     return d ? Ext.Date.format(new Date(d * 1000), "Y-m-d H:i") : t("redirect_never");
                 }
@@ -336,7 +336,7 @@ opendxp.settings.redirects = Class.create({
                 text: t("redirect_protected"),
                 dataIndex: "protected",
                 flex: 70,
-                hidden: !opendxp.globalmanager.get("user").isAllowed("redirects_protected"),
+                hidden: true,
                 hideable: opendxp.globalmanager.get("user").isAllowed("redirects_protected"),
                 editor: {
                     xtype: 'checkbox'
@@ -452,6 +452,12 @@ opendxp.settings.redirects = Class.create({
                 delay: 1
             }
         });
+
+        // Runs before the delayed listener above and stops it, because only a listener without delay can cancel.
+        // A click on the checkbox only selects the row.
+        this.rowEditing.on("beforeedit", function (editor, context) {
+            return !context.column.isCheckerHd;
+        }, null, {priority: 1});
 
         var toolbar = Ext.create('Ext.Toolbar', {
             cls: 'opendxp_main_toolbar',
@@ -574,9 +580,10 @@ opendxp.settings.redirects = Class.create({
                         });
                     }.bind(this)
                 },
-                {
+                this.selectionButton = new Ext.button.Button({
                     text: t("redirect_selection"),
-                    iconCls: "opendxp_icon_list",
+                    iconCls: "opendxp_icon_checkbox",
+                    disabled: true,
                     menu: [{
                         text: t("redirect_activate"),
                         iconCls: "opendxp_icon_success",
@@ -590,7 +597,7 @@ opendxp.settings.redirects = Class.create({
                         iconCls: "opendxp_icon_delete",
                         handler: this.deleteSelected.bind(this)
                     }]
-                },
+                }),
                 "->",
                 this.getShowFilter(),
                 {
@@ -602,6 +609,11 @@ opendxp.settings.redirects = Class.create({
             ]
         });
 
+        this.selectionColumn = new Ext.selection.CheckboxModel({checkOnly: true});
+        this.selectionColumn.on("selectionchange", function (model, selected) {
+            this.selectionButton.setDisabled(selected.length === 0);
+        }.bind(this));
+
         this.grid = Ext.create('Ext.grid.Panel', {
             frame: false,
             autoScroll: true,
@@ -610,7 +622,7 @@ opendxp.settings.redirects = Class.create({
             trackMouseOver: true,
             columnLines: true,
             bodyCls: "opendxp_editable_grid",
-            selModel: Ext.create('Ext.selection.RowModel', {mode: 'MULTI'}),
+            selModel: this.selectionColumn,
             plugins: [
                 this.rowEditing
             ],

@@ -39,6 +39,10 @@ final readonly class RedirectValidator
             $validation = $validation->withError('source', 'redirect_regex_invalid');
         }
 
+        if ($redirect->getValidFrom() !== null && $redirect->getExpiry() !== null && $redirect->getExpiry() <= $redirect->getValidFrom()) {
+            $validation = $validation->withError('expiry', 'redirect_expires_before_start');
+        }
+
         if ($redirect->getType() === Redirect::TYPE_DOMAIN) {
             $validation = $this->validateDomain($redirect, $validation);
         } elseif (!$redirect->isRegex() && $this->pointsToItself($redirect)) {

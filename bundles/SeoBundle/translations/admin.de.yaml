@@ -12,6 +12,7 @@ redirect_domain_target_relative: 'Das Ziel einer Domain-Weiterleitung ist eine v
 redirect_edit_all: 'Alle Felder bearbeiten'
 redirect_hits: 'Treffer'
 redirect_last_hit: 'Letzter Treffer'
+redirect_expires_before_start: 'Die Weiterleitung läuft ab, bevor sie beginnt.'
 redirect_loop: 'Das Ziel ist die Quelle selbst, die Weiterleitung würde nie enden.'
 redirect_never: 'nie'
 redirect_new: 'Neue Weiterleitung'
