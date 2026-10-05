@@ -28,7 +28,7 @@ Fields::register();
 // Unit tests need no application, so they get no test case.
 pest()->extend(TestCase::class)->in('Feature/Asset', 'Feature/LazyLoading', 'Feature/Permissions', 'Feature/Site', 'Feature/ClassDefinition', 'Feature/ClassificationStore',
     'Feature/DataObject', 'Feature/DataType', 'Feature/Document', 'Feature/Element', 'Feature/Factory', 'Feature/Glossary', 'Feature/Inheritance', 'Feature/Mail', 'Feature/Messenger',
-    'Feature/Notification', 'Feature/Relation', 'Feature/Tool', 'Feature/Translation', 'Feature/Twig', 'Feature/Version', 'Feature/WebsiteSetting');
+    'Feature/Notification', 'Feature/Relation', 'Feature/Seo', 'Feature/Tool', 'Feature/Translation', 'Feature/Twig', 'Feature/Version', 'Feature/WebsiteSetting');
 pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
 pest()->extend(SearchTestCase::class)->in('Feature/Search');
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
