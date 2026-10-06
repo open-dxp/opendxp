@@ -203,6 +203,9 @@ final class KeyConfig extends Model\AbstractModel
         $this->title = $def && isset($def['title']) ? $def['title'] : null;
 
         if ($def) {
+            $def['name'] = $this->name;
+            $this->definition = json_encode($def, JSON_THROW_ON_ERROR);
+
             // Building the field definition throws for a definition that could not be loaded again.
             Service::getFieldDefinitionFromJson($def, $this->type);
         }
