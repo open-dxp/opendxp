@@ -57,6 +57,12 @@ opendxp:
         fallback_languages:
             de: en
 
+    templating_engine:
+        twig:
+            sandbox_security_policy:
+                methods:
+                    Symfony\Bridge\Twig\AppVariable: ['getEnvironment']
+
     email:
         sender:
             name: 'OpenDXP Tests'

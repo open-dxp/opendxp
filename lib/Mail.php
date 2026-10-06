@@ -31,9 +31,7 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Mime\Header\MailboxListHeader;
 use Symfony\Component\Mime\Part\AbstractPart;
-use Twig\Environment;
-use Twig\Extension\EscaperExtension;
-use Twig\Extension\SandboxExtension;
+use Twig\Sandbox\Sandbox;
 use Twig\Sandbox\SecurityError;
 
 class Mail extends Email
@@ -577,20 +575,15 @@ class Mail extends Email
 
     private function renderParams(string $string, string $context): string
     {
-        /** @var Environment $twig */
-        $twig = OpenDxp::getContainer()->get('opendxp.templating');
-        $twig->getExtension(SandboxExtension::class)->enableSandbox();
-        $defaultStrategy = null;
+        /** @var Sandbox $sandbox */
+        $sandbox = OpenDxp::getContainer()->get(
+            $context === 'subject'
+                ? 'opendxp.templating.sandbox.text'
+                : 'opendxp.templating.sandbox.html'
+        );
 
         try {
-            // If rendering an email subject, disable Twig's auto-escaping temporarily
-            if ($context === 'subject') {
-                $escaper = $twig->getExtension(EscaperExtension::class);
-                $defaultStrategy = $escaper->getDefaultStrategy('__string_template__');
-                $escaper->setDefaultStrategy(false);
-            }
-
-            return $twig
+            return $sandbox
                 ->createTemplate($string, 'opendxp_email_' . $context)
                 ->render($this->getParams());
 
@@ -601,16 +594,8 @@ class Mail extends Email
             throw new Exception(sprintf(
                 'Failed rendering the %s: %s. Please check your twig sandbox security policy or contact the administrator.',
                 $context,
-                substr($e->getMessage(), 0, strpos($e->getMessage(), ' in "__string'))
+                $e->getRawMessage()
             ), $e->getCode(), $e);
-
-        } finally {
-            // Restore the default escaping strategy (HTML) after rendering the subject
-            if ($defaultStrategy !== null) {
-                $twig->getExtension(EscaperExtension::class)->setDefaultStrategy($defaultStrategy);
-            }
-
-            $twig->getExtension(SandboxExtension::class)->disableSandbox();
         }
     }
 

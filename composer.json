@@ -122,7 +122,7 @@
         "tijsverkoyen/css-to-inline-styles": "^2.2.3",
         "twig/extra-bundle": "^3.4.0",
         "twig/string-extra": "^3.3.5",
-        "twig/twig": "^3.21.1",
+        "twig/twig": "^3.29",
         "umpirsky/country-list": "^2.0.6"
     },
     "conflict": {

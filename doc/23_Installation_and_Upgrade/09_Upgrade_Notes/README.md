@@ -35,6 +35,10 @@
 - Bugfix: Deleting an element removes the dependencies on it [#116](https://github.com/open-dxp/opendxp/issues/116)
 - Bugfix: The dependency views list existing elements only [#116](https://github.com/open-dxp/opendxp/issues/116)
 - Bugfix: Filtering "Required By" by path finds elements of every type [#116](https://github.com/open-dxp/opendxp/issues/116)
+- Security: Mail placeholders and dynamic layout texts may only read objects. Allow more with `readable_classes` and `methods` in `opendxp.templating_engine.twig.sandbox_security_policy`.
+- Security: Mail placeholders and dynamic layout texts can no longer call `opendxp_dump`.
+- Chore: Require `twig/twig` ^3.29
+- Bugfix: A mail placeholder that breaks the sandbox policy names what is not allowed.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

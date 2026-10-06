@@ -35,6 +35,7 @@ use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\RoutingLoaderPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\SerializerPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\ServiceControllersPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\TranslationSanitizerPass;
+use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\TwigSandboxPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\WorkflowPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\OpenDxpCoreExtension;
 use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
@@ -81,6 +82,8 @@ class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
         $container->addCompilerPass(new ImageAdapterAliasPass());
         $container->addCompilerPass(new MigrationsPrefixOptionPass());
         $container->addCompilerPass(new DoctrineEntityCacheStrategyPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 10);
+        // After Symfony's TwigEnvironmentPass, which adds the extensions to the main environment.
+        $container->addCompilerPass(new TwigSandboxPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -10);
     }
 
     #[Override]

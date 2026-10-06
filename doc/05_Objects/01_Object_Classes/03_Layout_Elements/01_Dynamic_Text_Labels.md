@@ -67,15 +67,34 @@ Here is an example of Twig content in htmleditor source edit mode:
 ![Template editmode](../../../img/dynamic_textlabel_4.png)
 
 ### Sandbox Restrictions
-Dynamic Text renders user controlled twig templates in a sandbox with restrictive
-security policies for tags, filters & functions. Please use following configuration to allow more in template rendering:
+Dynamic Text renders user controlled twig templates in a sandbox with a restrictive security policy.
+The policy allows the tag `set`, the filters `escape`, `trans` and `default` and the functions `path` and `asset`.
+Every function whose name starts with `opendxp_` is allowed too, except `opendxp_dump`.
+
+A template reads objects and does not change them. It may read an object of a readable class through its getters,
+its `is` and `has` methods, `__toString()` and its properties. Elements, the values of their fields, quantity value
+units, asset thumbnails and dates are readable. A date may also call `format()`. Every other method is refused.
+So `{{ object.name }}`, `{{ object.getName() }}` and `{{ object.date.format("Y") }}` work, but
+`{{ object.save() }}` and `{{ container.get("database_connection") }}` do not.
+
+The text sees the object, the field name, the layout and the Twig globals.
+The globals `app` and `container` are objects of classes that are not readable.
+
+Please use the following configuration to allow more in template rendering:
 
 ```yaml
-    opendxp:
-          templating_engine:
-              twig:
-                sandbox_security_policy:
-                  tags: ['if']
-                  filters: ['upper']
-                  functions: ['include', 'path']
+opendxp:
+    templating_engine:
+        twig:
+            sandbox_security_policy:
+                tags: ['if']
+                filters: ['upper']
+                functions: ['include', 'path']
+                methods:
+                    App\Model\Price: ['format']
+                readable_classes:
+                    - App\Model\Cart
 ```
+
+`methods` allows single methods of a class. `readable_classes` makes every object of a class readable.
+The configuration adds to the defaults and never replaces them.

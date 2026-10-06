@@ -339,6 +339,16 @@ opendxp:
                 tags: ['set']
                 filters: ['escape', 'trans', 'default']
                 functions: ['path', 'asset']
+                methods:
+                    DateTimeInterface: ['format']
+                readable_classes:
+                    - OpenDxp\Model\Element\ElementInterface
+                    - OpenDxp\Model\DataObject\OwnerAwareFieldInterface
+                    - OpenDxp\Model\DataObject\ObjectAwareFieldInterface
+                    - OpenDxp\Model\DataObject\Classificationstore
+                    - OpenDxp\Model\DataObject\QuantityValue\Unit
+                    - OpenDxp\Model\Asset\Thumbnail\ImageThumbnailInterface
+                    - DateTimeInterface
 
     gotenberg:
         base_url: 'http://gotenberg:3000'
