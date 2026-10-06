@@ -92,51 +92,55 @@ default `AbstractInstaller`:
 
 - Manage installation state with [Settings Store](../../../19_Development_Tools_and_Details/42_Settings_Store.md)
   (instead of checking executed migrations).
-- Optionally mark certain migrations as migrated during install.
-- Reset migration state of migrations (if there are any) during un-install.
-
+- Bring the tables of the Doctrine entities of the bundle to their mapping during install.
+- Mark the migrations of the bundle as executed during install, without running them.
+- Mark them as not executed again during uninstall.
 
 ### Implementation
 
-For using the SettingsStore Installer extend from the `SettingsStoreAwareInstaller` and implement standard `install`
-and `uninstall` methods. At the end of these methods either call the corresponding parent method or call
-`$this->markInstalled()` / `$this->markUninstalled()` to make sure SettingsStore is updated properly.
+Extend the `SettingsStoreAwareInstaller` and implement `install()` and `uninstall()`. At the end of both methods, call
+the parent method, or call `$this->markInstalled()` and `$this->markUninstalled()`. This updates the Settings Store.
 
-If during install migrations upto a certain migration should be marked as migrated during install without actually executing
-them, then also implement the `getLastMigrationVersionClassName` method that returns the fully qualified class name of the
-last migration that should be marked as migrated.
-This is useful, when install routine already does all the necessary things that also would be done by the migrations.
+An installation builds the current state of the bundle from nothing: its tables, class definitions, permissions and
+translations. Its migrations only bring an existing installation forward.
+
+- `updateEntitySchema()` brings the tables of the Doctrine entities in the namespace of the bundle to their mapping,
+  together with the join tables of their many-to-many associations. It touches no other table. A table that belongs to
+  no entity is created by the installer itself, for example from an SQL file.
+- `markMigrationsAsExecuted()` marks every migration in the namespace of the bundle as executed, so that none of them
+  runs on the fresh installation later. A new migration needs no change in the installer.
+- `markMigrationsAsNotExecuted()` resets them during uninstall.
+
+The namespace of the bundle is the boundary for both methods, like `OpenDxp\Bundle\DummyBundle`. Entities and
+migrations below it belong to the bundle. The entities use the default entity manager, as every bundle installation does.
 
 ```php 
 <?php
 
 namespace OpenDxp\Bundle\DummyBundle;
 
-use OpenDxp\Bundle\DummyBundle\Migrations\Version20210304111225;
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 
 class Installer extends SettingsStoreAwareInstaller
 {
-    public function getLastMigrationVersionClassName(): ?string
-    {
-        // return fully qualified classname of last migration that should be marked as migrated during install
-        return Version20210304111225::class;
-    }
-
     public function install(): void
     {
-        //do your install stuff   
+        $this->updateEntitySchema();
 
-        $this->markInstalled();
-        //or call parent::install();     
+        // build the rest of the current state of the bundle
+
+        $this->markMigrationsAsExecuted();
+
+        parent::install();
     }
 
     public function uninstall(): void
     {
-        //do your uninstall stuff
+        // remove what the bundle installed
 
-        $this->markUninstalled();
-        //or call parent::uninstall();   
+        $this->markMigrationsAsNotExecuted();
+
+        parent::uninstall();
     }
 }
 ```
@@ -144,22 +148,44 @@ class Installer extends SettingsStoreAwareInstaller
 ```yml 
     OpenDxp\Bundle\DummyBundle\Installer:
         public: true
+        autowire: true
         arguments:
             $bundle: "@=service('kernel').getBundle('OpenDxpDummyBundle')"
 ```
+
+`getLastMigrationVersionClassName()` is deprecated. Call `markMigrationsAsExecuted()` in `install()` instead.
 
 ### Installation
 During installation of the bundle following things will happen:
 - All statements of the `install` method are executed.
 - If implemented correctly, the bundle is marked as installed in the SettingsStore.
-- If configured, all defined migrations are marked as migrated (without actually executing them).
+- The tables of the entities of the bundle match their mapping.
+- The migrations of the bundle are marked as executed (without actually executing them).
 
 ### Uninstallation
 During uninstallation of the bundle following things will happen:
 - All statements of the `uninstall` method are executed.
 - If implemented correctly, the bundle is marked as uninstalled in the SettingsStore.
-- Execution state of all bundle migrations that were already migrated will be reset (without actually executing them).
+- The migrations of the bundle are marked as not executed (without actually executing them).
 
+### Adding an installer to a released bundle
+An installation that only ran the migrations has no installation state in the Settings Store. When a bundle gets its
+first installer, it also ships a migration that marks such an installation as installed. This migration extends
+`AbstractMigration`, not `BundleAwareMigration`, because `BundleAwareMigration` skips itself while the bundle is not
+marked as installed.
+
+```php
+public function up(Schema $schema): void
+{
+    $this->addSql(
+        'INSERT INTO settings_store (id, scope, type, data) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data);',
+        ['BUNDLE_INSTALLED__' . OpenDxpDummyBundle::class, 'opendxp', 'bool', '1'],
+    );
+}
+```
+
+The installer refuses to run while the state of the bundle already exists, for example with `canBeInstalled()`
+checking its tables.
 
 ### Migrations
 Working with migrations is the same as described in the Migration section above.

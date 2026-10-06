@@ -1,0 +1,29 @@
+imports:
+    - { resource: test.yaml }
+
+doctrine_migrations:
+    migrations_paths:
+        'OpenDxp\Tests\Application\InstallerBundle\Migrations': '%kernel.project_dir%/tests/Application/InstallerBundle/Migrations'
+        'OpenDxp\Tests\Application\InstallerBundleExtension\Migrations': '%kernel.project_dir%/tests/Application/InstallerBundleExtension/Migrations'
+
+doctrine:
+    orm:
+        entity_managers:
+            default:
+                connection: default
+                mappings:
+                    InstallerBundleEntity:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/tests/Application/InstallerBundle/Entity'
+                        prefix: 'OpenDxp\Tests\Application\InstallerBundle\Entity'
+                    InstallerBundleModel:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/tests/Application/InstallerBundle/Model'
+                        prefix: 'OpenDxp\Tests\Application\InstallerBundle\Model'
+                    InstallerBundleExtensionEntity:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/tests/Application/InstallerBundleExtension/Entity'
+                        prefix: 'OpenDxp\Tests\Application\InstallerBundleExtension\Entity'
