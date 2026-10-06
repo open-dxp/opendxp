@@ -120,6 +120,10 @@ opendxp.bundle.tinymce.editor = Class.create({
             base_url: '/bundles/opendxptinymce/build/tinymce',
             suffix: '.min',
             convert_urls: false,
+            // TinyMCE writes the spaces of a new link as %20, which breaks a Twig placeholder like {{ name }}.
+            urlconverter_callback: function (url) {
+                return url.replace(/\{\{(.*?)\}\}/g, (placeholder, inner) => '{{' + inner.replace(/%20/g, ' ') + '}}');
+            },
             convert_unsafe_embeds: true,
             extended_valid_elements: 'a[id|class|name|href|target|title|opendxp_id|opendxp_type],img[id|class|style|longdesc|usemap|src|border|alt=|title|hspace|vspace|width|height|align|opendxp_id|opendxp_type]',
             init_instance_callback: function (editor) {

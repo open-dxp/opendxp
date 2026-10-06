@@ -39,6 +39,7 @@
 - Bugfix: A mail placeholder that breaks the sandbox policy names what is not allowed.
 - Bugfix: Saving a classification store key checks its definition. A key whose definition names an invalid field is not saved.
 - Bugfix: Saving a classification store key writes the name of the key into its definition, so the key name follows the rule for field names too.
+- Bugfix: A Twig placeholder in a link of the WYSIWYG editor keeps its spaces, for example `mailto:{{ email }}`. A link that already holds `{{%20email%20}}` is repaired the next time its editor is saved.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
