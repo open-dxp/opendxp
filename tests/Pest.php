@@ -20,6 +20,7 @@ use OpenDxp\Test\Expectation\Redirects;
 use OpenDxp\TestFoundation\TestCase;
 use OpenDxp\Tests\TestCase\CacheTestCase;
 use OpenDxp\Tests\TestCase\HttpCacheTestCase;
+use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
 use OpenDxp\Tests\TestCase\SearchTestCase;
 
@@ -35,3 +36,4 @@ pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
 pest()->extend(SearchTestCase::class)->in('Feature/Search');
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
 pest()->extend(HttpCacheTestCase::class)->in('Feature/HttpCache');
+pest()->extend(InstallerTestCase::class)->in('Feature/Installer');

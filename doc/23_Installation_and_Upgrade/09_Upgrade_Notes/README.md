@@ -28,6 +28,9 @@
 - Bugfix: Removing the focal point of an image clears its thumbnails.
 - Bugfix: A cover thumbnail respects a focal point on the left edge of an image.
 - Chore: Require `league/csv` ^9.27
+- Feature: `SettingsStoreAwareInstaller::updateEntitySchema()` brings the entity tables of a bundle to their mapping. See [Installers](../../20_Extending_OpenDxp/13_Bundle_Developers_Guide/05_OpenDxp_Bundles/01_Installers.md).
+- Feature: `SettingsStoreAwareInstaller::markMigrationsAsExecuted()` and `markMigrationsAsNotExecuted()` mark the migrations of a bundle during install and uninstall. See [Installers](../../20_Extending_OpenDxp/13_Bundle_Developers_Guide/05_OpenDxp_Bundles/01_Installers.md).
+- Deprecated: `SettingsStoreAwareInstaller::getLastMigrationVersionClassName()`. It stays until 2.0 because of BC reasons. Call `markMigrationsAsExecuted()` in `install()` instead.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

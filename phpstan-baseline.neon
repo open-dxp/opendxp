@@ -1,6 +1,12 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Call to function is_array\(\) with Doctrine\\ORM\\Mapping\\AssociationMapping will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: lib/Extension/Bundle/Installer/SettingsStoreAwareInstaller.php
+
+		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
 			identifier: ergebnis.declareStrictTypes
 			count: 1
