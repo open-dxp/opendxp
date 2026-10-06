@@ -2,16 +2,28 @@
 
 declare(strict_types=1);
 
+/**
+ * OpenDXP
+ *
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
+ */
+
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenDxp\Db;
 use OpenDxp\Migrations\FilteredMigrationsRepository;
 use OpenDxp\Migrations\FilteredTableMetadataStorage;
 use OpenDxp\Model\Tool\SettingsStore;
+use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Application\InstallerBundle\Installer;
 use OpenDxp\Tests\Application\InstallerBundle\InstallerBundle;
 use OpenDxp\Tests\Application\InstallerBundle\SchemaInstaller;
-use OpenDxp\TestFoundation\Container;
 
 const INSTALLER_ENTITY_TABLES = [
     'installer_bundle_note_tag',
