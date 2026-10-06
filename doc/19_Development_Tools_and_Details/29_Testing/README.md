@@ -29,6 +29,25 @@ it('finds a page by its path', function () {
 The test runs against a real OpenDXP installation with a real database. A factory creates the page,
 and everything the test writes is rolled back when it ends. The next test starts clean.
 
+## Pages with content
+
+A page and a snippet take editables and bricks. A brick is one instance of an areabrick, with the
+values of its editables. Every bundle that ships areabricks ships a brick class for each of them,
+under its `Test\Brick` namespace.
+
+```php
+use OpenDxp\Test\Factory\DocumentPageFactory;
+
+$page = DocumentPageFactory::new()
+    ->withEditables(['headline' => $headline])
+    ->withBricks('content', HeadlineBrick::h2('Contact'), FormBrick::showing($form))
+    ->create(['key' => 'contact']);
+```
+
+`withBricks()` fills the areablock the page template names, here `content`, in the order the bricks
+are given. A brick of your own implements `OpenDxp\Test\Document\Brick`. It names the id of its
+areabrick and hands back its editables by the name its template gives them.
+
 ## Testing your project or bundle
 
 A package needs four things: `open-dxp/test-foundation` in `require-dev`, a `phpunit.xml.dist`, a

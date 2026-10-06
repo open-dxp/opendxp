@@ -18,6 +18,7 @@
 - Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: The Pest expectations `toRedirectTo()` and `toBeAnsweredBy()` test the redirects of a project. Register them with `OpenDxp\Test\Expectation\Redirects::register()`.
 - Feature: `UserFactory::withPermissions()` creates a user with the given permissions.
+- Feature: The page and snippet factories place editables and bricks of areabricks with `withEditables()` and `withBricks()`.
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: A URL slug field takes a slug generator. It builds the prefix in front of the slug, formats what an editor types and fills an empty slug. Duplicate slugs can be extended with `-1`, `-2` [#159](https://github.com/open-dxp/opendxp/issues/159)
 - Bugfix: Saving a class checks the fields inside localized fields.

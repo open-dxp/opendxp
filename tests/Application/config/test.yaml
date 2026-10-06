@@ -7,6 +7,10 @@ services:
         autowire: true
         autoconfigure: true
 
+    OpenDxp\Tests\Application\Areabrick\Greeting:
+        tags:
+            - { name: opendxp.area.brick, id: greeting }
+
     # the Unittest class definition names this id for its calculated value
     test.calculatorservice:
         class: OpenDxp\Tests\Application\Service\Calculator
