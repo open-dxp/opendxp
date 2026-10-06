@@ -62,8 +62,8 @@ class Dependency extends AbstractModel
     }
 
     /**
-     * Used when element gets deleted. Removes entries (by source = element) and
-     * schedules a sanity check for the affected targets.
+     * Used when an element gets deleted. Removes the entries of the element as a source and as a target, and
+     * schedules a sanity check for the sources that pointed to it.
      */
     public function cleanAllForElement(Element\ElementInterface $element): void
     {
