@@ -202,6 +202,11 @@ final class KeyConfig extends Model\AbstractModel
         $def = json_decode($this->definition, true);
         $this->title = $def && isset($def['title']) ? $def['title'] : null;
 
+        if ($def) {
+            // Building the field definition throws for a definition that could not be loaded again.
+            Service::getFieldDefinitionFromJson($def, $this->type);
+        }
+
         if ($this->getId()) {
             $this->removeCache();
 

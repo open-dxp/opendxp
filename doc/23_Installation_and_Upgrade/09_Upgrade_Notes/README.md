@@ -37,6 +37,7 @@
 - Security: Mail placeholders and dynamic layout texts can no longer call `opendxp_dump`.
 - Chore: Require `twig/twig` ^3.29
 - Bugfix: A mail placeholder that breaks the sandbox policy names what is not allowed.
+- Bugfix: Saving a classification store key checks its definition. A key whose definition names an invalid field is not saved.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
