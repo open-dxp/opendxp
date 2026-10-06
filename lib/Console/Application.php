@@ -26,8 +26,6 @@ use OpenDxp\Tool\MaintenanceModeHelperInterface;
 use OpenDxp\Version;
 use Override;
 use RuntimeException;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
@@ -120,27 +118,5 @@ final class Application extends \Symfony\Bundle\FrameworkBundle\Console\Applicat
         $inputDefinition->addOption(new InputOption('maintenance-mode', null, InputOption::VALUE_NONE, 'Set this flag to force maintenance mode while this task runs'));
 
         return $inputDefinition;
-    }
-
-    #[Override]
-    public function addCommand(callable|Command $command): ?Command
-    {
-        if ($command instanceof LazyCommand && str_starts_with($command->getName(), 'doctrine:')) {
-            $command = $command->getCommand();
-        }
-
-        if ($command instanceof DoctrineCommand) {
-            $definition = $command->getDefinition();
-
-            // add filter option
-            $definition->addOption(new InputOption(
-                'prefix',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Optional prefix filter for version classes, eg. OpenDxp\Bundle\CoreBundle\Migrations'
-            ));
-        }
-
-        return parent::addCommand($command);
     }
 }
