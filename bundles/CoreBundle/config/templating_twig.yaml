@@ -77,6 +77,8 @@ services:
             $allowedTags: '%opendxp.templating.twig.sandbox_security_policy.tags%'
             $allowedFilters: '%opendxp.templating.twig.sandbox_security_policy.filters%'
             $allowedFunctions: '%opendxp.templating.twig.sandbox_security_policy.functions%'
+            $allowedMethods: '%opendxp.templating.twig.sandbox_security_policy.methods%'
+            $readableClasses: '%opendxp.templating.twig.sandbox_security_policy.readable_classes%'
 
     Twig\Extension\SandboxExtension:
         arguments:

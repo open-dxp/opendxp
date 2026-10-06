@@ -127,6 +127,16 @@ final class OpenDxpCoreExtension extends ConfigurableExtension implements Prepen
             $config['templating_engine']['twig']['sandbox_security_policy']['functions']
         );
 
+        $container->setParameter(
+            'opendxp.templating.twig.sandbox_security_policy.methods',
+            $config['templating_engine']['twig']['sandbox_security_policy']['methods']
+        );
+
+        $container->setParameter(
+            'opendxp.templating.twig.sandbox_security_policy.readable_classes',
+            $config['templating_engine']['twig']['sandbox_security_policy']['readable_classes']
+        );
+
         // register opendxp config on container
         // TODO is this bad practice?
         // TODO only extract what we need as parameter?

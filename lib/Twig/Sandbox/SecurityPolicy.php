@@ -17,24 +17,34 @@ declare(strict_types=1);
 
 namespace OpenDxp\Twig\Sandbox;
 
+use Twig\Markup;
 use Twig\Sandbox\SecurityNotAllowedFilterError;
 use Twig\Sandbox\SecurityNotAllowedFunctionError;
+use Twig\Sandbox\SecurityNotAllowedMethodError;
+use Twig\Sandbox\SecurityNotAllowedPropertyError;
 use Twig\Sandbox\SecurityNotAllowedTagError;
 use Twig\Sandbox\SecurityPolicyInterface;
+use Twig\Template;
 
 /**
- * Note: Reused to disable checks on object methods and properties.
- *
- * Represents a security policy which need to be enforced when sandbox mode is enabled.
- *
- * @author Fabien Potencier <fabien@symfony.com>
+ * A template may read the objects of the readable classes through their getters, `is` and `has` methods,
+ * `__toString()` and properties. Any other method has to be allowed for its class.
  */
 final class SecurityPolicy implements SecurityPolicyInterface
 {
+    /**
+     * @param string[] $allowedTags
+     * @param string[] $allowedFilters
+     * @param string[] $allowedFunctions
+     * @param array<class-string, string[]> $allowedMethods
+     * @param class-string[] $readableClasses
+     */
     public function __construct(
         private array $allowedTags = [],
         private array $allowedFilters = [],
-        private array $allowedFunctions = []
+        private array $allowedFunctions = [],
+        private array $allowedMethods = [],
+        private array $readableClasses = [],
     ) {
     }
 
@@ -54,11 +64,14 @@ final class SecurityPolicy implements SecurityPolicyInterface
     }
 
     /**
+     * The policy has no list of tests and allows every test.
+     *
      * @param string[] $tags
      * @param string[] $filters
      * @param string[] $functions
+     * @param string[] $tests
      */
-    public function checkSecurity($tags, $filters, $functions): void
+    public function checkSecurity($tags, $filters, $functions, array $tests = []): void
     {
         foreach ($tags as $tag) {
             if (!in_array($tag, $this->allowedTags)) {
@@ -73,8 +86,7 @@ final class SecurityPolicy implements SecurityPolicyInterface
         }
 
         foreach ($functions as $function) {
-            //check if a function is allowed or a opendxp twig functions
-            if (!in_array($function, $this->allowedFunctions) && !str_starts_with($function, 'opendxp_')) {
+            if (!$this->isAllowedFunction($function)) {
                 throw new SecurityNotAllowedFunctionError(sprintf('Function "%s" is not allowed.', $function), $function);
             }
         }
@@ -86,7 +98,23 @@ final class SecurityPolicy implements SecurityPolicyInterface
      */
     public function checkMethodAllowed($obj, $method): void
     {
-        //do not perform any checks
+        if ($obj instanceof Template || $obj instanceof Markup) {
+            return;
+        }
+
+        if ($this->isReadable($obj) && $this->isAccessor($obj, $method)) {
+            return;
+        }
+
+        if ($this->isAllowedMethod($obj, $method)) {
+            return;
+        }
+
+        throw new SecurityNotAllowedMethodError(
+            sprintf('Calling "%s" method on a "%s" object is not allowed.', $method, $obj::class),
+            $obj::class,
+            $method,
+        );
     }
 
     /**
@@ -95,6 +123,66 @@ final class SecurityPolicy implements SecurityPolicyInterface
      */
     public function checkPropertyAllowed($obj, $property): void
     {
-        //do not perform any checks
+        if ($this->isReadable($obj)) {
+            return;
+        }
+
+        throw new SecurityNotAllowedPropertyError(
+            sprintf('Calling "%s" property on a "%s" object is not allowed.', $property, $obj::class),
+            $obj::class,
+            $property,
+        );
+    }
+
+    private function isAllowedFunction(string $function): bool
+    {
+        if (in_array($function, $this->allowedFunctions, true)) {
+            return true;
+        }
+
+        // The dump prints the inner state of an object, which the method checks never see.
+        return str_starts_with($function, 'opendxp_')
+            && $function !== 'opendxp_dump';
+    }
+
+    private function isReadable(object $obj): bool
+    {
+        foreach ($this->readableClasses as $class) {
+            if ($obj instanceof $class) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A method that only exists through `__call()` is no accessor. A model hands such a call on to its dao.
+     */
+    private function isAccessor(object $obj, string $method): bool
+    {
+        if (!method_exists($obj, $method)) {
+            return false;
+        }
+
+        return $method === '__toString'
+            || preg_match('/^(get|is|has)(?![a-z])/', $method) === 1;
+    }
+
+    private function isAllowedMethod(object $obj, string $method): bool
+    {
+        foreach ($this->allowedMethods as $class => $methods) {
+            if (!$obj instanceof $class) {
+                continue;
+            }
+
+            foreach ($methods as $allowed) {
+                if (strcasecmp($allowed, $method) === 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

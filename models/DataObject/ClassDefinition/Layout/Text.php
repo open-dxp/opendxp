@@ -20,8 +20,7 @@ use OpenDxp;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject\Concrete;
-use Twig\Environment;
-use Twig\Extension\SandboxExtension;
+use Twig\Sandbox\Sandbox;
 use Twig\Sandbox\SecurityError;
 
 class Text extends Model\DataObject\ClassDefinition\Layout implements Model\DataObject\ClassDefinition\Data\LayoutDefinitionEnrichmentInterface
@@ -116,21 +115,22 @@ class Text extends Model\DataObject\ClassDefinition\Layout implements Model\Data
             $this->html = $result;
         }
 
-        /** @var Environment $twig */
-        $twig = OpenDxp::getContainer()->get('opendxp.templating');
-        $twig->getExtension(SandboxExtension::class)->enableSandbox();
+        /** @var Sandbox $sandbox */
+        $sandbox = OpenDxp::getContainer()->get('opendxp.templating.sandbox.html');
 
         try {
-            $template = $twig->createTemplate($this->html);
-            $this->html = $template->render([...$context, 'object' => $object]);
+            $this->html = $sandbox
+                ->createTemplate($this->html)
+                ->render([
+                    ...$context,
+                    'object' => $object,
+                ]);
         } catch (SecurityError $e) {
             Logger::err((string) $e);
 
             $this->html = sprintf('<h2>Error</h2>Failed rendering the template: <b>%s</b>.
                 Please check your twig sandbox security policy or contact the administrator.',
-                substr($e->getMessage(), 0, strpos($e->getMessage(), ' in "__string')));
-        } finally {
-            $twig->getExtension(SandboxExtension::class)->disableSandbox();
+                $e->getRawMessage());
         }
 
         return $this;
