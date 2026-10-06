@@ -19,23 +19,26 @@ namespace OpenDxp\Tests\Feature\Asset;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\ThumbnailConfigFactory;
 
-it('names an address a browser can reach the asset at', function () {
-
+it('returns a frontend path a browser can reach for the asset', function () {
     $image = AssetImageFactory::createOne();
 
-    expect($image->getFrontendPath())
+    $path = $image->getFrontendPath();
+
+    expect($path)
         ->toMatch('@^(https?|data):@')
         ->toContain($image->getFullPath());
 });
 
-it('names an address a browser can reach a thumbnail at', function () {
-
+it('returns a frontend path a browser can reach for a thumbnail', function () {
     $image = AssetImageFactory::createOne();
-    $config = ThumbnailConfigFactory::new()->scalingByWidth(256)->create();
+    $config = ThumbnailConfigFactory::new()
+        ->scalingByWidth(256)
+        ->create();
+    $thumbnail = $image->getThumbnail($config);
 
-    $thumbnail = $image->getThumbnail($config->getName());
+    $path = $thumbnail->getFrontendPath();
 
-    expect($thumbnail->getFrontendPath())
+    expect($path)
         ->toMatch('@^(https?|data):@')
         ->toContain($thumbnail->getPath());
 });

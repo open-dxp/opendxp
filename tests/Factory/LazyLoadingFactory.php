@@ -21,10 +21,6 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<LazyLoading>
- *
- * @method LazyLoading create(array|callable $attributes = [])
- * @method static LazyLoading createOne(array $attributes = [])
- * @method static list<LazyLoading> createMany(int $number, array $attributes = [])
  */
 final class LazyLoadingFactory extends AbstractDataObjectFactory
 {

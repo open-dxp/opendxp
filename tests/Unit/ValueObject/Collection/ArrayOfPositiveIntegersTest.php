@@ -24,16 +24,19 @@ it('refuses an array holding an integer that is not positive', function () {
 })->throws(ValueError::class, 'Provided integer must be positive. (-1 given)');
 
 it('refuses an array holding something that is not an integer', function () {
-    new ArrayOfPositiveIntegers([1, 2, '3']);
+    new ArrayOfPositiveIntegers(['3']);
 })->throws(ValueError::class, 'Provided array must contain only integer values. (string given)');
 
-it('answers with the integers it was given', function () {
-    expect((new ArrayOfPositiveIntegers([1, 2, 3]))->getValue())->toBe([1, 2, 3]);
+it('accepts an array of positive integers', function () {
+    $integers = new ArrayOfPositiveIntegers([3]);
+
+    expect($integers)->getValue()->toBe([3]);
 });
 
-it('checks the integers again when they come back from a serialized form', function () {
+it('checks the integers again when they are unserialized', function () {
+    $serialized = serialize(new ArrayOfPositiveIntegers([42]));
+    $tampered = str_replace('42', '-42', $serialized);
 
-    $serialized = str_replace('42', '-42', serialize(new ArrayOfPositiveIntegers([1, 2, 42])));
-
-    unserialize($serialized);
-})->throws(ValueError::class, 'Provided integer must be positive. (-42 given)');
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Provided integer must be positive. (-42 given)');
+});

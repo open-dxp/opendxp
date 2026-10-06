@@ -20,16 +20,19 @@ use OpenDxp\ValueObject\Collection\ArrayOfIntegers;
 use ValueError;
 
 it('refuses an array holding something that is not an integer', function () {
-    new ArrayOfIntegers([1, 2, '3']);
+    new ArrayOfIntegers(['3']);
 })->throws(ValueError::class, 'Provided array must contain only integer values. (string given)');
 
-it('answers with the integers it was given', function () {
-    expect((new ArrayOfIntegers([1, 2, 3]))->getValue())->toBe([1, 2, 3]);
+it('accepts an array of integers', function () {
+    $integers = new ArrayOfIntegers([3]);
+
+    expect($integers)->getValue()->toBe([3]);
 });
 
-it('checks the integers again when they come back from a serialized form', function () {
+it('checks the integers again when they are unserialized', function () {
+    $serialized = serialize(new ArrayOfIntegers([42]));
+    $tampered = str_replace('i:42', 's:2:"42"', $serialized);
 
-    $serialized = str_replace('i:42', 's:2:"42"', serialize(new ArrayOfIntegers([1, 2, 42])));
-
-    unserialize($serialized);
-})->throws(ValueError::class, 'Provided array must contain only integer values. (string given)');
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Provided array must contain only integer values. (string given)');
+});

@@ -19,9 +19,12 @@ namespace OpenDxp\Tests\Unit\Tool;
 use OpenDxp\Tool\ClassUtils;
 use SplFileInfo;
 
-it('reads the class name out of a file', function (string $file, string $expected) {
-    expect(ClassUtils::findClassName(new SplFileInfo(__DIR__ . '/../../Fixtures/classNames/' . $file)))
-        ->toBe($expected);
+it('reads the class name out of a file', function (string $file, string $className) {
+    $path = sprintf('%s/../../Fixtures/classNames/%s', __DIR__, $file);
+
+    $found = ClassUtils::findClassName(new SplFileInfo($path));
+
+    expect($found)->toBe($className);
 })->with([
     'a namespace of one part' => ['ClassX.php', 'DummyNamespace\ClassX'],
     'a namespace of two parts' => ['ClassY.php', 'OpenDxp\DummyNamespace\ClassY'],

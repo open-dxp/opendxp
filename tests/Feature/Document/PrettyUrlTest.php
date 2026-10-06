@@ -19,29 +19,35 @@ namespace OpenDxp\Tests\Feature\Document;
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Db;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Document\Page;
 use OpenDxp\Model\Document\Service;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 
-beforeEach(function () {
-    $this->url = '/pretty-url-' . uniqid();
-    $this->page = DocumentPageFactory::createOne();
-    $this->page->setPrettyUrl($this->url);
-    $this->page->save();
-});
+beforeEach(fn () => $this->page = DocumentPageFactory::createOne(['prettyUrl' => '/a-pretty-url']));
 
 it('is found under its pretty url', function () {
-    expect(Document::getByPath($this->url))->toBeInstanceOf(Page::class);
+    $found = Document::getByPath('/a-pretty-url');
+
+    expect($found->getId())->toBe($this->page->getId());
 });
 
-it('is no longer found under its pretty url once it became another type', function () {
-
-    Db::get()->executeStatement('UPDATE documents SET type = ? WHERE id = ?', ['link', $this->page->getId()]);
+it('is not found under its pretty url once it became a link', function () {
+    // The row with the pretty url stays behind. Only the type tells the lookup that the document is no page.
+    Db::get()->executeStatement(
+        'UPDATE documents SET type = ? WHERE id = ?',
+        [
+            'link',
+            $this->page->getId(),
+        ],
+    );
     RuntimeCache::clear();
 
-    expect(Document::getByPath($this->url))->toBeNull();
+    $found = Document::getByPath('/a-pretty-url');
+
+    expect($found)->toBeNull();
 });
 
-it('does not count a pretty url as a path that exists', function () {
-    expect(Service::pathExists($this->url))->toBeFalse();
+it('does not count its pretty url as an existing path', function () {
+    $exists = Service::pathExists('/a-pretty-url');
+
+    expect($exists)->toBeFalse();
 });

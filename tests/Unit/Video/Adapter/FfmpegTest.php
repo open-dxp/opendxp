@@ -16,18 +16,35 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\Video\Adapter;
 
+use Closure;
 use OpenDxp\Video\Adapter\Ffmpeg;
-use ReflectionProperty;
 
-it('builds the scale filter ffmpeg is called with', function (string $scale, array $arguments, string $expected) {
+it('builds the scale filter ffmpeg is called with', function (Closure $scale, string $filter) {
+    $ffmpeg = new class() extends Ffmpeg {
+        public function videoFilter(): array
+        {
+            return $this->videoFilter;
+        }
+    };
 
-    $ffmpeg = new Ffmpeg();
-    $ffmpeg->{$scale}(...$arguments);
+    $scale($ffmpeg);
 
-    expect((new ReflectionProperty(Ffmpeg::class, 'videoFilter'))->getValue($ffmpeg))->toBe([$expected]);
+    expect($ffmpeg->videoFilter())->toBe([$filter]);
 })->with([
-    'a width it resizes to' => ['scaleByWidth', [500], 'scale=500:trunc(ow/a/2)*2'],
-    'a width it only shrinks to' => ['scaleByWidth', [500, false], 'scale=if(gte(iw\,500)\,500\,iw):trunc(ow/a/2)*2'],
-    'a height it resizes to' => ['scaleByHeight', [300], 'scale=trunc(oh/(ih/iw)/2)*2:300'],
-    'a height it only shrinks to' => ['scaleByHeight', [300, false], 'scale=trunc(oh/(ih/iw)/2)*2:if(gte(ih\,300)\,300\,ih)'],
+    'a width it resizes to' => [
+        fn (Ffmpeg $ffmpeg) => $ffmpeg->scaleByWidth(500),
+        'scale=500:trunc(ow/a/2)*2',
+    ],
+    'a width it only shrinks to' => [
+        fn (Ffmpeg $ffmpeg) => $ffmpeg->scaleByWidth(500, forceResize: false),
+        'scale=if(gte(iw\,500)\,500\,iw):trunc(ow/a/2)*2',
+    ],
+    'a height it resizes to' => [
+        fn (Ffmpeg $ffmpeg) => $ffmpeg->scaleByHeight(300),
+        'scale=trunc(oh/(ih/iw)/2)*2:300',
+    ],
+    'a height it only shrinks to' => [
+        fn (Ffmpeg $ffmpeg) => $ffmpeg->scaleByHeight(300, forceResize: false),
+        'scale=trunc(oh/(ih/iw)/2)*2:if(gte(ih\,300)\,300\,ih)',
+    ],
 ]);

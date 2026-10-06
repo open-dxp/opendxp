@@ -17,39 +17,39 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Cache\RuntimeCache;
-use OpenDxp\Db;
+use OpenDxp\Tests\Application\Service\Calculator;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-it('hands back what the calculator service worked out', function () {
-
+it('returns what the calculator service works out', function () {
     $object = UnittestFactory::createOne();
+    RuntimeCache::set(Calculator::VALUE_KEY, 'the calculated value');
 
-    // The calculator of the test application reads the value out of the runtime cache.
-    $value = uniqid();
-    RuntimeCache::set('modeltest.testCalculatedValue.value', $value);
+    $value = $object->getCalculatedValue();
 
-    expect($object->getCalculatedValue())->toBe($value);
+    expect($value)->toBe('the calculated value');
 });
 
-it('works a value out of an expression and writes it into the query table', function () {
-
+it('works a value out of an expression', function () {
     $object = UnittestFactory::createOne();
+
     $object->setFirstname('Jane');
 
     expect($object->getCalculatedValueExpression())->toBe('Jane some calc');
-
-    $object->save();
-
-    $written = Db::get()->fetchOne(sprintf(
-        'SELECT calculatedValueExpression FROM object_query_%s WHERE oo_id = %d',
-        $object->getClassId(),
-        $object->getId(),
-    ));
-
-    expect($written)->toBe('Jane some calc');
 });
 
-it('keeps a constant out of an expression', function () {
-    expect(UnittestFactory::createOne()->getCalculatedValueExpressionConstant())
-        ->not->toBe(OPENDXP_PROJECT_ROOT);
+it('writes the value of an expression into the query table', function () {
+    $object = UnittestFactory::createOne();
+
+    $object->setFirstname('Jane');
+    $object->save();
+
+    expect(queryTableValue($object, 'calculatedValueExpression'))->toBe('Jane some calc');
+});
+
+it('refuses to read a constant in an expression', function () {
+    $object = UnittestFactory::createOne();
+
+    $value = $object->getCalculatedValueExpressionConstant();
+
+    expect($value)->toBe('`constant` function not available around position 0.');
 });

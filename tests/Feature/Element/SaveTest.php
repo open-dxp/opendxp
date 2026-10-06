@@ -16,59 +16,48 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Element;
 
-use Carbon\Carbon;
-
 it('keeps the note a version was saved with', function (string $element, string $factory) {
-
     $saved = $factory::createOne();
 
     $saved->save(['versionNote' => 'a new version of this element']);
 
-    expect($saved->getLatestVersion(null, true)->getNote())->toBe('a new version of this element');
+    expect($saved->getLatestVersion(includingPublished: true)->getNote())->toBe('a new version of this element');
 })->with('elements');
 
-it('keeps the user a save was attributed to', function (string $element, string $factory) {
-
-    $saved = $factory::createOne();
-
-    $saved->setUserModification(101);
-    $saved->save();
-
-    expect($saved->getUserModification())->toBe(101);
-})->with('elements');
-
-it('attributes a save that names no user to nobody', function (string $element, string $factory) {
-
+it('stores the user a save names', function (string $element, string $factory) {
     $saved = $factory::createOne();
     $saved->setUserModification(101);
+
     $saved->save();
 
-    $reloaded = $element::getById($saved->getId(), ['force' => true]);
-    $reloaded->save();
-
-    expect($reloaded->getUserModification())->toBe(0);
+    expect(reloaded($saved)->getUserModification())->toBe(101);
 })->with('elements');
 
-it('keeps the modification date a save was given', function (string $element, string $factory) {
+it('attributes a save without a user to the system user', function (string $element, string $factory) {
+    $saved = $factory::createOne(['userModification' => 101]);
+    $loaded = reloaded($saved);
 
-    $saved = $factory::createOne();
-    $earlier = (new Carbon())->subHour()->getTimestamp();
+    $loaded->save();
 
-    $saved->setModificationDate($earlier);
-    $saved->save();
-
-    expect($saved->getModificationDate())->toBe($earlier);
+    expect(reloaded($loaded)->getUserModification())->toBe(0);
 })->with('elements');
 
-it('stamps a save that names no modification date with the current time', function (string $element, string $factory) {
-
+it('stores the modification date a save names', function (string $element, string $factory) {
     $saved = $factory::createOne();
-    $saved->setModificationDate((new Carbon())->subHour()->getTimestamp());
+    $anHourAgo = time() - 3600;
+    $saved->setModificationDate($anHourAgo);
+
     $saved->save();
 
+    expect(reloaded($saved)->getModificationDate())->toBe($anHourAgo);
+})->with('elements');
+
+it('stamps a save without a modification date with the current time', function (string $element, string $factory) {
+    $saved = $factory::createOne(['modificationDate' => time() - 3600]);
+    $loaded = reloaded($saved);
     $before = time();
-    $reloaded = $element::getById($saved->getId(), ['force' => true]);
-    $reloaded->save();
 
-    expect($reloaded->getModificationDate())->toBeGreaterThanOrEqual($before);
+    $loaded->save();
+
+    expect(reloaded($loaded)->getModificationDate())->toBeGreaterThanOrEqual($before);
 })->with('elements');

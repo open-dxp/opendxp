@@ -16,14 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\Twig\Options;
 
+use Closure;
 use OpenDxp\Twig\Options\BlockOptions;
 
-it('writes the options the way a template needs them', function (callable $set, string $expected) {
-
+it('writes the options the way a template needs them', function (Closure $configure, string $expected) {
     $options = new BlockOptions();
-    $set($options);
+    $configure($options);
 
-    expect($options->toString())->toBe($expected);
+    $written = $options->toString();
+
+    expect($written)->toBe($expected);
 })->with([
     'nothing set' => [
         fn (BlockOptions $options) => null,

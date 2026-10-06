@@ -16,16 +16,9 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\TestCase;
 
-use OpenDxp;
-use OpenDxp\Cache;
 use OpenDxp\Cache\Core\CoreCacheHandler;
 use OpenDxp\Cache\Core\WriteLock;
-use OpenDxp\Cache\RuntimeCache;
-use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\TestFoundation\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
-use Psr\Log\NullLogger;
-use ReflectionProperty;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
 abstract class CacheTestCase extends TestCase
@@ -38,52 +31,40 @@ abstract class CacheTestCase extends TestCase
      * @var array<string, list<string>>
      */
     public const array SAMPLE_ENTRIES = [
-        'A' => ['tag_a', 'tag_ab', 'tag_all'],
-        'B' => ['tag_b', 'tag_ab', 'tag_bc', 'tag_all'],
-        'C' => ['tag_c', 'tag_bc', 'tag_all'],
+        'A' => [
+            'tag_a',
+            'tag_ab',
+            'tag_all',
+        ],
+        'B' => [
+            'tag_b',
+            'tag_ab',
+            'tag_bc',
+            'tag_all',
+        ],
+        'C' => [
+            'tag_c',
+            'tag_bc',
+            'tag_all',
+        ],
     ];
 
     protected TagAwareAdapterInterface $pool;
 
     protected WriteLock $lock;
 
-    protected CoreCacheHandler|MockObject $handler;
+    protected CoreCacheHandler $handler;
 
     /**
      * @param callable(): TagAwareAdapterInterface $pool
      */
-    protected function useCachePool(callable $pool, bool $cli = false): void
+    protected function useCachePool(callable $pool): void
     {
         $this->pool = $pool();
         $this->pool->clear();
 
-        $this->lock = new WriteLock($this->pool);
-        $this->lock->setLogger(new NullLogger());
-
-        // isCli() reads the sapi name. In a test run that is always cli.
-        $this->handler = $this->getMockBuilder(CoreCacheHandler::class)
-            ->onlyMethods(['isCli'])
-            ->setConstructorArgs([$this->pool, $this->lock, OpenDxp::getEventDispatcher()])
-            ->getMock();
-
-        $this->handler->method('isCli')->willReturn($cli);
-        $this->handler->setLogger(new NullLogger());
-    }
-
-    protected function useApplicationCache(): void
-    {
-        Cache::enable();
-        Cache::getHandler()->setHandleCli(true);
-        RuntimeCache::clear();
-    }
-
-    /**
-     * Saving an element clears its cache tag for the whole process. Without taking that back, the
-     * element cannot be cached in the same test.
-     */
-    protected function allowCachingAgain(ElementInterface $element): void
-    {
-        Cache::getHandler()->removeClearedTags(array_values($element->getCacheTags()));
+        $this->handler = cacheHandler($this->pool);
+        $this->lock = $this->handler->getWriteLock();
     }
 
     protected function queueSampleEntries(): void
@@ -100,16 +81,16 @@ abstract class CacheTestCase extends TestCase
     {
         $keys = array_keys(self::SAMPLE_ENTRIES);
 
-        return array_values(array_filter($keys, fn (string $key) => $this->poolHasItem($key)));
+        $kept = array_filter(
+            $keys,
+            fn (string $key) => $this->poolHasItem($key),
+        );
+
+        return array_values($kept);
     }
 
     protected function poolHasItem(string $key): bool
     {
         return $this->pool->getItem($key)->isHit();
-    }
-
-    protected function handlerProperty(string $property): mixed
-    {
-        return (new ReflectionProperty($this->handler, $property))->getValue($this->handler);
     }
 }

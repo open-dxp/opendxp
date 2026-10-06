@@ -16,62 +16,47 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Relation;
 
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function brickOf(DataObject\Concrete $object): UnittestBrick
-{
-    return DataObject::getById($object->getId(), ['force' => true])->getMybricks()->getUnittestBrick();
-}
-
-/**
- * A brick container only exists on an object that was saved, so the brick is attached afterwards.
- */
-function objectWithBrickRelations(array $targets): DataObject\Concrete
-{
-    $object = UnittestFactory::createOne();
-
-    $brick = new UnittestBrick($object);
-    $brick->setBrickLazyRelation($targets);
-    $object->getMybricks()->setUnittestBrick($brick);
-    $object->save();
-
-    return $object;
-}
-
-it('keeps the relations a brick was given', function () {
-
-    $object = objectWithBrickRelations(RelationTestFactory::createMany(2));
-
-    expect(brickOf($object)->getBrickLazyRelation())->toHaveCount(2);
+beforeEach(function () {
+    $this->targets = RelationTestFactory::createMany(2);
+    $this->object = UnittestFactory::new()
+        ->withObjectbrick(
+            'mybricks',
+            UnittestBrick::class,
+            ['brickLazyRelation' => $this->targets],
+        )
+        ->create();
 });
 
-it('keeps the relations a brick was left with', function () {
+it('keeps the relations of a brick', function () {
+    $relations = reloaded($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
 
-    $targets = RelationTestFactory::createMany(3);
-    $object = objectWithBrickRelations([$targets[0], $targets[1]]);
+    expect($relations)
+        ->toHaveCount(2)
+        ->and($relations[0]->getId())
+        ->toBe($this->targets[0]->getId())
+        ->and($relations[1]->getId())
+        ->toBe($this->targets[1]->getId());
+});
 
-    $reloaded = DataObject::getById($object->getId(), ['force' => true]);
-    $reloaded->getMybricks()->getUnittestBrick()->setBrickLazyRelation([$targets[1]]);
-    $reloaded->save();
+it('keeps the remaining relation of a brick', function () {
+    $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([$this->targets[1]]);
+    $this->object->save();
 
-    $relations = brickOf($object)->getBrickLazyRelation();
-
+    $relations = reloaded($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
     expect($relations)
         ->toHaveCount(1)
         ->and($relations[0]->getId())
-        ->toBe($targets[1]->getId());
+        ->toBe($this->targets[1]->getId());
 });
 
-it('holds no relation once the brick was emptied', function () {
+it('keeps no relation in a brick that was emptied', function () {
+    $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([]);
+    $this->object->save();
 
-    $object = objectWithBrickRelations(RelationTestFactory::createMany(2));
-
-    $reloaded = DataObject::getById($object->getId(), ['force' => true]);
-    $reloaded->getMybricks()->getUnittestBrick()->setBrickLazyRelation(null);
-    $reloaded->save();
-
-    expect(brickOf($object)->getBrickLazyRelation())->toBe([]);
+    $brick = reloaded($this->object)->getMybricks()->getUnittestBrick();
+    expect($brick)->getBrickLazyRelation()->toBe([]);
 });

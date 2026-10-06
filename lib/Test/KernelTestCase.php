@@ -29,7 +29,13 @@ abstract class KernelTestCase extends \Symfony\Bundle\FrameworkBundle\Test\Kerne
     #[Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
-        trigger_deprecation('open-dxp/opendxp', '1.5', 'Extending "%s" is deprecated and will be removed in 2.0. Use "OpenDxp\TestFoundation\TestCase" instead.', self::class);
+        trigger_deprecation(
+            'open-dxp/opendxp',
+            '1.5',
+            'Extending "%s" is deprecated and will be removed in 2.0. '
+                . 'Use "OpenDxp\TestFoundation\TestCase" instead.',
+            self::class,
+        );
 
         $kernel = parent::createKernel($options);
 

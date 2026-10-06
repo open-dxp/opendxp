@@ -19,12 +19,10 @@ namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Asset\Video;
 
+use function Zenstruck\Foundry\lazy;
+
 /**
  * @extends AbstractElementFactory<Video>
- *
- * @method Video create(array|callable $attributes = [])
- * @method static Video createOne(array $attributes = [])
- * @method static list<Video> createMany(int $number, array $attributes = [])
  */
 final class AssetVideoFactory extends AbstractElementFactory
 {
@@ -42,9 +40,8 @@ final class AssetVideoFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'type'     => 'video',
-            'filename' => sprintf('video-%s.mp4', uniqid()),
-            'data'     => file_get_contents(self::fixture()),
+            'filename' => sprintf('%s.mp4', self::faker()->unique()->slug()),
+            'data'     => lazy(static fn () => file_get_contents(self::fixture())),
         ];
     }
 }

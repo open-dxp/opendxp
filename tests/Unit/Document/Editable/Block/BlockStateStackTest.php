@@ -17,48 +17,33 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\Document\Editable\Block;
 
 use LogicException;
+use OpenDxp\Document\Editable\Block\BlockState;
 use OpenDxp\Document\Editable\Block\BlockStateStack;
-use ReflectionClass;
 use RuntimeException;
 
-it('carries one state from the start', function () {
-    expect((new BlockStateStack())->count())->toBe(1);
+beforeEach(fn () => $this->stack = new BlockStateStack());
+
+it('holds one state from the start', function () {
+    expect($this->stack->count())->toBe(1);
 });
 
-it('gives back the state below when the one above is popped', function () {
+it('returns to the previous state when the current one is popped', function () {
+    $previous = new BlockState();
+    $this->stack->push($previous);
+    $this->stack->push();
 
-    $stack = new BlockStateStack();
-    $stack->push();
-    $second = $stack->getCurrentState();
+    $this->stack->pop();
 
-    $stack->push();
-    $stack->push();
-
-    expect($stack->count())->toBe(4);
-
-    $stack->pop();
-    $stack->pop();
-
-    expect($stack->count())
-        ->toBe(2)
-        ->and($stack->getCurrentState())
-        ->toEqual($second);
+    expect($this->stack->getCurrentState())->toBe($previous);
 });
 
 it('refuses to pop the last state off the stack', function () {
-
-    $stack = new BlockStateStack();
-    $stack->push();
-    $stack->pop();
-
-    $stack->pop();
+    $this->stack->pop();
 })->throws(LogicException::class, "Can't pop the last state off the stack");
 
-it('refuses to name a current state while it carries none', function () {
+it('refuses to return a current state while it holds none', function () {
+    $this->stack->loadArray([]);
 
-    $stack = (new ReflectionClass(BlockStateStack::class))->newInstanceWithoutConstructor();
-
-    expect($stack->count())->toBe(0);
-
-    $stack->getCurrentState();
-})->throws(RuntimeException::class, 'State stack is empty');
+    expect(fn () => $this->stack->getCurrentState())
+        ->toThrow(RuntimeException::class, 'State stack is empty');
+});

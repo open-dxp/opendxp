@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\TestCase;
 
-use OpenDxp\HttpCache\HttpCacheTagCollectorInterface;
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
@@ -32,22 +31,21 @@ abstract class HttpCacheTestCase extends EnvironmentTestCase
         return 'http_cache';
     }
 
-    protected function taggedPage(): Page
+    protected function pageServedBy(string $action): Page
     {
         return DocumentPageFactory::new()
-            ->withController(TagCollectionController::class, 'defaultAction')
+            ->withController(TagCollectionController::class, $action)
             ->create();
     }
 
-    protected function tagCollector(): HttpCacheTagCollectorInterface
-    {
-        return Container::get(HttpCacheTagCollectorInterface::class);
-    }
-
-    protected function tagsOf(Request $request): string
+    /**
+     * @return list<string>
+     */
+    protected function tagsOf(Request $request): array
     {
         $response = Container::get(HttpKernelInterface::class)->handle($request);
+        $tags = $response->headers->get('X-Cache-Tags', '');
 
-        return $response->headers->get('X-Cache-Tags', '');
+        return $tags === '' ? [] : explode(',', $tags);
     }
 }

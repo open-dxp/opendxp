@@ -16,46 +16,77 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Search;
 
-use OpenDxp\Tests\Story\DataObjectPermissions as Tree;
+use OpenDxp\Tests\Story\DataObjectPermissions;
 
-beforeEach(fn () => Tree::load());
+beforeEach(fn () => $this->loadTree(DataObjectPermissions::class));
 
-afterEach(fn () => Tree::forget());
+// The quick search covers every kind of element. A user without any module permission finds nothing.
+it('finds for each user only what that user may see', function (string $query, array $expected) {
+    $users = array_keys($expected);
 
-/**
- * The quick search answers across every kind of element at once, so the table names every user. A
- * user who holds no module permission at all is handed nothing, however their workspaces read.
- */
-it('hands every user only what that user may see', function (string $query, array $expected) {
+    $found = array_combine(
+        $users,
+        array_map(
+            fn (string $user): array => $this->quickSearchAs($user, $query),
+            $users,
+        ),
+    );
 
-    foreach (Tree::EVERY_USER as $name) {
-        expect(quickSearchAs($name, $query))
-            ->toEqualCanonicalizing($expected[$name] ?? [], sprintf('%s for %s', $query, $name));
-    }
+    expect($found)->toEqualCanonicalizing($expected);
 })->with([
-    'an object only the administrator reaches' => ['hugo', [
-        'admin' => ['/permissionfoo/bars/hugo'],
-    ]],
-    'the folder above three objects' => ['bars', [
-        'admin' => [
-            '/permissionfoo/bars/hugo',
-            '/permissionfoo/bars/userfolder/usertestobject',
-            '/permissionfoo/bars/groupfolder/grouptestobject',
+    'an object only the administrator reaches' => [
+        'hugo',
+        [
+            'admin' => ['/permissionfoo/bars/hugo'],
+            'Permissiontest1' => [],
+            'Permissiontest2' => [],
+            'Permissiontest3' => [],
+            'Permissiontest4' => [],
+            'Permissiontest5' => [],
+            'Permissiontest6' => [],
         ],
-        'Permissiontest1' => [
-            '/permissionfoo/bars/userfolder/usertestobject',
-            '/permissionfoo/bars/groupfolder/grouptestobject',
+    ],
+    'the folder above three objects' => [
+        'bars',
+        [
+            'admin' => [
+                '/permissionfoo/bars/hugo',
+                '/permissionfoo/bars/userfolder/usertestobject',
+                '/permissionfoo/bars/groupfolder/grouptestobject',
+            ],
+            'Permissiontest1' => [
+                '/permissionfoo/bars/userfolder/usertestobject',
+                '/permissionfoo/bars/groupfolder/grouptestobject',
+            ],
+            'Permissiontest2' => ['/permissionfoo/bars/userfolder/usertestobject'],
+            'Permissiontest3' => ['/permissionfoo/bars/userfolder/usertestobject'],
+            'Permissiontest4' => ['/permissionfoo/bars/groupfolder/grouptestobject'],
+            'Permissiontest5' => ['/permissionfoo/bars/userfolder/usertestobject'],
+            'Permissiontest6' => [],
         ],
-        'Permissiontest2' => ['/permissionfoo/bars/userfolder/usertestobject'],
-        'Permissiontest3' => ['/permissionfoo/bars/userfolder/usertestobject'],
-        'Permissiontest4' => ['/permissionfoo/bars/groupfolder/grouptestobject'],
-        'Permissiontest5' => ['/permissionfoo/bars/userfolder/usertestobject'],
-    ]],
-    'an object below a folder nobody is listed for' => ['hiddenobject', [
-        'admin' => ['/permissionbar/foo/hiddenobject'],
-    ]],
-    'an asset beside the tree' => ['assetelement', [
-        'admin' => ['/assetelement.gif'],
-        'Permissiontest5' => ['/assetelement.gif'],
-    ]],
+    ],
+    'an object below a folder nobody is listed for' => [
+        'hiddenobject',
+        [
+            'admin' => ['/permissionbar/foo/hiddenobject'],
+            'Permissiontest1' => [],
+            'Permissiontest2' => [],
+            'Permissiontest3' => [],
+            'Permissiontest4' => [],
+            'Permissiontest5' => [],
+            'Permissiontest6' => [],
+        ],
+    ],
+    'an asset beside the tree' => [
+        'assetelement',
+        [
+            'admin' => ['/assetelement.gif'],
+            'Permissiontest1' => [],
+            'Permissiontest2' => [],
+            'Permissiontest3' => [],
+            'Permissiontest4' => [],
+            'Permissiontest5' => ['/assetelement.gif'],
+            'Permissiontest6' => [],
+        ],
+    ],
 ]);

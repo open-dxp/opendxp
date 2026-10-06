@@ -22,16 +22,16 @@ trait CountsItsInstances
 
     public function __construct()
     {
-        static::$instances++;
+        self::$instances++;
     }
 
     public static function forgetInstances(): void
     {
-        static::$instances = 0;
+        self::$instances = 0;
     }
 
     public static function instances(): int
     {
-        return static::$instances;
+        return self::$instances;
     }
 }

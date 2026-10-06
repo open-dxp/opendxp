@@ -17,13 +17,16 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataObject;
 
 use OpenDxp\Db;
-use OpenDxp\Model\DataObject;
+use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\InputQuantityValue;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Factory\QuantityValueUnitFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function storedRow(DataObject\Concrete $object): array
+/**
+ * @return array<string, mixed>
+ */
+function storedRow(Concrete $object): array
 {
     return Db::get()->fetchAssociative(
         sprintf('SELECT * FROM object_store_%s WHERE oo_id = ?', $object->getClassId()),
@@ -31,31 +34,26 @@ function storedRow(DataObject\Concrete $object): array
     );
 }
 
-it('writes the default value of a field into the version it saves', function () {
+it('writes the default value of a field into the version', function () {
+    $object = UnittestFactory::createOne();
 
-    $versions = UnittestFactory::createOne()->getVersions();
+    $versioned = $object->getLatestVersion(includingPublished: true)->getData();
 
-    expect(end($versions)->getData()->getInputWithDefault())->toBe('default');
+    expect($versioned)
+        ->getInputWithDefault()
+        ->toBe('default')
+        ->getMandatoryInputWithDefault()
+        ->toBe('default');
 });
 
-it('writes the default value of a mandatory field into the version it saves', function () {
-
-    $object = UnittestFactory::new()->unsaved()->create();
-    $object->setOmitMandatoryCheck(false);
-    $object->save();
-    $versions = $object->getVersions();
-
-    expect(end($versions)->getData()->getMandatoryInputWithDefault())->toBe('default');
-});
-
-it('keeps an empty string an empty string', function () {
-
+it('stores an empty string as an empty string', function () {
+    $unit = QuantityValueUnitFactory::createOne();
     $object = UnittestFactory::createOne([
         'input' => 'InputValue',
         'textarea' => 'TextareaValue',
         'wysiwyg' => 'WysiwygValue',
         'password' => 'PasswordValue',
-        'inputQuantityValue' => new InputQuantityValue('1', QuantityValueUnitFactory::createOne(['abbreviation' => 'km'])->getId()),
+        'inputQuantityValue' => new InputQuantityValue('1', $unit->getId()),
     ]);
 
     $object->setInput('');
@@ -65,28 +63,24 @@ it('keeps an empty string an empty string', function () {
     $object->setInputQuantityValue(new InputQuantityValue('', ''));
     $object->save();
 
-    $stored = storedRow($object);
-
-    expect($stored['input'])
-        ->toBe('')
-        ->and($stored['textarea'])
-        ->toBe('')
-        ->and($stored['wysiwyg'])
-        ->toBe('')
-        ->and($stored['inputQuantityValue__value'])
-        ->toBe('')
+    expect(storedRow($object))->toMatchArray([
+        'input' => '',
+        'textarea' => '',
+        'wysiwyg' => '',
+        'inputQuantityValue__value' => '',
         // A password is hashed on save, and nothing hashes to an empty string.
-        ->and($stored['password'])
-        ->toBeNull();
+        'password' => null,
+    ]);
 });
 
-it('keeps nothing nothing', function () {
-
+it('stores null as null', function () {
+    $unit = QuantityValueUnitFactory::createOne();
     $object = UnittestFactory::createOne([
         'input' => 'InputValue',
         'textarea' => 'TextareaValue',
         'wysiwyg' => 'WysiwygValue',
         'password' => 'PasswordValue',
+        'inputQuantityValue' => new InputQuantityValue('1', $unit->getId()),
     ]);
 
     $object->setInput(null);
@@ -105,29 +99,24 @@ it('keeps nothing nothing', function () {
     ]);
 });
 
-it('strips the markup from a field before it is stored', function () {
-
+it('strips a script from formatted text before it is stored', function () {
     $object = UnittestFactory::createOne([
         'wysiwyg' => '!@#$%^abc\'"<script>console.log("ops");</script> 测试&lt; edf &gt; "',
     ]);
 
-    $expected = '!@#$%^abc\'" 测试< edf > "';
+    $loaded = html_entity_decode(reloaded($object)->getWysiwyg());
+    $queried = html_entity_decode(queryTableValue($object, 'wysiwyg'));
 
-    $stored = Db::get()->fetchOne(
-        sprintf('SELECT `wysiwyg` FROM object_query_%s WHERE oo_id = ?', $object->getClassName()),
-        [$object->getId()],
-    );
-
-    expect(html_entity_decode(DataObject::getById($object->getId(), ['force' => true])->getWysiwyg()))
-        ->toBe($expected)
-        ->and(html_entity_decode($stored))
-        ->toBe($expected);
+    expect($loaded)
+        ->toBe('!@#$%^abc\'" 测试< edf > "')
+        ->and($queried)
+        ->toBe('!@#$%^abc\'" 测试< edf > "');
 });
 
 it('refuses a value longer than its column', function () {
-
-    $object = UnittestFactory::createOne();
-    $object->setInput(str_repeat('x', 500));
+    $object = UnittestFactory::new()
+        ->unsaved()
+        ->create(['input' => str_repeat('x', 500)]);
 
     $object->save();
-})->throws(ValidationException::class);
+})->throws(ValidationException::class, 'Value in field [ input ] is longer than 190 characters');

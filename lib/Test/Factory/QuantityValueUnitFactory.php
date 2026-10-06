@@ -20,10 +20,6 @@ use OpenDxp\Model\DataObject\QuantityValue\Unit;
 
 /**
  * @extends AbstractSavingFactory<Unit>
- *
- * @method Unit create(array|callable $attributes = [])
- * @method static Unit createOne(array $attributes = [])
- * @method static list<Unit> createMany(int $number, array $attributes = [])
  */
 final class QuantityValueUnitFactory extends AbstractSavingFactory
 {
@@ -35,7 +31,7 @@ final class QuantityValueUnitFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'abbreviation' => sprintf('unit-%s', uniqid()),
+            'abbreviation' => self::faker()->unique()->lexify('???'),
         ];
     }
 }

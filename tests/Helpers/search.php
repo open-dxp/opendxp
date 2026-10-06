@@ -14,42 +14,22 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Bundle\AdminBundle\Helper\GridHelperService;
-use OpenDxp\Bundle\SimpleBackendSearchBundle\Controller\SearchController;
-use OpenDxp\Model\User;
-use OpenDxp\TestFoundation\Admin;
-use OpenDxp\TestFoundation\Container;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
-
-function searchAs(string $userName, string $type, string $query, int $limit = 100): array
-{
-    Admin::actingAs(User::getByName($userName));
-
-    $response = Container::get(SearchController::class)->findAction(
-        new Request(['type' => $type, 'query' => $query, 'start' => 0, 'limit' => $limit]),
-        Container::get(EventDispatcherInterface::class),
-        Container::get(GridHelperService::class),
-    );
-
-    $answered = json_decode($response->getContent(), true);
-
-    expect($answered['data'])->toHaveCount($answered['total'], 'the total does not match the nodes');
-
-    return array_column($answered['data'], 'fullpath');
-}
+use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search;
+use OpenDxp\Model\Element\ElementInterface;
 
 /**
- * The quick search reaches every kind of element at once, so it takes no type.
+ * Writes the search entry an element needs to be found by the backend search. Nothing writes one outside a
+ * request, so a test that searches has to.
+ *
+ * @template T of ElementInterface
+ *
+ * @param T $element
+ *
+ * @return T
  */
-function quickSearchAs(string $userName, string $query, int $limit = 100): array
+function index(ElementInterface $element): ElementInterface
 {
-    Admin::actingAs(User::getByName($userName));
+    (new Search\Backend\Data($element))->save();
 
-    $response = Container::get(SearchController::class)->quicksearchAction(
-        new Request(['query' => $query, 'start' => 0, 'limit' => $limit]),
-        Container::get(EventDispatcherInterface::class),
-    );
-
-    return array_column(json_decode($response->getContent(), true)['data'], 'fullpathList');
+    return $element;
 }

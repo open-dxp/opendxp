@@ -22,19 +22,24 @@ use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tool\Text;
 
 it('rewrites a link to a document into the url of the site it belongs to', function () {
-
-    $site = SiteFactory::createOne(['mainDomain' => 'example2.com']);
-    $page = DocumentPageFactory::createOne(['key' => 'testing', 'parentId' => $site->getRootDocument()->getId()]);
+    $site = SiteFactory::createOne();
+    $page = DocumentPageFactory::new()
+        ->withParent($site->getRootDocument())
+        ->create();
+    // The mapping of paths to sites is cached and does not know the new site yet.
     RuntimeCache::clear();
-
     $text = sprintf(
-        'Link to a document <a href="%s" opendxp_id="%s" opendxp_type="document">The link</a>',
+        '<a href="%s" opendxp_id="%d" opendxp_type="document">The link</a>',
         $page->getFullPath(),
         $page->getId(),
     );
 
-    expect(Text::wysiwygText($text))->toBe(sprintf(
-        'Link to a document <a href="http://example2.com/testing" opendxp_id="%s" opendxp_type="document">The link</a>',
+    $rewritten = Text::wysiwygText($text);
+
+    expect($rewritten)->toBe(sprintf(
+        '<a href="http://%s/%s" opendxp_id="%d" opendxp_type="document">The link</a>',
+        $site->getMainDomain(),
+        $page->getKey(),
         $page->getId(),
     ));
 });

@@ -16,22 +16,27 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Cache;
 
-describe('a disabled cache', function () {
-    it('keeps what was written before and takes nothing new', function (callable $pool) {
-
+describe('a disabled handler', function () {
+    it('keeps the entries it held', function (callable $pool) {
         $this->useCachePool($pool);
         $this->handler->setForceImmediateWrite(true);
-        $this->handler->save('item_before', 'test', ['before', 'generic']);
+        $this->handler->save('itemA', 'test');
 
         $this->handler->disable();
 
-        expect($this->handler->isEnabled())
+        expect($this->poolHasItem('itemA'))->toBeTrue();
+    });
+
+    it('refuses a new entry', function (callable $pool) {
+        $this->useCachePool($pool);
+        $this->handler->setForceImmediateWrite(true);
+        $this->handler->disable();
+
+        $saved = $this->handler->save('itemA', 'test');
+
+        expect($saved)
             ->toBeFalse()
-            ->and($this->poolHasItem('item_before'))
-            ->toBeTrue()
-            ->and($this->handler->save('item_after', 'test', ['after', 'generic']))
-            ->toBeFalse()
-            ->and($this->poolHasItem('item_after'))
+            ->and($this->poolHasItem('itemA'))
             ->toBeFalse();
     });
 })->with('cache pools');

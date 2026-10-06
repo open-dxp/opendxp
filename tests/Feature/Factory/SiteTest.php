@@ -22,46 +22,68 @@ use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 
 it('brings a root document named after its domain', function () {
-
     $site = SiteFactory::createOne(['mainDomain' => 'test-domain1.test']);
 
-    expect($site)
-        ->toBeInstanceOf(Site::class)
-        ->and($site->getId())
-        ->toBeGreaterThan(0)
-        ->and($site->getRootDocument())
+    expect($site->getRootDocument())
         ->toBeInstanceOf(Page::class)
-        ->and($site->getRootDocument()->getKey())
+        ->getKey()
         ->toBe('test-domain1-test');
 });
 
-it('serves from a root document the caller built', function () {
-
-    $root = DocumentPageFactory::new()->withLocale('de')->create(['key' => 'de-root']);
-    $site = SiteFactory::new()->withRoot($root)->create(['mainDomain' => 'test-domain2.test']);
-
-    expect($site->getRootId())
-        ->toBe($root->getId())
-        ->and($site->getRootDocument()->getProperty('language'))
-        ->toBe('de');
-});
-
-it('carries the settings and the further domains a test gives it', function () {
+it('serves from a root document a test built', function () {
+    $root = DocumentPageFactory::createOne();
 
     $site = SiteFactory::new()
-        ->withSettings(['i18n' => ['zone' => 'zone1']])
-        ->withDomains(['www.test-domain3.test'])
-        ->create(['mainDomain' => 'test-domain3.test']);
+        ->withRoot($root)
+        ->create();
 
-    expect($site->getCustomSettings())
-        ->toBe(['i18n' => ['zone' => 'zone1']])
-        ->and($site->getDomains())
-        ->toBe(['www.test-domain3.test']);
+    expect($site->getRootId())->toBe($root->getId());
+});
+
+it('carries the custom settings a test gives it', function () {
+    $site = SiteFactory::new()
+        ->withCustomSettings(['i18n' => ['zone' => 'zone1']])
+        ->create();
+
+    expect($site->getCustomSettings())->toBe(['i18n' => ['zone' => 'zone1']]);
+});
+
+it('carries the further domains a test gives it', function () {
+    $site = SiteFactory::new()
+        ->withDomains(['www.test-domain3.test'])
+        ->create();
+
+    expect($site->getDomains())->toBe(['www.test-domain3.test']);
 });
 
 it('gives every site a domain of its own when none is named', function () {
+    $sites = SiteFactory::createMany(3);
 
-    $domains = array_map(static fn (Site $site) => $site->getMainDomain(), SiteFactory::createMany(3));
+    $domains = array_map(
+        static fn (Site $site): string => $site->getMainDomain(),
+        $sites,
+    );
 
     expect(array_unique($domains))->toHaveCount(3);
+});
+
+it('carries the error documents a test names', function () {
+    $site = SiteFactory::new()
+        ->withErrorDocument('/error')
+        ->withLocalizedErrorDocuments(['de' => '/de/fehler'])
+        ->create();
+
+    expect($site)
+        ->getErrorDocument()
+        ->toBe('/error')
+        ->getLocalizedErrorDocuments()
+        ->toBe(['de' => '/de/fehler']);
+});
+
+it('writes no root document for a site that was never written', function () {
+    $site = SiteFactory::new()
+        ->unsaved()
+        ->create();
+
+    expect($site->getRootId())->toBeNull();
 });

@@ -18,7 +18,7 @@ namespace OpenDxp\Tests\Feature\Twig;
 
 use Carbon\Carbon;
 use OpenDxp\Model\Document\Editable\Date;
-use OpenDxp\Model\Document\Snippet;
+use OpenDxp\Test\Factory\DocumentSnippetFactory;
 use OpenDxp\TestFoundation\Container;
 use Twig\Loader\ArrayLoader;
 
@@ -30,17 +30,18 @@ beforeEach(function () {
 afterEach(fn () => Carbon::setLocale($this->locale));
 
 it('writes a date in the language carbon is set to', function (string $locale, string $expected) {
-
     Carbon::setLocale($locale);
-
     $this->twig->setLoader(new ArrayLoader([
         'twig' => '{{ opendxp_date("myDate", {"format": "d.m.Y", "outputIsoFormat": "dddd, MMMM D, YYYY h:mm"}) }}',
     ]));
+    $snippet = DocumentSnippetFactory::new()
+        ->withEditables(['myDate' => (new Date())->setDataFromResource(1733954969)])
+        ->unsaved()
+        ->create();
 
-    $snippet = new Snippet();
-    $snippet->setEditable((new Date())->setName('myDate')->setDataFromResource(1733954969));
+    $rendered = $this->twig->render('twig', ['document' => $snippet]);
 
-    expect($this->twig->render('twig', ['document' => $snippet]))->toBe($expected);
+    expect($rendered)->toBe($expected);
 })->with([
     'english' => ['en', 'Wednesday, December 11, 2024 11:09'],
     'german' => ['de_DE.utf8', 'Mittwoch, Dezember 11, 2024 11:09'],

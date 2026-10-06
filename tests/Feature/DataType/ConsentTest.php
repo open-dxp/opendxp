@@ -18,7 +18,6 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\DataObject\Consent\Service;
 use OpenDxp\Model\DataObject\Data\Consent;
-use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -27,26 +26,21 @@ beforeEach(function () {
     $this->service = Container::get(Service::class);
 });
 
-it('keeps the consent that was given, with the note it was given for', function () {
-
+it('keeps a given consent with its note', function () {
     $this->service->giveConsent($this->object, 'consent', 'some consent content');
 
-    $given = Unittest::getById($this->object->getId(), ['force' => true])->getConsent();
+    $loaded = reloaded($this->object);
 
-    expect($given->getConsent())
-        ->toBeTrue()
-        ->and($given->getNote()->getDescription())
+    expect($loaded)
+        ->toCarryField('consent', new Consent(true))
+        ->and($loaded->getConsent()->getNote()->getDescription())
         ->toBe('some consent content');
-
-    expect(Unittest::getById($this->object->getId(), ['force' => true]))
-        ->toCarryField('consent', new Consent(true));
 });
 
-it('holds no consent any more once it was revoked', function () {
-
+it('holds no consent once it is revoked', function () {
     $this->service->giveConsent($this->object, 'consent', 'some consent content');
+
     $this->service->revokeConsent($this->object, 'consent');
 
-    expect(Unittest::getById($this->object->getId(), ['force' => true])->getConsent()->getConsent())
-        ->toBeFalse();
+    expect(reloaded($this->object)->getConsent()->getConsent())->toBeFalse();
 });

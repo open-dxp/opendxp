@@ -25,29 +25,6 @@ use OpenDxp\Model\Document;
  */
 abstract class AbstractDocumentFactory extends AbstractElementFactory
 {
-    private const int LINK = -2000;
-
-    public function withTranslationOf(Document $source, ?string $locale = null): static
-    {
-        return $this->afterInstantiate(
-            static fn (Document $document) => (new Document\Service())
-                ->addTranslation($source, $document, $locale),
-            self::LINK,
-        );
-    }
-
-    public function withNavigationName(?string $name = null): static
-    {
-        return $this->afterInstantiate(
-            static function (Document $document) use ($name): void {
-                $title = $name ?? $document->getKey();
-
-                $document->setProperty('navigation_title', 'text', $title);
-                $document->setProperty('navigation_name', 'text', $title);
-            },
-        );
-    }
-
     public function unpublished(): static
     {
         return $this->with(['published' => false]);
@@ -57,7 +34,28 @@ abstract class AbstractDocumentFactory extends AbstractElementFactory
     {
         return $this->afterInstantiate(
             static function (Document $document) use ($locale): void {
-                $document->setProperty('language', 'text', $locale, false, true);
+                $document->setProperty('language', 'text', $locale, inheritable: true);
+            },
+        );
+    }
+
+    /**
+     * The translation takes its language from withLocale().
+     */
+    public function withTranslationOf(Document $source): static
+    {
+        return $this->afterWriting(
+            static function (Document $document) use ($source): void {
+                (new Document\Service())->addTranslation($source, $document);
+            },
+        );
+    }
+
+    public function withNavigationName(string $name): static
+    {
+        return $this->afterInstantiate(
+            static function (Document $document) use ($name): void {
+                self::nameInNavigation($document, $name);
             },
         );
     }
@@ -66,7 +64,39 @@ abstract class AbstractDocumentFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
+            'key'       => self::faker()->unique()->slug(),
             'published' => true,
         ];
+    }
+
+    protected function initialize(): static
+    {
+        return parent::initialize()
+            ->afterInstantiate(self::nameInNavigationByKey(...));
+    }
+
+    /**
+     * The navigation leaves out a document without a navigation name. Only these types appear in it.
+     */
+    private static function nameInNavigationByKey(Document $document): void
+    {
+        $key = $document->getKey();
+
+        if ($key === null) {
+            return;
+        }
+
+        if ($document instanceof Document\Page
+            || $document instanceof Document\Link
+            || $document instanceof Document\Hardlink
+        ) {
+            self::nameInNavigation($document, $key);
+        }
+    }
+
+    private static function nameInNavigation(Document $document, string $name): void
+    {
+        $document->setProperty('navigation_title', 'text', $name);
+        $document->setProperty('navigation_name', 'text', $name);
     }
 }

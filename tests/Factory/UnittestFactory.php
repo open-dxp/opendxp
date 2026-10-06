@@ -21,10 +21,6 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<Unittest>
- *
- * @method Unittest create(array|callable $attributes = [])
- * @method static Unittest createOne(array $attributes = [])
- * @method static list<Unittest> createMany(int $number, array $attributes = [])
  */
 final class UnittestFactory extends AbstractDataObjectFactory
 {

@@ -16,14 +16,12 @@ declare(strict_types=1);
 
 namespace OpenDxp\Test\Factory;
 
+use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Element\Tag;
 
 /**
  * @extends AbstractSavingFactory<Tag>
- *
- * @method Tag create(array|callable $attributes = [])
- * @method static Tag createOne(array $attributes = [])
- * @method static list<Tag> createMany(int $number, array $attributes = [])
  */
 final class TagFactory extends AbstractSavingFactory
 {
@@ -37,11 +35,25 @@ final class TagFactory extends AbstractSavingFactory
         return $this->with(['parentId' => $parent->getId()]);
     }
 
+    public function assignedTo(ElementInterface ...$elements): static
+    {
+        return $this->afterWriting(
+            static function (Tag $tag) use ($elements): void {
+                foreach ($elements as $element) {
+                    Tag::addTagToElement(
+                        Service::getElementType($element),
+                        $element->getId(),
+                        $tag,
+                    );
+                }
+            },
+        );
+    }
+
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('tag-%s', uniqid()),
-            'parentId' => 0,
+            'name' => self::faker()->unique()->word(),
         ];
     }
 }

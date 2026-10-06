@@ -21,12 +21,12 @@ use RuntimeException;
 
 final class ClassDefinitions
 {
-    public static function install(string $name, string $definition): ClassDefinition
+    public static function install(string $name, string $file): ClassDefinition
     {
-        $json = file_get_contents($definition);
+        $json = file_get_contents($file);
 
         if ($json === false) {
-            throw new RuntimeException(sprintf('There is no class definition at %s.', $definition));
+            throw new RuntimeException(sprintf('There is no class definition at %s.', $file));
         }
 
         $class = ClassDefinition::getByName($name);
@@ -38,8 +38,7 @@ final class ClassDefinitions
             $class->setUserOwner(1);
         }
 
-        ClassDefinition\Service::importClassDefinitionFromJson($class, $json, true);
-        $class->save();
+        ClassDefinition\Service::importClassDefinitionFromJson($class, $json, throwException: true);
 
         return ClassDefinition::getByName($name)
             ?? throw new RuntimeException(sprintf('The class %s was not installed.', $name));

@@ -16,65 +16,73 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Dependency;
 
-use OpenDxp\Test\Factory\AssetFolderFactory;
+use OpenDxp\Db;
+use OpenDxp\Messenger\Handler\SanityCheckHandler;
+use OpenDxp\Messenger\SanityCheckMessage;
+use OpenDxp\Model\Asset;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Test\Factory\AssetImageFactory;
-use OpenDxp\Test\Factory\DataObjectFolderFactory;
-use OpenDxp\Test\Factory\DocumentFolderFactory;
-use OpenDxp\Test\Factory\DocumentHardlinkFactory;
-use OpenDxp\Test\Factory\DocumentLinkFactory;
-use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
+use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
+use Symfony\Component\Messenger\Handler\Acknowledger;
 
-dataset('sources', [
-    'a page' => [fn () => DocumentPageFactory::createOne()],
-    'a document link' => [fn () => DocumentLinkFactory::createOne()],
-    'a hardlink' => [fn () => DocumentHardlinkFactory::new()
-        ->withSource(DocumentPageFactory::createOne())
-        ->create()],
-    'a document folder' => [fn () => DocumentFolderFactory::createOne()],
-    'an image' => [fn () => AssetImageFactory::createOne()],
-    'an asset folder' => [fn () => AssetFolderFactory::createOne()],
-    'an object' => [fn () => TestObjectFactory::createOne()],
-    'an object folder' => [fn () => DataObjectFolderFactory::createOne()],
-]);
+function dependenciesOn(Asset $target): int
+{
+    return (int) Db::get()->fetchOne(
+        'SELECT COUNT(*) FROM dependencies WHERE targettype = ? AND targetid = ?',
+        [
+            'asset',
+            $target->getId(),
+        ],
+    );
+}
 
-it('records the dependency of each kind of element', function ($source) {
-    $target = AssetImageFactory::createOne();
-    referencing($source, $target);
+/**
+ * Runs the queued sanity checks as a worker of the queue opendxp_core does.
+ */
+function runSanityChecks(): void
+{
+    $transport = Container::get('messenger.transport.opendxp_core');
+    $handler = Container::get(SanityCheckHandler::class);
 
-    expect(dependenciesOn($target))
-        ->toBe(1);
-})->with('sources');
+    while ([] !== $envelopes = iterator_to_array($transport->get())) {
+        $envelope = $envelopes[0];
+        $transport->ack($envelope);
 
-it('forgets the dependencies on an element right after the element is deleted', function ($source) {
+        if ($envelope->getMessage() instanceof SanityCheckMessage) {
+            $handler(
+                $envelope->getMessage(),
+                new Acknowledger(SanityCheckHandler::class),
+            );
+        }
+    }
+
+    $handler->flush(force: true);
+}
+
+it('forgets the dependencies on a deleted element at once', function (ElementInterface $source) {
     $target = AssetImageFactory::createOne();
     referencing($source, $target);
 
     $target->delete();
 
-    expect(dependenciesOn($target))
-        ->toBe(0);
+    expect(dependenciesOn($target))->toBe(0);
 })->with('sources');
 
-it('forgets the dependencies on an element once a worker ran the sanity checks', function ($source) {
+it('forgets the dependencies on a deleted element after the sanity checks', function (ElementInterface $source) {
     $target = AssetImageFactory::createOne();
     referencing($source, $target);
 
     $target->delete();
     runSanityChecks();
 
-    expect(dependenciesOn($target))
-        ->toBe(0);
+    expect(dependenciesOn($target))->toBe(0);
 })->with('sources');
 
-it('forgets the dependencies on an element even when the element that points to it can no longer be saved', function () {
+it('forgets the dependencies even when the source fails to save', function () {
     $target = AssetImageFactory::createOne();
-    $object = UnittestFactory::createOne([
-        'published' => true,
-    ]);
-
-    // An import may save a published object without its mandatory fields, and the sanity check then fails to save it.
+    $object = UnittestFactory::createOne();
+    // An import may save a published object without its mandatory fields. The sanity check then fails to save it.
     $object->setMandatoryInputWithDefault(null);
     $object->setOmitMandatoryCheck(true);
     referencing($object, $target);
@@ -82,6 +90,5 @@ it('forgets the dependencies on an element even when the element that points to 
     $target->delete();
     runSanityChecks();
 
-    expect(dependenciesOn($target))
-        ->toBe(0);
+    expect(dependenciesOn($target))->toBe(0);
 });

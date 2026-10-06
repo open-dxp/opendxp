@@ -29,29 +29,33 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 it('keeps the locale the route asked for when it falls back to the nearest document', function () {
-
     $document = $this->createMock(Document\Page::class);
-    $document->method('getProperty')->with('language')->willReturn('de');
-
+    $document
+        ->method('getProperty')
+        ->with('language')
+        ->willReturn('de');
     $documents = $this->createMock(Document\Service::class);
-    $documents->method('getNearestDocumentByPath')->willReturn($document);
-
+    $documents
+        ->method('getNearestDocumentByPath')
+        ->willReturn($document);
     $context = $this->createMock(OpenDxpContextResolver::class);
-    $context->method('matchesOpenDxpContext')->willReturn(true);
-
+    $context
+        ->method('matchesOpenDxpContext')
+        ->willReturn(true);
     $requests = new RequestStack();
     $resolver = new DocumentResolver($requests);
-
-    $listener = new DocumentFallbackListener($requests, $resolver, $this->createMock(SiteResolver::class), $documents);
+    $listener = new DocumentFallbackListener(
+        $requests,
+        $resolver,
+        $this->createMock(SiteResolver::class),
+        $documents,
+    );
     $listener->setOpenDxpContextResolver($context);
-
     $kernel = $this->createMock(HttpKernelInterface::class);
     $request = Request::create('/de/product/it');
     $requests->push($request);
-
     $listener->onKernelRequest(new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST));
-
-    // Symfony's own locale listener has run by now and taken the locale from the route.
+    // Symfony's own locale listener has run by now. It took the locale from the route.
     $request->setLocale('it');
 
     $listener->onKernelController(new ControllerEvent(

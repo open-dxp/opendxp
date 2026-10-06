@@ -17,29 +17,80 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\WebsiteSetting;
 
 use OpenDxp\Model\WebsiteSetting;
+use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Test\Factory\WebsiteSettingFactory;
 
 beforeEach(function () {
-    WebsiteSettingFactory::createOne(['name' => 'test', 'data' => 'for anyone']);
-    WebsiteSettingFactory::createOne(['name' => 'test', 'data' => 'for site one', 'siteId' => 1]);
-    WebsiteSettingFactory::createOne(['name' => 'test', 'data' => 'in english', 'language' => 'en']);
-    WebsiteSettingFactory::createOne(['name' => 'test', 'data' => 'in english of site one', 'language' => 'en', 'siteId' => 1]);
+    $this->site = SiteFactory::createOne();
+    $this->otherSite = SiteFactory::createOne();
+
+    WebsiteSettingFactory::createOne([
+        'name' => 'test',
+        'data' => 'for anyone',
+    ]);
+    WebsiteSettingFactory::new()
+        ->forSite($this->site)
+        ->create([
+            'name' => 'test',
+            'data' => 'for the site',
+        ]);
+    WebsiteSettingFactory::new()
+        ->inLanguage('en')
+        ->create([
+            'name' => 'test',
+            'data' => 'in english',
+        ]);
+    WebsiteSettingFactory::new()
+        ->forSite($this->site)
+        ->inLanguage('en')
+        ->create([
+            'name' => 'test',
+            'data' => 'in english of the site',
+        ]);
 });
 
-it('hands back the setting that fits the site and the language best', function (?int $site, ?string $language, string $expected) {
-    expect(WebsiteSetting::getByName('test', $site, $language)->getData())->toBe($expected);
+it('returns the setting that fits site and language best', function (?int $site, ?string $language, string $expected) {
+    $setting = WebsiteSetting::getByName('test', $site, $language);
+
+    expect($setting->getData())->toBe($expected);
 })->with([
     'no site and no language' => [null, null, 'for anyone'],
-    'a site that has one' => [1, null, 'for site one'],
-    'a site and a language that both have one' => [1, 'en', 'in english of site one'],
-    'a site that has one and a language that does not' => [1, 'de', 'for site one'],
-    'a site that has none' => [2, null, 'for anyone'],
-    'a site that has none and a language that has one' => [2, 'en', 'in english'],
-    'a site and a language that both have none' => [2, 'de', 'for anyone'],
+    'a site that has one' => [
+        fn () => $this->site->getId(),
+        null,
+        'for the site',
+    ],
+    'a site and a language that both have one' => [
+        fn () => $this->site->getId(),
+        'en',
+        'in english of the site',
+    ],
+    'a site that has one and a language that does not' => [
+        fn () => $this->site->getId(),
+        'de',
+        'for the site',
+    ],
+    'a site that has none' => [
+        fn () => $this->otherSite->getId(),
+        null,
+        'for anyone',
+    ],
+    'a site that has none and a language that has one' => [
+        fn () => $this->otherSite->getId(),
+        'en',
+        'in english',
+    ],
+    'a site and a language that both have none' => [
+        fn () => $this->otherSite->getId(),
+        'de',
+        'for anyone',
+    ],
     'no site and a language that has one' => [null, 'en', 'in english'],
     'no site and a language that has none' => [null, 'de', 'for anyone'],
 ]);
 
-it('hands back nothing for a name it holds no setting under', function () {
-    expect(WebsiteSetting::getByName('test2'))->toBeNull();
+it('returns nothing for a name without a setting', function () {
+    $setting = WebsiteSetting::getByName('test2');
+
+    expect($setting)->toBeNull();
 });

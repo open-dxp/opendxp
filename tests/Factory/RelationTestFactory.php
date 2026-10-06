@@ -21,26 +21,21 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<RelationTest>
- *
- * @method RelationTest create(array|callable $attributes = [])
- * @method static RelationTest createOne(array $attributes = [])
- * @method static list<RelationTest> createMany(int $number, array $attributes = [])
  */
 final class RelationTestFactory extends AbstractDataObjectFactory
 {
     /**
-     * The text every target carries. A test looks for it in a serialized object to tell whether the
-     * target was written along with it.
+     * A test looks for this text in a serialized object to tell whether a marked target was written along with it.
      */
-    public const string CONTENT = 'the text of a relation target';
+    public const string MARKER = 'the text of a relation target';
 
     public static function class(): string
     {
         return RelationTest::class;
     }
 
-    protected function defaults(): array
+    public function marked(): static
     {
-        return [...parent::defaults(), 'someAttribute' => self::CONTENT];
+        return $this->with(['someAttribute' => self::MARKER]);
     }
 }

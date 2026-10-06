@@ -16,40 +16,40 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Inheritance;
 
-use OpenDxp;
-use OpenDxp\Model\DataObject\Service;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 beforeEach(function () {
-    // Only the admin is handed an object that holds nothing of its own.
-    OpenDxp::setAdminMode();
-    $this->group = storeGroup('testgroup2')->getId();
-    $this->first = storeKey('input')->getId();
-    $this->second = storeKey('textarea')->getId();
+    $this->group = storeGroup('testgroup2');
+    $parent = InheritanceFactory::new()
+        ->withClassificationValues('teststore', $this->group, [
+            'input' => 'input of the parent',
+            'textarea' => 'textarea of the parent',
+        ])
+        ->create();
+    $this->child = InheritanceFactory::new()
+        ->withParent($parent)
+        ->withClassificationValues('teststore', $this->group, ['input' => 'input of the child'])
+        ->create();
 });
 
-it('hands a key down that the object below holds no value for', function () {
+it('gives the child the value of its parent for a key it holds no value for', function () {
+    $store = reloaded($this->child)->getTeststore();
 
-    Service::useInheritedValues(true, function () {
+    $value = $store->getLocalizedKeyValue(
+        $this->group->getId(),
+        storeKey('textarea')->getId(),
+    );
 
-        $parent = InheritanceFactory::createOne();
-        $above = $parent->getTeststore();
-        $above->setLocalizedKeyValue($this->group, $this->first, 'first of the parent');
-        $above->setLocalizedKeyValue($this->group, $this->second, 'second of the parent');
-        $parent->save();
+    expect($value)->toBe('textarea of the parent');
+});
 
-        $child = InheritanceFactory::createOne(['parentId' => $parent->getId()]);
-        $below = $child->getTeststore();
-        $below->setLocalizedKeyValue($this->group, $this->first, 'first of the child');
-        $below->save();
+it('keeps the value of the child for a key it holds its own value for', function () {
+    $store = reloaded($this->child)->getTeststore();
 
-        expect($below->getLocalizedKeyValue($this->group, $this->first))
-            ->toBe('first of the child')
-            ->and($below->getLocalizedKeyValue($this->group, $this->second))
-            ->toBe('second of the parent')
-            ->and($above->getLocalizedKeyValue($this->group, $this->first))
-            ->toBe('first of the parent')
-            ->and($above->getLocalizedKeyValue($this->group, $this->second))
-            ->toBe('second of the parent');
-    });
+    $value = $store->getLocalizedKeyValue(
+        $this->group->getId(),
+        storeKey('input')->getId(),
+    );
+
+    expect($value)->toBe('input of the child');
 });

@@ -16,123 +16,97 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\HttpCache;
 
+use OpenDxp\HttpCache\HttpCacheTagCollectorInterface;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
+use OpenDxp\TestFoundation\Container;
 use Symfony\Component\HttpFoundation\Request;
 
-it('names the document a request reached', function () {
-
-    $page = $this->taggedPage();
-
-    expect($this->tagsOf(Request::create($page->getFullPath())))->toContain('document_' . $page->getId());
-});
-
-it('names a document the template loads', function () {
-
-    $page = $this->taggedPage();
-    $loaded = $this->taggedPage();
-
+it('tags the response with the document it serves', function () {
+    $page = $this->pageServedBy('defaultAction');
     $request = Request::create($page->getFullPath());
-    $request->attributes->set('_template', 'test/tag_collection.html.twig');
-    $request->attributes->set('test_doc_id', $loaded->getId());
 
-    expect($this->tagsOf($request))
-        ->toContain('document_' . $page->getId())
-        ->toContain('document_' . $loaded->getId());
+    $tags = $this->tagsOf($request);
+
+    expect($tags)->toContain(sprintf('document_%d', $page->getId()));
 });
 
-it('names an asset the template loads', function () {
-
-    $page = $this->taggedPage();
-    $asset = AssetImageFactory::createOne();
-
+it('tags the response with an element the template loads', function (
+    string $attribute,
+    ElementInterface $element,
+    string $tagPrefix,
+) {
+    $page = $this->pageServedBy('templateAction');
     $request = Request::create($page->getFullPath());
-    $request->attributes->set('_template', 'test/tag_collection.html.twig');
-    $request->attributes->set('test_asset_id', $asset->getId());
+    $request->attributes->set('_template', 'http_cache/elements.html.twig');
+    $request->attributes->set($attribute, $element->getId());
 
-    expect($this->tagsOf($request))
-        ->toContain('document_' . $page->getId())
-        ->toContain('asset_' . $asset->getId());
-});
+    $tags = $this->tagsOf($request);
 
-it('names an object the template loads', function () {
+    expect($tags)->toContain(sprintf('%s%d', $tagPrefix, $element->getId()));
+})->with([
+    'a document' => [
+        'document_id',
+        fn () => DocumentPageFactory::createOne(),
+        'document_',
+    ],
+    'an asset' => [
+        'asset_id',
+        fn () => AssetImageFactory::createOne(),
+        'asset_',
+    ],
+    'an object' => [
+        'object_id',
+        fn () => DataObjectFolderFactory::createOne(),
+        'data_object_',
+    ],
+]);
 
-    $page = $this->taggedPage();
-    $folder = DataObjectFolderFactory::createOne();
-
+it('tags the response with a listing the controller reads', function (string $action, string $tag) {
+    $page = $this->pageServedBy($action);
     $request = Request::create($page->getFullPath());
-    $request->attributes->set('_template', 'test/tag_collection.html.twig');
-    $request->attributes->set('test_obj_id', $folder->getId());
 
-    expect($this->tagsOf($request))->toContain('data_object_' . $folder->getId());
-});
+    $tags = $this->tagsOf($request);
 
-it('names every element the template loads', function () {
+    expect($tags)->toContain($tag);
+})->with([
+    'a document listing' => ['documentListingAction', 'document_list'],
+    'an asset listing' => ['assetListingAction', 'asset_list'],
+]);
 
-    $page = $this->taggedPage();
-    $document = $this->taggedPage();
-    $asset = AssetImageFactory::createOne();
-
+it('tags the response with a document a sub request loads', function () {
+    $page = $this->pageServedBy('templateAction');
+    $loaded = DocumentPageFactory::createOne();
     $request = Request::create($page->getFullPath());
-    $request->attributes->set('_template', 'test/tag_collection.html.twig');
-    $request->attributes->set('test_doc_id', $document->getId());
-    $request->attributes->set('test_asset_id', $asset->getId());
+    $request->attributes->set('_template', 'http_cache/sub_request.html.twig');
+    $request->attributes->set('sub_request_document_id', $loaded->getId());
 
-    expect($this->tagsOf($request))
-        ->toContain('document_' . $document->getId())
-        ->toContain('asset_' . $asset->getId());
+    $tags = $this->tagsOf($request);
+
+    expect($tags)->toContain(sprintf('document_%d', $loaded->getId()));
 });
 
-it('names the document listing when one is read', function () {
-
-    $request = Request::create($this->taggedPage()->getFullPath());
-    $request->attributes->set('test_doc_listing', true);
-
-    expect($this->tagsOf($request))->toContain('document_list');
-});
-
-it('names the asset listing when one is read', function () {
-
-    $request = Request::create($this->taggedPage()->getFullPath());
-    $request->attributes->set('test_asset_listing', true);
-
-    expect($this->tagsOf($request))->toContain('asset_list');
-});
-
-it('names an element a sub request loads', function () {
-
-    $page = $this->taggedPage();
-    $main = $this->taggedPage();
-    $sub = $this->taggedPage();
-
-    $request = Request::create($page->getFullPath());
-    $request->attributes->set('_template', 'test/tag_collection_subrequest.html.twig');
-    $request->attributes->set('test_doc_id', $main->getId());
-    $request->attributes->set('test_sub_doc_id', $sub->getId());
-
-    expect($this->tagsOf($request))
-        ->toContain('document_' . $main->getId())
-        ->toContain('document_' . $sub->getId());
-});
-
-it('collects nothing outside a request', function () {
-
-    $page = $this->taggedPage();
+it('collects no tag outside a request', function () {
+    $page = DocumentPageFactory::createOne();
 
     Document::getById($page->getId(), ['force' => true]);
 
-    expect($this->tagCollector()->isEmpty())->toBeTrue();
+    expect(Container::get(HttpCacheTagCollectorInterface::class))
+        ->isEmpty()
+        ->toBeTrue();
 });
 
 it('starts over for the next request', function () {
-
-    $first = $this->taggedPage();
-    $second = $this->taggedPage();
-
+    $first = $this->pageServedBy('defaultAction');
+    $second = $this->pageServedBy('defaultAction');
     $this->tagsOf(Request::create($first->getFullPath()));
 
-    expect($this->tagsOf(Request::create($second->getFullPath())))
-        ->toContain('document_' . $second->getId())
-        ->not->toContain('document_' . $first->getId());
+    $tags = $this->tagsOf(Request::create($second->getFullPath()));
+
+    expect($tags)
+        ->toContain(sprintf('document_%d', $second->getId()))
+        ->not->toContain(sprintf('document_%d', $first->getId()));
 });

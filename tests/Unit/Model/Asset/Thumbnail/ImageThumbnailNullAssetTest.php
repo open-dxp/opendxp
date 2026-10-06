@@ -19,9 +19,11 @@ namespace OpenDxp\Tests\Unit\Model\Asset\Thumbnail;
 use OpenDxp\Model\Asset\Document\ImageThumbnail as DocumentImageThumbnail;
 use OpenDxp\Model\Asset\Video\ImageThumbnail as VideoImageThumbnail;
 
-it('has no asset when it was built without one', function (string $thumbnail) {
-    expect((new $thumbnail(null))->getAsset())->toBeNull();
+it('has no asset when it is built without one', function (VideoImageThumbnail|DocumentImageThumbnail $thumbnail) {
+    $asset = $thumbnail->getAsset();
+
+    expect($asset)->toBeNull();
 })->with([
-    'a video thumbnail' => VideoImageThumbnail::class,
-    'a document thumbnail' => DocumentImageThumbnail::class,
+    'a video thumbnail' => fn () => new VideoImageThumbnail(asset: null),
+    'a document thumbnail' => fn () => new DocumentImageThumbnail(asset: null),
 ]);

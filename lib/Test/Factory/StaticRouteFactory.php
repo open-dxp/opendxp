@@ -20,10 +20,6 @@ use OpenDxp\Bundle\StaticRoutesBundle\Model\Staticroute;
 
 /**
  * @extends AbstractSavingFactory<Staticroute>
- *
- * @method Staticroute create(array|callable $attributes = [])
- * @method static Staticroute createOne(array $attributes = [])
- * @method static list<Staticroute> createMany(int $number, array $attributes = [])
  */
 final class StaticRouteFactory extends AbstractSavingFactory
 {
@@ -42,15 +38,16 @@ final class StaticRouteFactory extends AbstractSavingFactory
 
     public function withPattern(string $pattern, string $reverse): static
     {
-        return $this->with(['pattern' => $pattern, 'reverse' => $reverse]);
+        return $this->with([
+            'pattern' => $pattern,
+            'reverse' => $reverse,
+        ]);
     }
 
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('route_%s', uniqid()),
-            'priority' => 0,
-            'siteId'   => [],
+            'name' => self::faker()->unique()->slug(2),
         ];
     }
 }

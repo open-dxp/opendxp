@@ -16,27 +16,35 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
+use Closure;
 use InvalidArgumentException;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\LazyLoadedItem;
-use OpenDxp\Tests\Fixtures\Bundle\BundleE;
-use OpenDxp\Tests\Fixtures\Bundle\BundleF;
+use OpenDxp\Tests\Fixtures\Bundle\BundleWithDependency;
 use OpenDxp\Tests\Fixtures\Bundle\CountingBundle;
 use OpenDxp\Tests\Fixtures\Bundle\CountingOpenDxpBundle;
+use OpenDxp\Tests\Fixtures\Bundle\RequiredBundle;
 
-beforeEach(function () {
+dataset('bundle kinds', [
+    'a plain bundle' => [CountingBundle::class, false],
+    'an OpenDXP bundle' => [CountingOpenDxpBundle::class, true],
+]);
+
+afterEach(function () {
     CountingBundle::forgetInstances();
     CountingOpenDxpBundle::forgetInstances();
 });
 
-it('builds its bundle on the first ask and keeps it', function () {
-
-    $item = new LazyLoadedItem(CountingBundle::class);
+it('builds no bundle when it is created', function () {
+    new LazyLoadedItem(CountingBundle::class);
 
     expect(CountingBundle::instances())->toBe(0);
+});
+
+it('builds its bundle on first access', function () {
+    $item = new LazyLoadedItem(CountingBundle::class);
 
     $bundle = $item->getBundle();
-    $item->getBundle();
 
     expect($bundle)
         ->toBeInstanceOf(CountingBundle::class)
@@ -44,60 +52,65 @@ it('builds its bundle on the first ask and keeps it', function () {
         ->toBe(1);
 });
 
+it('reuses its bundle on later access', function () {
+    $item = new LazyLoadedItem(CountingBundle::class);
+    $first = $item->getBundle();
+
+    $second = $item->getBundle();
+
+    expect($second)
+        ->toBe($first)
+        ->and(CountingBundle::instances())
+        ->toBe(1);
+});
+
 it('is named after the class it was given', function () {
-    expect((new LazyLoadedItem(CountingBundle::class))->getBundleIdentifier())->toBe(CountingBundle::class);
+    $item = new LazyLoadedItem(CountingBundle::class);
+
+    expect($item)->getBundleIdentifier()->toBe(CountingBundle::class);
 });
 
 it('refuses a class that does not exist', function () {
     new LazyLoadedItem('FooBarBazingaDummyClassName');
 })->throws(InvalidArgumentException::class, 'The class "FooBarBazingaDummyClassName" does not exist');
 
-it('says whether its bundle is an opendxp bundle without building it', function () {
+it('tells whether its bundle is an OpenDXP bundle', function (string $className, bool $openDxpBundle) {
+    $item = new LazyLoadedItem($className);
 
-    $plain = new LazyLoadedItem(CountingBundle::class);
-    $openDxp = new LazyLoadedItem(CountingOpenDxpBundle::class);
+    $result = $item->isOpenDxpBundle();
 
-    expect($plain->isOpenDxpBundle())
-        ->toBeFalse()
-        ->and($openDxp->isOpenDxpBundle())
-        ->toBeTrue()
-        ->and(CountingBundle::instances())
-        ->toBe(0)
-        ->and(CountingOpenDxpBundle::instances())
-        ->toBe(0);
+    expect($result)->toBe($openDxpBundle);
+})->with('bundle kinds');
+
+it('tells whether its bundle is an OpenDXP bundle without building it', function () {
+    $item = new LazyLoadedItem(CountingOpenDxpBundle::class);
+
+    $item->isOpenDxpBundle();
+
+    expect(CountingOpenDxpBundle::instances())->toBe(0);
 });
 
-it('says the same once its bundle is built', function () {
+it('tells whether its built bundle is an OpenDXP bundle', function (string $className, bool $openDxpBundle) {
+    $item = new LazyLoadedItem($className);
+    $item->getBundle();
 
-    $plain = new LazyLoadedItem(CountingBundle::class);
-    $openDxp = new LazyLoadedItem(CountingOpenDxpBundle::class);
+    $result = $item->isOpenDxpBundle();
 
-    $plain->getBundle();
-    $openDxp->getBundle();
+    expect($result)->toBe($openDxpBundle);
+})->with('bundle kinds');
 
-    expect($plain->isOpenDxpBundle())
-        ->toBeFalse()
-        ->and($openDxp->isOpenDxpBundle())
-        ->toBeTrue()
-        ->and(CountingBundle::instances())
-        ->toBe(1)
-        ->and(CountingOpenDxpBundle::instances())
-        ->toBe(1);
-});
-
-it('brings the bundles its own depends on', function (bool $buildFirst) {
-
+it('registers the bundles its bundle depends on', function (Closure $prepare) {
     $collection = new BundleCollection();
-    $item = new LazyLoadedItem(BundleE::class);
-
-    if ($buildFirst) {
-        $item->getBundle();
-    }
+    $item = new LazyLoadedItem(BundleWithDependency::class);
+    $prepare($item);
 
     $collection->add($item);
 
-    expect($collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
+    expect($collection->getIdentifiers())->toBe([
+        BundleWithDependency::class,
+        RequiredBundle::class,
+    ]);
 })->with([
-    'while it is still unbuilt' => [false],
-    'once it is built' => [true],
+    'while its bundle is not built' => fn (LazyLoadedItem $item) => null,
+    'once its bundle is built' => fn (LazyLoadedItem $item) => $item->getBundle(),
 ]);

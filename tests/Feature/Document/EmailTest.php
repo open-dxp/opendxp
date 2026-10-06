@@ -16,11 +16,9 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Document;
 
-use OpenDxp\Model\Document\Email;
 use OpenDxp\Test\Factory\DocumentEmailFactory;
 
-it('hands back every address and the subject it was saved with', function () {
-
+it('keeps its subject and every address', function () {
     $email = DocumentEmailFactory::createOne([
         'subject' => 'a subject',
         'to' => 'john@doe.com',
@@ -30,7 +28,7 @@ it('hands back every address and the subject it was saved with', function () {
         'replyTo' => 'jane-reply-to@doe.com',
     ]);
 
-    $reloaded = Email::getById($email->getId(), ['force' => true]);
+    $reloaded = reloaded($email);
 
     expect($reloaded->getSubject())
         ->toBe('a subject')

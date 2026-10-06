@@ -16,63 +16,65 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Tool;
 
-use OpenDxp\Model\User;
 use OpenDxp\Security\User\User as SecurityUser;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tool\Authentication;
-use ReflectionMethod;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
-function unserializedSafely(string $payload): mixed
+/**
+ * Builds a request that carries a session from an earlier request, with the token of the admin firewall in it.
+ */
+function requestWithAdminToken(string $token): Request
 {
-    return (new ReflectionMethod(Authentication::class, 'safelyUnserialize'))->invoke(null, $payload);
+    $session = new Session(new MockArraySessionStorage());
+    $session->set('_security_opendxp_admin', $token);
+
+    $request = Request::create('/admin');
+    $request->setSession($session);
+    $request->cookies->set($session->getName(), $session->getId());
+
+    return $request;
 }
 
-it('accepts the token of a user whose access is restricted to a workspace', function () {
-
+it('signs in a user whose access is restricted to a workspace', function () {
     $objects = DataObjectFolderFactory::createOne();
     $documents = DocumentFolderFactory::createOne();
-
-    // A superadmin carries no workspace, so the restrictions would never be unserialized.
-    $user = UserFactory::createOne([
-        'permissions' => ['objects', 'documents'],
-        'workspacesObject' => [
-            (new User\Workspace\DataObject())->setValues([
-                'cId' => $objects->getId(),
-                'cPath' => $objects->getFullpath(),
-                'list' => true,
-                'view' => true,
-            ]),
-        ],
-        'workspacesDocument' => [
-            (new User\Workspace\Document())->setValues([
-                'cId' => $documents->getId(),
-                'cPath' => $documents->getFullpath(),
-                'list' => true,
-                'view' => true,
-            ]),
-        ],
-    ]);
-
+    // An administrator carries no workspace, so the restrictions would never be unserialized.
+    $user = UserFactory::new()
+        ->withPermissions(
+            'objects',
+            'documents',
+        )
+        ->withObjectWorkspace($objects, 'list', 'view')
+        ->withDocumentWorkspace($documents, 'list', 'view')
+        ->create();
     $securityUser = new SecurityUser($user);
-    $token = new PostAuthenticationToken($securityUser, 'opendxp_admin', $securityUser->getRoles());
+    $token = new PostAuthenticationToken(
+        $securityUser,
+        'opendxp_admin',
+        $securityUser->getRoles(),
+    );
+    $request = requestWithAdminToken(serialize($token));
 
-    $restored = unserializedSafely(serialize($token));
+    $signedIn = Authentication::authenticateSession($request);
 
-    expect($restored)
-        ->toBeInstanceOf(TokenInterface::class)
-        ->and($restored->getUser())
-        ->toBeInstanceOf(SecurityUser::class)
-        ->and($restored->getUser()->getUser()->getId())
+    expect($signedIn)
+        ->getId()
         ->toBe($user->getId());
 });
 
-it('hands back nothing instead of breaking', function (string $payload) {
-    expect(unserializedSafely($payload))->toBeNull();
+it('signs no one in for a token it cannot unserialize', function (string $token) {
+    $request = requestWithAdminToken($token);
+
+    $signedIn = Authentication::authenticateSession($request);
+
+    expect($signedIn)->toBeNull();
 })->with([
-    'for a payload that is not serialized data at all' => ['this is not a valid serialized payload at all'],
-    'for a payload naming a class that does not exist' => ['O:34:"Totally\Nonexistent\FakeClassXyz":0:{}'],
+    'a token that is no serialized data' => ['this is not a valid serialized payload at all'],
+    'a token naming a class that does not exist' => ['O:34:"Totally\Nonexistent\FakeClassXyz":0:{}'],
 ]);

@@ -17,94 +17,78 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Model\Asset;
-use OpenDxp\Model\DataObject\AbstractObject;
-use OpenDxp\Model\Document;
 use OpenDxp\Test\Factory\AssetFolderFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 dataset('property holders', [
-    'an asset folder' => [AssetFolderFactory::class, Asset::class],
-    'a document folder' => [DocumentFolderFactory::class, Document::class],
-    'an object' => [InheritanceFactory::class, AbstractObject::class],
+    'an asset folder' => AssetFolderFactory::class,
+    'a document folder' => DocumentFolderFactory::class,
+    'an object' => InheritanceFactory::class,
 ]);
 
-function reloaded(string $element, int $id): object
-{
-    return $element::getById($id, ['force' => true]);
-}
+it('stores every property it is given', function (string $factory) {
+    $holder = $factory::new()
+        ->withProperty('first', 'input', 'one')
+        ->withProperty('second', 'input', 'two')
+        ->create();
 
-it('hands back every property it was given', function (string $factory, string $element) {
-
-    $holder = $factory::createOne();
-    $holder->setProperty('textproperty1', 'input', 'first');
-    $holder->setProperty('textproperty2', 'input', 'second');
-    $holder->save();
-
-    $loaded = reloaded($element, $holder->getId());
-
-    expect($loaded->hasProperty('textproperty1'))
-        ->toBeTrue()
-        ->and($loaded->getProperty('textproperty1'))
-        ->toBe('first')
-        ->and($loaded->getProperty('textproperty2'))
-        ->toBe('second');
+    expect(reloaded($holder))
+        ->getProperty('first')
+        ->toBe('one')
+        ->getProperty('second')
+        ->toBe('two');
 })->with('property holders');
 
-it('replaces a property that is set a second time', function (string $factory, string $element) {
+it('replaces a property that is set again', function (string $factory) {
+    $holder = $factory::new()
+        ->withProperty('first', 'input', 'one')
+        ->create();
+    $holder->setProperty('first', 'input', 'two');
 
-    $holder = $factory::createOne();
-    $holder->setProperty('textproperty1', 'input', 'first');
     $holder->save();
 
-    $holder->setProperty('textproperty1', 'input', 'second');
-    $holder->save();
-
-    expect(reloaded($element, $holder->getId())->getProperty('textproperty1'))->toBe('second');
+    expect(reloaded($holder)->getProperty('first'))->toBe('two');
 })->with('property holders');
 
-it('loses a property that is set to nothing and keeps the others', function (string $factory, string $element) {
+it('empties a property that is set to null and keeps the others', function (string $factory) {
+    $holder = $factory::new()
+        ->withProperty('first', 'input', 'one')
+        ->withProperty('second', 'input', 'two')
+        ->create();
+    $holder->setProperty('first', 'input', null);
 
-    $holder = $factory::createOne();
-    $holder->setProperty('textproperty1', 'input', 'first');
-    $holder->setProperty('textproperty2', 'input', 'second');
     $holder->save();
 
-    $holder->setProperty('textproperty1', 'input', null);
-    $holder->save();
-
-    $loaded = reloaded($element, $holder->getId());
-
-    expect($loaded->getProperty('textproperty1'))
+    expect(reloaded($holder))
+        ->getProperty('first')
         ->toBeNull()
-        ->and($loaded->getProperty('textproperty2'))
-        ->toBe('second');
+        ->getProperty('second')
+        ->toBe('two');
 })->with('property holders');
 
-it('passes an inheritable property down to the element below', function (string $factory, string $element) {
+it('passes an inheritable property down to a child', function (string $factory) {
+    $parent = $factory::new()
+        ->withInheritableProperty('inherited', 'input', 'one')
+        ->create();
 
-    $parent = $factory::createOne();
-    $child = $factory::createOne(['parentId' => $parent->getId()]);
+    $child = $factory::new()
+        ->withParent($parent)
+        ->create();
 
-    $parent->setProperty('textproperty3', 'input', 'inherited', false, true);
-    $parent->save();
-
-    expect(reloaded($element, $child->getId())->getProperty('textproperty3'))->toBe('inherited');
+    expect(reloaded($child)->getProperty('inherited'))->toBe('one');
 })->with('property holders');
 
-it('hands back an element property as the element it points at', function (string $factory, string $element) {
-
+it('returns an element property as the element it points at', function (string $factory) {
     $image = AssetImageFactory::createOne();
-    $holder = $factory::createOne();
 
-    $holder->setProperty('assetProperty', 'asset', $image);
-    $holder->save();
+    $holder = $factory::new()
+        ->withProperty('image', 'asset', $image)
+        ->create();
 
-    $property = reloaded($element, $holder->getId())->getProperty('assetProperty');
-
-    expect($property)
+    expect(reloaded($holder)->getProperty('image'))
         ->toBeInstanceOf(Asset::class)
-        ->and($property->getId())
+        ->getId()
         ->toBe($image->getId());
 })->with('property holders');

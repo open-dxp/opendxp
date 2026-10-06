@@ -16,13 +16,11 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Schema;
 
-use OpenDxp\Model\DataObject;
-use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function localizedDefaultBecomes(string $value): void
+function setLocalizedInputDefault(string $value): void
 {
     $definition = Definition::getByKey('unittestfieldcollection');
     $fields = $definition->getFieldDefinitions();
@@ -38,64 +36,56 @@ function localizedDefaultBecomes(string $value): void
     $definition->save();
 }
 
-function reloaded(DataObject\Concrete $object): DataObject\Concrete
-{
-    return DataObject::getById($object->getId(), ['force' => true]);
-}
-
-function itemsOf(DataObject\Concrete $object): Fieldcollection
-{
-    return reloaded($object)->getFieldcollection();
-}
-
 beforeEach(fn () => $this->written = []);
 
 afterEach(function () {
-    localizedDefaultBecomes('');
+    setLocalizedInputDefault('');
 
     foreach ($this->written as $object) {
         $object->delete();
     }
 });
 
-it('hands a default that was added later only to an item that is new', function () {
-
-    $object = UnittestFactory::createOne();
+it('applies a later default only to new items', function () {
+    $emptied = new Unittestfieldcollection();
+    $emptied->setLinput('', 'en');
+    $untouched = new Unittestfieldcollection();
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            $emptied,
+            $untouched,
+        )
+        ->create();
     $this->written[] = $object;
-    $items = new Fieldcollection();
-    $items->add((new Unittestfieldcollection())->setLinput('', 'en'));
-    $items->add(new Unittestfieldcollection());
+    setLocalizedInputDefault('1234');
+    $loaded = reloaded($object);
+    $loaded->getFieldcollection()->add(new Unittestfieldcollection());
 
-    $object->setFieldcollection($items);
-    $object->save();
+    $loaded->save();
 
-    localizedDefaultBecomes('1234');
-
-    $again = reloaded($object);
-    $again->getFieldcollection()->add(new Unittestfieldcollection());
-    $again->save();
-
-    $after = itemsOf($object);
-
-    expect($after->get(0)->getLinput('en'))
+    $items = reloaded($object)->getFieldcollection();
+    expect($items->get(0)->getLinput('en'))
         ->toBeNull()
-        ->and($after->get(1)->getLinput('en'))
+        ->and($items->get(1)->getLinput('en'))
         ->toBeNull()
-        ->and($after->get(2)->getLinput('en'))
+        ->and($items->get(2)->getLinput('en'))
         ->toBe('1234');
 });
 
-it('hands a default to every item of an object written after it was added', function () {
-
-    localizedDefaultBecomes('1234');
-
-    $object = UnittestFactory::createOne();
+it('applies a default to every item of an object saved afterwards', function () {
+    setLocalizedInputDefault('1234');
+    $object = UnittestFactory::new()
+        ->unsaved()
+        ->withFieldcollection(
+            'fieldcollection',
+            new Unittestfieldcollection(),
+        )
+        ->create();
     $this->written[] = $object;
-    $items = new Fieldcollection();
-    $items->add(new Unittestfieldcollection());
 
-    $object->setFieldcollection($items);
     $object->save();
 
-    expect(itemsOf($object)->get(0)->getLinput('en'))->toBe('1234');
+    $items = reloaded($object)->getFieldcollection();
+    expect($items->get(0)->getLinput('en'))->toBe('1234');
 });

@@ -18,117 +18,496 @@ namespace OpenDxp\Tests\Feature\Permissions;
 
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\User;
-use OpenDxp\Tests\Story\DataObjectPermissions as Tree;
+use OpenDxp\Tests\Story\DataObjectPermissions;
 
-const EVERY_TYPE = [DataObject::OBJECT_TYPE_OBJECT, DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_FOLDER];
-const WITH_ROLES_ONLY = 'Permissiontest4';
-const ON_ONE_OBJECT = 'Permissiontest3';
-const WITHOUT_ANY_MODULE = 'Permissiontest6';
+beforeEach(fn () => DataObjectPermissions::load());
 
-/**
- * Reads the permissions OpenDXP calculated for an object and compares them with a table of
- * [path => [user => [permission => value]]].
- */
-function assertObjectPermissions(array $expected): void
-{
-    foreach ($expected as $path => $perUser) {
-        foreach ($perUser as $name => $types) {
-            $calculated = DataObject::getByPath($path)->getUserPermissions(User::getByName($name));
+it('tells which elements hold children the user may see', function (
+    string $userName,
+    array $expected,
+) {
+    $user = User::getByName($userName);
 
-            foreach ($types as $type => $value) {
-                expect($calculated[$type])->toBe($value, sprintf('%s of %s for %s', $type, $path, $name));
-            }
-        }
-    }
-}
+    $actual = answersByPath(
+        $expected,
+        fn (string $path) => DataObject::getByPath($path)->getDao()->hasChildren(
+            includingUnpublished: true,
+            user: $user,
+        ),
+    );
 
-beforeEach(fn () => Tree::load());
+    expect($actual)->toBe($expected);
+})->with([
+    'admin' => [
+        'admin',
+        [
+            '/permission\'"cpath/a' => true,
+            '/permissionfoo' => true,
+            '/permissionfoo/bars' => true,
+            '/permissionfoo/bars/hugo' => false,
+            '/permissionfoo/bars/userfolder' => true,
+            '/permissionfoo/bars/groupfolder' => true,
+            '/permissionfoo/bars/groupfolder/grouptestobject' => false,
+            '/permissionbar' => true,
+            '/permissionbar/foo' => true,
+            '/permissionbar/foo/hiddenobject' => false,
+        ],
+    ],
+    'Permissiontest1' => [
+        'Permissiontest1',
+        [
+            '/permission\'"cpath/a' => true,
+            '/permissionfoo' => true,
+            '/permissionfoo/bars' => true,
+            '/permissionfoo/bars/hugo' => false,
+            '/permissionfoo/bars/userfolder' => true,
+            '/permissionfoo/bars/groupfolder' => true,
+            '/permissionfoo/bars/groupfolder/grouptestobject' => false,
+            '/permissionbar' => false,
+            '/permissionbar/foo' => false,
+            '/permissionbar/foo/hiddenobject' => false,
+        ],
+    ],
+    'Permissiontest2' => [
+        'Permissiontest2',
+        [
+            '/permission\'"cpath/a' => false,
+            '/permissionfoo' => true,
+            '/permissionfoo/bars' => true,
+            '/permissionfoo/bars/hugo' => false,
+            '/permissionfoo/bars/userfolder' => true,
+            '/permissionfoo/bars/groupfolder' => false,
+            '/permissionfoo/bars/groupfolder/grouptestobject' => false,
+            '/permissionbar' => false,
+            '/permissionbar/foo' => false,
+            '/permissionbar/foo/hiddenobject' => false,
+        ],
+    ],
+    'a user with a workspace on one object' => [
+        'Permissiontest3',
+        [
+            '/permission\'"cpath/a' => false,
+            '/permissionfoo' => true,
+            '/permissionfoo/bars' => true,
+            '/permissionfoo/bars/hugo' => false,
+            '/permissionfoo/bars/userfolder' => true,
+            '/permissionfoo/bars/groupfolder' => false,
+            '/permissionfoo/bars/groupfolder/grouptestobject' => false,
+            '/permissionbar' => false,
+            '/permissionbar/foo' => false,
+            '/permissionbar/foo/hiddenobject' => false,
+        ],
+    ],
+    'a user with roles only' => [
+        'Permissiontest4',
+        [
+            '/permission\'"cpath/a' => false,
+            '/permissionfoo' => true,
+            '/permissionfoo/bars' => true,
+            '/permissionfoo/bars/hugo' => false,
+            '/permissionfoo/bars/userfolder' => false,
+            '/permissionfoo/bars/groupfolder' => true,
+            '/permissionfoo/bars/groupfolder/grouptestobject' => false,
+            '/permissionbar' => false,
+            '/permissionbar/foo' => false,
+            '/permissionbar/foo/hiddenobject' => false,
+        ],
+    ],
+]);
 
-it('tells per user whether a folder holds children that user may see', function () {
+it('tells which elements the user may list and view', function (
+    string $userName,
+    array $expected,
+) {
+    $user = User::getByName($userName);
 
-    $users = ['admin', 'Permissiontest1', 'Permissiontest2', ON_ONE_OBJECT, WITH_ROLES_ONLY];
+    $actual = answersByPath(
+        $expected,
+        static function (string $path) use ($user): array {
+            $element = DataObject::getByPath($path);
 
-    $expected = [
-        Tree::ROOT . '/a' => [true, true, false, false, false],
-        '/permissionfoo' => [true, true, true, true, true],
-        '/permissionfoo/bars' => [true, true, true, true, true],
-        '/permissionfoo/bars/hugo' => [false, false, false, false, false],
-        '/permissionfoo/bars/userfolder' => [true, true, true, true, false],
-        '/permissionfoo/bars/groupfolder' => [true, true, false, false, true],
-        '/permissionfoo/bars/groupfolder/grouptestobject' => [false, false, false, false, false],
-        '/permissionbar' => [true, false, false, false, false],
-        '/permissionbar/foo' => [true, false, false, false, false],
-        '/permissionbar/foo/hiddenobject' => [false, false, false, false, false],
-    ];
+            return [
+                'list' => $element->isAllowed('list', $user),
+                'view' => $element->isAllowed('view', $user),
+            ];
+        },
+    );
 
-    foreach ($expected as $path => $results) {
-        foreach ($users as $index => $name) {
-            expect(DataObject::getByPath($path)->getDao()->hasChildren(EVERY_TYPE, true, User::getByName($name)))
-                ->toBe($results[$index], sprintf('children of %s for %s', $path, $name));
-        }
-    }
-});
+    expect($actual)->toBe($expected);
+})->with([
+    'admin' => [
+        'admin',
+        [
+            '/permissionfoo' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/hugo' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/groupfolder' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar/foo' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar/foo/hiddenobject' => [
+                'list' => true,
+                'view' => true,
+            ],
+        ],
+    ],
+    'Permissiontest1' => [
+        'Permissiontest1',
+        [
+            '/permissionfoo' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars' => [
+                'list' => true,
+                'view' => false,
+            ],
+            '/permissionfoo/bars/hugo' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/groupfolder' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar/foo' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionbar/foo/hiddenobject' => [
+                'list' => false,
+                'view' => false,
+            ],
+        ],
+    ],
+    'Permissiontest2' => [
+        'Permissiontest2',
+        [
+            '/permissionfoo' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars' => [
+                'list' => true,
+                'view' => false,
+            ],
+            '/permissionfoo/bars/hugo' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionfoo/bars/groupfolder' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionbar' => [
+                'list' => true,
+                'view' => true,
+            ],
+            '/permissionbar/foo' => [
+                'list' => false,
+                'view' => false,
+            ],
+            '/permissionbar/foo/hiddenobject' => [
+                'list' => false,
+                'view' => false,
+            ],
+        ],
+    ],
+]);
 
-it('tells per user whether an object may be listed or viewed', function () {
+it('applies a permission granted on a folder to the folder and its children', function (
+    string $userName,
+    array $expected,
+) {
+    $user = User::getByName($userName);
 
-    $expected = [
-        '/permissionfoo' => ['list' => [true, true, true], 'view' => [true, true, true]],
-        '/permissionfoo/bars' => ['list' => [true, true, true], 'view' => [true, false, false]],
-        '/permissionfoo/bars/hugo' => ['list' => [true, false, false], 'view' => [true, false, false]],
-        '/permissionfoo/bars/userfolder' => ['list' => [true, true, true], 'view' => [true, true, true]],
-        '/permissionfoo/bars/groupfolder' => ['list' => [true, true, false], 'view' => [true, true, false]],
-        '/permissionfoo/bars/groupfolder/grouptestobject' => ['list' => [true, true, false], 'view' => [true, true, false]],
-        '/permissionbar' => ['list' => [true, true, true], 'view' => [true, true, true]],
-        '/permissionbar/foo' => ['list' => [true, false, false], 'view' => [true, false, false]],
-        '/permissionbar/foo/hiddenobject' => ['list' => [true, false, false], 'view' => [true, false, false]],
-    ];
+    $actual = answersByPath(
+        $expected,
+        static fn (string $path): array => permissionsNamed(
+            DataObject::getByPath($path)->getUserPermissions($user),
+            array_keys($expected[$path]),
+        ),
+    );
 
-    foreach ($expected as $path => $perType) {
-        foreach ($perType as $type => $results) {
-            foreach (Tree::USERS as $index => $name) {
-                expect(DataObject::getByPath($path)->isAllowed($type, User::getByName($name)))
-                    ->toBe($results[$index], sprintf('%s of %s for %s', $type, $path, $name));
-            }
-        }
-    }
-});
+    expect($actual)->toBe($expected);
+})->with([
+    'admin' => [
+        'admin',
+        [
+            '/permissionfoo/bars/groupfolder' => [
+                'save' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'settings' => 1,
+                'versions' => 1,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'save' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'settings' => 1,
+                'versions' => 1,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'view' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'versions' => 1,
+                'create' => 1,
+                'rename' => 1,
+            ],
+            '/permissionfoo/bars/userfolder/usertestobject' => [
+                'view' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'versions' => 1,
+                'create' => 1,
+                'rename' => 1,
+            ],
+        ],
+    ],
+    'Permissiontest1' => [
+        'Permissiontest1',
+        [
+            '/permissionfoo/bars/groupfolder' => [
+                'save' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'settings' => 1,
+                'versions' => 0,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'save' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'settings' => 1,
+                'versions' => 0,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'view' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+                'create' => 1,
+                'rename' => 1,
+            ],
+            '/permissionfoo/bars/userfolder/usertestobject' => [
+                'view' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+                'create' => 1,
+                'rename' => 1,
+            ],
+        ],
+    ],
+    'Permissiontest2' => [
+        'Permissiontest2',
+        [
+            '/permissionfoo/bars/groupfolder' => [
+                'save' => 1,
+                'delete' => 0,
+                'publish' => 1,
+                'settings' => 0,
+                'versions' => 0,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'save' => 1,
+                'delete' => 0,
+                'publish' => 1,
+                'settings' => 0,
+                'versions' => 0,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'view' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+                'create' => 0,
+                'rename' => 0,
+            ],
+            '/permissionfoo/bars/userfolder/usertestobject' => [
+                'view' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+                'create' => 0,
+                'rename' => 0,
+            ],
+        ],
+    ],
+    'a user with roles only' => [
+        'Permissiontest4',
+        [
+            '/permissionfoo/bars/groupfolder' => [
+                'list' => 1,
+                'view' => 1,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'list' => 1,
+                'view' => 1,
+            ],
+        ],
+    ],
+    'a user without any module' => [
+        'Permissiontest6',
+        [
+            '/permissionfoo/bars/groupfolder' => [
+                'list' => 0,
+                'view' => 0,
+                'save' => 0,
+                'publish' => 0,
+            ],
+            '/permissionfoo/bars/groupfolder/grouptestobject' => [
+                'list' => 0,
+                'view' => 0,
+                'save' => 0,
+                'publish' => 0,
+            ],
+            '/permissionfoo/bars/userfolder' => [
+                'list' => 0,
+                'view' => 0,
+                'save' => 0,
+                'publish' => 0,
+            ],
+            '/permissionfoo/bars/userfolder/usertestobject' => [
+                'list' => 0,
+                'view' => 0,
+                'save' => 0,
+                'publish' => 0,
+            ],
+        ],
+    ],
+]);
 
-it('hands a directly given permission down to the object below', function () {
+it('lets a user list the parent folders of an element the user may see', function (
+    string $userName,
+    array $expected,
+) {
+    $user = User::getByName($userName);
 
-    $onTheGroupFolder = [
-        'admin' => ['save' => 1, 'delete' => 1, 'publish' => 1, 'settings' => 1, 'versions' => 1],
-        'Permissiontest1' => ['save' => 1, 'delete' => 0, 'publish' => 0, 'settings' => 1, 'versions' => 0],
-        'Permissiontest2' => ['save' => 1, 'delete' => 0, 'publish' => 1, 'settings' => 0, 'versions' => 0],
-        ON_ONE_OBJECT => [],
-        WITH_ROLES_ONLY => ['list' => 1, 'view' => 1],
-        WITHOUT_ANY_MODULE => ['list' => 0, 'view' => 0, 'save' => 0, 'publish' => 0],
-    ];
-    $onTheUserFolder = [
-        'admin' => ['view' => 1, 'delete' => 1, 'publish' => 1, 'versions' => 1, 'create' => 1, 'rename' => 1],
-        'Permissiontest1' => ['view' => 1, 'delete' => 0, 'publish' => 0, 'versions' => 0, 'create' => 1, 'rename' => 1],
-        'Permissiontest2' => ['view' => 1, 'delete' => 0, 'publish' => 0, 'versions' => 0, 'create' => 0, 'rename' => 0],
-        WITHOUT_ANY_MODULE => ['list' => 0, 'view' => 0, 'save' => 0, 'publish' => 0],
-    ];
+    $actual = answersByPath(
+        $expected,
+        static fn (string $path): array => permissionsNamed(
+            DataObject::getByPath($path)->getUserPermissions($user),
+            array_keys($expected[$path]),
+        ),
+    );
 
-    assertObjectPermissions([
-        '/permissionfoo/bars/groupfolder' => $onTheGroupFolder,
-        '/permissionfoo/bars/groupfolder/grouptestobject' => $onTheGroupFolder,
-        '/permissionfoo/bars/userfolder' => $onTheUserFolder,
-        '/permissionfoo/bars/userfolder/usertestobject' => $onTheUserFolder,
-    ]);
-});
-
-it('lets a user list a folder above an object that user may see, although no rule names it', function () {
-
-    $reachable = [
-        'admin' => ['list' => 1, 'delete' => 1, 'publish' => 1, 'versions' => 1],
-        'Permissiontest1' => ['list' => 1, 'delete' => 0, 'publish' => 0, 'versions' => 0],
-        'Permissiontest2' => ['list' => 0, 'delete' => 0, 'publish' => 0, 'versions' => 0],
-    ];
-
-    assertObjectPermissions([
-        Tree::ROOT . '/a' => $reachable,
-        Tree::ROOT . '/a/b' => $reachable,
-        Tree::ROOT . '/a/b/c' => $reachable,
-    ]);
-});
+    expect($actual)->toBe($expected);
+})->with([
+    'admin' => [
+        'admin',
+        [
+            '/permission\'"cpath/a' => [
+                'list' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'versions' => 1,
+            ],
+            '/permission\'"cpath/a/b' => [
+                'list' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'versions' => 1,
+            ],
+            '/permission\'"cpath/a/b/c' => [
+                'list' => 1,
+                'delete' => 1,
+                'publish' => 1,
+                'versions' => 1,
+            ],
+        ],
+    ],
+    'Permissiontest1' => [
+        'Permissiontest1',
+        [
+            '/permission\'"cpath/a' => [
+                'list' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+            '/permission\'"cpath/a/b' => [
+                'list' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+            '/permission\'"cpath/a/b/c' => [
+                'list' => 1,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+        ],
+    ],
+    'Permissiontest2' => [
+        'Permissiontest2',
+        [
+            '/permission\'"cpath/a' => [
+                'list' => 0,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+            '/permission\'"cpath/a/b' => [
+                'list' => 0,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+            '/permission\'"cpath/a/b/c' => [
+                'list' => 0,
+                'delete' => 0,
+                'publish' => 0,
+                'versions' => 0,
+            ],
+        ],
+    ],
+]);

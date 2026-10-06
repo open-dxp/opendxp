@@ -31,6 +31,29 @@ abstract class AbstractElementFactory extends AbstractSavingFactory
         return $this->with(['parentId' => $parent->getId()]);
     }
 
+    public function withProperty(string $name, string $type, mixed $data): static
+    {
+        return $this->afterInstantiate(
+            static function (ElementInterface $element) use ($name, $type, $data): void {
+                $element->setProperty($name, $type, $data);
+            },
+        );
+    }
+
+    public function withInheritableProperty(string $name, string $type, mixed $data): static
+    {
+        return $this->afterInstantiate(
+            static function (ElementInterface $element) use ($name, $type, $data): void {
+                $element->setProperty(
+                    $name,
+                    $type,
+                    $data,
+                    inheritable: true,
+                );
+            },
+        );
+    }
+
     protected function defaults(): array
     {
         return [

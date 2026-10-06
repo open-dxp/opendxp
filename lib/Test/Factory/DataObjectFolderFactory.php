@@ -21,10 +21,6 @@ use OpenDxp\Model\DataObject\Folder;
 
 /**
  * @extends AbstractElementFactory<Folder>
- *
- * @method Folder create(array|callable $attributes = [])
- * @method static Folder createOne(array $attributes = [])
- * @method static list<Folder> createMany(int $number, array $attributes = [])
  */
 final class DataObjectFolderFactory extends AbstractElementFactory
 {
@@ -37,8 +33,7 @@ final class DataObjectFolderFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'key'  => sprintf('object-folder-%s', uniqid()),
-            'type' => 'folder',
+            'key' => self::faker()->unique()->slug(),
         ];
     }
 }

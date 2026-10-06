@@ -22,12 +22,12 @@ use RuntimeException;
 
 final class ObjectBricks
 {
-    public static function install(string $key, string $definition): Definition
+    public static function install(string $key, string $file): Definition
     {
-        $json = file_get_contents($definition);
+        $json = file_get_contents($file);
 
         if ($json === false) {
-            throw new RuntimeException(sprintf('There is no objectbrick definition at %s.', $definition));
+            throw new RuntimeException(sprintf('There is no objectbrick definition at %s.', $file));
         }
 
         $brick = Definition::getByKey($key);
@@ -37,7 +37,7 @@ final class ObjectBricks
             $brick->setKey($key);
         }
 
-        Service::importObjectBrickFromJson($brick, $json, true);
+        Service::importObjectBrickFromJson($brick, $json, throwException: true);
 
         return Definition::getByKey($key)
             ?? throw new RuntimeException(sprintf('The objectbrick %s was not installed.', $key));

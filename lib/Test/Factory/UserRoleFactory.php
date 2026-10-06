@@ -20,13 +20,9 @@ namespace OpenDxp\Test\Factory;
 use OpenDxp\Model\User\Role;
 
 /**
- * @extends AbstractSavingFactory<Role>
- *
- * @method Role create(array|callable $attributes = [])
- * @method static Role createOne(array $attributes = [])
- * @method static list<Role> createMany(int $number, array $attributes = [])
+ * @extends AbstractUserRoleFactory<Role>
  */
-final class UserRoleFactory extends AbstractSavingFactory
+final class UserRoleFactory extends AbstractUserRoleFactory
 {
     public static function class(): string
     {
@@ -36,8 +32,8 @@ final class UserRoleFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('role-%s', uniqid()),
-            'parentId' => 0,
+            ...parent::defaults(),
+            'name' => self::faker()->unique()->slug(2),
         ];
     }
 }

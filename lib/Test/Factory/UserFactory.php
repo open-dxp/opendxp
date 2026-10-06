@@ -20,16 +20,10 @@ use OpenDxp\Model\User;
 use OpenDxp\Tool\Authentication;
 
 /**
- * @extends AbstractSavingFactory<User>
- *
- * @method User create(array|callable $attributes = [])
- * @method static User createOne(array $attributes = [])
- * @method static list<User> createMany(int $number, array $attributes = [])
+ * @extends AbstractUserRoleFactory<User>
  */
-final class UserFactory extends AbstractSavingFactory
+final class UserFactory extends AbstractUserRoleFactory
 {
-    public const string PASSWORD = 'test-password';
-
     public static function class(): string
     {
         return User::class;
@@ -40,26 +34,46 @@ final class UserFactory extends AbstractSavingFactory
         return $this->with(['admin' => true]);
     }
 
-    public function withPermissions(string ...$permissions): static
+    public function withRoles(User\Role ...$roles): static
     {
-        return $this->with(['permissions' => $permissions]);
+        return $this->with([
+            'roles' => array_map(
+                static fn (User\Role $role): ?int => $role->getId(),
+                $roles,
+            ),
+        ]);
+    }
+
+    public function withPassword(string $password): static
+    {
+        return $this->with(['password' => $password]);
     }
 
     protected function defaults(): array
     {
         return [
-            'name'     => sprintf('user-%s', uniqid()),
-            'admin'    => false,
-            'parentId' => 0,
+            ...parent::defaults(),
+            'name'     => self::faker()->unique()->userName(),
+            // OpenDXP refuses to sign in a user without a password, even through a token.
+            'password' => self::faker()->password(),
         ];
     }
 
+    /**
+     * A test names the password in plain text. OpenDXP stores only its hash.
+     */
     protected function initialize(): static
     {
-        return parent::initialize()->afterInstantiate(
-            static function (User $user): void {
-                $user->setPassword(Authentication::getPasswordHash($user->getName(), self::PASSWORD));
-            },
-        );
+        return parent::initialize()
+            ->beforeInstantiate(
+                static function (array $parameters): array {
+                    $parameters['password'] = Authentication::getPasswordHash(
+                        $parameters['name'],
+                        $parameters['password'],
+                    );
+
+                    return $parameters;
+                },
+            );
     }
 }

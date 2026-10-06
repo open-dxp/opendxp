@@ -17,105 +17,99 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Asset;
 
 use OpenDxp\Bundle\CoreBundle\Controller\PublicServicesController;
-use OpenDxp\Model\Asset;
+use OpenDxp\Model\Asset\Image\Thumbnail;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\ThumbnailConfigFactory;
 use OpenDxp\Tool\Storage;
 use Symfony\Component\HttpFoundation\Request;
 
-function cachedDate(Asset $asset, string $thumbnail, string $filename): ?int
+function thumbnailIsCached(Thumbnail $thumbnail): bool
 {
-    return $asset->getDao()->getCachedThumbnailModificationDate($thumbnail, $filename);
+    $date = $thumbnail->getAsset()->getDao()->getCachedThumbnailModificationDate(
+        $thumbnail->getConfig()->getName(),
+        $thumbnail->getFilename(),
+    );
+
+    return $date !== null;
 }
 
-function servedThumbnail(Asset $asset, string $thumbnail, string $filename): void
+function serveThumbnail(Thumbnail $thumbnail): void
 {
-    (new PublicServicesController())->thumbnailAction(new Request(attributes: [
-        'assetId' => $asset->getId(),
-        'thumbnailName' => $thumbnail,
-        'filename' => $filename,
+    $request = new Request(attributes: [
+        'assetId' => $thumbnail->getAsset()->getId(),
+        'thumbnailName' => $thumbnail->getConfig()->getName(),
+        'filename' => $thumbnail->getFilename(),
         'type' => 'image',
         'prefix' => '',
-    ]));
+    ]);
+
+    (new PublicServicesController())->thumbnailAction($request);
 }
 
 beforeEach(function () {
     $this->asset = AssetImageFactory::createOne([
-        'data' => file_get_contents(AssetImageFactory::fixture('image-large.jpg')),
+        'data' => file_get_contents(fixture('image-large.jpg')),
     ]);
-    $this->name = ThumbnailConfigFactory::new()->scalingByWidth(256)->create()->getName();
+    // Thumbnails live outside the transaction. A run with the same faker seed finds the files of the last one.
+    $this->asset->clearThumbnails(force: true);
+
+    $config = ThumbnailConfigFactory::new()
+        ->scalingByWidth(256)
+        ->create();
+    $this->thumbnail = $this->asset->getThumbnail($config);
     $this->storage = Storage::get('thumbnail');
-
-    $this->asset->clearThumbnails(true);
-
-    $this->thumbnail = $this->asset->getThumbnail($this->name);
-    $this->path = $this->thumbnail->getPathReference(true)['storagePath'];
-
-    $this->isCached = fn (): bool => cachedDate($this->asset, $this->name, $this->thumbnail->getFilename()) !== null;
-    $this->exists = fn (): bool => $this->storage->fileExists($this->path);
-});
-
-it('caches nothing before a thumbnail was ever generated', function () {
-    expect(($this->isCached)())
-        ->toBeFalse()
-        ->and(($this->exists)())
-        ->toBeFalse();
+    $this->path = $this->thumbnail->getPathReference(deferredAllowed: true)['storagePath'];
 });
 
 it('writes the thumbnail and caches its date once it is generated', function () {
-
     $this->thumbnail->getPath(['deferredAllowed' => false]);
 
-    expect(($this->exists)())
+    expect($this->storage->fileExists($this->path))
         ->toBeTrue()
-        ->and(($this->isCached)())
+        ->and(thumbnailIsCached($this->thumbnail))
         ->toBeTrue();
 });
 
-it('forgets the thumbnail when the asset itself changes', function () {
-
+it('forgets the thumbnail when the asset changes', function () {
     $this->thumbnail->getPath(['deferredAllowed' => false]);
 
     $this->asset->setData(file_get_contents(AssetImageFactory::fixture()));
     $this->asset->save();
 
-    expect(($this->isCached)())
+    expect($this->storage->fileExists($this->path))
         ->toBeFalse()
-        ->and(($this->exists)())
+        ->and(thumbnailIsCached($this->thumbnail))
         ->toBeFalse();
 });
 
 it('writes the thumbnail and caches its date when it is served to a visitor', function () {
+    serveThumbnail($this->thumbnail);
 
-    servedThumbnail($this->asset, $this->name, $this->thumbnail->getFilename());
-
-    expect(($this->isCached)())
+    expect($this->storage->fileExists($this->path))
         ->toBeTrue()
-        ->and(($this->exists)())
+        ->and(thumbnailIsCached($this->thumbnail))
         ->toBeTrue();
 });
 
 it('keeps the cached date when only the file is deleted', function () {
-
-    servedThumbnail($this->asset, $this->name, $this->thumbnail->getFilename());
+    serveThumbnail($this->thumbnail);
 
     $this->storage->delete($this->path);
 
-    expect(($this->isCached)())
-        ->toBeTrue()
-        ->and(($this->exists)())
-        ->toBeFalse();
+    expect($this->storage->fileExists($this->path))
+        ->toBeFalse()
+        ->and(thumbnailIsCached($this->thumbnail))
+        ->toBeTrue();
 });
 
 it('writes the thumbnail again when a visitor asks for the deleted file', function () {
-
-    servedThumbnail($this->asset, $this->name, $this->thumbnail->getFilename());
+    serveThumbnail($this->thumbnail);
     $this->storage->delete($this->path);
 
-    servedThumbnail($this->asset, $this->name, $this->thumbnail->getFilename());
+    serveThumbnail($this->thumbnail);
 
-    expect(($this->isCached)())
+    expect($this->storage->fileExists($this->path))
         ->toBeTrue()
-        ->and(($this->exists)())
+        ->and(thumbnailIsCached($this->thumbnail))
         ->toBeTrue();
 });

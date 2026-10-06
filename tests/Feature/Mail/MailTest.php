@@ -17,51 +17,53 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Mail;
 
 use Carbon\Carbon;
+use Closure;
 use Exception;
 use OpenDxp\Mail;
-use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
+use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Mime\Part\TextPart;
 
-const FROM = 'jane@doe.com';
-const TO = 'john@doe.com';
-const SUBJECT = 'Test Subject';
-const TEXT = 'This is a test mail.';
+function janeToJohn(): Headers
+{
+    return (new Headers())
+        ->addMailboxListHeader('From', ['jane@doe.com'])
+        ->addMailboxListHeader('To', ['john@doe.com']);
+}
 
-it('takes sender, recipient and subject from the headers it was built with', function () {
+/**
+ * @param array<string, mixed> $params
+ */
+function renderedMailBody(string $html, array $params): string
+{
+    $mail = new Mail();
+    $mail->html($html);
+    $mail->setParams($params);
 
-    $mail = new Mail(
-        mailHeaders(FROM, TO)->addTextHeader('Subject', SUBJECT),
-        new TextPart(TEXT),
-    );
+    return $mail->getBodyHtmlRendered();
+}
 
+it('takes sender, recipient and subject from what it was built with', function (Mail $mail) {
     expect($mail->getFrom()[0]->getAddress())
-        ->toBe(FROM)
+        ->toBe('jane@doe.com')
         ->and($mail->getTo()[0]->getAddress())
-        ->toBe(TO)
+        ->toBe('john@doe.com')
         ->and($mail->getSubject())
-        ->toBe(SUBJECT);
-});
+        ->toBe('Test Subject');
+})->with([
+    'headers and a body' => fn () => new Mail(
+        janeToJohn()->addTextHeader('Subject', 'Test Subject'),
+        new TextPart('This is a test mail.'),
+    ),
+    'an array' => fn () => new Mail([
+        'headers' => janeToJohn(),
+        'body' => new TextPart('This is a test mail.'),
+        'subject' => 'Test Subject',
+    ]),
+]);
 
-it('takes the same from an array of headers, body and subject', function () {
-
-    $mail = new Mail([
-        'headers' => mailHeaders(FROM, TO),
-        'body' => new TextPart(TEXT),
-        'subject' => SUBJECT,
-    ]);
-
-    expect($mail->getFrom()[0]->getAddress())
-        ->toBe(FROM)
-        ->and($mail->getTo()[0]->getAddress())
-        ->toBe(TO)
-        ->and($mail->getSubject())
-        ->toBe(SUBJECT);
-});
-
-it('takes sender and reply address from the system settings when it was built with none', function () {
-
+it('falls back to the configured sender and reply address', function () {
     $mail = new Mail();
 
     expect($mail->getFrom()[0]->getAddress())
@@ -70,82 +72,96 @@ it('takes sender and reply address from the system settings when it was built wi
         ->toBe('return@tests.local');
 });
 
-it('keeps the address that was added to it', function (string $recipient, string $address) {
-
+it('keeps an address that was added to it', function (Closure $add, Closure $read) {
     $mail = new Mail();
     $mail->clearRecipients();
 
-    $mail->{'add' . $recipient}($address, 'John Doe');
+    $add($mail);
 
-    expect($mail->{'get' . $recipient}()[0]->getAddress())
-        ->toBe($address);
+    expect($read($mail)[0]->getAddress())->toBe('john@doe.com');
 })->with([
-    'a recipient' => ['To', 'john@doe.com'],
-    'a carbon copy' => ['Cc', 'john-cc@doe.com'],
-    'a blind carbon copy' => ['Bcc', 'john-bcc@doe.com'],
-    'a reply address' => ['ReplyTo', 'john-reply-to@doe.com'],
+    'a recipient' => [
+        fn (Mail $mail) => $mail->addTo('john@doe.com'),
+        fn (Mail $mail) => $mail->getTo(),
+    ],
+    'a carbon copy' => [
+        fn (Mail $mail) => $mail->addCc('john@doe.com'),
+        fn (Mail $mail) => $mail->getCc(),
+    ],
+    'a blind carbon copy' => [
+        fn (Mail $mail) => $mail->addBcc('john@doe.com'),
+        fn (Mail $mail) => $mail->getBcc(),
+    ],
+    'a reply address' => [
+        fn (Mail $mail) => $mail->addReplyTo('john@doe.com'),
+        fn (Mail $mail) => $mail->getReplyTo(),
+    ],
 ]);
 
-it('holds no address at all once the recipients were cleared', function (string $recipient) {
-
+it('holds no address once the recipients were cleared', function (Closure $read) {
     $mail = new Mail();
-    $mail->addTo(TO)->addCc(TO)->addBcc(TO)->addReplyTo(TO);
+    $mail
+        ->addTo('john@doe.com')
+        ->addCc('john@doe.com')
+        ->addBcc('john@doe.com')
+        ->addReplyTo('john@doe.com');
 
     $mail->clearRecipients();
 
-    expect($mail->{'get' . $recipient}())
-        ->toBeEmpty();
+    expect($read($mail))->toBeEmpty();
 })->with([
-    'the recipients' => ['To'],
-    'the carbon copies' => ['Cc'],
-    'the blind carbon copies' => ['Bcc'],
-    'the reply addresses' => ['ReplyTo'],
+    'the recipients' => fn (Mail $mail) => $mail->getTo(),
+    'the carbon copies' => fn (Mail $mail) => $mail->getCc(),
+    'the blind carbon copies' => fn (Mail $mail) => $mail->getBcc(),
+    'the reply addresses' => fn (Mail $mail) => $mail->getReplyTo(),
 ]);
 
-it('renders the parameters into the body', function (string $sets, string $renders, string $expected) {
-
+it('renders the parameters into the body', function (Closure $write, Closure $render) {
     $mail = new Mail();
-    $mail->{$sets}('Hi, {{ firstname }} {{ lastname }}.');
-    $mail->setParams(['firstname' => 'John', 'lastname' => 'Doe']);
+    $write($mail, 'Hi, {{ firstname }} {{ lastname }}.');
+    $mail->setParams([
+        'firstname' => 'John',
+        'lastname' => 'Doe',
+    ]);
 
-    expect($mail->{$renders}())
-        ->toContain($expected);
+    $body = $render($mail);
+
+    expect($body)->toContain('Hi, John Doe.');
 })->with([
-    'the text body' => ['text', 'getBodyTextRendered', 'Hi, John Doe.'],
-    'the html body' => ['html', 'getBodyHtmlRendered', 'Hi, John Doe.'],
+    'the text body' => [
+        fn (Mail $mail, string $body) => $mail->text($body),
+        fn (Mail $mail) => $mail->getBodyTextRendered(),
+    ],
+    'the html body' => [
+        fn (Mail $mail, string $body) => $mail->html($body),
+        fn (Mail $mail) => $mail->getBodyHtmlRendered(),
+    ],
 ]);
 
-it('renders the subject as plain text, without escaping', function () {
+it('renders the subject as plain text without escaping', function () {
     $mail = new Mail();
     $mail->subject('Hi {{ name }}');
     $mail->setParams(['name' => '<Jo & Co>']);
 
-    expect($mail->getSubjectRendered())
-        ->toBe('Hi <Jo & Co>');
+    $subject = $mail->getSubjectRendered();
+
+    expect($subject)->toBe('Hi <Jo & Co>');
 });
 
 it('escapes the parameters in the html body', function () {
-    $mail = new Mail();
-    $mail->html('Hi {{ name }}');
-    $mail->setParams(['name' => '<b>Jo</b>']);
+    $body = renderedMailBody('Hi {{ name }}', ['name' => '<b>Jo</b>']);
 
-    expect($mail->getBodyHtmlRendered())
-        ->toContain('Hi &lt;b&gt;Jo&lt;/b&gt;');
+    expect($body)->toContain('Hi &lt;b&gt;Jo&lt;/b&gt;');
 });
 
-it('still lets a placeholder call an opendxp function', function () {
-    $mail = new Mail();
-    $mail->html('{{ opendxp_file_extension("report.pdf") }}');
+it('lets a placeholder call an opendxp function', function () {
+    $body = renderedMailBody('{{ opendxp_file_extension("report.pdf") }}', []);
 
-    expect($mail->getBodyHtmlRendered())
-        ->toContain('pdf');
+    expect($body)->toContain('pdf');
 });
 
 it('refuses a filter the sandbox policy does not allow', function () {
-    $mail = new Mail();
-    $mail->html('{{ "jo"|upper }}');
-
-    $mail->getBodyHtmlRendered();
+    renderedMailBody('{{ "jo"|upper }}', []);
 })->throws(Exception::class, 'Failed rendering the body');
 
 it('reads an object in a placeholder', function () {
@@ -160,53 +176,56 @@ it('reads an object in a placeholder', function () {
         ['object' => $object],
     );
 
-    expect($body)
-        ->toContain('Jane|Jane|42|2026');
+    expect($body)->toContain('Jane|Jane|42|2026');
 });
 
 it('reads a document in a placeholder', function () {
     $document = DocumentPageFactory::createOne(['title' => 'Welcome']);
 
-    expect(renderedMailBody('{{ document.title }}', ['document' => $document]))
-        ->toContain('Welcome');
+    $body = renderedMailBody('{{ document.title }}', ['document' => $document]);
+
+    expect($body)->toContain('Welcome');
 });
 
 it('renders a global', function () {
-    expect(renderedMailBody('{{ editmode ? "edit" : "view" }}'))
-        ->toContain('view');
+    $body = renderedMailBody('{{ editmode ? "edit" : "view" }}', []);
+
+    expect($body)->toContain('view');
 });
 
 it('refuses the service container', function (string $html) {
-    renderedMailBody($html);
+    renderedMailBody($html, []);
 })->with([
-    'a parameter' => ['{{ container.getParameter("kernel.environment") }}'],
-    'a service' => ['{{ container.get("database_connection").fetchOne("SELECT 42") }}'],
+    'a parameter' => '{{ container.getParameter("kernel.environment") }}',
+    'a service' => '{{ container.get("database_connection").fetchOne("SELECT 42") }}',
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses the request', function () {
-    renderedMailBody('{{ app.request.server.get("APP_SECRET") }}');
+    renderedMailBody('{{ app.request.server.get("APP_SECRET") }}', []);
 })->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses the database behind an object', function (string $html) {
     renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
 })->with([
-    'through the dao' => ['{{ object.dao.db.fetchOne("SELECT 42") }}'],
-    'through a call the dao answers' => ['{{ object.getDb().fetchOne("SELECT 42") }}'],
+    'through the dao' => '{{ object.dao.db.fetchOne("SELECT 42") }}',
+    'through a call the dao answers' => '{{ object.getDb().fetchOne("SELECT 42") }}',
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses to change an object', function (string $html) {
     renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
 })->with([
-    'a setter' => ['{{ object.setInput("John") }}'],
-    'save' => ['{{ object.save() }}'],
+    'through a setter' => '{{ object.setInput("John") }}',
+    'through save' => '{{ object.save() }}',
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses to delete an object', function () {
     $object = UnittestFactory::createOne();
 
-    expect(fn () => renderedMailBody('{{ object.delete() }}', ['object' => $object]))
+    $deleting = fn () => renderedMailBody('{{ object.delete() }}', ['object' => $object]);
+
+    expect($deleting)
         ->toThrow(Exception::class, 'Failed rendering the body')
-        ->and(Unittest::getById($object->getId(), ['force' => true]))
+        ->and(reloaded($object))
         ->not->toBeNull();
 });
 
@@ -215,6 +234,7 @@ it('refuses the dump function', function () {
 })->throws(Exception::class, 'Function "opendxp_dump" is not allowed');
 
 it('calls a method the configuration allows', function () {
-    expect(renderedMailBody('{{ app.environment }}'))
-        ->toContain('test');
+    $body = renderedMailBody('{{ app.environment }}', []);
+
+    expect($body)->toContain('test');
 });

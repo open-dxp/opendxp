@@ -21,16 +21,22 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 beforeEach(function () {
     $this->handler = cacheHandler(new TagAwareAdapter(new ArrayAdapter()));
+    $this->handler->setForceImmediateWrite(true);
 });
 
-it('caches a tag again that an earlier request cleared', function () {
+it('refuses to cache a tag it cleared', function () {
     $this->handler->clearTags(['cleared_tag']);
+
     $this->handler->save('refusedKey', 'refused-data', ['cleared_tag']);
+
+    expect($this->handler->load('refusedKey'))->toBeFalse();
+});
+
+it('caches a tag again after a reset', function () {
+    $this->handler->clearTags(['cleared_tag']);
     $this->handler->reset();
+
     $this->handler->save('acceptedKey', 'accepted-data', ['cleared_tag']);
 
-    expect($this->handler->load('refusedKey'))
-        ->toBeFalse()
-        ->and($this->handler->load('acceptedKey'))
-        ->toBe('accepted-data');
+    expect($this->handler->load('acceptedKey'))->toBe('accepted-data');
 });

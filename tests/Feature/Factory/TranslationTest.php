@@ -20,13 +20,29 @@ use OpenDxp\Model\Translation;
 use OpenDxp\Test\Factory\TranslationFactory;
 
 it('writes a translated key', function () {
-
-    $translation = TranslationFactory::new()
-        ->withTranslations(['en' => 'Read more', 'de' => 'Mehr erfahren'])
+    TranslationFactory::new()
+        ->withTranslations([
+            'en' => 'Read more',
+            'de' => 'Mehr erfahren',
+        ])
         ->create(['key' => 'teaser.more']);
 
-    expect($translation)
-        ->toBeInstanceOf(Translation::class)
-        ->and(Translation::getByKey('teaser.more')->getTranslation('de'))
+    expect(Translation::getByKey('teaser.more'))
+        ->getTranslation('en')
+        ->toBe('Read more')
+        ->getTranslation('de')
         ->toBe('Mehr erfahren');
+});
+
+it('writes a key into the admin domain', function () {
+    $translation = TranslationFactory::new()
+        ->inAdminDomain()
+        ->withTranslations(['en' => 'Save'])
+        ->create();
+
+    $loaded = Translation::getByKey(
+        $translation->getKey(),
+        Translation::DOMAIN_ADMIN,
+    );
+    expect($loaded)->getTranslation('en')->toBe('Save');
 });

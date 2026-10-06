@@ -21,10 +21,6 @@ use OpenDxp\Model\Site;
 
 /**
  * @extends AbstractSavingFactory<Site>
- *
- * @method Site create(array|callable $attributes = [])
- * @method static Site createOne(array $attributes = [])
- * @method static list<Site> createMany(int $number, array $attributes = [])
  */
 final class SiteFactory extends AbstractSavingFactory
 {
@@ -39,31 +35,30 @@ final class SiteFactory extends AbstractSavingFactory
     }
 
     /**
-     * @param list<string> $domains the domains besides the main one
+     * @param list<string> $domains
      */
     public function withDomains(array $domains): static
     {
         return $this->with(['domains' => $domains]);
     }
 
-    /**
-     * @param array<string, string> $localized one path per locale
-     */
-    public function withErrorDocuments(array $localized, ?string $default = null): static
+    public function withErrorDocument(string $path): static
     {
-        $attributes = ['localizedErrorDocuments' => $localized];
+        return $this->with(['errorDocument' => $path]);
+    }
 
-        if ($default !== null) {
-            $attributes['errorDocument'] = $default;
-        }
-
-        return $this->with($attributes);
+    /**
+     * @param array<string, string> $paths
+     */
+    public function withLocalizedErrorDocuments(array $paths): static
+    {
+        return $this->with(['localizedErrorDocuments' => $paths]);
     }
 
     /**
      * @param array<string, mixed> $settings
      */
-    public function withSettings(array $settings): static
+    public function withCustomSettings(array $settings): static
     {
         return $this->with(['customSettings' => $settings]);
     }
@@ -71,20 +66,27 @@ final class SiteFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'mainDomain' => sprintf('site-%s.test', uniqid()),
+            'mainDomain' => sprintf('%s.test', self::faker()->unique()->domainWord()),
         ];
     }
 
+    /**
+     * A site cannot be written without its root document. An unsaved site gets none.
+     */
     protected function initialize(): static
     {
-        return parent::initialize()->beforeInstantiate(
-            static function (array $parameters): array {
-                $parameters['rootId'] ??= DocumentPageFactory::createOne([
-                    'key' => str_replace('.', '-', $parameters['mainDomain']),
-                ])->getId();
+        return parent::initialize()
+            ->beforeInstantiate(
+                static function (array $parameters, string $class, self $factory): array {
+                    if ($factory->writes() && !isset($parameters['rootId'])) {
+                        $root = DocumentPageFactory::createOne([
+                            'key' => str_replace('.', '-', $parameters['mainDomain']),
+                        ]);
+                        $parameters['rootId'] = $root->getId();
+                    }
 
-                return $parameters;
-            },
-        );
+                    return $parameters;
+                },
+            );
     }
 }

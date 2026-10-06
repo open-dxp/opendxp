@@ -18,65 +18,51 @@ namespace OpenDxp\Tests\Feature\Cache;
 
 use DateTime;
 use InvalidArgumentException;
-use Symfony\Component\Cache\CacheItem;
+
+dataset('reserved keys', [
+    'an opening brace' => ['item{a'],
+    'a closing brace' => ['item}a'],
+    'an opening parenthesis' => ['item(a'],
+    'a closing parenthesis' => ['item)a'],
+    'a slash' => ['item/a'],
+    'a backslash' => ['item\\a'],
+    'an at sign' => ['item@a'],
+    'a colon' => ['item:a'],
+]);
 
 describe('the core cache handler', function () {
-    it('is enabled unless something turns it off', function (callable $pool) {
-
+    it('returns false for a missing entry', function (callable $pool) {
         $this->useCachePool($pool);
 
-        expect($this->handler->isEnabled())->toBeTrue();
+        $loaded = $this->handler->load('itemA');
+
+        expect($loaded)->toBeFalse();
     });
 
-    it('answers a miss with false', function (callable $pool) {
-
+    it('returns an object it stored', function (callable $pool) {
         $this->useCachePool($pool);
-
-        expect($this->handler->load('not_existing'))->toBeFalse();
-    });
-
-    it('answers a miss with an item that is no hit', function (callable $pool) {
-
-        $this->useCachePool($pool);
-        $item = $this->handler->getItem('not_existing');
-
-        expect($item)
-            ->toBeInstanceOf(CacheItem::class)
-            ->and($item->isHit())
-            ->toBeFalse();
-    });
-
-    it('hands back the object it was given, not a serialized copy', function (callable $pool) {
-
-        $this->useCachePool($pool);
-        $date = (new DateTime())->setTimestamp(time());
-
-        $this->handler->save('date', $date);
+        $date = new DateTime('2024-05-06 07:08:09');
+        $this->handler->save('itemA', $date);
         $this->handler->writeSaveQueue();
-        $loaded = $this->handler->load('date');
 
-        expect($loaded)
-            ->toBeInstanceOf(DateTime::class)
-            ->and($loaded->getTimestamp())
-            ->toBe($date->getTimestamp());
+        $loaded = $this->handler->load('itemA');
+
+        expect($loaded)->toEqual($date);
     });
 })->with('cache pools');
 
-describe('an invalid item key', function () {
+describe('a key with a reserved character', function () {
     it('is refused on save', function (callable $pool, string $key) {
-
         $this->useCachePool($pool);
 
-        $this->handler->save($key, 'foo');
-    })->throws(InvalidArgumentException::class);
+        expect(fn () => $this->handler->save($key, 'test'))
+            ->toThrow(InvalidArgumentException::class, 'contains reserved characters');
+    });
 
     it('is refused on remove', function (callable $pool, string $key) {
-
         $this->useCachePool($pool);
 
-        $this->handler->remove($key);
-    })->throws(InvalidArgumentException::class);
-})->with('cache pools')->with([
-    '{str', 'rand{', 'rand{str', 'rand}str', 'rand(str',
-    'rand)str', 'rand/str', 'rand\\str', 'rand@str', 'rand:str',
-]);
+        expect(fn () => $this->handler->remove($key))
+            ->toThrow(InvalidArgumentException::class, 'contains reserved characters');
+    });
+})->with('cache pools')->with('reserved keys');

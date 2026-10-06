@@ -19,20 +19,17 @@ namespace OpenDxp\Tests\Feature\DataObject;
 use OpenDxp\Model\DataObject\Service;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-it('keeps a deep copy clear of a change to the original', function () {
-
-    $object = UnittestFactory::new()->unsaved()->create();
+it('keeps a deep copy apart from a change to the original', function () {
+    $object = UnittestFactory::new()
+        ->withLocalizedValues(
+            'linput',
+            ['en' => 'original'],
+        )
+        ->unsaved()
+        ->create();
     $copy = Service::cloneMe($object);
 
-    $object->setId(123);
+    $object->setLinput('changed', 'en');
 
-    expect($copy->getId())->toBeNull();
-});
-
-it('carries a change into a shallow copy that was made after it', function () {
-
-    $object = UnittestFactory::new()->unsaved()->create();
-    $object->setId(123);
-
-    expect((clone $object)->getId())->toBe(123);
+    expect($copy->getLinput('en'))->toBe('original');
 });

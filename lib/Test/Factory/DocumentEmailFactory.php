@@ -20,23 +20,11 @@ use OpenDxp\Model\Document\Email;
 
 /**
  * @extends AbstractPageSnippetFactory<Email>
- *
- * @method Email create(array|callable $attributes = [])
- * @method static Email createOne(array $attributes = [])
- * @method static list<Email> createMany(int $number, array $attributes = [])
  */
 final class DocumentEmailFactory extends AbstractPageSnippetFactory
 {
     public static function class(): string
     {
         return Email::class;
-    }
-
-    protected function defaults(): array
-    {
-        return [
-            ...parent::defaults(),
-            'key' => sprintf('email-%s', uniqid()),
-        ];
     }
 }

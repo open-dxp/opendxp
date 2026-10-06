@@ -16,40 +16,36 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataObject;
 
-use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\AbstractModel;
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Factory\UnittestFactory;
-use ReflectionProperty;
+use ReflectionClass;
 
-it('keeps calling a dao a project wrote for one of its classes', function () {
+beforeEach(function () {
+    // Dao detection walks up the namespace of a model class. Once the fixture exists, it would become the dao of
+    // every class under Unittest, such as its bricks. Loading an object resolves their daos before that.
+    reloaded(UnittestFactory::createOne());
 
-    // Loading an object resolves the dao of every class below Unittest. That has to happen before
-    // the fixture exists, or the detection hands the fixture to those classes as well.
-    DataObject::getById(UnittestFactory::createOne()->getId(), ['force' => true]);
+    $this->resolvedDaos = (new ReflectionClass(AbstractModel::class))->getStaticPropertyValue('daoClassCache');
 
-    // The class lives in OpenDXP's own namespace, so no autoload rule of the test suite reaches it.
+    // The class lives in the namespace of OpenDXP, so no autoload rule of the test suite reaches it.
     require_once fixture('dao/UnittestDao.php');
 
-    $cache = new ReflectionProperty(AbstractModel::class, 'daoClassCache');
-    $resolved = $cache->getValue();
-    unset($resolved[Unittest::class]);
-    $cache->setValue(null, $resolved);
+    (new Unittest())->initDao(forceDetection: true);
+});
 
-    $object = UnittestFactory::createOne(['input' => 'custom-dao-marker']);
-
-    expect($object->getDao())->toBeInstanceOf(Unittest\Dao::class);
-
-    RuntimeCache::clear();
+afterEach(function () {
+    (new ReflectionClass(AbstractModel::class))->setStaticPropertyValue('daoClassCache', $this->resolvedDaos);
     Unittest\Dao::$getByIdCalls = [];
+});
 
-    $loaded = DataObject::getById($object->getId(), ['force' => true]);
+it('loads an object through the dao a project writes for its class', function () {
+    $object = UnittestFactory::createOne(['input' => 'loaded by the project dao']);
 
-    expect($loaded)
-        ->toBeInstanceOf(Unittest::class)
-        ->and($loaded->getInput())
-        ->toBe('custom-dao-marker')
+    $loaded = reloaded($object);
+
+    expect($loaded->getInput())
+        ->toBe('loaded by the project dao')
         ->and(Unittest\Dao::$getByIdCalls)
-        ->toContain($object->getId());
+        ->toBe([$object->getId()]);
 });

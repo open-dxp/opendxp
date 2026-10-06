@@ -16,82 +16,69 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Schema;
 
-use OpenDxp;
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition;
-use OpenDxp\Model\DataObject\Inheritance;
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
-function inheritanceBecomes(bool $allowed): void
+function forbidInheritance(): void
 {
     $class = ClassDefinition::getByName('inheritance');
-    $class->setAllowInherit($allowed);
+    $class->setAllowInherit(false);
     $class->save();
 }
 
-function loaded(DataObject\Concrete $object): Inheritance
-{
-    return Inheritance::getById($object->getId(), ['force' => true]);
-}
-
-beforeEach(function () {
-    // Only the admin is handed an object that holds nothing of its own.
-    OpenDxp::setAdminMode();
-    $this->written = [];
-});
+beforeEach(fn () => $this->written = []);
 
 afterEach(function () {
-    inheritanceBecomes(true);
+    $class = ClassDefinition::getByName('inheritance');
+    $class->setAllowInherit(true);
+    $class->save();
 
     foreach (array_reverse($this->written) as $object) {
         $object->delete();
     }
 });
 
-it('hands a localized text down no longer once the class forbids inheritance', function () {
-
-    $parent = InheritanceFactory::createOne();
-    $parent->setInput('text of the parent in english', 'en');
-    $parent->save();
-
-    $child = InheritanceFactory::createOne(['parentId' => $parent->getId()]);
-    $this->written = [$parent, $child];
-
-    expect(loaded($child)->getInput('en'))->toBe('text of the parent in english');
-
-    inheritanceBecomes(false);
+it('stops inheriting a localized text once the class forbids it', function () {
+    $parent = InheritanceFactory::new()
+        ->withLocalizedValues('input', ['en' => 'text of the parent'])
+        ->create();
+    $child = InheritanceFactory::new()
+        ->withParent($parent)
+        ->create();
+    $this->written = [
+        $parent,
+        $child,
+    ];
+    forbidInheritance();
 
     // The value is only dropped once the objects are written again.
-    loaded($parent)->save();
-    loaded($child)->save();
+    reloaded($parent)->save();
+    reloaded($child)->save();
 
-    expect(loaded($child)->getInput('en'))->toBeNull();
+    expect(reloaded($child)->getInput('en'))->toBeNull();
 });
 
-it('keeps what an object holds of its own when the class forbids inheritance', function () {
+it('keeps what an object holds of its own once the class forbids inheritance', function () {
+    $parent = InheritanceFactory::new()
+        ->withObjectbrick('mybricks', UnittestBrick::class, ['brickinput' => 'text of the parent'])
+        ->create();
+    $child = InheritanceFactory::new()
+        ->withParent($parent)
+        ->withObjectbrick('mybricks', UnittestBrick::class, ['brickinput2' => 'text of the child'])
+        ->create();
+    $this->written = [
+        $parent,
+        $child,
+    ];
+    forbidInheritance();
 
-    $parent = InheritanceFactory::createOne();
+    reloaded($parent)->save();
+    reloaded($child)->save();
 
-    $brick = new UnittestBrick($parent);
-    $brick->setBrickinput('text of the parent');
-    $parent->getMybricks()->setUnittestBrick($brick);
-    $parent->save();
-
-    $child = InheritanceFactory::createOne(['parentId' => $parent->getId()]);
-    $child->getMybricks()->getUnittestBrick()->setBrickinput2('text of the child');
-    $child->save();
-    $this->written = [$parent, $child];
-
-    inheritanceBecomes(false);
-
-    loaded($parent)->save();
-    loaded($child)->save();
-
-    $below = loaded($child)->getMybricks()->getUnittestBrick();
-
-    expect($below->getBrickinput())
+    $brick = reloaded($child)->getMybricks()->getUnittestBrick();
+    expect($brick->getBrickinput())
         ->toBeNull()
-        ->and($below->getBrickinput2())
+        ->and($brick->getBrickinput2())
         ->toBe('text of the child');
 });

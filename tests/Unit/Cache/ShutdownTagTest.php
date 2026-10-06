@@ -22,14 +22,20 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 beforeEach(function () {
     $this->pool = new TagAwareAdapter(new ArrayAdapter());
     $this->handler = cacheHandler($this->pool);
+    $this->handler->setForceImmediateWrite(true);
 });
 
-it('clears an output tagged entry on shutdown and not before', function () {
-
+it('keeps an entry tagged as output when the tag is cleared', function () {
     $this->handler->save('outputKey', 'output-data', ['output']);
+
     $this->handler->clearTags(['output']);
 
     expect($this->pool->getItem('outputKey')->isHit())->toBeTrue();
+});
+
+it('clears an entry tagged as output on shutdown', function () {
+    $this->handler->save('outputKey', 'output-data', ['output']);
+    $this->handler->clearTags(['output']);
 
     $this->handler->clearTagsOnShutdown();
 

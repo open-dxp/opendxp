@@ -16,12 +16,67 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Asset;
 
+use OpenDxp\Model\Asset\Image;
+use OpenDxp\Model\Asset\Image\Thumbnail\Config;
+use OpenDxp\Test\Factory\AssetImageFactory;
+use OpenDxp\Test\Factory\ThumbnailConfigFactory;
+
+function redAboveBlue(): Image
+{
+    $canvas = imagecreatetruecolor(100, 400);
+    $red = imagecolorallocate($canvas, 255, 0, 0);
+    $blue = imagecolorallocate($canvas, 0, 0, 255);
+    imagefilledrectangle($canvas, 0, 0, 99, 199, $red);
+    imagefilledrectangle($canvas, 0, 200, 99, 399, $blue);
+
+    ob_start();
+    imagepng($canvas);
+
+    return AssetImageFactory::createOne([
+        'filename' => sprintf('red-above-blue-%s.png', uniqid()),
+        'data' => ob_get_clean(),
+    ]);
+}
+
+function landscapeCover(): Config
+{
+    return ThumbnailConfigFactory::new()
+        ->covering(200, 50)
+        ->create(['format' => 'PNG']);
+}
+
+function thumbnailColours(Image $image, Config $config): string
+{
+    $file = $image->getThumbnail($config)->getLocalFile();
+    $thumbnail = imagecreatefromstring((string) file_get_contents($file));
+    $middle = intdiv(imagesx($thumbnail), 2);
+    $colourAt = static function (int $y) use ($thumbnail, $middle): string {
+        $colour = imagecolorat($thumbnail, $middle, $y);
+        $rgb = imagecolorsforindex($thumbnail, $colour);
+
+        return $rgb['red'] > $rgb['blue'] ? 'red' : 'blue';
+    };
+    $upper = intdiv(imagesy($thumbnail), 4);
+    $lower = intdiv(imagesy($thumbnail) * 3, 4);
+
+    return sprintf('%s above %s', $colourAt($upper), $colourAt($lower));
+}
+
+function focusOn(Image $image, float $x, float $y): void
+{
+    $image->setCustomSetting('focalPointX', $x);
+    $image->setCustomSetting('focalPointY', $y);
+    $image->save();
+}
+
 it('crops a cover thumbnail around a focal point on the left edge', function () {
     $image = redAboveBlue();
+    $cover = landscapeCover();
     focusOn($image, 0.0, 90.0);
 
-    expect(thumbnailColours($image, landscapeCover()))
-        ->toBe('blue above blue');
+    $colours = thumbnailColours($image, $cover);
+
+    expect($colours)->toBe('blue above blue');
 });
 
 it('crops the thumbnails again once the focal point moves', function () {
@@ -32,8 +87,7 @@ it('crops the thumbnails again once the focal point moves', function () {
 
     focusOn($image, 50.0, 10.0);
 
-    expect(thumbnailColours($image, $cover))
-        ->toBe('red above red');
+    expect(thumbnailColours($image, $cover))->toBe('red above red');
 });
 
 it('crops the thumbnails around the middle again once the focal point is removed', function () {
@@ -46,6 +100,5 @@ it('crops the thumbnails around the middle again once the focal point is removed
     $image->removeCustomSetting('focalPointY');
     $image->save();
 
-    expect(thumbnailColours($image, $cover))
-        ->toBe('red above blue');
+    expect(thumbnailColours($image, $cover))->toBe('red above blue');
 });

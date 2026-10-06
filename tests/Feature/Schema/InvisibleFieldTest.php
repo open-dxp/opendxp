@@ -16,79 +16,69 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Schema;
 
-use OpenDxp\Model\DataObject\Fieldcollection;
+use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
-use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function fieldinput1Invisible(bool $invisible): void
-{
-    $collection = Definition::getByKey('unittestfieldcollection');
-    $fields = $collection->getFieldDefinitions();
-    $fields['fieldinput1']->setInvisible($invisible);
-    $collection->setFieldDefinitions($fields);
-    $collection->save();
-}
-
 /**
- * The backend sends one item of the collection back without the fields the editor did not show.
+ * The backend sends each item of the collection back with the fields the editor showed.
+ *
+ * @param array<string, string> $data
+ *
+ * @return list<array<string, mixed>>
  */
-function editmodeItem(?string $value, bool $submitted): array
+function editmodeItems(array $data): array
 {
-    $data = ['fieldinput2' => 'untouched'];
-
-    if ($submitted) {
-        $data['fieldinput1'] = $value;
-    }
-
-    return [[
-        'data' => $data,
-        'type' => 'unittestfieldcollection',
-        'oIndex' => 0,
-        'title' => 'unittestfieldcollection',
-    ]];
+    return [
+        [
+            'data' => $data,
+            'type' => 'unittestfieldcollection',
+            'oIndex' => 0,
+            'title' => 'unittestfieldcollection',
+        ],
+    ];
 }
 
-function anObjectWithACollection(): Unittest
-{
-    $item = new Fieldcollection\Data\Unittestfieldcollection();
+beforeEach(function () {
+    $collection = Definition::getByKey('unittestfieldcollection');
+    $collection->getFieldDefinition('fieldinput1')->setInvisible(true);
+    $collection->save();
+
+    $item = new Unittestfieldcollection();
     $item->setFieldinput1('persisted value');
-
-    return UnittestFactory::createOne(['fieldcollection' => new Fieldcollection([$item], 'fieldcollection')]);
-}
-
-beforeEach(fn () => fieldinput1Invisible(true));
-
-afterEach(function () {
-    fieldinput1Invisible(false);
-
-    foreach ($this->written as $object) {
-        $object->delete();
-    }
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            $item,
+        )
+        ->create();
+    $this->object = reloaded($object);
+    $this->field = $this->object->getClass()->getFieldDefinition('fieldcollection');
 });
 
-it('takes the value of an invisible field that the backend did send', function () {
+afterEach(function () {
+    $collection = Definition::getByKey('unittestfieldcollection');
+    $collection->getFieldDefinition('fieldinput1')->setInvisible(false);
+    $collection->save();
 
-    $object = anObjectWithACollection();
-    $this->written = [$object];
+    $this->object->delete();
+});
 
-    $written = Unittest::getById($object->getId(), ['force' => true]);
-    $definition = $written->getClass()->getFieldDefinition('fieldcollection');
+it('takes the value of an invisible field that the backend sent', function () {
+    $items = editmodeItems([
+        'fieldinput1' => 'edited value',
+        'fieldinput2' => 'untouched',
+    ]);
 
-    $read = $definition->getDataFromEditmode(editmodeItem('edited value', submitted: true), $written);
+    $read = $this->field->getDataFromEditmode($items, $this->object);
 
     expect($read->get(0)->getFieldinput1())->toBe('edited value');
 });
 
 it('keeps the stored value of an invisible field that the backend left out', function () {
+    $items = editmodeItems(['fieldinput2' => 'untouched']);
 
-    $object = anObjectWithACollection();
-    $this->written = [$object];
-
-    $written = Unittest::getById($object->getId(), ['force' => true]);
-    $definition = $written->getClass()->getFieldDefinition('fieldcollection');
-
-    $read = $definition->getDataFromEditmode(editmodeItem(null, submitted: false), $written);
+    $read = $this->field->getDataFromEditmode($items, $this->object);
 
     expect($read->get(0)->getFieldinput1())->toBe('persisted value');
 });

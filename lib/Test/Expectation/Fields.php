@@ -30,27 +30,50 @@ final class Fields
 {
     public static function register(): void
     {
-        expect()->extend('toCarryField', function (string $field, mixed $expected, ?string $language = null): Expectation {
-            /** @var Concrete $object */
-            $object = $this->value;
+        $definitionOf = self::definitionOf(...);
 
-            $definition = Fields::definitionOf($object, $field);
+        expect()->extend(
+            'toCarryField',
+            function (string $field, mixed $expected) use ($definitionOf): Expectation {
+                /** @var Concrete $object */
+                $object = $this->value;
 
-            $getter = 'get' . ucfirst($field);
-            $carried = $language === null ? $object->{$getter}() : $object->{$getter}($language);
+                $definition = $definitionOf($object, $field);
 
-            expect($definition->isEqual($expected, $carried))
-                ->toBeTrue(sprintf('%s carries what it was given%s', $field, $language === null ? '' : ' in ' . $language));
+                $carriesIt = $definition->isEqual(
+                    $expected,
+                    $object->get($field),
+                );
+                $message = sprintf('%s carries what it was given', $field);
 
-            return $this;
-        });
+                expect($carriesIt)->toBeTrue($message);
+
+                return $this;
+            },
+        );
+
+        expect()->extend(
+            'toCarryLocalizedField',
+            function (string $field, mixed $expected, string $language) use ($definitionOf): Expectation {
+                /** @var Concrete $object */
+                $object = $this->value;
+
+                $definition = $definitionOf($object, $field);
+
+                $carriesIt = $definition->isEqual(
+                    $expected,
+                    $object->get($field, $language),
+                );
+                $message = sprintf('%s carries what it was given in %s', $field, $language);
+
+                expect($carriesIt)->toBeTrue($message);
+
+                return $this;
+            },
+        );
     }
 
-    /**
-     * Public because Pest binds the closure above to the expectation, which cannot reach a private
-     * method of this class.
-     */
-    public static function definitionOf(Concrete $object, string $field): EqualComparisonInterface
+    private static function definitionOf(Concrete $object, string $field): EqualComparisonInterface
     {
         $definition = $object->getClass()->getFieldDefinition($field);
 

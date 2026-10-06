@@ -14,33 +14,25 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Model\DataObject\Classificationstore;
 use OpenDxp\Model\DataObject\Classificationstore\GroupConfig;
 use OpenDxp\Model\DataObject\Classificationstore\KeyConfig;
 use OpenDxp\Model\DataObject\Classificationstore\StoreConfig;
 
 /**
- * All tests use this store. It is installed from tests/Fixtures/classificationstores before the first test.
+ * The suite installs this store from tests/Fixtures/classificationstores before the first test.
  */
-function theStore(): StoreConfig
-{
-    return StoreConfig::getByName('teststore');
-}
+const TEST_STORE = 'teststore';
 
 function storeGroup(string $name): GroupConfig
 {
-    return GroupConfig::getByName($name, theStore()->getId());
+    $store = StoreConfig::getByName(TEST_STORE);
+
+    return GroupConfig::getByName($name, $store->getId());
 }
 
 function storeKey(string $name): KeyConfig
 {
-    return KeyConfig::getByName($name, theStore()->getId());
-}
+    $store = StoreConfig::getByName(TEST_STORE);
 
-function keysOfGroup(string $name): array
-{
-    $listing = new Classificationstore\KeyGroupRelation\Listing();
-    $listing->setCondition('groupId = ' . storeGroup($name)->getId());
-
-    return $listing->load();
+    return KeyConfig::getByName($name, $store->getId());
 }

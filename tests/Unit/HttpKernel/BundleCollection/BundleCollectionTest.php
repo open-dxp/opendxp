@@ -19,182 +19,202 @@ namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 use InvalidArgumentException;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
-use OpenDxp\Tests\Fixtures\Bundle\BundleA;
-use OpenDxp\Tests\Fixtures\Bundle\BundleB;
-use OpenDxp\Tests\Fixtures\Bundle\BundleC;
-use OpenDxp\Tests\Fixtures\Bundle\BundleD;
-use OpenDxp\Tests\Fixtures\Bundle\BundleE;
-use OpenDxp\Tests\Fixtures\Bundle\BundleF;
-use OpenDxp\Tests\Fixtures\Bundle\BundleG;
-use OpenDxp\Tests\Fixtures\Bundle\BundleH;
-use OpenDxp\Tests\Fixtures\Bundle\BundleI;
-use OpenDxp\Tests\Fixtures\Bundle\BundleJ;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use OpenDxp\Tests\Fixtures\Bundle\BundleWithDependency;
+use OpenDxp\Tests\Fixtures\Bundle\BundleWithLowPriorityDependency;
+use OpenDxp\Tests\Fixtures\Bundle\BundleWithNestedDependencies;
+use OpenDxp\Tests\Fixtures\Bundle\CircularBundleOne;
+use OpenDxp\Tests\Fixtures\Bundle\CircularBundleTwo;
+use OpenDxp\Tests\Fixtures\Bundle\FirstBundle;
+use OpenDxp\Tests\Fixtures\Bundle\FourthBundle;
+use OpenDxp\Tests\Fixtures\Bundle\RequiredBundle;
+use OpenDxp\Tests\Fixtures\Bundle\SecondBundle;
+use OpenDxp\Tests\Fixtures\Bundle\ThirdBundle;
 
-beforeEach(function () {
-    $this->collection = new BundleCollection();
-    $this->bundles = [new BundleA(), new BundleB(), new BundleC(), new BundleD()];
+beforeEach(fn () => $this->collection = new BundleCollection());
+
+it('adds a bundle instance', function () {
+    $bundle = new FirstBundle();
+
+    $this->collection->addBundle($bundle);
+
+    expect($this->collection->getBundles('prod'))->toBe([$bundle]);
 });
 
-it('takes a bundle instance', function () {
+it('adds a bundle by its class name', function () {
+    $this->collection->addBundle(FirstBundle::class);
 
-    foreach ($this->bundles as $bundle) {
-        $this->collection->addBundle($bundle);
-    }
-
-    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
+    expect($this->collection->getIdentifiers())->toBe([FirstBundle::class]);
 });
 
-it('takes a bundle class name', function () {
+it('adds several bundle instances at once', function () {
+    $first = new FirstBundle();
+    $second = new SecondBundle();
 
-    $names = array_map('get_class', $this->bundles);
+    $this->collection->addBundles([
+        $first,
+        $second,
+    ]);
 
-    foreach ($names as $name) {
-        $this->collection->addBundle($name);
-    }
-
-    expect($this->collection->getIdentifiers())->toBe($names);
+    expect($this->collection->getBundles('prod'))->toBe([
+        $first,
+        $second,
+    ]);
 });
 
-it('takes several bundle instances at once', function () {
-
-    $this->collection->addBundles($this->bundles);
-
-    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
-});
-
-it('takes several bundle class names at once', function () {
-
-    $names = array_map('get_class', $this->bundles);
-
-    $this->collection->addBundles($names);
-
-    expect($this->collection->getIdentifiers())->toBe($names);
-});
-
-it('takes an item', function () {
-
-    foreach ($this->bundles as $bundle) {
-        $this->collection->add(new Item($bundle));
-    }
-
-    expect($this->collection->getBundles('prod'))->toBe($this->bundles);
-});
-
-it('knows an item only once it was added', function () {
-
-    $item = new Item($this->bundles[0]);
-
-    expect($this->collection->hasItem($item->getBundleIdentifier()))->toBeFalse();
-
-    $this->collection->add($item);
-
-    expect($this->collection->hasItem($item->getBundleIdentifier()))->toBeTrue();
-});
-
-it('hands an item back by the name of its bundle', function () {
-
-    $item = new Item($this->bundles[0]);
-    $this->collection->add($item);
-
-    expect($this->collection->getItem($item->getBundleIdentifier()))->toBe($item);
-});
-
-it('refuses to hand back an item it does not hold', function () {
-    (new BundleCollection())->getItem(BundleA::class);
-})->throws(InvalidArgumentException::class, sprintf('Bundle "%s" is not registered', BundleA::class));
-
-it('hands every item back', function () {
-
-    $items = array_map(static fn (Bundle $bundle) => new Item($bundle), $this->bundles);
-
-    foreach ($items as $item) {
-        $this->collection->add($item);
-    }
-
-    expect($this->collection->getItems())->toBe($items);
-});
-
-it('names every bundle it holds', function () {
-
-    foreach ($this->bundles as $bundle) {
-        $this->collection->add(new Item($bundle));
-    }
-
-    expect($this->collection->getIdentifiers())->toBe(array_map('get_class', $this->bundles));
-});
-
-it('hands the bundles back by priority, the highest first', function () {
-
-    [$a, $b, $c, $d] = $this->bundles;
-
-    $this->collection->addBundle($a, 10);
-    $this->collection->addBundle($b, 5);
-    $this->collection->addBundle($c, -10);
-    $this->collection->addBundle($d, 50);
-
-    expect($this->collection->getBundles('prod'))->toBe([$d, $a, $b, $c]);
-});
-
-it('hands back only the bundles of the environment it is asked for', function (string $environment, array $expected) {
-
-    [$always, $dev, $both, $test] = $this->bundles;
-
-    $this->collection->addBundle($always);
-    $this->collection->addBundle($dev, 0, ['dev']);
-    $this->collection->addBundle($both, 0, ['dev', 'test']);
-    $this->collection->addBundle($test, 0, ['test']);
-
-    expect($this->collection->getBundles($environment))
-        ->toBe(array_map(fn (int $index) => $this->bundles[$index], $expected));
-})->with([
-    'production' => ['prod', [0]],
-    'development' => ['dev', [0, 1, 2]],
-    'test' => ['test', [0, 2, 3]],
-]);
-
-it('registers what a bundle depends on', function () {
-
-    $this->collection->addBundle(new BundleE());
-
-    expect($this->collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
-});
-
-it('registers a dependency of a dependency', function () {
-
-    $this->collection->addBundle(new BundleI());
+it('adds several bundles by their class names at once', function () {
+    $this->collection->addBundles([
+        FirstBundle::class,
+        SecondBundle::class,
+    ]);
 
     expect($this->collection->getIdentifiers())->toBe([
-        BundleI::class,
-        BundleA::class,
-        BundleB::class,
-        BundleE::class,
-        BundleF::class,
+        FirstBundle::class,
+        SecondBundle::class,
+    ]);
+});
+
+it('adds an item', function () {
+    $item = new Item(new FirstBundle());
+
+    $this->collection->add($item);
+
+    expect($this->collection->getItems())->toBe([$item]);
+});
+
+it('does not know a bundle it does not hold', function () {
+    $known = $this->collection->hasItem(FirstBundle::class);
+
+    expect($known)->toBeFalse();
+});
+
+it('knows a bundle once it is added', function () {
+    $this->collection->addBundle(new FirstBundle());
+
+    $known = $this->collection->hasItem(FirstBundle::class);
+
+    expect($known)->toBeTrue();
+});
+
+it('returns an item by the class of its bundle', function () {
+    $item = new Item(new FirstBundle());
+    $this->collection->add($item);
+
+    $found = $this->collection->getItem(FirstBundle::class);
+
+    expect($found)->toBe($item);
+});
+
+it('refuses to return an item it does not hold', function () {
+    $this->collection->getItem(FirstBundle::class);
+})->throws(InvalidArgumentException::class, sprintf('Bundle "%s" is not registered', FirstBundle::class));
+
+it('returns the bundles by priority, the highest first', function () {
+    $first = new FirstBundle();
+    $second = new SecondBundle();
+    $third = new ThirdBundle();
+    $fourth = new FourthBundle();
+    $this->collection->addBundle($first, 10);
+    $this->collection->addBundle($second, 5);
+    $this->collection->addBundle($third, -10);
+    $this->collection->addBundle($fourth, 50);
+
+    $bundles = $this->collection->getBundles('prod');
+
+    expect($bundles)->toBe([
+        $fourth,
+        $first,
+        $second,
+        $third,
+    ]);
+});
+
+it('lists only the bundles of the environment it is asked for', function (string $environment, array $expected) {
+    $this->collection->addBundle(FirstBundle::class);
+    $this->collection->addBundle(SecondBundle::class, environments: ['dev']);
+    $this->collection->addBundle(
+        ThirdBundle::class,
+        environments: [
+            'dev',
+            'test',
+        ],
+    );
+    $this->collection->addBundle(FourthBundle::class, environments: ['test']);
+
+    $identifiers = $this->collection->getIdentifiers($environment);
+
+    expect($identifiers)->toBe($expected);
+})->with([
+    'production' => [
+        'prod',
+        [FirstBundle::class],
+    ],
+    'development' => [
+        'dev',
+        [
+            FirstBundle::class,
+            SecondBundle::class,
+            ThirdBundle::class,
+        ],
+    ],
+    'test' => [
+        'test',
+        [
+            FirstBundle::class,
+            ThirdBundle::class,
+            FourthBundle::class,
+        ],
+    ],
+]);
+
+it('registers the bundles a bundle depends on', function () {
+    $this->collection->addBundle(new BundleWithDependency());
+
+    expect($this->collection->getIdentifiers())->toBe([
+        BundleWithDependency::class,
+        RequiredBundle::class,
+    ]);
+});
+
+it('registers the dependencies of a dependency', function () {
+    $this->collection->addBundle(new BundleWithNestedDependencies());
+
+    expect($this->collection->getIdentifiers())->toBe([
+        BundleWithNestedDependencies::class,
+        FirstBundle::class,
+        SecondBundle::class,
+        BundleWithDependency::class,
+        RequiredBundle::class,
     ]);
 });
 
 it('stops at a dependency that points back at the bundle itself', function () {
-
-    $this->collection->addBundle(new BundleG(), 10);
+    $this->collection->addBundle(CircularBundleOne::class, 10);
 
     expect($this->collection->getIdentifiers())
-        ->toBe([BundleG::class, BundleH::class])
-        ->and($this->collection->getItem(BundleG::class)->getPriority())
+        ->toBe([
+            CircularBundleOne::class,
+            CircularBundleTwo::class,
+        ])
+        ->and($this->collection->getItem(CircularBundleOne::class)->getPriority())
         ->toBe(10)
-        ->and($this->collection->getItem(BundleH::class)->getPriority())
+        ->and($this->collection->getItem(CircularBundleTwo::class)->getPriority())
         ->toBe(8);
 });
 
-it('keeps the priority a bundle was added with against a lower one from a dependency', function () {
+it('keeps the priority a bundle was added with over a lower one from a dependency', function () {
+    $this->collection->addBundle(CircularBundleTwo::class, 50);
+    $this->collection->addBundle(CircularBundleOne::class, 10);
 
-    $this->collection->addBundle(new BundleH(), 50);
-    $this->collection->addBundle(new BundleG(), 10);
-    $this->collection->addBundle(new BundleJ());
+    $this->collection->addBundle(new BundleWithLowPriorityDependency());
 
     expect($this->collection->getIdentifiers())
-        ->toBe([BundleH::class, BundleG::class, BundleJ::class])
-        ->and($this->collection->getItem(BundleH::class)->getPriority())
+        ->toBe([
+            CircularBundleTwo::class,
+            CircularBundleOne::class,
+            BundleWithLowPriorityDependency::class,
+        ])
+        ->and($this->collection->getItem(CircularBundleTwo::class)->getPriority())
         ->toBe(50)
-        ->and($this->collection->getItem(BundleG::class)->getPriority())
+        ->and($this->collection->getItem(CircularBundleOne::class)->getPriority())
         ->toBe(10);
 });

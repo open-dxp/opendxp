@@ -24,7 +24,6 @@ use PHPUnit\Runner\Extension\Facade;
 use PHPUnit\Runner\Extension\ParameterCollection;
 use PHPUnit\TextUI\Configuration\Configuration;
 use RuntimeException;
-use Symfony\Component\Cache\Adapter\DoctrineDbalAdapter;
 
 final class CreateMissingTables implements Extension
 {
@@ -39,15 +38,9 @@ final class CreateMissingTables implements Extension
             throw new RuntimeException('DATABASE_URL names no database, so the missing tables cannot be created.');
         }
 
-        // dama/doctrine-test-bundle wraps a test in a transaction, but only on the connections it hands out itself.
-        // This one is built directly, so the CREATE TABLE commits nothing.
         $connection = DriverManager::getConnection((new DsnParser(['mysql' => 'pdo_mysql']))->parse($url));
 
         $schema = $connection->createSchemaManager();
-
-        if (!$schema->tablesExist(['cache_items'])) {
-            (new DoctrineDbalAdapter($connection))->createTable();
-        }
 
         // DatabaseVersionStorageAdapter writes to versionsData, and nothing in core creates it.
         // It is joined to versions on ctype, so both need the same collation.

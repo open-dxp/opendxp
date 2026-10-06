@@ -1,0 +1,11 @@
+{% set document_id = app.request.attributes.get('document_id') %}
+{% if document_id %}
+    {{ opendxp_document(document_id, {force: true}) ? 'document' : 'no document' }}
+{% endif %}
+{% set sub_request_document_id = app.request.attributes.get('sub_request_document_id') %}
+{% if sub_request_document_id %}
+    {{ render(controller(
+        'OpenDxp\\Tests\\Application\\Controller\\TagCollectionController::fragmentAction',
+        {documentId: sub_request_document_id}
+    )) }}
+{% endif %}

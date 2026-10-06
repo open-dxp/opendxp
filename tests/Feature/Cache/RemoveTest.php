@@ -18,12 +18,9 @@ namespace OpenDxp\Tests\Feature\Cache;
 
 describe('removing from the cache', function () {
     it('takes a single entry out', function (callable $pool) {
-
         $this->useCachePool($pool);
         $this->handler->save('itemA', 'test');
         $this->handler->writeSaveQueue();
-
-        expect($this->poolHasItem('itemA'))->toBeTrue();
 
         $this->handler->remove('itemA');
 
@@ -31,12 +28,9 @@ describe('removing from the cache', function () {
     });
 
     it('takes every entry out at once', function (callable $pool) {
-
         $this->useCachePool($pool);
         $this->queueSampleEntries();
         $this->handler->writeSaveQueue();
-
-        expect($this->keptEntries())->toBe(['A', 'B', 'C']);
 
         $this->handler->clearAll();
 

@@ -20,10 +20,6 @@ use OpenDxp\Bundle\GlossaryBundle\Model\Glossary;
 
 /**
  * @extends AbstractSavingFactory<Glossary>
- *
- * @method Glossary create(array|callable $attributes = [])
- * @method static Glossary createOne(array $attributes = [])
- * @method static list<Glossary> createMany(int $number, array $attributes = [])
  */
 final class GlossaryFactory extends AbstractSavingFactory
 {
@@ -35,9 +31,8 @@ final class GlossaryFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'text'     => sprintf('term-%s', uniqid()),
-            'link'     => '/test',
-            'language' => 'en',
+            'text' => self::faker()->unique()->word(),
+            'link' => sprintf('/%s', self::faker()->slug()),
         ];
     }
 }

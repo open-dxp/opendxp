@@ -36,6 +36,9 @@ final class TestKernel extends Foundation
         $collection->addBundle(new OpenDxpSeoBundle());
         $collection->addBundle(new OpenDxpSimpleBackendSearchBundle());
         $collection->addBundle(new OpenDxpStaticRoutesBundle());
-        $collection->addBundle(new FOSHttpCacheBundle());
+
+        if ($this->getEnvironment() === 'http_cache') {
+            $collection->addBundle(new FOSHttpCacheBundle());
+        }
     }
 }

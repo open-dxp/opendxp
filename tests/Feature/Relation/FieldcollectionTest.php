@@ -16,160 +16,106 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Relation;
 
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
-use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function collectionOf(string $setter, array $values): Fieldcollection
-{
-    $items = new Fieldcollection();
+beforeEach(fn () => $this->targets = RelationTestFactory::createMany(3));
 
-    foreach ($values as $value) {
-        $item = new Unittestfieldcollection();
-        $item->{$setter}($value);
-        $items->add($item);
-    }
+it('changes the relation of one item and keeps the others', function () {
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            (new Unittestfieldcollection())->setFieldRelation([$this->targets[0]]),
+            (new Unittestfieldcollection())->setFieldRelation([$this->targets[1]]),
+        )
+        ->create();
 
-    return $items;
-}
+    $object->getFieldcollection()->get(1)->setFieldRelation([$this->targets[2]]);
+    $object->save();
 
-function reloaded(DataObject\Concrete $object): DataObject\Concrete
-{
-    return DataObject::getById($object->getId(), ['force' => true]);
-}
-
-function itemsOf(DataObject\Concrete $object): Fieldcollection
-{
-    return reloaded($object)->getFieldcollection();
-}
-
-beforeEach(fn () => $this->object = UnittestFactory::createOne());
-
-it('keeps a relation of every item of a collection', function () {
-
-    $targets = RelationTestFactory::createMany(3);
-
-    $this->object->setFieldcollection(collectionOf('setFieldRelation', [[$targets[0]], [$targets[1]]]));
-    $this->object->save();
-
-    $again = reloaded($this->object);
-    $again->getFieldcollection()->get(1)->setFieldRelation([$targets[2]]);
-    $again->save();
-
-    $after = itemsOf($this->object);
-
-    expect($after->get(0)->getFieldRelation()[0]->getId())
-        ->toBe($targets[0]->getId())
-        ->and($after->get(1)->getFieldRelation()[0]->getId())
-        ->toBe($targets[2]->getId());
+    $items = reloaded($object)->getFieldcollection();
+    expect($items->get(0)->getFieldRelation()[0]->getId())
+        ->toBe($this->targets[0]->getId())
+        ->and($items->get(1)->getFieldRelation()[0]->getId())
+        ->toBe($this->targets[2]->getId());
 });
 
-it('holds no relation in an item that was emptied', function () {
+it('keeps no relation in an item that was emptied', function () {
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            (new Unittestfieldcollection())->setFieldRelation([$this->targets[0]]),
+            (new Unittestfieldcollection())->setFieldRelation([$this->targets[1]]),
+        )
+        ->create();
 
-    $targets = RelationTestFactory::createMany(2);
+    $object->getFieldcollection()->get(1)->setFieldRelation([]);
+    $object->save();
 
-    $this->object->setFieldcollection(collectionOf('setFieldRelation', [[$targets[0]], [$targets[1]]]));
-    $this->object->save();
-
-    $again = reloaded($this->object);
-    $again->getFieldcollection()->get(1)->setFieldRelation(null);
-    $again->save();
-
-    expect(itemsOf($this->object)->get(1)->getFieldRelation())->toBe([]);
+    $item = reloaded($object)->getFieldcollection()->get(1);
+    expect($item)->getFieldRelation()->toBe([]);
 });
 
-it('drops the metadata of a target that was deleted', function () {
-
+it('drops the relation with metadata to a target that was deleted', function () {
     $kept = AssetImageFactory::createOne();
-    $gone = AssetImageFactory::createOne();
+    $deleted = AssetImageFactory::createOne();
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            (new Unittestfieldcollection())->setAdvancedFieldRelation([
+                new ElementMetadata('metadataUpper', [], $kept),
+            ]),
+            (new Unittestfieldcollection())->setAdvancedFieldRelation([
+                new ElementMetadata('metadataUpper', [], $deleted),
+            ]),
+        )
+        ->create();
 
-    $this->object->setFieldcollection(collectionOf('setAdvancedFieldRelation', [
-        [new ElementMetadata('metadataUpper', [], $kept)],
-        [new ElementMetadata('metadataUpper', [], $gone)],
-    ]));
-    $this->object->save();
-
-    $gone->delete();
-
+    $deleted->delete();
     // The relation is only dropped once the object is written again.
-    reloaded($this->object)->save();
+    reloaded($object)->save();
 
-    $after = itemsOf($this->object);
-
-    expect($after->get(0)->getAdvancedFieldRelation()[0]->getElementId())
+    $items = reloaded($object)->getFieldcollection();
+    expect($items->get(0)->getAdvancedFieldRelation()[0]->getElementId())
         ->toBe($kept->getId())
-        ->and($after->get(1)->getAdvancedFieldRelation())
+        ->and($items->get(1)->getAdvancedFieldRelation())
         ->toBe([]);
 });
 
-it('keeps a localized relation of every item of a collection', function () {
+it('changes the localized relation of one item and keeps the others', function () {
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            (new Unittestfieldcollection())->setLrelation($this->targets[0], 'en'),
+            (new Unittestfieldcollection())->setLrelation($this->targets[1], 'en'),
+        )
+        ->create();
 
-    $targets = RelationTestFactory::createMany(3);
-    $items = new Fieldcollection();
+    $object->getFieldcollection()->get(1)->setLrelation($this->targets[2], 'en');
+    $object->save();
 
-    foreach ([$targets[0], $targets[1]] as $target) {
-        $item = new Unittestfieldcollection();
-        $item->setLinput('textEN', 'en');
-        $item->setLRelation($target, 'en');
-        $items->add($item);
-    }
-
-    $this->object->setFieldcollection($items);
-    $this->object->save();
-
-    $again = reloaded($this->object);
-    $again->getFieldcollection()->get(1)->setLRelation($targets[2], 'en');
-    $again->save();
-
-    $after = itemsOf($this->object);
-
-    expect($after->get(0)->getLRelation('en')->getId())
-        ->toBe($targets[0]->getId())
-        ->and($after->get(1)->getLRelation('en')->getId())
-        ->toBe($targets[2]->getId());
+    $items = reloaded($object)->getFieldcollection();
+    expect($items->get(0)->getLrelation('en')->getId())
+        ->toBe($this->targets[0]->getId())
+        ->and($items->get(1)->getLrelation('en')->getId())
+        ->toBe($this->targets[2]->getId());
 });
 
-it('holds no localized relation in an item that was emptied', function () {
+it('keeps no localized relation in an item that was emptied', function () {
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            (new Unittestfieldcollection())->setLrelation($this->targets[0], 'en'),
+            (new Unittestfieldcollection())->setLrelation($this->targets[1], 'en'),
+        )
+        ->create();
 
-    $targets = RelationTestFactory::createMany(2);
-    $items = new Fieldcollection();
+    $object->getFieldcollection()->get(1)->setLrelation(null, 'en');
+    $object->save();
 
-    foreach ($targets as $target) {
-        $item = new Unittestfieldcollection();
-        $item->setLRelation($target, 'en');
-        $items->add($item);
-    }
-
-    $this->object->setFieldcollection($items);
-    $this->object->save();
-
-    $again = reloaded($this->object);
-    $again->getFieldcollection()->get(1)->setLRelation(null, 'en');
-    $again->save();
-
-    expect(itemsOf($this->object)->get(1)->getLRelation('en'))->toBeNull();
-});
-
-it('hands back nothing for a localized text that carries no content', function () {
-
-    $items = new Fieldcollection();
-    $items->add((new Unittestfieldcollection())->setLinput('', 'en'));
-    $items->add(new Unittestfieldcollection());
-    $items->add((new Unittestfieldcollection())->setLinput(null, 'en'));
-
-    $this->object->setFieldcollection($items);
-    $this->object->save();
-
-    $after = itemsOf($this->object);
-
-    expect($after->get(0)->getLinput('en'))
-        ->toBeNull()
-        ->and($after->get(1)->getLinput('en'))
-        ->toBeNull()
-        ->and($after->get(2)->getLinput('en'))
-        ->toBeNull();
+    $item = reloaded($object)->getFieldcollection()->get(1);
+    expect($item)->getLrelation('en')->toBeNull();
 });

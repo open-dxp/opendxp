@@ -23,23 +23,27 @@ it('refuses an integer that is not positive', function () {
     new PositiveInteger(-1);
 })->throws(ValueError::class, 'Provided integer must be positive. (-1 given)');
 
-it('answers with the integer it was given', function () {
-    expect((new PositiveInteger(1))->getValue())->toBe(1);
+it('accepts a positive integer', function () {
+    $integer = new PositiveInteger(1);
+
+    expect($integer)->getValue()->toBe(1);
 });
 
-it('equals another one holding the same integer', function () {
+it('equals another one only when it holds the same integer', function (int $other, bool $equal) {
+    $integer = new PositiveInteger(1);
 
-    $one = new PositiveInteger(1);
+    $result = $integer->equals(new PositiveInteger($other));
 
-    expect($one->equals(new PositiveInteger(1)))
-        ->toBeTrue()
-        ->and($one->equals(new PositiveInteger(2)))
-        ->toBeFalse();
+    expect($result)->toBe($equal);
+})->with([
+    'the same integer' => [1, true],
+    'another integer' => [2, false],
+]);
+
+it('checks the integer again when it is unserialized', function () {
+    $serialized = serialize(new PositiveInteger(42));
+    $tampered = str_replace('42', '-42', $serialized);
+
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Provided integer must be positive. (-42 given)');
 });
-
-it('checks the integer again when it comes back from a serialized form', function () {
-
-    $serialized = str_replace('42', '-42', serialize(new PositiveInteger(42)));
-
-    unserialize($serialized);
-})->throws(ValueError::class, 'Provided integer must be positive. (-42 given)');

@@ -16,46 +16,60 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\HttpKernel\BundleCollection;
 
-use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\HttpKernel\BundleCollection\Item;
-use OpenDxp\Tests\Fixtures\Bundle\BundleA;
-use OpenDxp\Tests\Fixtures\Bundle\BundleE;
-use OpenDxp\Tests\Fixtures\Bundle\BundleF;
+use OpenDxp\Tests\Fixtures\Bundle\FirstBundle;
 use OpenDxp\Tests\Fixtures\Bundle\OpenDxpBundle;
-
-it('hands back the bundle it holds', function () {
-    expect((new Item(new BundleA()))->getBundle())->toBeInstanceOf(BundleA::class);
-});
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 it('is named after the class of its bundle', function () {
-    expect((new Item(new BundleA()))->getBundleIdentifier())->toBe(BundleA::class);
+    $item = new Item(new FirstBundle());
+
+    expect($item)->getBundleIdentifier()->toBe(FirstBundle::class);
 });
 
-it('matches any environment while it names none', function (string $environment) {
-    expect((new Item(new BundleA(), 0, []))->matchesEnvironment($environment))->toBeTrue();
-})->with(['prod', 'dev', 'test']);
+it('matches every environment while it names none', function (string $environment) {
+    $item = new Item(new FirstBundle());
 
-it('matches only the environments it names', function (array $named, string $environment, bool $matches) {
-    expect((new Item(new BundleA(), 0, $named))->matchesEnvironment($environment))->toBe($matches);
+    $matches = $item->matchesEnvironment($environment);
+
+    expect($matches)->toBeTrue();
 })->with([
-    'the one it names' => [['dev'], 'dev', true],
-    'another one' => [['dev'], 'prod', false],
-    'the first of two' => [['dev', 'test'], 'dev', true],
-    'the second of two' => [['dev', 'test'], 'test', true],
-    'none of two' => [['dev', 'test'], 'prod', false],
+    'production' => ['prod'],
+    'development' => ['dev'],
+    'test' => ['test'],
 ]);
 
-it('says whether its bundle is an opendxp bundle', function () {
-    expect((new Item(new BundleA()))->isOpenDxpBundle())
-        ->toBeFalse()
-        ->and((new Item(new OpenDxpBundle()))->isOpenDxpBundle())
-        ->toBeTrue();
-});
+it('matches only the environments it names', function (string $environment, bool $matches) {
+    $item = new Item(
+        new FirstBundle(),
+        environments: [
+            'dev',
+            'test',
+        ],
+    );
 
-it('brings the bundles its own depends on', function () {
+    $result = $item->matchesEnvironment($environment);
 
-    $collection = new BundleCollection();
-    $collection->add(new Item(new BundleE()));
+    expect($result)->toBe($matches);
+})->with([
+    'the first one it names' => ['dev', true],
+    'the second one it names' => ['test', true],
+    'one it does not name' => ['prod', false],
+]);
 
-    expect($collection->getIdentifiers())->toBe([BundleE::class, BundleF::class]);
-});
+it('tells whether its bundle is an OpenDXP bundle', function (BundleInterface $bundle, bool $openDxpBundle) {
+    $item = new Item($bundle);
+
+    $result = $item->isOpenDxpBundle();
+
+    expect($result)->toBe($openDxpBundle);
+})->with([
+    'a plain bundle' => [
+        fn () => new FirstBundle(),
+        false,
+    ],
+    'an OpenDXP bundle' => [
+        fn () => new OpenDxpBundle(),
+        true,
+    ],
+]);

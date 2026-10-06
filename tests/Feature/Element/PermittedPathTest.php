@@ -16,206 +16,281 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Element;
 
+use Closure;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
+use OpenDxp\Test\Factory\AbstractElementFactory;
+use OpenDxp\Test\Factory\AbstractUserRoleFactory;
+use OpenDxp\Test\Factory\AssetFolderFactory;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
+use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Test\Factory\UserRoleFactory;
 
-beforeEach(function () {
-    $this->admin = UserFactory::new()->admin()->create();
-    $this->user = UserFactory::createOne();
-});
+/**
+ * Two workspaces may name the same path. A folder that exists is therefore found again instead of created twice.
+ */
+function folderAt(AbstractElementFactory $folders, string $path): ElementInterface
+{
+    $class = $folders::class();
+    $existing = $class::getByPath($path);
 
-describe('the paths a user may see', function () {
-    it('leaves everything open to an administrator', function (string $type) {
+    if ($existing !== null) {
+        return $existing;
+    }
 
-        $paths = Service::findForbiddenPaths($type, $this->admin);
+    $folder = $folders->with(['key' => basename($path)]);
+    $parentPath = dirname($path);
 
-        expect($paths['forbidden'])
-            ->toBe([])
-            ->and($paths['allowed'])
-            ->toBe(['/']);
-    });
+    if ($parentPath !== '/') {
+        $folder = $folder->withParent(folderAt($folders, $parentPath));
+    }
 
-    it('forbids the root to a user without a single workspace', function (string $type) {
+    return $folder->create();
+}
 
-        $paths = Service::findForbiddenPaths($type, $this->user);
+/**
+ * A workspace without permissions closes its path. A workspace with the list permission opens it.
+ */
+dataset('workspaces', [
+    'assets' => [
+        'asset',
+        fn (AbstractUserRoleFactory $owner, string $path, string ...$permissions) => $owner->withAssetWorkspace(
+            folderAt(AssetFolderFactory::new(), $path),
+            ...$permissions,
+        ),
+    ],
+    'documents' => [
+        'document',
+        fn (AbstractUserRoleFactory $owner, string $path, string ...$permissions) => $owner->withDocumentWorkspace(
+            folderAt(DocumentFolderFactory::new(), $path),
+            ...$permissions,
+        ),
+    ],
+    'objects' => [
+        'object',
+        fn (AbstractUserRoleFactory $owner, string $path, string ...$permissions) => $owner->withObjectWorkspace(
+            folderAt(DataObjectFolderFactory::new(), $path),
+            ...$permissions,
+        ),
+    ],
+]);
 
-        expect($paths['forbidden'])
-            ->toHaveKey('/', [])
-            ->and($paths['allowed'])
-            ->toBe([]);
-    });
+dataset('element type names', [
+    'assets' => 'asset',
+    'documents' => 'document',
+    'objects' => 'object',
+]);
 
-    it('opens a path the user is listed for', function (string $type) {
+it('leaves everything open to an administrator', function (string $type) {
+    $admin = UserFactory::new()
+        ->admin()
+        ->create();
 
-        allowPath($type, $this->user->getId(), '/foo');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    $paths = Service::findForbiddenPaths($type, $admin);
 
-        expect($paths['allowed'])
-            ->toContain('/foo')
-            ->and($paths['forbidden'])
-            ->not->toHaveKey('/foo');
-    });
+    expect($paths['forbidden'])
+        ->toBe([])
+        ->and($paths['allowed'])
+        ->toBe(['/']);
+})->with('element type names');
 
-    it('closes a path the user is not listed for', function (string $type) {
+it('closes the root to a user without a workspace', function (string $type) {
+    $user = UserFactory::createOne();
 
-        forbidPath($type, $this->user->getId(), '/foo');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        expect($paths['forbidden'])->toHaveKey('/foo', []);
-    });
+    expect($paths['forbidden'])
+        ->toHaveKey('/', [])
+        ->and($paths['allowed'])
+        ->toBe([]);
+})->with('element type names');
 
-    it('opens a child of a closed path', function (string $type) {
+it('opens a path the user may list', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo', 'list');
+    $user = $owner->create();
 
-        forbidPath($type, $this->user->getId(), '/foo');
-        allowPath($type, $this->user->getId(), '/foo/bar');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        expect($paths['forbidden']['/foo'])
-            ->toContain('/foo/bar')
-            ->and($paths['allowed'])
-            ->toContain('/foo/bar');
-    });
+    expect($paths['allowed'])
+        ->toContain('/foo')
+        ->and($paths['forbidden'])
+        ->not->toHaveKey('/foo');
+})->with('workspaces');
 
-    it('opens every path the user is listed for', function (string $type) {
+it('closes a path the user may not list', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo');
+    $user = $owner->create();
 
-        foreach (['/a', '/b', '/c'] as $path) {
-            allowPath($type, $this->user->getId(), $path);
-        }
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['forbidden'])->toHaveKey('/foo', []);
+})->with('workspaces');
 
-        expect($paths['allowed'])
-            ->toContain('/a', '/b', '/c')
-            ->and($paths['forbidden'])
-            ->toBeEmpty();
-    });
+it('opens a child of a closed path', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo');
+    $owner = $withWorkspace($owner, '/foo/bar', 'list');
+    $user = $owner->create();
 
-    it('closes a child of an open path', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        allowPath($type, $this->user->getId(), '/foo');
-        forbidPath($type, $this->user->getId(), '/foo/secret');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['forbidden']['/foo'])
+        ->toContain('/foo/bar')
+        ->and($paths['allowed'])
+        ->toContain('/foo/bar');
+})->with('workspaces');
 
-        expect($paths['allowed'])
-            ->toContain('/foo')
-            ->and($paths['forbidden'])
-            ->toHaveKey('/foo/secret', []);
-    });
+it('opens every path the user may list', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/a', 'list');
+    $owner = $withWorkspace($owner, '/b', 'list');
+    $owner = $withWorkspace($owner, '/c', 'list');
+    $user = $owner->create();
 
-    it('keeps a closed path out of the way of its siblings', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        forbidPath($type, $this->user->getId(), '/a');
-        allowPath($type, $this->user->getId(), '/a/child');
-        allowPath($type, $this->user->getId(), '/b');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['allowed'])
+        ->toContain('/a', '/b', '/c')
+        ->and($paths['forbidden'])
+        ->toBeEmpty();
+})->with('workspaces');
 
-        expect($paths['forbidden']['/a'])
-            ->toContain('/a/child')
-            ->not->toContain('/b')
-            ->and($paths['allowed'])
-            ->toContain('/b');
-    });
+it('closes a child of an open path', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo', 'list');
+    $owner = $withWorkspace($owner, '/foo/secret');
+    $user = $owner->create();
 
-    it('reaches an open path through several closed ancestors', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        forbidPath($type, $this->user->getId(), '/root');
-        forbidPath($type, $this->user->getId(), '/root/a');
-        allowPath($type, $this->user->getId(), '/root/a/b');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['allowed'])
+        ->toContain('/foo')
+        ->and($paths['forbidden'])
+        ->toHaveKey('/foo/secret', []);
+})->with('workspaces');
 
-        expect($paths['forbidden']['/root/a'])
-            ->toContain('/root/a/b')
-            ->and($paths['forbidden']['/root'])
-            ->toContain('/root/a/b');
-    });
+it('lists only its own open children under a closed path', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/a');
+    $owner = $withWorkspace($owner, '/a/child', 'list');
+    $owner = $withWorkspace($owner, '/b', 'list');
+    $user = $owner->create();
 
-    it('closes a grandchild below an open child of a closed path', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        forbidPath($type, $this->user->getId(), '/foo');
-        allowPath($type, $this->user->getId(), '/foo/bar');
-        forbidPath($type, $this->user->getId(), '/foo/bar/baz');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['forbidden']['/a'])
+        ->toContain('/a/child')
+        ->not->toContain('/b')
+        ->and($paths['allowed'])
+        ->toContain('/b');
+})->with('workspaces');
 
-        expect($paths['forbidden']['/foo'])
-            ->toContain('/foo/bar')
-            ->and($paths['allowed'])
-            ->toContain('/foo/bar')
-            ->and($paths['forbidden'])
-            ->toHaveKey('/foo/bar/baz', []);
-    });
+it('lists an open path under each closed ancestor', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/root');
+    $owner = $withWorkspace($owner, '/root/a');
+    $owner = $withWorkspace($owner, '/root/a/b', 'list');
+    $user = $owner->create();
 
-    it('takes a path that only ends the same for a sibling, not a child', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        forbidPath($type, $this->user->getId(), '/foo');
-        allowPath($type, $this->user->getId(), '/baz/foo');
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['forbidden']['/root/a'])
+        ->toContain('/root/a/b')
+        ->and($paths['forbidden']['/root'])
+        ->toContain('/root/a/b');
+})->with('workspaces');
 
-        expect($paths['forbidden']['/foo'])
-            ->not->toContain('/baz/foo')
-            ->and($paths['allowed'])
-            ->toContain('/baz/foo');
-    });
-})->with('element types');
+it('closes a grandchild below an open child of a closed path', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo');
+    $owner = $withWorkspace($owner, '/foo/bar', 'list');
+    $owner = $withWorkspace($owner, '/foo/bar/baz');
+    $user = $owner->create();
 
-describe('a path a role opens', function () {
-    it('reaches the user who carries the role', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        $role = UserRoleFactory::createOne();
-        $this->user->setRoles([$role->getId()]);
-        $this->user->save();
+    expect($paths['forbidden']['/foo'])
+        ->toContain('/foo/bar')
+        ->and($paths['allowed'])
+        ->toContain('/foo/bar')
+        ->and($paths['forbidden'])
+        ->toHaveKey('/foo/bar/baz', []);
+})->with('workspaces');
 
-        allowPath($type, $role->getId(), '/role-path');
+it('does not treat a path with the same ending as a child', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo');
+    $owner = $withWorkspace($owner, '/baz/foo', 'list');
+    $user = $owner->create();
 
-        expect(Service::findForbiddenPaths($type, $this->user)['allowed'])->toContain('/role-path');
-    });
+    $paths = Service::findForbiddenPaths($type, $user);
 
-    it('loses against the user being closed for it', function (string $type) {
+    expect($paths['forbidden']['/foo'])
+        ->not->toContain('/baz/foo')
+        ->and($paths['allowed'])
+        ->toContain('/baz/foo');
+})->with('workspaces');
 
-        $role = UserRoleFactory::createOne();
-        $this->user->setRoles([$role->getId()]);
-        $this->user->save();
+it('opens a path for a user through a role', function (string $type, Closure $withWorkspace) {
+    $roleOwner = UserRoleFactory::new();
+    $roleOwner = $withWorkspace($roleOwner, '/role-path', 'list');
+    $user = UserFactory::new()
+        ->withRoles($roleOwner->create())
+        ->create();
 
-        $element = allowPath($type, $role->getId(), '/contested');
-        forbidPath($type, $this->user->getId(), '/contested', $element);
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        expect($paths['forbidden'])
-            ->toHaveKey('/contested')
-            ->and($paths['allowed'])
-            ->not->toContain('/contested');
-    });
+    expect($paths['allowed'])->toContain('/role-path');
+})->with('workspaces');
 
-    it('loses against the user being open for it', function (string $type) {
+it('closes a path for the user although a role opens it', function (string $type, Closure $withWorkspace) {
+    $roleOwner = UserRoleFactory::new();
+    $roleOwner = $withWorkspace($roleOwner, '/contested', 'list');
+    $owner = UserFactory::new()
+        ->withRoles($roleOwner->create());
+    $owner = $withWorkspace($owner, '/contested');
+    $user = $owner->create();
 
-        $role = UserRoleFactory::createOne();
-        $this->user->setRoles([$role->getId()]);
-        $this->user->save();
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        $element = forbidPath($type, $role->getId(), '/contested');
-        allowPath($type, $this->user->getId(), '/contested', $element);
-        $paths = Service::findForbiddenPaths($type, $this->user);
+    expect($paths['forbidden'])
+        ->toHaveKey('/contested')
+        ->and($paths['allowed'])
+        ->not->toContain('/contested');
+})->with('workspaces');
 
-        expect($paths['allowed'])
-            ->toContain('/contested')
-            ->and($paths['forbidden'])
-            ->not->toHaveKey('/contested');
-    });
+it('opens a path for the user although a role closes it', function (string $type, Closure $withWorkspace) {
+    $roleOwner = UserRoleFactory::new();
+    $roleOwner = $withWorkspace($roleOwner, '/contested');
+    $owner = UserFactory::new()
+        ->withRoles($roleOwner->create());
+    $owner = $withWorkspace($owner, '/contested', 'list');
+    $user = $owner->create();
 
-    it('wins over another role that closes the same path', function (string $type) {
+    $paths = Service::findForbiddenPaths($type, $user);
 
-        $closing = UserRoleFactory::createOne();
-        $opening = UserRoleFactory::createOne();
-        $this->user->setRoles([$closing->getId(), $opening->getId()]);
-        $this->user->save();
+    expect($paths['allowed'])
+        ->toContain('/contested')
+        ->and($paths['forbidden'])
+        ->not->toHaveKey('/contested');
+})->with('workspaces');
 
-        $element = forbidPath($type, $closing->getId(), '/shared');
-        allowPath($type, $opening->getId(), '/shared', $element);
+it('opens a path that one role opens and another role closes', function (string $type, Closure $withWorkspace) {
+    $closing = UserRoleFactory::new();
+    $closing = $withWorkspace($closing, '/shared');
+    $opening = UserRoleFactory::new();
+    $opening = $withWorkspace($opening, '/shared', 'list');
+    $user = UserFactory::new()
+        ->withRoles(
+            $closing->create(),
+            $opening->create(),
+        )
+        ->create();
 
-        expect(Service::findForbiddenPaths($type, $this->user)['allowed'])->toContain('/shared');
-    });
-})->with('element types');
+    $paths = Service::findForbiddenPaths($type, $user);
 
-it('names a user without a role as having none', function () {
-    expect($this->user->getRoles())->toBeEmpty();
-});
+    expect($paths['allowed'])->toContain('/shared');
+})->with('workspaces');

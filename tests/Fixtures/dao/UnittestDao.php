@@ -19,7 +19,7 @@ namespace OpenDxp\Model\DataObject\Unittest;
 
 use OpenDxp\Model\DataObject\Concrete;
 
-class Dao extends Concrete\Dao
+final class Dao extends Concrete\Dao
 {
     /**
      * @var int[]
