@@ -22,10 +22,6 @@ use OpenDxp\Model\Document\Hardlink;
 
 /**
  * @extends AbstractDocumentFactory<Hardlink>
- *
- * @method Hardlink create(array|callable $attributes = [])
- * @method static Hardlink createOne(array $attributes = [])
- * @method static list<Hardlink> createMany(int $number, array $attributes = [])
  */
 final class DocumentHardlinkFactory extends AbstractDocumentFactory
 {
@@ -41,14 +37,5 @@ final class DocumentHardlinkFactory extends AbstractDocumentFactory
             'propertiesFromSource' => true,
             'childrenFromSource'   => true,
         ]);
-    }
-
-    protected function defaults(): array
-    {
-        return [
-            ...parent::defaults(),
-            'key'  => sprintf('hardlink-%s', uniqid()),
-            'type' => 'hardlink',
-        ];
     }
 }

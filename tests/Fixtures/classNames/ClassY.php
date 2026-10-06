@@ -15,6 +15,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\DummyNamespace;
 
-class ClassY
+final class ClassY
 {
 }

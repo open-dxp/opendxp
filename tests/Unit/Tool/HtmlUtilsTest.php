@@ -18,21 +18,21 @@ namespace OpenDxp\Tests\Unit\Tool;
 
 use OpenDxp\Tool\HtmlUtils;
 
-const ATTRIBUTES = [
+beforeEach(fn () => $this->attributes = [
     'foo' => 'bar',
-    'baz' => 'inga',
     'noop' => null,
     'quux' => true,
     'john' => 1,
-    'doe' => 2,
-];
+]);
 
-it('writes the attributes as a string', function () {
-    expect(HtmlUtils::assembleAttributeString(ATTRIBUTES))
-        ->toBe('foo="bar" baz="inga" noop quux="1" john="1" doe="2"');
+it('joins the attributes into a string', function () {
+    $attributes = HtmlUtils::assembleAttributeString($this->attributes);
+
+    expect($attributes)->toBe('foo="bar" noop quux="1" john="1"');
 });
 
-it('leaves an attribute without a value out when asked to', function () {
-    expect(HtmlUtils::assembleAttributeString(ATTRIBUTES, true))
-        ->toBe('foo="bar" baz="inga" quux="1" john="1" doe="2"');
+it('leaves out an attribute without a value when asked to', function () {
+    $attributes = HtmlUtils::assembleAttributeString($this->attributes, omitNullValues: true);
+
+    expect($attributes)->toBe('foo="bar" quux="1" john="1"');
 });

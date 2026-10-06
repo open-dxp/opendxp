@@ -20,10 +20,6 @@ use OpenDxp\Model\Translation;
 
 /**
  * @extends AbstractSavingFactory<Translation>
- *
- * @method Translation create(array|callable $attributes = [])
- * @method static Translation createOne(array $attributes = [])
- * @method static list<Translation> createMany(int $number, array $attributes = [])
  */
 final class TranslationFactory extends AbstractSavingFactory
 {
@@ -33,14 +29,14 @@ final class TranslationFactory extends AbstractSavingFactory
     }
 
     /**
-     * @param array<string, string> $translations one per language
+     * @param array<string, string> $translations
      */
     public function withTranslations(array $translations): static
     {
         return $this->with(['translations' => $translations]);
     }
 
-    public function admin(): static
+    public function inAdminDomain(): static
     {
         return $this->with(['domain' => Translation::DOMAIN_ADMIN]);
     }
@@ -48,8 +44,7 @@ final class TranslationFactory extends AbstractSavingFactory
     protected function defaults(): array
     {
         return [
-            'key'    => sprintf('key.%s', uniqid()),
-            'domain' => Translation::DOMAIN_DEFAULT,
+            'key' => self::faker()->unique()->slug(2),
         ];
     }
 }

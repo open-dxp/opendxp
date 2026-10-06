@@ -1,6 +1,17 @@
 imports:
     - { resource: test.yaml }
 
+services:
+    OpenDxp\Tests\Application\Controller\TagCollectionController:
+        autowire: true
+        autoconfigure: true
+
 opendxp:
     http_cache:
+        enabled: true
+
+fos_http_cache:
+    proxy_client:
+        noop: ~
+    tags:
         enabled: true

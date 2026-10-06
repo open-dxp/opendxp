@@ -19,69 +19,74 @@ namespace OpenDxp\Tests\Unit\Model;
 use InvalidArgumentException;
 use OpenDxp\Model\Site;
 
-it('carries no custom settings to begin with', function () {
+beforeEach(fn () => $this->site = new Site());
 
-    $site = new Site();
+it('returns no custom settings while it has none', function () {
+    $settings = $this->site->getCustomSettings();
 
-    expect($site->getCustomSettings())
-        ->toBe([])
-        ->and($site->getCustomSettings('anyScope'))
-        ->toBe([]);
+    expect($settings)->toBe([]);
 });
 
-it('hands back the custom settings of one scope', function () {
+it('returns the custom settings of one scope', function () {
+    $this->site->setCustomSettings([
+        'myBundle' => [
+            'color' => 'red',
+            'size' => 42,
+        ],
+    ]);
 
-    $site = new Site();
-    $site->setCustomSettings(['myBundle' => ['color' => 'red', 'size' => 42]]);
+    $settings = $this->site->getCustomSettings('myBundle');
 
-    expect($site->getCustomSettings('myBundle'))->toBe(['color' => 'red', 'size' => 42]);
+    expect($settings)->toBe([
+        'color' => 'red',
+        'size' => 42,
+    ]);
 });
 
-it('hands back nothing for a scope it carries no settings for', function () {
+it('returns no custom settings for a scope it has none for', function () {
+    $this->site->setCustomSettings(['myBundle' => ['key' => 'value']]);
 
-    $site = new Site();
-    $site->setCustomSettings(['myBundle' => ['key' => 'val']]);
+    $settings = $this->site->getCustomSettings('unknownBundle');
 
-    expect($site->getCustomSettings('unknownBundle'))->toBe([]);
+    expect($settings)->toBe([]);
 });
 
-it('hands back every scope when none is named', function () {
+it('returns every scope when none is named', function () {
+    $this->site->setCustomSettings([
+        'bundleA' => ['x' => 1],
+        'bundleB' => ['y' => 2],
+    ]);
 
-    $settings = ['bundleA' => ['x' => 1], 'bundleB' => ['y' => 2]];
-    $site = new Site();
-    $site->setCustomSettings($settings);
+    $settings = $this->site->getCustomSettings();
 
-    expect($site->getCustomSettings())->toBe($settings);
+    expect($settings)->toBe([
+        'bundleA' => ['x' => 1],
+        'bundleB' => ['y' => 2],
+    ]);
 });
 
-it('carries no custom settings once they were set to nothing', function () {
+it('forgets its custom settings when they are set to null', function () {
+    $this->site->setCustomSettings(['myBundle' => ['key' => 'value']]);
 
-    $site = new Site();
-    $site->setCustomSettings(['foo' => 'bar']);
-    $site->setCustomSettings(null);
+    $this->site->setCustomSettings(null);
 
-    expect($site->getCustomSettings())
-        ->toBe([])
-        ->and($site->getCustomSettings('foo'))
-        ->toBe([]);
+    expect($this->site->getCustomSettings('myBundle'))->toBe([]);
 });
 
-it('reads custom settings that were handed over serialized', function () {
+it('reads custom settings that arrive serialized', function () {
+    $serialized = serialize(['bundleA' => ['active' => true]]);
 
-    $site = new Site();
-    $site->setCustomSettings(serialize(['bundleA' => ['active' => true]]));
+    $this->site->setCustomSettings($serialized);
 
-    expect($site->getCustomSettings('bundleA'))->toBe(['active' => true]);
+    expect($this->site->getCustomSettings('bundleA'))->toBe(['active' => true]);
 });
 
-it('takes a domain with a wildcard', function () {
+it('accepts a domain with a wildcard', function () {
+    $this->site->setDomains(['*.example.com']);
 
-    $site = new Site();
-    $site->setDomains(['*.example.com']);
-
-    expect($site->getDomains())->toBe(['*.example.com']);
+    expect($this->site->getDomains())->toBe(['*.example.com']);
 });
 
-it('refuses a domain that is not one', function () {
-    (new Site())->setDomains(['not a valid domain!!']);
-})->throws(InvalidArgumentException::class);
+it('refuses an invalid domain', function () {
+    $this->site->setDomains(['not a valid domain!!']);
+})->throws(InvalidArgumentException::class, 'Invalid domain name "not a valid domain!!"');

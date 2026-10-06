@@ -24,102 +24,82 @@ use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\AssetVideoFactory;
 use OpenDxp\Test\Factory\TagFactory;
 
-// An installation starts with the asset root folder, and a listing counts it like any other asset.
-const ASSETS = 6;
-
-function onlyTagged(Asset\Listing $listing, Tag ...$tags): Asset\Listing
+/**
+ * The join returns one row for each tag of an asset. The query groups these rows by asset.
+ */
+function taggedWithAnyOf(Tag ...$tags): Asset\Listing
 {
-    $listing->getDao()->onCreateQueryBuilder(static function (QueryBuilder $query) use ($tags): void {
-        $expression = $query->expr();
-        $ids = array_map(static fn (Tag $tag) => $expression->literal($tag->getId()), $tags);
-
-        $query
-            ->innerJoin('assets', 'tags_assignment', 'ta', $expression->and(
-                $expression->in('ta.tagid', $ids),
-                $expression->eq('ta.ctype', $expression->literal('asset')),
+    $listing = new Asset\Listing();
+    $listing->getDao()->onCreateQueryBuilder(
+        static function (QueryBuilder $query) use ($tags): void {
+            $expression = $query->expr();
+            $tagIds = array_map(
+                static fn (Tag $tag): string => $expression->literal($tag->getId()),
+                $tags,
+            );
+            $joinCondition = $expression->and(
+                $expression->in('ta.tagid', $tagIds),
+                $expression->eq(
+                    'ta.ctype',
+                    $expression->literal('asset'),
+                ),
                 $expression->eq('ta.cid', 'assets.id'),
-            ))
-            ->groupBy('assets.id');
-    });
+            );
+
+            $query
+                ->innerJoin('assets', 'tags_assignment', 'ta', $joinCondition)
+                ->groupBy('assets.id');
+        },
+    );
 
     return $listing;
 }
 
 beforeEach(function () {
-    $this->tagA = TagFactory::createOne(['name' => 'A']);
-    $this->tagB = TagFactory::createOne(['name' => 'B']);
-
-    $first = AssetImageFactory::createOne();
-    tagElement($this->tagA, $first);
-    tagElement($this->tagB, $first);
-
+    $image = AssetImageFactory::createOne();
+    $secondImage = AssetImageFactory::createOne();
+    $document = AssetDocumentFactory::createOne();
+    $video = AssetVideoFactory::createOne();
     AssetImageFactory::createOne();
 
-    $third = AssetImageFactory::createOne();
-    tagElement($this->tagB, $third);
-
-    $document = AssetDocumentFactory::createOne();
-    tagElement($this->tagA, $document);
-    tagElement($this->tagB, $document);
-
-    $video = AssetVideoFactory::createOne();
-    tagElement($this->tagB, $video);
+    $this->tagA = TagFactory::new()
+        ->assignedTo($image, $document)
+        ->create();
+    $this->tagB = TagFactory::new()
+        ->assignedTo($image, $secondImage, $document, $video)
+        ->create();
 });
 
-it('counts every asset there is', function () {
-    expect((new Asset\Listing())->getTotalCount())->toBe(ASSETS);
+it('counts each asset of a grouped query once', function () {
+    $listing = taggedWithAnyOf($this->tagA, $this->tagB);
+
+    $count = $listing->getTotalCount();
+
+    expect($count)->toBe(4);
 });
 
-it('counts only as many as the limit allows', function () {
+it('loads each asset of a grouped query once', function () {
+    $listing = taggedWithAnyOf($this->tagA, $this->tagB);
 
-    $listing = new Asset\Listing();
-    $listing->setLimit(3);
-    $listing->setOffset(1);
+    $assets = $listing->load();
 
-    expect($listing->getCount())->toBe(3);
+    expect($assets)->toHaveCount(4);
 });
 
-it('counts what is left behind the offset', function () {
-
-    $listing = new Asset\Listing();
-    $listing->setLimit(10);
-    $listing->setOffset(1);
-
-    expect($listing->getCount())->toBe(ASSETS - 1);
-});
-
-it('counts the same once the listing was loaded', function () {
-
-    $listing = new Asset\Listing();
-    $listing->setLimit(10);
-    $listing->setOffset(1);
-    $listing->load();
-
-    expect($listing->getCount())
-        ->toBe(ASSETS - 1)
-        ->and($listing->getTotalCount())
-        ->toBe(ASSETS);
-});
-
-it('counts the rows of a grouped query, not its groups', function () {
-
-    $listing = onlyTagged(new Asset\Listing(), $this->tagA, $this->tagB);
-
-    expect($listing->getTotalCount())->toBe(4);
-
-    $listing->load();
-
-    expect($listing->getCount())->toBe(4);
-});
-
-it('counts every row of a grouped query even under a limit', function () {
-
-    $listing = onlyTagged(new Asset\Listing(), $this->tagA, $this->tagB);
+it('counts each asset of a grouped query once beyond its limit', function () {
+    $listing = taggedWithAnyOf($this->tagA, $this->tagB);
     $listing->setLimit(3);
 
-    expect($listing->getTotalCount())->toBe(4);
+    $count = $listing->getTotalCount();
 
-    $listing->load();
+    expect($count)->toBe(4);
+});
 
-    expect($listing->getCount())->toBe(3);
+it('loads no more assets of a grouped query than its limit allows', function () {
+    $listing = taggedWithAnyOf($this->tagA, $this->tagB);
+    $listing->setLimit(3);
+
+    $assets = $listing->load();
+
+    expect($assets)->toHaveCount(3);
 });

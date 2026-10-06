@@ -18,36 +18,63 @@ namespace OpenDxp\Tests\Feature\ClassDefinition;
 
 use Exception;
 use OpenDxp\Model\DataObject\ClassDefinition;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\UrlSlug;
 use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tests\Application\Service\ThingSlugGenerator;
 use OpenDxp\Tests\Factory\SluggableFactory;
 use stdClass;
 
+function slugField(): UrlSlug
+{
+    $field = new UrlSlug();
+    $field->setName('slug');
+
+    return $field;
+}
+
 it('rejects a generator class that does not exist', function () {
-    slugField('App\Missing\Generator')->preSave(new ClassDefinition());
-})->throws(Exception::class, 'Field slug: App\Missing\Generator is no slug generator.');
+    $field = slugField();
+    $field->setSlugGeneratorClass('App\Missing\Generator');
+
+    expect(fn () => $field->preSave(new ClassDefinition()))
+        ->toThrow(Exception::class, 'Field slug: App\Missing\Generator is no slug generator.');
+});
 
 it('rejects a class that is no slug generator', function () {
-    slugField(stdClass::class)->preSave(new ClassDefinition());
-})->throws(Exception::class, 'Field slug: stdClass is no slug generator.');
+    $field = slugField();
+    $field->setSlugGeneratorClass(stdClass::class);
+
+    expect(fn () => $field->preSave(new ClassDefinition()))
+        ->toThrow(Exception::class, 'Field slug: stdClass is no slug generator.');
+});
 
 it('rejects a wrong generator inside localized fields', function () {
-    localizedFieldsWith(slugField(stdClass::class))->preSave(new ClassDefinition());
-})->throws(Exception::class, 'Field slug: stdClass is no slug generator.');
+    $field = slugField();
+    $field->setSlugGeneratorClass(stdClass::class);
+    $localizedFields = new Localizedfields();
+    $localizedFields->setName('localizedfields');
+    $localizedFields->addChild($field);
+
+    expect(fn () => $localizedFields->preSave(new ClassDefinition()))
+        ->toThrow(Exception::class, 'Field slug: stdClass is no slug generator.');
+});
 
 it('rejects filling an empty slug without a generator', function () {
-    slugField(null)
-        ->setFillEmptySlug(true)
-        ->preSave(new ClassDefinition());
-})->throws(Exception::class, 'Field slug: Filling an empty slug needs a slug generator.');
+    $field = slugField();
+    $field->setFillEmptySlug(true);
 
-it('hands the object editor the prefix of every language and site', function () {
+    expect(fn () => $field->preSave(new ClassDefinition()))
+        ->toThrow(Exception::class, 'Field slug: Filling an empty slug needs a slug generator.');
+});
+
+it('gives the object editor the prefix of every language and site', function () {
     $site = SiteFactory::createOne();
-    $field = slugField(ThingSlugGenerator::class);
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
 
-    $field->enrichLayoutDefinition(SluggableFactory::createOne(), [
-        'ownerType' => 'localizedfield',
-    ]);
+    $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']);
 
     expect($field->getSlugPrefixes()['de'])
         ->toMatchArray([
@@ -56,11 +83,12 @@ it('hands the object editor the prefix of every language and site', function () 
         ]);
 });
 
-it('hands the object editor prefixes without a language outside of localized fields', function () {
-    $field = slugField(ThingSlugGenerator::class);
+it('gives the object editor prefixes without a language outside of localized fields', function () {
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
 
-    $field->enrichLayoutDefinition(SluggableFactory::createOne());
+    $field->enrichLayoutDefinition($object);
 
-    expect($field->getSlugPrefixes()[''][0])
-        ->toBe('/things');
+    expect($field->getSlugPrefixes()[''][0])->toBe('/things');
 });

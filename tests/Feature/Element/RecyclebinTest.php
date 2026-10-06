@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Recyclebin;
 use OpenDxp\Model\Element\Recyclebin\Item;
 use OpenDxp\Test\Factory\UserFactory;
@@ -32,72 +33,84 @@ function recycled(string $path): Item
     return $listing->current();
 }
 
-beforeEach(fn () => $this->user = UserFactory::new()->admin()->create());
+function storedElementOf(Item $item): ElementInterface
+{
+    $stored = Storage::get('recycle_bin')->read($item->getStorageFile());
 
-it('keeps the element it took in and hands it back on a restore', function () {
+    return unserialize($stored);
+}
 
+function recycleBinRoot(): string
+{
+    return sprintf('%s/var/recyclebin', Container::parameter('kernel.project_dir'));
+}
+
+beforeEach(function () {
+    $this->user = UserFactory::new()
+        ->admin()
+        ->create();
+});
+
+it('stores an element it takes in', function () {
     $object = UnittestFactory::createOne();
-    $path = $object->getFullPath();
 
+    Item::create($object, $this->user);
+
+    $item = recycled($object->getFullPath());
+    expect(storedElementOf($item))->getId()->toBe($object->getId());
+});
+
+it('restores a deleted element', function () {
+    $object = UnittestFactory::createOne();
     Item::create($object, $this->user);
     $object->delete();
 
-    $item = recycled($path);
-    $storage = Storage::get('recycle_bin');
-
-    expect($storage->fileExists($item->getStorageFile()))
-        ->toBeTrue()
-        ->and(unserialize($storage->read($item->getStorageFile()))->getId())
-        ->toBe($object->getId());
-
-    $item->restore();
+    recycled($object->getFullPath())->restore();
 
     expect(DataObject::getById($object->getId()))->toBeInstanceOf($object::class);
 });
 
-it('takes in everything below the element and hands all of it back', function () {
-
+it('stores the children of an element it takes in', function () {
     $parent = UnittestFactory::createOne();
-    $child = UnittestFactory::createOne(['parentId' => $parent->getId()]);
-    $path = $parent->getFullPath();
+    UnittestFactory::new()
+        ->withParent($parent)
+        ->create();
 
+    Item::create($parent, $this->user);
+
+    $item = recycled($parent->getFullPath());
+    expect($item->getAmount())
+        ->toBe(2)
+        ->and(storedElementOf($item)->getChildren(includingUnpublished: true))
+        ->toHaveCount(1);
+});
+
+it('restores the children of a deleted element', function () {
+    $parent = UnittestFactory::createOne();
+    $child = UnittestFactory::new()
+        ->withParent($parent)
+        ->create();
     Item::create($parent, $this->user);
     $parent->delete();
 
-    $item = recycled($path);
-    $stored = unserialize(Storage::get('recycle_bin')->read($item->getStorageFile()));
+    recycled($parent->getFullPath())->restore();
 
-    expect($item->getAmount())
-        ->toBe(2)
-        ->and($stored->getId())
-        ->toBe($parent->getId())
-        ->and($stored->getChildren(DataObject::$types, true)->getData())
-        ->toHaveCount(1);
-
-    $item->restore();
-
-    expect(DataObject::getById($parent->getId()))
-        ->toBeInstanceOf($parent::class)
-        ->and(DataObject::getById($child->getId()))
-        ->toBeInstanceOf($child::class);
+    expect(DataObject::getById($child->getId()))->toBeInstanceOf($child::class);
 });
 
-it('hands back the data and the relations of a restored element', function () {
-
+it('restores the data and the relations of a deleted element', function () {
     $related = UnittestFactory::createOne();
     $object = UnittestFactory::createOne([
         'input' => 'some input',
         'objects' => [$related],
         'lobjects' => [$related],
     ]);
-    $path = $object->getFullPath();
-
     Item::create($object, $this->user);
     $object->delete();
 
-    recycled($path)->restore();
-    $restored = DataObject::getById($object->getId());
+    recycled($object->getFullPath())->restore();
 
+    $restored = DataObject::getById($object->getId());
     expect($restored->getInput())
         ->toBe('some input')
         ->and($restored->getObjects()[0]->getId())
@@ -106,31 +119,27 @@ it('hands back the data and the relations of a restored element', function () {
         ->toBe($related->getId());
 });
 
-it('empties itself even when its storage root is a symlink', function () {
-
-    $root = Container::parameter('kernel.project_dir') . '/var/recyclebin';
-    $target = $root . '-moved';
-
+it('empties itself when its storage root is a symlink', function () {
+    $root = recycleBinRoot();
+    $target = sprintf('%s-moved', $root);
     rename($root, $target);
     symlink($target, $root);
+    $object = UnittestFactory::createOne();
+    Item::create($object, $this->user);
+    $object->delete();
 
-    try {
-        $object = UnittestFactory::createOne();
-        Item::create($object, $this->user);
-        $object->delete();
+    (new Recyclebin())->flush();
 
-        $storage = Storage::get('recycle_bin');
-
-        expect(iterator_to_array($storage->listContents('/', true), false))->not->toBeEmpty();
-
-        (new Recyclebin())->flush();
-
-        expect(iterator_to_array($storage->listContents('/', true), false))
-            ->toBeEmpty()
-            ->and(is_dir($root))
-            ->toBeTrue();
-    } finally {
-        unlink($root);
-        rename($target, $root);
-    }
+    $contents = Storage::get('recycle_bin')->listContents('/', deep: true);
+    expect(iterator_to_array($contents, preserve_keys: false))
+        ->toBeEmpty()
+        ->and(is_dir($root))
+        ->toBeTrue();
+})->after(function () {
+    $root = recycleBinRoot();
+    unlink($root);
+    rename(
+        sprintf('%s-moved', $root),
+        $root,
+    );
 });

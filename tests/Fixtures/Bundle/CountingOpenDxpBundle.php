@@ -18,7 +18,7 @@ namespace OpenDxp\Tests\Fixtures\Bundle;
 
 use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 
-class CountingOpenDxpBundle extends AbstractOpenDxpBundle
+final class CountingOpenDxpBundle extends AbstractOpenDxpBundle
 {
     use CountsItsInstances;
 }

@@ -29,7 +29,13 @@ abstract class WebTestCase extends \Symfony\Bundle\FrameworkBundle\Test\WebTestC
     #[Override]
     protected static function createKernel(array $options = []): KernelInterface
     {
-        trigger_deprecation('open-dxp/opendxp', '1.5', 'Extending "%s" is deprecated and will be removed in 2.0. Use "OpenDxp\TestFoundation\BrowserTestCase" instead.', self::class);
+        trigger_deprecation(
+            'open-dxp/opendxp',
+            '1.5',
+            'Extending "%s" is deprecated and will be removed in 2.0. '
+                . 'Use "OpenDxp\TestFoundation\BrowserTestCase" instead.',
+            self::class,
+        );
 
         $kernel = parent::createKernel($options);
 

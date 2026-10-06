@@ -21,37 +21,44 @@ use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 it('keeps the metadata a relation carries', function () {
+    $assigned = array_map(
+        static function (Unittest $target): ObjectMetadata {
+            $metadata = new ObjectMetadata('objectswithmetadata', ['meta1', 'meta2'], $target);
+            $metadata->setMeta1('value11');
+            $metadata->setMeta2('value21');
 
-    $targets = UnittestFactory::createMany(4);
-
-    $assigned = array_map(static function (Unittest $target): ObjectMetadata {
-        $metadata = new ObjectMetadata('objectswithmetadata', ['meta1', 'meta2'], $target);
-        $metadata->setMeta1('value11');
-        $metadata->setMeta2('value21');
-
-        return $metadata;
-    }, $targets);
+            return $metadata;
+        },
+        UnittestFactory::createMany(4),
+    );
 
     $object = UnittestFactory::createOne(['objectswithmetadata' => $assigned]);
 
-    expect(Unittest::getById($object->getId(), ['force' => true]))
-        ->toCarryField('objectswithmetadata', $assigned);
+    expect(reloaded($object))->toCarryField('objectswithmetadata', $assigned);
 });
 
-it('names the object that points at it as a relation of its own', function () {
-
+it('lists the objects that point at it', function () {
     $target = UnittestFactory::createOne();
+
     $object = UnittestFactory::createOne(['objects' => [$target]]);
+    $pointing = reloaded($target)->getNonowner();
 
-    expect($target->getNonowner())
+    expect($pointing)
         ->toHaveCount(1)
-        ->and($target->getNonowner()[0]->getId())
+        ->and($pointing[0])
+        ->getId()
         ->toBe($object->getId());
+});
 
-    $reloaded = Unittest::getById($target->getId(), ['force' => true]);
+it('lists the objects that point at it without a reload', function () {
+    $target = UnittestFactory::createOne();
 
-    expect($reloaded->getNonowner())
+    $object = UnittestFactory::createOne(['objects' => [$target]]);
+    $pointing = $target->getNonowner();
+
+    expect($pointing)
         ->toHaveCount(1)
-        ->and($reloaded->getNonowner()[0]->getId())
+        ->and($pointing[0])
+        ->getId()
         ->toBe($object->getId());
 });

@@ -23,52 +23,69 @@ use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use UnexpectedValueException;
 
-beforeEach(fn () => $this->notifications = Container::get(NotificationService::class));
+function notificationCountOf(int $userId): int
+{
+    $found = Container::get(NotificationService::class)->findAll(['recipient' => $userId]);
 
-it('refuses to send to a user that does not exist', function () {
-    $this->notifications->sendToUser(100, 100, 'Test title', 'Test message');
-})->throws(UnexpectedValueException::class, 'No user found with the ID 100');
+    return $found['total'];
+}
 
-it('refuses to send to a group that does not exist', function () {
-    $this->notifications->sendToGroup(100, 100, 'Test title', 'Test message');
-})->throws(UnexpectedValueException::class, 'No group found with the ID 100');
-
-it('leaves one notification per message it sent to a user', function () {
-
-    $user = UserFactory::createOne();
-
-    $this->notifications->sendToUser($user->getId(), 0, 'Test title', 'Test message');
-    $this->notifications->sendToUser($user->getId(), 0, 'Test title', 'Test message');
-
-    expect($this->notifications->findAll(['recipient' => $user->getId()])['total'])->toBe(2);
+beforeEach(function () {
+    $this->notifications = Container::get(NotificationService::class);
 });
 
-it('leaves a notification that points at the element it was sent about', function () {
+it('refuses to send to a user that does not exist', function () {
+    $this->notifications->sendToUser(999999, 0, 'Title', 'Message');
+})->throws(UnexpectedValueException::class, 'No user found with the ID 999999');
 
-    $user = UserFactory::createOne();
+it('refuses to send to a group that does not exist', function () {
+    $this->notifications->sendToGroup(999999, 0, 'Title', 'Message');
+})->throws(UnexpectedValueException::class, 'No group found with the ID 999999');
+
+it('keeps an earlier notification when it sends another one', function () {
+    $userId = UserFactory::createOne()->getId();
+    $this->notifications->sendToUser($userId, 0, 'Title', 'Message');
+
+    $this->notifications->sendToUser($userId, 0, 'Title', 'Message');
+
+    expect(notificationCountOf($userId))->toBe(2);
+});
+
+it('links a notification to the element it was sent about', function () {
+    $userId = UserFactory::createOne()->getId();
     $object = UnittestFactory::createOne();
 
-    $this->notifications->sendToUser($user->getId(), 0, 'Test title', 'Test message', $object);
+    $this->notifications->sendToUser($userId, 0, 'Title', 'Message', $object);
 
-    $found = $this->notifications->findAll(['recipient' => $user->getId()]);
-
+    $found = $this->notifications->findAll(['recipient' => $userId]);
     expect($found['total'])
         ->toBe(1)
-        ->and($found['data'][0]->getLinkedElement()->getId())
+        ->and($found['data'][0]->getLinkedElement())
+        ->getId()
         ->toBe($object->getId());
 });
 
-it('leaves a notification with every user of the group it was sent to', function () {
+it('sends a notification to every user of a group', function () {
+    // A group passes a notification on only to users who may see notifications.
+    $group = UserRoleFactory::new()
+        ->withPermissions('notifications')
+        ->create();
+    $first = UserFactory::new()
+        ->withRoles($group)
+        ->create();
+    $second = UserFactory::new()
+        ->withRoles($group)
+        ->create();
 
-    // sendToGroup skips a user who is not allowed to see notifications.
-    $group = UserRoleFactory::createOne(['permissions' => ['notifications']]);
-    $first = UserFactory::createOne(['roles' => [$group->getId()]]);
-    $second = UserFactory::createOne(['roles' => [$group->getId()]]);
+    $this->notifications->sendToGroup(
+        $group->getId(),
+        0,
+        'Title',
+        'Message',
+    );
 
-    $this->notifications->sendToGroup($group->getId(), 0, 'Test title', 'Test message');
-
-    expect($this->notifications->findAll(['recipient' => $first->getId()])['total'])
+    expect(notificationCountOf($first->getId()))
         ->toBe(1)
-        ->and($this->notifications->findAll(['recipient' => $second->getId()])['total'])
+        ->and(notificationCountOf($second->getId()))
         ->toBe(1);
 });

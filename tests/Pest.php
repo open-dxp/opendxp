@@ -14,7 +14,6 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Test\Expectation\Elements;
 use OpenDxp\Test\Expectation\Fields;
 use OpenDxp\Test\Expectation\Redirects;
 use OpenDxp\TestFoundation\TestCase;
@@ -24,16 +23,39 @@ use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
 use OpenDxp\Tests\TestCase\SearchTestCase;
 
-Elements::register();
 Fields::register();
 Redirects::register();
 
 // Unit tests need no application, so they get no test case.
-pest()->extend(TestCase::class)->in('Feature/Asset', 'Feature/LazyLoading', 'Feature/Permissions', 'Feature/Site', 'Feature/ClassDefinition', 'Feature/ClassificationStore',
-    'Feature/Console', 'Feature/DataObject', 'Feature/DataType', 'Feature/Dependency', 'Feature/Document', 'Feature/Element', 'Feature/Factory', 'Feature/Glossary', 'Feature/Inheritance', 'Feature/Mail', 'Feature/Messenger',
-    'Feature/Notification', 'Feature/Relation', 'Feature/Seo', 'Feature/Tool', 'Feature/Translation', 'Feature/Twig', 'Feature/Version', 'Feature/WebsiteSetting');
-pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
-pest()->extend(SearchTestCase::class)->in('Feature/Search');
+pest()->extend(TestCase::class)->in(
+    'Feature/Asset',
+    'Feature/ClassDefinition',
+    'Feature/ClassificationStore',
+    'Feature/Console',
+    'Feature/DataObject',
+    'Feature/DataType',
+    'Feature/Dependency',
+    'Feature/Document',
+    'Feature/Element',
+    'Feature/Factory',
+    'Feature/Glossary',
+    'Feature/Inheritance',
+    'Feature/LazyLoading',
+    'Feature/Mail',
+    'Feature/Messenger',
+    'Feature/Notification',
+    'Feature/Permissions',
+    'Feature/Relation',
+    'Feature/Seo',
+    'Feature/Site',
+    'Feature/Tool',
+    'Feature/Translation',
+    'Feature/Twig',
+    'Feature/Version',
+    'Feature/WebsiteSetting',
+);
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
 pest()->extend(HttpCacheTestCase::class)->in('Feature/HttpCache');
 pest()->extend(InstallerTestCase::class)->in('Feature/Installer');
+pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
+pest()->extend(SearchTestCase::class)->in('Feature/Search');

@@ -24,32 +24,44 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class TagCollectionController extends FrontendController
 {
-    public function defaultAction(Request $request): Response
+    public function defaultAction(): Response
     {
-        if ($request->attributes->get('test_doc_listing')) {
-            (new Document\Listing())->getData();
-        }
+        return $this->cacheable(new Response('<html><body>test</body></html>'));
+    }
 
-        if ($request->attributes->get('test_asset_listing')) {
-            (new Asset\Listing())->getData();
-        }
-
+    public function templateAction(Request $request): Response
+    {
         $template = $request->attributes->get('_template');
 
-        $response = $template !== null
-            ? $this->render($template)
-            : new Response('<html><body>test</body></html>');
+        return $this->cacheable($this->render($template));
+    }
 
+    public function documentListingAction(): Response
+    {
+        (new Document\Listing())->getData();
+
+        return $this->defaultAction();
+    }
+
+    public function assetListingAction(): Response
+    {
+        (new Asset\Listing())->getData();
+
+        return $this->defaultAction();
+    }
+
+    public function fragmentAction(int $documentId): Response
+    {
+        Document::getById($documentId, ['force' => true]);
+
+        return new Response('fragment');
+    }
+
+    private function cacheable(Response $response): Response
+    {
         $response->setPublic();
         $response->setSharedMaxAge(3600);
 
         return $response;
-    }
-
-    public function fragmentAction(int $docId): Response
-    {
-        Document::getById($docId, ['force' => true]);
-
-        return new Response('fragment-ok');
     }
 }

@@ -20,34 +20,49 @@ use OpenDxp\Model\Element\Service;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 
-it('asks for no force when the caller names nothing', function () {
-    expect(Service::prepareGetByIdParams([]))->toBe(['force' => false]);
+it('does not force a load when no option is given', function () {
+    $options = Service::prepareGetByIdParams([]);
+
+    expect($options)->toBe(['force' => false]);
 });
 
-it('keeps the force the caller names', function (bool $force) {
-    expect(Service::prepareGetByIdParams(['force' => $force]))->toBe(['force' => $force]);
-})->with([true, false]);
+it('keeps the force option it is given', function (bool $force) {
+    $options = Service::prepareGetByIdParams(['force' => $force]);
 
-it('refuses a force that is not a boolean', function (mixed $force) {
-    Service::prepareGetByIdParams(['force' => $force]);
-})->with(['yes', 1, null])->throws(InvalidOptionsException::class);
-
-it('refuses an option it does not know', function (array $params) {
-    Service::prepareGetByIdParams($params);
+    expect($options)->toBe(['force' => $force]);
 })->with([
-    [['unknown' => true]],
-    [['force' => true, 'unknown' => 'x']],
-])->throws(UndefinedOptionsException::class);
+    'forced' => [true],
+    'not forced' => [false],
+]);
 
-it('answers every call on its own', function () {
+it('refuses a force option that is not a boolean', function (mixed $force, string $message) {
+    expect(fn () => Service::prepareGetByIdParams(['force' => $force]))
+        ->toThrow(InvalidOptionsException::class, $message);
+})->with([
+    'a string' => [
+        'yes',
+        'The option "force" with value "yes" is expected to be of type "bool", but is of type "string".',
+    ],
+    'an integer' => [
+        1,
+        'The option "force" with value 1 is expected to be of type "bool", but is of type "int".',
+    ],
+    'null' => [
+        null,
+        'The option "force" with value null is expected to be of type "bool", but is of type "null".',
+    ],
+]);
 
-    $plain = Service::prepareGetByIdParams([]);
-    $forced = Service::prepareGetByIdParams(['force' => true]);
-
-    expect($plain)
-        ->toBe(['force' => false])
-        ->and($forced)
-        ->toBe(['force' => true])
-        ->and(Service::prepareGetByIdParams([]))
-        ->toBe(['force' => false]);
-});
+it('refuses an option it does not know', function (array $options) {
+    Service::prepareGetByIdParams($options);
+})->with([
+    'an unknown option alone' => [
+        ['unknown' => true],
+    ],
+    'an unknown option next to force' => [
+        [
+            'force' => true,
+            'unknown' => 'x',
+        ],
+    ],
+])->throws(UndefinedOptionsException::class, 'The option "unknown" does not exist. Defined options are: "force".');

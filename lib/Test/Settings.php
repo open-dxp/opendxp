@@ -21,10 +21,18 @@ use OpenDxp\Config;
 final class Settings
 {
     /**
+     * The override holds until the test ends. The test case of open-dxp/test-foundation resets the system
+     * configuration after every test.
+     *
      * @param array<string, mixed> $settings
      */
     public static function override(array $settings): void
     {
-        Config::setSystemConfiguration(array_replace_recursive(Config::getSystemConfiguration(), $settings));
+        Config::setSystemConfiguration(
+            array_replace_recursive(
+                Config::getSystemConfiguration(),
+                $settings,
+            ),
+        );
     }
 }

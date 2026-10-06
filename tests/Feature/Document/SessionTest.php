@@ -22,19 +22,19 @@ use OpenDxp\Model\Element\Service as ElementService;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
 
-it('keeps its editables through a trip into the session', function () {
-
-    $editable = new Input();
-    $editable->setName('testinput');
-    $editable->setDataFromEditmode('foo');
-
-    $page = DocumentPageFactory::new()->unpublished()->create();
-    $page->setEditable($editable);
-
+it('keeps an unsaved editable through a trip into the session', function () {
+    $page = DocumentPageFactory::new()
+        ->unpublished()
+        ->create();
+    $headline = (new Input())
+        ->setName('headline')
+        ->setDataFromEditmode('foo');
+    // The editable is never saved, so only the session can carry it.
+    $page->setEditable($headline);
     $session = Container::requestStack()->getCurrentRequest()->getSession();
-    ElementService::saveElementToSession($page, $session->getId());
 
+    ElementService::saveElementToSession($page, $session->getId());
     $restored = Service::getElementFromSession('document', $page->getId(), $session->getId());
 
-    expect($restored->getEditables())->toHaveCount(count($page->getEditables()));
+    expect($restored->getEditable('headline')->getValue())->toBe('foo');
 });

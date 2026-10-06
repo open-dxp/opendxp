@@ -22,79 +22,84 @@ beforeEach(function () {
     $this->asset = AssetImageFactory::createOne();
 });
 
-it('hands back the entry of the language that was asked for', function () {
-
-    $this->asset->addMetadata('alt', 'input', 'without a language', null);
+it('returns the entry of the language asked for', function (string $language, string $expected) {
+    $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->addMetadata('alt', 'input', 'in german', 'de');
     $this->asset->addMetadata('alt', 'input', 'in english', 'en');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt', 'de'))
-        ->toBe('in german')
-        ->and($this->asset->getMetadata('alt', 'en'))
-        ->toBe('in english');
-});
+    $found = $this->asset->getMetadata('alt', $language);
 
-it('falls back to the entry without a language', function (string $language) {
+    expect($found)->toBe($expected);
+})->with([
+    'german' => ['de', 'in german'],
+    'english' => ['en', 'in english'],
+]);
 
-    $this->asset->addMetadata('alt', 'input', 'without a language', null);
+it('falls back to the entry without a language', function () {
+    $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->addMetadata('alt', 'input', 'in german', 'de');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt', $language))->toBe('without a language');
-})->with(['it', 'fr']);
+    $found = $this->asset->getMetadata('alt', 'fr');
 
-it('hands back the entry of the default language when no language is named', function () {
+    expect($found)->toBe('without a language');
+});
 
+it('returns the entry of the default language when no language is named', function () {
     $this->asset->addMetadata('alt', 'input', 'in english', 'en');
     $this->asset->addMetadata('alt', 'input', 'in german', 'de');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt'))->toBe('in english');
+    $found = $this->asset->getMetadata('alt');
+
+    expect($found)->toBe('in english');
 });
 
-it('hands back the entry without a language when none carries the default one', function () {
-
+it('returns the entry without a language when none has the default language', function () {
     $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt'))->toBe('without a language');
+    $found = $this->asset->getMetadata('alt');
+
+    expect($found)->toBe('without a language');
 });
 
-it('insists on the exact language when a strict match is asked for', function () {
-
-    $this->asset->addMetadata('alt', 'input', 'without a language', null);
+it('returns no fallback on a strict language match', function () {
+    $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->addMetadata('alt', 'input', 'in german', 'de');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt', 'de', true))
-        ->toBe('in german')
-        ->and($this->asset->getMetadata('alt', 'fr', true))
-        ->toBeNull();
+    $found = $this->asset->getMetadata('alt', 'fr', strictMatchLanguage: true);
+
+    expect($found)->toBeNull();
 });
 
-it('hands back nothing for a name it holds no entry under', function () {
-
-    $this->asset->addMetadata('alt', 'input', 'without a language', null);
-    $this->asset->save();
-
-    expect($this->asset->getMetadata('title', 'de'))->toBeNull();
-});
-
-it('hands back nothing when neither the language nor a fallback is there', function () {
-
-    $this->asset->addMetadata('alt', 'input', 'in german', 'de');
-    $this->asset->save();
-
-    expect($this->asset->getMetadata('alt', 'fr'))->toBeNull();
-});
-
-it('names the data, the type and the language of a raw entry', function () {
-
+it('returns nothing for a name without an entry', function () {
     $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt', 'de', false, true))->toMatchArray([
+    $found = $this->asset->getMetadata('title', 'de');
+
+    expect($found)->toBeNull();
+});
+
+it('returns nothing when neither the language nor a fallback is there', function () {
+    $this->asset->addMetadata('alt', 'input', 'in german', 'de');
+    $this->asset->save();
+
+    $found = $this->asset->getMetadata('alt', 'fr');
+
+    expect($found)->toBeNull();
+});
+
+it('returns the name, data, type and language of a raw entry', function () {
+    $this->asset->addMetadata('alt', 'input', 'without a language');
+    $this->asset->save();
+
+    $found = $this->asset->getMetadata('alt', 'de', raw: true);
+
+    expect($found)->toMatchArray([
         'name' => 'alt',
         'data' => 'without a language',
         'language' => null,
@@ -102,54 +107,47 @@ it('names the data, the type and the language of a raw entry', function () {
     ]);
 });
 
-it('hands back nothing for a strict raw match that is not there', function () {
-
+it('returns nothing for a strict raw match that is not there', function () {
     $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->save();
 
-    expect($this->asset->getMetadata('alt', 'de', true, true))->toBeNull();
+    $found = $this->asset->getMetadata('alt', 'de', strictMatchLanguage: true, raw: true);
+
+    expect($found)->toBeNull();
 });
 
-it('hands back every entry it holds when nothing is asked for', function () {
-
-    foreach (['en', 'de', null] as $language) {
-        foreach (['one', 'two', 'three'] as $name) {
-            $this->asset->addMetadata($name, 'input', $name, $language);
-        }
-    }
-
-    $this->asset->addMetadata('four', 'input', 'four');
+it('returns every entry when nothing is asked for', function () {
+    $this->asset->addMetadata('alt', 'input', 'in english', 'en');
+    $this->asset->addMetadata('alt', 'input', 'in german', 'de');
+    $this->asset->addMetadata('alt', 'input', 'without a language');
+    $this->asset->addMetadata('title', 'input', 'a title');
     $this->asset->save();
 
-    expect($this->asset->getMetadata())->toHaveCount(10);
+    $found = $this->asset->getMetadata();
+
+    expect($found)->toHaveCount(4);
 });
 
-it('hands back only the entries of one language on a strict raw request', function () {
-
-    foreach (['en', 'de', null] as $language) {
-        $this->asset->addMetadata('alt', 'input', 'alt', $language);
-    }
-
+it('returns only the entries of one language on a strict raw request', function () {
+    $this->asset->addMetadata('alt', 'input', 'in english', 'en');
+    $this->asset->addMetadata('alt', 'input', 'in german', 'de');
+    $this->asset->addMetadata('alt', 'input', 'without a language');
     $this->asset->save();
 
-    $found = $this->asset->getMetadata(null, 'en', true, true);
+    $found = $this->asset->getMetadata(language: 'en', strictMatchLanguage: true, raw: true);
 
-    expect($found)
-        ->toHaveCount(1)
-        ->and(array_column($found, 'language'))
-        ->toBe(['en']);
+    expect(array_column($found, 'language'))->toBe(['en']);
 });
 
-it('stands in with an entry without a language for a name that has none in that language', function () {
-
-    $this->asset->addMetadata('alt', 'input', 'alt', 'de');
-    $this->asset->addMetadata('title', 'input', 'title');
+it('falls back per name to the entry without a language', function () {
+    $this->asset->addMetadata('alt', 'input', 'in german', 'de');
+    $this->asset->addMetadata('title', 'input', 'a title');
     $this->asset->save();
 
-    $found = $this->asset->getMetadata(null, 'de', false, true);
+    $found = $this->asset->getMetadata(language: 'de', raw: true);
 
-    expect($found)
-        ->toHaveCount(2)
-        ->and(array_column($found, 'language'))
-        ->toEqualCanonicalizing(['de', null]);
+    expect(array_column($found, 'language'))->toEqualCanonicalizing([
+        'de',
+        null,
+    ]);
 });

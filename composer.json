@@ -186,12 +186,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenDxp\\Model\\DataObject\\": "var/classes/DataObject",
             "OpenDxp\\Tests\\": "tests"
-        },
-        "files": [
-            "src/Kernel.php"
-        ]
+        }
     },
     "scripts": {
         "post-create-project-cmd": "OpenDxp\\Composer::postCreateProject",

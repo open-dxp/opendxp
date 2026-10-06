@@ -19,53 +19,69 @@ namespace OpenDxp\Tests\Feature\Site;
 use OpenDxp\Model\Site;
 use OpenDxp\Test\Factory\SiteFactory;
 
-beforeEach(fn () => $this->site = SiteFactory::createOne(['mainDomain' => 'example.com']));
+it('keeps its custom settings', function () {
+    $site = SiteFactory::new()
+        ->withCustomSettings(['myBundle' => ['theme' => 'dark']])
+        ->create();
 
-it('hands its custom settings back after a reload', function () {
+    $reloaded = Site::getById($site->getId());
 
-    $this->site->setCustomSettings(['myBundle' => ['theme' => 'dark']]);
-    $this->site->save();
-
-    expect(Site::getById($this->site->getId())->getCustomSettings('myBundle'))->toBe(['theme' => 'dark']);
+    expect($reloaded->getCustomSettings('myBundle'))->toBe(['theme' => 'dark']);
 });
 
-it('carries no custom settings after a reload when they were set to nothing', function () {
+it('returns no custom settings when none were stored', function () {
+    $site = SiteFactory::createOne();
 
-    $this->site->setCustomSettings(null);
-    $this->site->save();
+    $reloaded = Site::getById($site->getId());
 
-    expect(Site::getById($this->site->getId())->getCustomSettings())->toBe([]);
+    expect($reloaded->getCustomSettings())->toBe([]);
 });
 
 it('is found under its main domain', function () {
-    expect(Site::getByDomain('example.com')?->getId())->toBe($this->site->getId());
+    $site = SiteFactory::createOne(['mainDomain' => 'example.com']);
+
+    $found = Site::getByDomain('example.com');
+
+    expect($found->getId())->toBe($site->getId());
 });
 
 it('is found under a domain it also answers to', function () {
+    $site = SiteFactory::new()
+        ->withDomains([
+            'alias.example.com',
+            'other.example.com',
+        ])
+        ->create(['mainDomain' => 'example.com']);
 
-    $this->site->setDomains(['alias.example.com', 'other.example.com']);
-    $this->site->save();
+    $found = Site::getByDomain('alias.example.com');
 
-    expect(Site::getByDomain('alias.example.com')?->getId())->toBe($this->site->getId());
+    expect($found->getId())->toBe($site->getId());
 });
 
 it('is found under a subdomain of a wildcard it answers to', function () {
+    $site = SiteFactory::new()
+        ->withDomains(['*.example.com'])
+        ->create(['mainDomain' => 'example.com']);
 
-    $this->site->setDomains(['*.example.com']);
-    $this->site->save();
+    $found = Site::getByDomain('sub.example.com');
 
-    expect(Site::getByDomain('sub.example.com')?->getId())->toBe($this->site->getId());
+    expect($found->getId())->toBe($site->getId());
 });
 
 it('is not found under the domain a wildcard sits below', function () {
+    SiteFactory::new()
+        ->withDomains(['*.wildcard.test'])
+        ->create(['mainDomain' => 'main.wildcard.test']);
 
-    $site = SiteFactory::createOne(['mainDomain' => 'main.wildcard.test']);
-    $site->setDomains(['*.wildcard.test']);
-    $site->save();
+    $found = Site::getByDomain('wildcard.test');
 
-    expect(Site::getByDomain('wildcard.test'))->toBeNull();
+    expect($found)->toBeNull();
 });
 
 it('is not found under a domain no site answers to', function () {
-    expect(Site::getByDomain('does-not-exist.com'))->toBeNull();
+    SiteFactory::createOne(['mainDomain' => 'example.com']);
+
+    $found = Site::getByDomain('does-not-exist.com');
+
+    expect($found)->toBeNull();
 });

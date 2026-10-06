@@ -16,63 +16,58 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Relation;
 
-use Exception;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
-use OpenDxp\Model\DataObject\MultipleAssignments;
+use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
-function assignEachTwice(string $metadata, string $field, array $targets): array
+/**
+ * @param class-string<ElementMetadata|ObjectMetadata> $metadata
+ *
+ * @return list<ElementMetadata|ObjectMetadata>
+ */
+function eachTargetTwice(string $metadata, string $field): array
 {
-    $assigned = [];
+    $relations = [];
 
-    foreach ($targets as $position => $target) {
+    foreach (RelationTestFactory::createMany(3) as $position => $target) {
         foreach (['first', 'second'] as $which) {
-            $entry = new $metadata($field, ['meta'], $target);
-            $entry->setMeta(sprintf('%s note of %d', $which, $position));
-            $assigned[] = $entry;
+            $relation = new $metadata($field, ['meta'], $target);
+            $relation->setMeta(sprintf('%s note of %d', $which, $position));
+            $relations[] = $relation;
         }
     }
 
-    return $assigned;
+    return $relations;
 }
 
-function notesOf(array $assigned): array
-{
-    return array_map(static fn (object $entry) => $entry->getMeta(), $assigned);
-}
-
-beforeEach(fn () => $this->targets = RelationTestFactory::createMany(3));
-
-it('refuses the same target twice on a field that allows one assignment', function (string $metadata, string $field) {
-
-    $object = MultipleAssignmentsFactory::new()->unsaved()->create();
-    $object->{'set' . ucfirst($field)}(assignEachTwice($metadata, $field, $this->targets));
-
-    $object->save();
-})->with([
-    'an element relation' => [ElementMetadata::class, 'onlyOneManyToMany'],
-    'an object relation' => [ObjectMetadata::class, 'onlyOneManyToManyObject'],
-])->throws(Exception::class);
-
-it('keeps the same target twice on a field that allows it', function (string $metadata, string $field) {
-
-    $assigned = assignEachTwice($metadata, $field, $this->targets);
-    $expected = notesOf($assigned);
-
-    $object = MultipleAssignmentsFactory::createOne([$field => $assigned]);
-    $getter = 'get' . ucfirst($field);
-
-    expect(notesOf($object->{$getter}()))->toBe($expected);
-
-    $reloaded = MultipleAssignments::getById($object->getId(), ['force' => true]);
-
-    expect(notesOf($reloaded->{$getter}()))
-        ->toBe($expected)
-        ->and(notesOf(unserialize(serialize($reloaded))->{$getter}()))
-        ->toBe($expected);
-})->with([
+dataset('fields that allow a target twice', [
     'an element relation' => [ElementMetadata::class, 'multipleManyToMany'],
     'an object relation' => [ObjectMetadata::class, 'multipleManyToManyObject'],
 ]);
+
+it('refuses the same target twice on a field that allows it once', function (string $metadata, string $field) {
+    MultipleAssignmentsFactory::createOne([$field => eachTargetTwice($metadata, $field)]);
+})->with([
+    'an element relation' => [ElementMetadata::class, 'onlyOneManyToMany'],
+    'an object relation' => [ObjectMetadata::class, 'onlyOneManyToManyObject'],
+])->throws(ValidationException::class, 'Passing relations multiple times not allowed anymore');
+
+it('keeps the same target twice on a field that allows it', function (string $metadata, string $field) {
+    $relations = eachTargetTwice($metadata, $field);
+    $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
+
+    $loaded = reloaded($object);
+
+    expect(notesOf($loaded->get($field)))->toBe(notesOf($relations));
+})->with('fields that allow a target twice');
+
+it('keeps the same target twice in a serialized object', function (string $metadata, string $field) {
+    $relations = eachTargetTwice($metadata, $field);
+    $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
+
+    $copy = unserialize(serialize(reloaded($object)));
+
+    expect(notesOf($copy->get($field)))->toBe(notesOf($relations));
+})->with('fields that allow a target twice');

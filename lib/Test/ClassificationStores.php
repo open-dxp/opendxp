@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Test;
 
+use OpenDxp;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Classificationstore\GroupConfig;
 use OpenDxp\Model\DataObject\Classificationstore\KeyConfig;
@@ -28,15 +29,15 @@ final class ClassificationStores
     /**
      * Classes refer to a classification store by its id, so the store is installed before them.
      */
-    public static function install(string $name, string $definition): StoreConfig
+    public static function install(string $name, string $file): StoreConfig
     {
-        $json = file_get_contents($definition);
+        $json = file_get_contents($file);
 
         if ($json === false) {
-            throw new RuntimeException(sprintf('There is no classification store definition at %s.', $definition));
+            throw new RuntimeException(sprintf('There is no classification store definition at %s.', $file));
         }
 
-        $described = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        $described = json_decode($json, associative: true, flags: JSON_THROW_ON_ERROR);
 
         $store = StoreConfig::getByName($name) ?? new StoreConfig();
         $store->setName($name);
@@ -64,6 +65,7 @@ final class ClassificationStores
 
         foreach ($keys as $keyName => $described) {
             $key = self::installKey($store, (string) $keyName, $described);
+            ++$position;
 
             if (KeyGroupRelation::getByGroupAndKeyId($group->getId(), $key->getId())) {
                 continue;
@@ -72,7 +74,7 @@ final class ClassificationStores
             $relation = new KeyGroupRelation();
             $relation->setGroupId($group->getId());
             $relation->setKeyId($key->getId());
-            $relation->setSorter(++$position);
+            $relation->setSorter($position);
             $relation->save();
         }
     }
@@ -82,31 +84,28 @@ final class ClassificationStores
      */
     private static function installKey(StoreConfig $store, string $name, array $described): KeyConfig
     {
+        $definition = self::fieldDefinition($name, $described['type']);
+
         $key = KeyConfig::getByName($name, $store->getId()) ?? new KeyConfig();
         $key->setStoreId($store->getId());
         $key->setName($name);
         $key->setType($described['type']);
         $key->setDescription($described['description'] ?? '');
         $key->setEnabled(true);
-        $key->setDefinition(json_encode(self::fieldDefinition($name, $described['type']), JSON_THROW_ON_ERROR));
+        $key->setDefinition(json_encode($definition, JSON_THROW_ON_ERROR));
         $key->save();
 
         return $key;
     }
 
     /**
-     * The field definition a key carries. The editor renders the field from it, and the store marshals
-     * a value through it, so it has to be the definition of the type the key names.
+     * The editor renders the field from this definition, and the store marshals a value through it.
+     * It therefore has to be the definition of the type the key names.
      */
     private static function fieldDefinition(string $name, string $type): Data
     {
-        $class = sprintf('%s\\%s', Data::class, ucfirst($type));
-
-        if (!class_exists($class)) {
-            throw new RuntimeException(sprintf('There is no field type called %s.', $type));
-        }
-
-        $definition = new $class();
+        /** @var Data $definition */
+        $definition = OpenDxp::getContainer()->get('opendxp.implementation_loader.object.data')->build($type);
         $definition->setName($name);
 
         if ($definition instanceof Data\EncryptedField) {

@@ -14,6 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Feature\Seo;
 
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
@@ -21,76 +22,198 @@ use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\RedirectFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\TestFoundation\Browser;
+use OpenDxp\Tests\Value\RedirectImport;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Zenstruck\Browser\KernelBrowser;
+
+/**
+ * Sends what the redirect grid of the admin sends for an action on a redirect.
+ *
+ * @param array<string, mixed> $data
+ */
+function redirectGrid(User $user, string $action, array $data): KernelBrowser
+{
+    $url = sprintf('/admin/bundle/seo/redirects/list?xaction=%s', $action);
+
+    return Browser::actingAs($user)
+        ->post($url, [
+            'body' => [
+                'data' => json_encode($data),
+            ],
+        ]);
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function gridResponse(KernelBrowser $browser): array
+{
+    return json_decode(
+        $browser->content(),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+}
+
+function createdRedirect(KernelBrowser $browser): Redirect
+{
+    $response = gridResponse($browser);
+
+    return Redirect::getById($response['data']['id']);
+}
+
+/**
+ * @param array<string, string> $parameters
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function filteredRedirects(User $user, array $parameters): array
+{
+    $browser = Browser::actingAs($user)
+        ->post('/admin/bundle/seo/redirects/list', [
+            'body' => [
+                'limit' => '1000',
+                ...$parameters,
+            ],
+        ]);
+    $response = gridResponse($browser);
+
+    return array_column($response['data'], column_key: null, index_key: 'id');
+}
+
+/**
+ * @return array<int, array<string, mixed>>
+ */
+function listedRedirects(User $user): array
+{
+    return filteredRedirects($user, []);
+}
+
+function exportedRedirects(User $user): string
+{
+    return Browser::actingAs($user)
+        ->visit('/admin/bundle/seo/redirects/csv-export')
+        ->content();
+}
+
+/**
+ * @param list<string> $lines
+ */
+function importRedirects(User $user, array $lines): RedirectImport
+{
+    $file = tempnam(sys_get_temp_dir(), 'redirects');
+    file_put_contents($file, implode("\n", $lines));
+
+    $upload = new UploadedFile($file, 'redirects.csv', 'text/csv', test: true);
+    $browser = Browser::actingAs($user)
+        ->post('/admin/bundle/seo/redirects/csv-import', [
+            'files' => [
+                'redirects' => $upload,
+            ],
+        ]);
+    $statistics = gridResponse($browser)['data'];
+    unlink($file);
+
+    return new RedirectImport(
+        $statistics['created'],
+        $statistics['updated'],
+        $statistics['errored'],
+    );
+}
+
+/**
+ * @return list<?string>
+ */
+function redirectSources(): array
+{
+    $redirects = new Redirect\Listing();
+
+    return array_map(
+        static fn (Redirect $redirect): ?string => $redirect->getSource(),
+        $redirects->load(),
+    );
+}
 
 beforeEach(function () {
     $this->editor = UserFactory::new()
         ->withPermissions('redirects')
         ->create();
     $this->seoSpecialist = UserFactory::new()
-        ->withPermissions('redirects', 'redirects_protected')
+        ->withPermissions(
+            'redirects',
+            'redirects_protected',
+        )
         ->create();
 });
 
-it('shows protected redirects only to users who may manage them', function () {
-    $open = RedirectFactory::createOne([
-        'source' => '/open-' . uniqid(),
-    ]);
-    $protected = RedirectFactory::createOne([
-        'source' => '/protected-' . uniqid(),
-        'protected' => true,
-    ]);
-    $admin = UserFactory::new()
-        ->admin()
+it('lists no protected redirect for an editor', function () {
+    $open = RedirectFactory::createOne();
+    $protected = RedirectFactory::new()
+        ->protected()
         ->create();
 
-    expect(listedRedirects($this->editor))
+    $listed = listedRedirects($this->editor);
+
+    expect($listed)
         ->toHaveKey($open->getId())
-        ->not->toHaveKey($protected->getId())
-        ->and(listedRedirects($this->seoSpecialist))
-        ->toHaveKeys([$open->getId(), $protected->getId()])
-        ->and(listedRedirects($admin))
-        ->toHaveKeys([$open->getId(), $protected->getId()]);
+        ->not->toHaveKey($protected->getId());
 });
+
+it('lists a protected redirect for a user who may manage it', function (User $user) {
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->create();
+
+    $listed = listedRedirects($user);
+
+    expect($listed)->toHaveKey($protected->getId());
+})->with([
+    'a user with the permission for protected redirects' => [fn () => $this->seoSpecialist],
+    'an administrator' => [
+        fn () => UserFactory::new()
+            ->admin()
+            ->create(),
+    ],
+]);
 
 it('finds no protected redirect for an editor who tests a URL', function () {
+    RedirectFactory::new()
+        ->protected()
+        ->create(['source' => '/tested']);
+    resetServices();
 
-    RedirectFactory::createOne([
-        'source' => '/tested',
-        'protected' => true,
-    ]);
+    $found = filteredRedirects($this->editor, ['filter' => 'http://localhost/tested']);
 
-    nextRequest();
-
-    expect(listedRedirects($this->editor, ['filter' => 'http://localhost/tested']))
-        ->toBe([]);
+    expect($found)->toBe([]);
 });
 
 it('keeps an editor from changing or deleting a protected redirect', function (string $action) {
-    $protected = RedirectFactory::createOne([
-        'source' => '/kept',
-        'target' => '/kept-target',
-        'protected' => true,
-    ]);
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->create(['target' => '/kept-target']);
 
-    redirectGrid($this->editor, $action, [
+    $browser = redirectGrid($this->editor, $action, [
         'id' => $protected->getId(),
         'target' => '/changed',
-    ])->assertStatus(403);
+    ]);
 
-    expect(Redirect::getById($protected->getId()))
+    expect($browser->client()->getResponse()->getStatusCode())
+        ->toBe(403)
+        ->and(Redirect::getById($protected->getId()))
         ->getTarget()
         ->toBe('/kept-target');
 })->with([
-    'update',
-    'destroy',
+    'updating' => ['update'],
+    'deleting' => ['destroy'],
 ]);
 
 it('keeps an editor from taking over the source of a protected redirect', function () {
-    RedirectFactory::createOne([
-        'source' => '/relaunch',
-        'target' => '/secret-target',
-        'protected' => true,
-    ]);
+    RedirectFactory::new()
+        ->protected()
+        ->create([
+            'source' => '/relaunch',
+            'target' => '/secret-target',
+        ]);
 
     $browser = redirectGrid($this->editor, 'create', [
         'type' => Redirect::TYPE_PATH,
@@ -101,12 +224,15 @@ it('keeps an editor from taking over the source of a protected redirect', functi
         'active' => true,
     ]);
 
-    expect(gridResponse($browser->assertSuccessful()))
+    expect(gridResponse($browser))
         ->success
         ->toBeFalse()
         ->errors
         ->toBe([
-            ['field' => 'source', 'message' => 'redirect_source_protected'],
+            [
+                'field' => 'source',
+                'message' => 'redirect_source_protected',
+            ],
         ])
         ->and($browser->content())
         ->not->toContain('secret-target');
@@ -115,39 +241,41 @@ it('keeps an editor from taking over the source of a protected redirect', functi
 it('keeps an editor from protecting a redirect', function () {
     $browser = redirectGrid($this->editor, 'create', [
         'type' => Redirect::TYPE_PATH,
-        'source' => '/editor-' . uniqid(),
+        'source' => '/editor',
         'target' => '/x',
         'statusCode' => 301,
         'priority' => 1,
         'active' => true,
         'protected' => true,
     ]);
-    $redirect = Redirect::getById(gridResponse($browser->assertSuccessful())['data']['id']);
 
-    expect($redirect->isProtected())
+    expect(createdRedirect($browser))
+        ->isProtected()
         ->toBeFalse();
 });
 
 it('lets a user who may manage protected redirects protect one', function () {
     $browser = redirectGrid($this->seoSpecialist, 'create', [
         'type' => Redirect::TYPE_PATH,
-        'source' => '/specialist-' . uniqid(),
+        'source' => '/specialist',
         'target' => '/x',
         'statusCode' => 301,
         'priority' => 1,
         'active' => true,
         'protected' => true,
     ]);
-    $redirect = Redirect::getById(gridResponse($browser->assertSuccessful())['data']['id']);
 
-    expect($redirect->isProtected())
+    expect(createdRedirect($browser))
+        ->isProtected()
         ->toBeTrue();
 });
 
-it('saves only the fields an editor may set', function () {
+it('sets the owner and the creation date itself', function () {
+    $before = time();
+
     $browser = redirectGrid($this->editor, 'create', [
         'type' => Redirect::TYPE_PATH,
-        'source' => '/fields-' . uniqid(),
+        'source' => '/fields',
         'target' => '/x',
         'statusCode' => 301,
         'priority' => 1,
@@ -155,12 +283,12 @@ it('saves only the fields an editor may set', function () {
         'userOwner' => 4711,
         'creationDate' => 1,
     ]);
-    $redirect = Redirect::getById(gridResponse($browser->assertSuccessful())['data']['id']);
 
-    expect($redirect->getUserOwner())
-        ->not->toBe(4711)
-        ->and($redirect->getCreationDate())
-        ->not->toBe(1);
+    expect(createdRedirect($browser))
+        ->getUserOwner()
+        ->toBe($this->editor->getId())
+        ->getCreationDate()
+        ->toBeGreaterThanOrEqual($before);
 });
 
 it('refuses a redirect that cannot work', function (array $values, string $field, string $message) {
@@ -172,11 +300,14 @@ it('refuses a redirect that cannot work', function (array $values, string $field
         ...$values,
     ]);
 
-    expect(gridResponse($browser->assertSuccessful()))
+    expect(gridResponse($browser))
         ->success
         ->toBeFalse()
         ->errors
-        ->toContain(['field' => $field, 'message' => $message]);
+        ->toContain([
+            'field' => $field,
+            'message' => $message,
+        ]);
 })->with([
     'an invalid regular expression' => [
         [
@@ -240,14 +371,17 @@ it('refuses an empty row of the grid without failing', function () {
         'expiry' => null,
     ]);
 
-    expect(gridResponse($browser->assertSuccessful()))
+    expect(gridResponse($browser))
         ->success
         ->toBeFalse()
         ->errors
-        ->toContain(['field' => 'source', 'message' => 'redirect_source_missing']);
+        ->toContain([
+            'field' => 'source',
+            'message' => 'redirect_source_missing',
+        ]);
 });
 
-it('gives a new redirect the default type, status code and priority for the fields the grid leaves empty', function () {
+it('fills the fields the grid leaves empty with defaults', function () {
     $browser = redirectGrid($this->seoSpecialist, 'create', [
         'type' => null,
         'source' => '/old',
@@ -255,9 +389,8 @@ it('gives a new redirect the default type, status code and priority for the fiel
         'statusCode' => null,
         'priority' => null,
     ]);
-    $redirect = Redirect::getById(gridResponse($browser->assertSuccessful())['data']['id']);
 
-    expect($redirect)
+    expect(createdRedirect($browser))
         ->getType()
         ->toBe(Redirect::TYPE_PATH)
         ->getStatusCode()
@@ -267,16 +400,13 @@ it('gives a new redirect the default type, status code and priority for the fiel
 });
 
 it('saves a start and an expiry that the grid sends as text', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/dated-' . uniqid(),
-        'target' => '/x',
-    ]);
+    $redirect = RedirectFactory::createOne();
 
     redirectGrid($this->seoSpecialist, 'update', [
         'id' => $redirect->getId(),
         'validFrom' => '1791410400',
         'expiry' => '1791496800',
-    ])->assertSuccessful();
+    ]);
 
     expect(Redirect::getById($redirect->getId()))
         ->getValidFrom()
@@ -285,7 +415,7 @@ it('saves a start and an expiry that the grid sends as text', function () {
         ->toBe(1791496800);
 });
 
-it('warns about a duplicate source and a chain, and saves anyway', function () {
+it('saves a redirect with a duplicate source and a chain and warns about both', function () {
     $duplicate = RedirectFactory::createOne([
         'source' => '/sale',
         'target' => '/shop',
@@ -304,43 +434,61 @@ it('warns about a duplicate source and a chain, and saves anyway', function () {
         'active' => true,
     ]);
 
-    expect(gridResponse($browser->assertSuccessful()))
+    expect(gridResponse($browser))
+        ->success
+        ->toBeTrue()
         ->warnings
         ->toBe([
-            ['message' => 'redirect_source_duplicate', 'parameters' => ['%id%' => $duplicate->getId()]],
-            ['message' => 'redirect_chain', 'parameters' => ['%id%' => $next->getId()]],
-        ]);
+            [
+                'message' => 'redirect_source_duplicate',
+                'parameters' => ['%id%' => $duplicate->getId()],
+            ],
+            [
+                'message' => 'redirect_chain',
+                'parameters' => ['%id%' => $next->getId()],
+            ],
+        ])
+        ->and(createdRedirect($browser))
+        ->getTarget()
+        ->toBe('/summer');
 });
 
-it('exports protected redirects only to users who may manage them', function () {
-    $protected = RedirectFactory::createOne([
-        'source' => '/exported-' . uniqid(),
-        'protected' => true,
-    ]);
+it('exports no protected redirect for an editor', function () {
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->create();
 
-    $export = static fn (User $user): string => Browser::actingAs($user)
-        ->visit('/admin/bundle/seo/redirects/csv-export')
-        ->assertSuccessful()
-        ->content();
+    $export = exportedRedirects($this->editor);
 
-    expect($export($this->editor))
-        ->not->toContain($protected->getSource())
-        ->and($export($this->seoSpecialist))
-        ->toContain($protected->getSource());
+    expect($export)->not->toContain($protected->getSource());
+});
+
+it('exports a protected redirect for a user who may manage it', function () {
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->create();
+
+    $export = exportedRedirects($this->seoSpecialist);
+
+    expect($export)->toContain($protected->getSource());
 });
 
 it('keeps an editor from importing a protected redirect', function () {
     $result = importRedirects($this->editor, [
-        'id;type;source;sourceSite;target;targetSite;statusCode;priority;regex;passThroughParameters;active;expiry;protected',
+        'id;type;source;sourceSite;target;targetSite;statusCode;priority;regex;passThroughParameters;active;expiry;'
+            . 'protected',
         ';path;/imported-protected;;/x;;301;1;0;0;1;;1',
         ';path;/imported-open;;/x;;301;1;0;0;1;;0',
     ]);
 
     expect($result)
-        ->toMatchArray([
-            'created' => 1,
-            'errored' => 1,
-        ]);
+        ->created
+        ->toBe(1)
+        ->errored
+        ->toBe(1)
+        ->and(redirectSources())
+        ->toContain('/imported-open')
+        ->not->toContain('/imported-protected');
 });
 
 it('imports a file of an older export without the new columns', function () {
@@ -350,19 +498,17 @@ it('imports a file of an older export without the new columns', function () {
     ]);
 
     expect($result)
-        ->toMatchArray([
-            'created' => 1,
-            'errored' => 0,
-        ]);
+        ->created
+        ->toBe(1)
+        ->errored
+        ->toBe(0)
+        ->and(redirectSources())
+        ->toContain('/older-export');
 });
 
-it('lists how often each redirect was hit and when it was last', function () {
-    $hit = RedirectFactory::createOne([
-        'source' => '/hit-' . uniqid(),
-    ]);
-    $unhit = RedirectFactory::createOne([
-        'source' => '/unhit-' . uniqid(),
-    ]);
+it('lists the hits and the last hit of each redirect', function () {
+    $hit = RedirectFactory::createOne();
+    $unhit = RedirectFactory::createOne();
     recordHits($hit, 7, 1700000000);
 
     $listed = listedRedirects($this->editor);
@@ -380,62 +526,98 @@ it('lists how often each redirect was hit and when it was last', function () {
 });
 
 it('sorts the redirects by their hits', function () {
-    $few = RedirectFactory::createOne([
-        'source' => '/few-' . uniqid(),
-    ]);
-    $many = RedirectFactory::createOne([
-        'source' => '/many-' . uniqid(),
-    ]);
+    $few = RedirectFactory::createOne();
+    $many = RedirectFactory::createOne();
     recordHits($few, 1, time());
     recordHits($many, 100, time());
 
-    $ids = array_keys(listedRedirects($this->editor, [
+    $listed = filteredRedirects($this->editor, [
         'sort' => json_encode([
-            ['property' => 'hits', 'direction' => 'DESC'],
+            [
+                'property' => 'hits',
+                'direction' => 'DESC',
+            ],
         ]),
-    ]));
+    ]);
 
-    expect(array_search($many->getId(), $ids, true))
-        ->toBeLessThan(array_search($few->getId(), $ids, true));
+    $order = array_intersect(
+        array_keys($listed),
+        [
+            $few->getId(),
+            $many->getId(),
+        ],
+    );
+    expect(array_values($order))->toBe([
+        $many->getId(),
+        $few->getId(),
+    ]);
 });
 
-it('shows a redirect in the views it belongs to', function (string $view, array $values) {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/view-' . uniqid(),
-        ...$values,
-    ]);
+it('shows a redirect in the views it belongs to', function (string $view, RedirectFactory $factory) {
+    $redirect = $factory->create();
 
-    expect(listedRedirects($this->seoSpecialist, ['show' => $view]))
-        ->toHaveKey($redirect->getId());
+    $shown = filteredRedirects($this->seoSpecialist, ['show' => $view]);
+
+    expect($shown)->toHaveKey($redirect->getId());
 })->with([
-    'an active one among the active ones' => ['active', []],
-    'an inactive one among the inactive ones' => ['inactive', ['active' => false]],
-    'an expired one among the expired ones' => ['expired', ['expiry' => time() - 60]],
-    'one that starts later among the scheduled ones' => ['scheduled', ['validFrom' => time() + 3600]],
-    'a protected one among the protected ones' => ['protected', ['protected' => true]],
-    'one that was never hit among the unused ones' => ['unused', []],
+    'an active one among the active ones' => [
+        'active',
+        fn () => RedirectFactory::new(),
+    ],
+    'an inactive one among the inactive ones' => [
+        'inactive',
+        fn () => RedirectFactory::new()
+            ->inactive(),
+    ],
+    'an expired one among the expired ones' => [
+        'expired',
+        fn () => RedirectFactory::new()
+            ->expired(),
+    ],
+    'one that starts later among the scheduled ones' => [
+        'scheduled',
+        fn () => RedirectFactory::new()
+            ->scheduled(),
+    ],
+    'a protected one among the protected ones' => [
+        'protected',
+        fn () => RedirectFactory::new()
+            ->protected(),
+    ],
+    'one that was never hit among the unused ones' => [
+        'unused',
+        fn () => RedirectFactory::new(),
+    ],
 ]);
 
-it('leaves a redirect out of the views it does not belong to', function (string $view, array $values) {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/view-' . uniqid(),
-        ...$values,
-    ]);
+it('leaves a redirect out of the views it does not belong to', function (string $view, RedirectFactory $factory) {
+    $redirect = $factory->create();
 
-    expect(listedRedirects($this->seoSpecialist, ['show' => $view]))
-        ->not->toHaveKey($redirect->getId());
+    $shown = filteredRedirects($this->seoSpecialist, ['show' => $view]);
+
+    expect($shown)->not->toHaveKey($redirect->getId());
 })->with([
-    'an inactive one among the active ones' => ['active', ['active' => false]],
-    'a running one among the expired ones' => ['expired', ['expiry' => time() + 3600]],
-    'an open one among the protected ones' => ['protected', []],
+    'an inactive one among the active ones' => [
+        'active',
+        fn () => RedirectFactory::new()
+            ->inactive(),
+    ],
+    'a running one among the expired ones' => [
+        'expired',
+        fn () => RedirectFactory::new()
+            ->expiring(),
+    ],
+    'an open one among the protected ones' => [
+        'protected',
+        fn () => RedirectFactory::new(),
+    ],
 ]);
 
-it('hides a redirect hit lately from the unused view', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/used-' . uniqid(),
-    ]);
+it('leaves a redirect hit lately out of the unused view', function () {
+    $redirect = RedirectFactory::createOne();
     recordHits($redirect, 1, time());
 
-    expect(listedRedirects($this->seoSpecialist, ['show' => 'unused']))
-        ->not->toHaveKey($redirect->getId());
+    $shown = filteredRedirects($this->seoSpecialist, ['show' => 'unused']);
+
+    expect($shown)->not->toHaveKey($redirect->getId());
 });

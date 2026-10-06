@@ -24,12 +24,12 @@ use OpenDxp\Model\Document\Editable;
 interface Brick
 {
     /**
-     * The id the areabrick is registered with.
+     * A brick names its areabrick by the id the areabrick is registered with.
      */
     public function id(): string;
 
     /**
-     * The editables of the brick, by the name the areabrick gives them in its template.
+     * The keys are the names the areabrick gives the editables in its template.
      *
      * @return array<string, Editable>
      */

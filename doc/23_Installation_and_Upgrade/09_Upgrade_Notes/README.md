@@ -2,9 +2,9 @@
 
 ## OpenDXP 1.5.0
 - Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
-- Chore: Replace Codeception with Pest and `open-dxp/test-foundation`
+- Chore: Replace Codeception with Pest and `open-dxp/test-foundation`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
-- Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. Use the test case of `open-dxp/test-foundation`.
+- Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. They stay until 2.0 because of BC reasons. Use `OpenDxp\TestFoundation\TestCase` instead of `KernelTestCase` and `OpenDxp\TestFoundation\BrowserTestCase` instead of `WebTestCase`.
 - Improvement: Allow `symfony/process` 8.
 - Bugfix: Moving a page with a pretty URL no longer creates a redirect for its former path in the document tree. Visitors reach the page under its pretty URL, which stays the same [#194](https://github.com/open-dxp/opendxp/issues/194)
 - Improvement: Redirects are resolved from a compiled table in OPcache instead of the database. A request costs a single cache lookup instead of three to four queries, and saving a redirect no longer makes the next request load every redirect one by one. Run the core migrations: they add the table `redirect_hits`, allow redirect sources and targets of up to 1024 characters and key the `http_error_log` by a hash of the URI. A system without `OpenDxpSeoBundle` is left alone [#151](https://github.com/open-dxp/opendxp/issues/151)
@@ -16,9 +16,7 @@
 - Improvement: `410 Gone` is one of the default redirect status codes [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: The redirect editor shows the hits of each redirect, edits all fields of a redirect in a window, narrows the grid to a view like "no hit for 90 days" and changes the redirects selected by their checkbox at once [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
-- Feature: The Pest expectations `toRedirectTo()` and `toBeAnsweredBy()` test the redirects of a project. Register them with `OpenDxp\Test\Expectation\Redirects::register()`.
-- Feature: `UserFactory::withPermissions()` creates a user with the given permissions.
-- Feature: The page and snippet factories place editables and bricks of areabricks with `withEditables()` and `withBricks()`.
+- Feature: `OpenDxp\Test` holds the test API for projects and bundles. `OpenDxp\Test\Factory` has Foundry factories for the models of OpenDXP, with base classes for factories of your own. `OpenDxp\Test\Expectation\Fields` registers the Pest expectations `toCarryField()` and `toCarryLocalizedField()`. `OpenDxp\Test\Expectation\Redirects` registers `toRedirectTo()`, `toComeFrom()` and `toComeFromNoRedirect()`. `ClassDefinitions`, `Fieldcollections`, `ObjectBricks` and `ClassificationStores` install definitions from JSON files. `Settings::override()` changes the system configuration for one test. `OpenDxp\Test\Document\Brick` describes one instance of an areabrick, and the page, snippet and email factories place bricks with `withBricks()`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: A URL slug field takes a slug generator. It builds the prefix in front of the slug, formats what an editor types and fills an empty slug. Duplicate slugs can be extended with `-1`, `-2` [#159](https://github.com/open-dxp/opendxp/issues/159)
 - Bugfix: Saving a class checks the fields inside localized fields.

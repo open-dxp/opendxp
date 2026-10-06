@@ -16,29 +16,44 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\ClassDefinition;
 
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\ClassDefinition\Layout\Text;
+use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
+function renderedLayoutText(string $html, Concrete $object): string
+{
+    $text = new Text();
+    $text->setHtml($html);
+    $text->enrichLayoutDefinition($object);
+
+    return $text->getHtml();
+}
+
+beforeEach(fn () => $this->object = UnittestFactory::createOne());
+
 it('renders the object it belongs to into the text', function () {
-    expect(renderedLayoutText('Key: {{ object.key }}'))
-        ->toBe('Key: layout-text-object');
+    $html = renderedLayoutText('Key: {{ object.key }}', $this->object);
+
+    expect($html)->toBe(sprintf('Key: %s', $this->object->getKey()));
 });
 
 it('refuses the service container', function () {
-    expect(renderedLayoutText('{{ container.getParameter("kernel.environment") }}'))
-        ->toContain('Failed rendering the template');
+    $html = renderedLayoutText('{{ container.getParameter("kernel.environment") }}', $this->object);
+
+    expect($html)->toContain('Failed rendering the template');
 });
 
 it('refuses to delete the object', function () {
-    $object = UnittestFactory::createOne();
+    $html = renderedLayoutText('{{ object.delete() }}', $this->object);
 
-    expect(renderedLayoutText('{{ object.delete() }}', $object))
+    expect($html)
         ->toContain('Failed rendering the template')
-        ->and(Unittest::getById($object->getId(), ['force' => true]))
+        ->and(reloaded($this->object))
         ->not->toBeNull();
 });
 
-it('explains a tag the sandbox policy does not allow instead of rendering it', function () {
-    expect(renderedLayoutText('{% for i in [1] %}{{ i }}{% endfor %}'))
-        ->toContain('Failed rendering the template');
+it('refuses a tag the sandbox policy does not allow', function () {
+    $html = renderedLayoutText('{% for i in [1] %}{{ i }}{% endfor %}', $this->object);
+
+    expect($html)->toContain('Failed rendering the template');
 });

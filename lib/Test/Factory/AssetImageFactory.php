@@ -19,12 +19,10 @@ namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Asset\Image;
 
+use function Zenstruck\Foundry\lazy;
+
 /**
  * @extends AbstractElementFactory<Image>
- *
- * @method Image create(array|callable $attributes = [])
- * @method static Image createOne(array $attributes = [])
- * @method static list<Image> createMany(int $number, array $attributes = [])
  */
 final class AssetImageFactory extends AbstractElementFactory
 {
@@ -33,18 +31,17 @@ final class AssetImageFactory extends AbstractElementFactory
         return Image::class;
     }
 
-    public static function fixture(string $name = 'image.jpg'): string
+    public static function fixture(): string
     {
-        return sprintf('%s/Fixtures/%s', dirname(__DIR__), $name);
+        return dirname(__DIR__) . '/Fixtures/image.jpg';
     }
 
     protected function defaults(): array
     {
         return [
             ...parent::defaults(),
-            'type'     => 'image',
-            'filename' => sprintf('image-%s.jpg', uniqid()),
-            'data'     => file_get_contents(self::fixture()),
+            'filename' => sprintf('%s.jpg', self::faker()->unique()->slug()),
+            'data'     => lazy(static fn () => file_get_contents(self::fixture())),
         ];
     }
 }

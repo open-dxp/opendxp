@@ -36,24 +36,28 @@ abstract class AbstractPageSnippetFactory extends AbstractDocumentFactory
         return $this->with(['controller' => sprintf('%s::%s', $controller, $action)]);
     }
 
-    /**
-     * @param array<string, Editable> $editables the editables by the name the template gives them
-     */
-    public function withEditables(array $editables): static
+    public function withContentMainDocument(PageSnippet $main): static
     {
-        return $this->afterInstantiate(static function (PageSnippet $document) use ($editables): void {
-            foreach ($editables as $name => $editable) {
-                // A factory creates many documents, and each one needs editables of its own.
-                $copy = clone $editable;
-                $copy->setName($name);
-                $document->setEditable($copy);
-            }
-        });
+        return $this->with(['contentMainDocumentId' => $main->getId()]);
     }
 
     /**
-     * @param string $areablock the name the template gives the areablock
+     * @param array<string, Editable> $editables
      */
+    public function withEditables(array $editables): static
+    {
+        return $this->afterInstantiate(
+            static function (PageSnippet $document) use ($editables): void {
+                foreach ($editables as $name => $editable) {
+                    // Every document a factory creates needs editables of its own.
+                    $copy = clone $editable;
+                    $copy->setName($name);
+                    $document->setEditable($copy);
+                }
+            },
+        );
+    }
+
     public function withBricks(string $areablock, Brick ...$bricks): static
     {
         $indices = [];
@@ -68,7 +72,8 @@ abstract class AbstractPageSnippetFactory extends AbstractDocumentFactory
             ];
 
             foreach ($brick->editables() as $name => $editable) {
-                $editables[sprintf('%s:%s.%s', $areablock, $key, $name)] = $editable;
+                $nameInAreablock = sprintf('%s:%s.%s', $areablock, $key, $name);
+                $editables[$nameInAreablock] = $editable;
             }
         }
 
@@ -87,10 +92,5 @@ abstract class AbstractPageSnippetFactory extends AbstractDocumentFactory
             ...parent::defaults(),
             'missingRequiredEditable' => false,
         ];
-    }
-
-    protected function initialize(): static
-    {
-        return parent::initialize()->withNavigationName();
     }
 }

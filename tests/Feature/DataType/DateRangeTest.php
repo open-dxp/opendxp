@@ -19,25 +19,23 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Carbon\CarbonPeriod;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-it('reads a range of dates back out of the version it was written into', function () {
+it('reads a range of dates back out of its version', function () {
+    $range = new CarbonPeriod('2018-04-21', '3 days', '2018-04-27');
 
-    $object = UnittestFactory::createOne([
-        'dateRange' => new CarbonPeriod('2018-04-21', '3 days', '2018-04-27'),
-    ]);
+    $object = UnittestFactory::createOne(['dateRange' => $range]);
+    $version = $object->getLatestVersion(includingPublished: true);
+    $versioned = $version->loadData(renewReferences: true)->getDateRange();
 
-    $written = $object->getDateRange();
-    $fromVersion = $object->getLatestVersion(includingPublished: true)->loadData(true)->getDateRange();
-
-    expect($fromVersion)
-        ->not->toBe($written)
-        ->and($fromVersion->getStartDate())
-        ->toEqual($written->getStartDate())
-        ->and($fromVersion->getEndDate())
-        ->toEqual($written->getEndDate())
-        ->and($fromVersion->getRecurrences())
-        ->toEqual($written->getRecurrences())
-        ->and($fromVersion->isStartExcluded())
-        ->toBe($written->isStartExcluded())
-        ->and($fromVersion->isEndExcluded())
-        ->toBe($written->isEndExcluded());
+    expect($versioned)
+        ->not->toBe($range)
+        ->getStartDate()
+        ->toEqual($range->getStartDate())
+        ->getEndDate()
+        ->toEqual($range->getEndDate())
+        ->getRecurrences()
+        ->toEqual($range->getRecurrences())
+        ->isStartExcluded()
+        ->toBe($range->isStartExcluded())
+        ->isEndExcluded()
+        ->toBe($range->isEndExcluded());
 });

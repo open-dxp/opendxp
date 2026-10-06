@@ -16,92 +16,126 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Relation;
 
-use OpenDxp\Model\DataObject\ClassDefinition\Data;
-use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
-const FIELD = 'multipleManyToMany';
-
-function changed(Data $field, Concrete $object): array
+/**
+ * @return list<ElementMetadata>
+ */
+function notedRelations(int $count): array
 {
-    $delta = $field->calculateDelta($object, ['context' => ['containerType' => 'object']]);
+    $relations = [];
 
-    return [
-        'new' => count($delta['newRelations']),
-        'existing' => count($delta['existingRelations']),
-        'updated' => count($delta['updatedRelations']),
-        'removed' => count($delta['removedRelations']),
-    ];
-}
-
-function swapped(array $relations, int $one, int $other): array
-{
-    [$relations[$one], $relations[$other]] = [$relations[$other], $relations[$one]];
+    foreach (RelationTestFactory::createMany($count) as $position => $target) {
+        $relation = new ElementMetadata('multipleManyToMany', ['meta'], $target);
+        $relation->setMeta(sprintf('note %d', $position));
+        $relations[] = $relation;
+    }
 
     return $relations;
 }
 
-function notes(array $relations): array
-{
-    return array_map(static fn (object $relation) => $relation->getMeta(), $relations);
-}
+beforeEach(function () {
+    $this->relations = notedRelations(4);
+    $this->object = MultipleAssignmentsFactory::createOne(['multipleManyToMany' => $this->relations]);
+    $this->field = $this->object->getClass()->getFieldDefinition('multipleManyToMany');
+});
 
-it('tells what changed in a relation after every edit', function () {
-
+it('counts every relation of a field that held none as new', function () {
     $object = MultipleAssignmentsFactory::createOne();
-    $field = $object->getClass()->getFieldDefinition(FIELD);
+    $object->setMultipleManyToMany($this->relations);
 
-    $assigned = [];
+    $delta = $this->field->calculateDelta($object, ['context' => ['containerType' => 'object']]);
 
-    foreach (RelationTestFactory::createMany(5) as $position => $target) {
-        $entry = new ElementMetadata(FIELD, ['meta'], $target);
-        $entry->setMeta('note ' . $position);
-        $assigned[] = $entry;
-    }
+    expect($delta)
+        ->newRelations
+        ->toHaveCount(4)
+        ->existingRelations
+        ->toBeEmpty()
+        ->updatedRelations
+        ->toBeEmpty()
+        ->removedRelations
+        ->toBeEmpty();
+});
 
-    $object->setMultipleManyToMany($assigned);
+it('counts a dropped relation as removed and the others as existing', function () {
+    $this->object->setMultipleManyToMany(array_slice($this->relations, 0, 3));
 
-    expect(changed($field, $object))->toBe(['new' => 5, 'existing' => 0, 'updated' => 0, 'removed' => 0]);
+    $delta = $this->field->calculateDelta($this->object, ['context' => ['containerType' => 'object']]);
 
-    $object->save();
+    expect($delta)
+        ->newRelations
+        ->toBeEmpty()
+        ->existingRelations
+        ->toHaveCount(3)
+        ->updatedRelations
+        ->toBeEmpty()
+        ->removedRelations
+        ->toHaveCount(1);
+});
 
-    array_pop($assigned);
-    $object->setMultipleManyToMany($assigned);
+it('counts every relation as removed once the field is emptied', function () {
+    $this->object->setMultipleManyToMany([]);
 
-    expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 4, 'updated' => 0, 'removed' => 1]);
+    $delta = $this->field->calculateDelta($this->object, ['context' => ['containerType' => 'object']]);
 
-    $object->save();
+    expect($delta)
+        ->newRelations
+        ->toBeEmpty()
+        ->existingRelations
+        ->toBeEmpty()
+        ->updatedRelations
+        ->toBeEmpty()
+        ->removedRelations
+        ->toHaveCount(4);
+});
 
-    $object->setMultipleManyToMany([]);
+it('counts two swapped relations as updated and the others as existing', function () {
+    $swapped = $this->relations;
+    [$swapped[1], $swapped[2]] = [$swapped[2], $swapped[1]];
+    $this->object->setMultipleManyToMany($swapped);
 
-    expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 0, 'updated' => 0, 'removed' => 4]);
+    $delta = $this->field->calculateDelta($this->object, ['context' => ['containerType' => 'object']]);
 
-    $object->save();
+    expect($delta)
+        ->newRelations
+        ->toBeEmpty()
+        ->existingRelations
+        ->toHaveCount(2)
+        ->updatedRelations
+        ->toHaveCount(2)
+        ->removedRelations
+        ->toBeEmpty();
+});
 
-    $object->setMultipleManyToMany($assigned);
+it('counts the relations behind a dropped one as updated', function () {
+    $this->object->setMultipleManyToMany(array_slice($this->relations, 1));
 
-    expect(changed($field, $object))->toBe(['new' => 4, 'existing' => 0, 'updated' => 0, 'removed' => 0]);
+    $delta = $this->field->calculateDelta($this->object, ['context' => ['containerType' => 'object']]);
 
-    $object->save();
+    expect($delta)
+        ->newRelations
+        ->toBeEmpty()
+        ->existingRelations
+        ->toBeEmpty()
+        ->updatedRelations
+        ->toHaveCount(3)
+        ->removedRelations
+        ->toHaveCount(1);
+});
 
-    // A swap changes the position of two relations, not the relations themselves.
-    $object->setMultipleManyToMany(swapped($assigned, 1, 2));
+it('writes swapped relations in their new order', function () {
+    $swapped = $this->relations;
+    [$swapped[1], $swapped[2]] = [$swapped[2], $swapped[1]];
 
-    expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 2, 'updated' => 2, 'removed' => 0]);
+    $this->object->setMultipleManyToMany($swapped);
+    $this->object->save();
 
-    $object->save();
-
-    expect(notes($object->getMultipleManyToMany()))->toBe(['note 0', 'note 2', 'note 1', 'note 3']);
-
-    $left = swapped($object->getMultipleManyToMany(), 0, 2);
-    array_shift($left);
-    $object->setMultipleManyToMany($left);
-
-    expect(changed($field, $object))->toBe(['new' => 0, 'existing' => 0, 'updated' => 3, 'removed' => 1]);
-
-    $object->save();
-
-    expect(notes($object->getMultipleManyToMany()))->toBe(['note 2', 'note 0', 'note 3']);
+    expect(notesOf(reloaded($this->object)->getMultipleManyToMany()))->toBe([
+        'note 0',
+        'note 2',
+        'note 1',
+        'note 3',
+    ]);
 });

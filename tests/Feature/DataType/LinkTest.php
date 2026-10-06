@@ -16,70 +16,79 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataType;
 
+use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Data\Link;
-use OpenDxp\Model\DataObject\UnittestLink;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Factory\AssetImageFactory;
-use OpenDxp\Tests\Factory\LinkObjectFactory;
+use OpenDxp\Tests\Factory\UnittestLinkFactory;
 use TypeError;
 
-function aLinkTo(int $assetId): Link
+function linkToAsset(Asset $asset): Link
 {
     $link = new Link();
-    $link->setInternal($assetId);
+    $link->setInternal($asset->getId());
     $link->setInternalType('asset');
 
     return $link;
 }
 
-it('hands a link back with the url it was saved with, localized or not', function () {
-
+it('keeps the url of a link, localized or not', function () {
     $link = new Link();
     $link->setDirect('https://www.opendxp.io/');
 
-    $object = LinkObjectFactory::createOne(['testlink' => $link, 'ltestlink' => $link]);
-    $written = UnittestLink::getById($object->getId(), ['force' => true]);
+    $object = UnittestLinkFactory::createOne([
+        'testlink' => $link,
+        'ltestlink' => $link,
+    ]);
+    $loaded = reloaded($object);
 
-    expect($written->getTestlink()->getDirect())
+    expect($loaded->getTestlink()->getDirect())
         ->toBe('https://www.opendxp.io/')
-        ->and($written->getLtestlink()->getDirect())
+        ->and($loaded->getLtestlink()->getDirect())
         ->toBe('https://www.opendxp.io/');
 });
 
-it('calls a link invalid once the element it points at is gone', function () {
+describe('a link to a deleted asset', function () {
+    beforeEach(function () {
+        $asset = AssetImageFactory::createOne();
+        $this->link = linkToAsset($asset);
+        $object = UnittestLinkFactory::createOne(['testlink' => $this->link]);
+        $this->definition = $object->getClass()->getFieldDefinition('testlink');
 
-    $asset = AssetImageFactory::createOne();
-    $link = aLinkTo($asset->getId());
-    $definition = LinkObjectFactory::createOne(['testlink' => $link])
-        ->getClass()
-        ->getFieldDefinition('testlink');
+        $asset->delete();
+    });
 
-    $asset->delete();
+    it('is invalid', function () {
+        $message = sprintf(
+            'invalid internal link, referenced document with id [%d] does not exist',
+            $this->link->getInternal(),
+        );
 
-    expect(fn () => $definition->checkValidity($link))->toThrow(ValidationException::class);
-});
+        expect(fn () => $this->definition->checkValidity($this->link))->toThrow(ValidationException::class, $message);
+    });
 
-it('empties a link that points nowhere instead of calling it invalid, when it is asked to', function () {
+    it('is emptied when invalid fields are reset', function () {
+        $this->definition->checkValidity(
+            $this->link,
+            omitMandatoryCheck: true,
+            params: ['resetInvalidFields' => true],
+        );
 
-    $asset = AssetImageFactory::createOne();
-    $link = aLinkTo($asset->getId());
-    $definition = LinkObjectFactory::createOne(['testlink' => $link])
-        ->getClass()
-        ->getFieldDefinition('testlink');
-
-    $asset->delete();
-    $definition->checkValidity($link, true, ['resetInvalidFields' => true]);
-
-    expect($link->getInternal())
-        ->toBeNull()
-        ->and($link->getInternalType())
-        ->toBeNull();
+        expect($this->link)
+            ->getInternal()
+            ->toBeNull()
+            ->getInternalType()
+            ->toBeNull();
+    });
 });
 
 it('refuses a plain url where a link belongs', function () {
+    $object = UnittestLinkFactory::new()
+        ->unsaved()
+        ->create();
 
-    $object = LinkObjectFactory::new()->unsaved()->create();
-
-    expect(fn () => $object->setTestlink('https://www.opendxp.io/'))->toThrow(TypeError::class);
-    expect(fn () => $object->setLtestlink('https://www.opendxp.io/'))->toThrow(TypeError::class);
+    expect(fn () => $object->setTestlink('https://www.opendxp.io/'))
+        ->toThrow(TypeError::class, 'must be of type ?OpenDxp\\Model\\DataObject\\Data\\Link, string given')
+        ->and(fn () => $object->setLtestlink('https://www.opendxp.io/'))
+        ->toThrow(TypeError::class, 'must be of type ?OpenDxp\\Model\\DataObject\\Data\\Link, string given');
 });

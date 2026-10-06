@@ -27,23 +27,27 @@ it('refuses a path with two slashes in a row', function () {
     new Path('/path//path');
 })->throws(ValueError::class, 'Path must not contain consecutive slashes.');
 
-it('answers with the path it was given', function () {
-    expect((new Path('/path'))->getValue())->toBe('/path');
-});
-
-it('equals another one holding the same path', function () {
-
+it('accepts a path that starts with a slash', function () {
     $path = new Path('/path');
 
-    expect($path->equals(new Path('/path')))
-        ->toBeTrue()
-        ->and($path->equals(new Path('/path2')))
-        ->toBeFalse();
+    expect($path)->getValue()->toBe('/path');
 });
 
-it('checks the path again when it comes back from a serialized form', function () {
+it('equals another one only when it holds the same path', function (string $other, bool $equal) {
+    $path = new Path('/path');
 
-    $serialized = str_replace('/mypath', '!mypath', serialize(new Path('/mypath')));
+    $result = $path->equals(new Path($other));
 
-    unserialize($serialized);
-})->throws(ValueError::class, 'Path must start with a slash.');
+    expect($result)->toBe($equal);
+})->with([
+    'the same path' => ['/path', true],
+    'another path' => ['/path2', false],
+]);
+
+it('checks the path again when it is unserialized', function () {
+    $serialized = serialize(new Path('/mypath'));
+    $tampered = str_replace('/mypath', '!mypath', $serialized);
+
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Path must start with a slash.');
+});

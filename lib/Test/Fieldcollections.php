@@ -22,12 +22,12 @@ use RuntimeException;
 
 final class Fieldcollections
 {
-    public static function install(string $key, string $definition): Definition
+    public static function install(string $key, string $file): Definition
     {
-        $json = file_get_contents($definition);
+        $json = file_get_contents($file);
 
         if ($json === false) {
-            throw new RuntimeException(sprintf('There is no fieldcollection definition at %s.', $definition));
+            throw new RuntimeException(sprintf('There is no fieldcollection definition at %s.', $file));
         }
 
         $collection = Definition::getByKey($key);
@@ -37,7 +37,7 @@ final class Fieldcollections
             $collection->setKey($key);
         }
 
-        Service::importFieldCollectionFromJson($collection, $json, true);
+        Service::importFieldCollectionFromJson($collection, $json, throwException: true);
 
         return Definition::getByKey($key)
             ?? throw new RuntimeException(sprintf('The fieldcollection %s was not installed.', $key));

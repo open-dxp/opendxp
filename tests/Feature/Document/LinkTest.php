@@ -16,35 +16,28 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Document;
 
-use OpenDxp\Model\Document\Link;
-use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentLinkFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
 
-it('hands back the element it points at', function () {
+beforeEach(fn () => $this->target = DocumentPageFactory::createOne());
 
-    $target = AssetImageFactory::createOne();
+it('loads the document it points at', function () {
+    $link = DocumentLinkFactory::new()
+        ->withTarget($this->target)
+        ->create();
 
-    $link = DocumentLinkFactory::createOne([
-        'internalType' => 'asset',
-        'internal' => $target->getId(),
-        'linktype' => 'internal',
-    ]);
+    $element = reloaded($link)->getElement();
 
-    expect(Link::getById($link->getId())->getElement()->getId())->toBe($target->getId());
+    expect($element->getId())->toBe($this->target->getId());
 });
 
-it('points at nothing rather than at itself', function () {
-
-    $link = DocumentLinkFactory::createOne([
-        'internalType' => 'document',
-        'internal' => 1,
-        'linktype' => 'internal',
-    ]);
-
-    expect($link->getInternal())->toBe(1);
+it('drops a target that is the link itself', function () {
+    $link = DocumentLinkFactory::new()
+        ->withTarget($this->target)
+        ->create();
 
     $link->setInternal($link->getId());
     $link->save();
 
-    expect(Link::getById($link->getId())->getInternal())->toBeNull();
+    expect(reloaded($link)->getInternal())->toBeNull();
 });

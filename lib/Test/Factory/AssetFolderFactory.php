@@ -20,10 +20,6 @@ use OpenDxp\Model\Asset\Folder;
 
 /**
  * @extends AbstractElementFactory<Folder>
- *
- * @method Folder create(array|callable $attributes = [])
- * @method static Folder createOne(array $attributes = [])
- * @method static list<Folder> createMany(int $number, array $attributes = [])
  */
 final class AssetFolderFactory extends AbstractElementFactory
 {
@@ -36,8 +32,7 @@ final class AssetFolderFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'filename' => sprintf('asset-folder-%s', uniqid()),
-            'type'     => 'folder',
+            'filename' => self::faker()->unique()->slug(),
         ];
     }
 }

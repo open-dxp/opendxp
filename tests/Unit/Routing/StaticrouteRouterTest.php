@@ -17,31 +17,66 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\Routing;
 
 use OpenDxp\Bundle\StaticRoutesBundle\Model\Staticroute;
+use OpenDxp\Bundle\StaticRoutesBundle\Routing\Staticroute\Router;
+use OpenDxp\Config;
+use OpenDxp\Http\Request\Host\GeneralHostResolver;
+use ReflectionProperty;
+use Symfony\Component\Routing\RequestContext;
+
+function staticroute(string $variables): Staticroute
+{
+    $route = new Staticroute();
+    $route->setName('test_route');
+    $route->setPattern('/\/(\w+)\/product$/');
+    $route->setVariables($variables);
+    $route->setController('App\\Controller\\TestController::testAction');
+
+    return $route;
+}
+
+function staticrouteRouter(Staticroute $route): Router
+{
+    $context = new RequestContext();
+    $context->setParameter('_locale', 'en');
+
+    $router = new Router(
+        $context,
+        new Config(),
+        new GeneralHostResolver(),
+    );
+
+    // The router is final and loads its routes from the database, which a unit test does not have.
+    $routes = new ReflectionProperty(Router::class, 'staticRoutes');
+    $routes->setValue($router, [$route]);
+
+    return $router;
+}
 
 afterEach(fn () => Staticroute::setCurrentRoute(null));
 
 it('leaves the locale of the context out of the matched parameters', function () {
+    $router = staticrouteRouter(staticroute('lang'));
 
-    $router = staticrouteRouter(staticroute('/\/(\w+)\/product$/', 'lang'));
-    $params = $router->match('/de/product');
+    $parameters = $router->match('/de/product');
 
-    expect($params)
+    expect($parameters)
         ->toHaveKey('lang', 'de')
-        ->and($params)
         ->not->toHaveKey('_locale');
 });
 
 it('keeps a locale the pattern itself matched', function () {
+    $router = staticrouteRouter(staticroute('_locale'));
 
-    $router = staticrouteRouter(staticroute('/\/(\w+)\/product$/', '_locale'));
+    $parameters = $router->match('/de/product');
 
-    expect($router->match('/de/product'))->toHaveKey('_locale', 'de');
+    expect($parameters)->toHaveKey('_locale', 'de');
 });
 
 it('reads the locale from the variable a route declares for it', function () {
-
-    $router = staticrouteRouter(staticroute('/\/(\w+)\/product$/', 'language'));
+    $router = staticrouteRouter(staticroute('language'));
     $router->setLocaleParams(['language']);
 
-    expect($router->match('/de/product'))->toHaveKey('_locale', 'de');
+    $parameters = $router->match('/de/product');
+
+    expect($parameters)->toHaveKey('_locale', 'de');
 });

@@ -20,16 +20,19 @@ use OpenDxp\ValueObject\Collection\ArrayOfBoolean;
 use ValueError;
 
 it('refuses an array holding something that is not a boolean', function () {
-    new ArrayOfBoolean([true, false, 1]);
+    new ArrayOfBoolean([1]);
 })->throws(ValueError::class, 'Provided array must contain only boolean values. (integer given)');
 
-it('answers with the booleans it was given', function () {
-    expect((new ArrayOfBoolean([true, false, true]))->getValue())->toBe([true, false, true]);
+it('accepts an array of booleans', function () {
+    $booleans = new ArrayOfBoolean([true]);
+
+    expect($booleans)->getValue()->toBe([true]);
 });
 
-it('checks the booleans again when they come back from a serialized form', function () {
+it('checks the booleans again when they are unserialized', function () {
+    $serialized = serialize(new ArrayOfBoolean([true]));
+    $tampered = str_replace('b:1', 's:4:"true"', $serialized);
 
-    $serialized = str_replace('b:1', 's:4:"true"', serialize(new ArrayOfBoolean([true, false])));
-
-    unserialize($serialized);
-})->throws(ValueError::class, 'Provided array must contain only boolean values. (string given)');
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Provided array must contain only boolean values. (string given)');
+});

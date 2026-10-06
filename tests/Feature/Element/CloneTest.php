@@ -16,38 +16,52 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Element;
 
-use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element\Service;
-use OpenDxp\Tests\Factory\TestObjectFactory;
+use OpenDxp\Test\Factory\AssetImageFactory;
+use OpenDxp\Test\Factory\DocumentPageFactory;
+use OpenDxp\Tests\Factory\UnittestFactory;
 
-it('hands back a copy that belongs nowhere yet', function () {
+it('returns a copy without an id', function (string $element, string $factory) {
+    $original = $factory::createOne();
 
-    $copy = Service::cloneMe(TestObjectFactory::createOne());
+    $copy = Service::cloneMe($original);
 
-    expect($copy->getId())
+    expect($copy->getId())->toBeNull();
+})->with('elements');
+
+it('returns a copy of an object without a parent', function () {
+    $original = UnittestFactory::createOne();
+
+    $copy = Service::cloneMe($original);
+
+    expect($copy)
+        ->getParentId()
         ->toBeNull()
-        ->and($copy->getParent())
-        ->toBeNull()
-        ->and($copy->getParentId())
+        ->getParent()
         ->toBeNull();
 });
 
-it('carries the properties over and takes a free key', function () {
+it('carries the properties over to a copy', function (string $element, string $factory) {
+    $original = $factory::new()
+        ->withProperty('colour', 'input', 'blue')
+        ->create();
 
-    $object = TestObjectFactory::createOne();
-    $object->setProperty('propertyA', 'input', 'valueA');
-    $object->save();
+    $copy = Service::cloneMe($original);
 
-    $root = DataObject::getById(1);
-    $copy = Service::cloneMe($object);
-    $copy->setKey(Service::getSafeCopyName($copy->getKey(), $root));
-    $copy->setParentId($root->getId());
-    $copy->save();
+    expect($copy->getProperty('colour'))->toBe('blue');
+})->with('elements');
 
-    $saved = DataObject::getById($copy->getId(), ['force' => true]);
+it('names a copy after its original', function (string $factory, string $key, string $copyName) {
+    $original = $factory::createOne(['key' => $key]);
 
-    expect($saved->getKey())
-        ->toBe($object->getKey() . '_copy')
-        ->and($saved->getProperty('propertyA'))
-        ->toBe('valueA');
-});
+    $name = Service::getSafeCopyName(
+        $key,
+        $original->getParent(),
+    );
+
+    expect($name)->toBe($copyName);
+})->with([
+    'an asset' => [AssetImageFactory::class, 'photo.jpg', 'photo_copy.jpg'],
+    'a document' => [DocumentPageFactory::class, 'about', 'about_copy'],
+    'an object' => [UnittestFactory::class, 'shoe', 'shoe_copy'],
+]);

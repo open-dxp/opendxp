@@ -15,6 +15,6 @@ declare(strict_types=1);
 
 namespace DummyNamespace;
 
-class ClassX
+final class ClassX
 {
 }

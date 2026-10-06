@@ -26,127 +26,186 @@ use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\DocumentSnippetFactory;
 use OpenDxp\TestFoundation\Controller\DefaultController;
 
-it('writes a document and gives it an id', function () {
-
+it('writes a document', function () {
     $page = DocumentPageFactory::createOne();
 
-    expect($page)
-        ->toBeInstanceOf(Page::class)
-        ->and($page->getId())
-        ->toBeGreaterThan(0)
-        ->and(Page::getById($page->getId()))
-        ->toBeInstanceOf(Page::class);
+    expect(reloaded($page))->toBeInstanceOf(Page::class);
 });
 
-it('takes the key the caller names', function () {
-    expect(DocumentPageFactory::createOne(['key' => 'about-us'])->getKey())->toBe('about-us');
+it('takes the key a test names', function () {
+    $page = DocumentPageFactory::createOne(['key' => 'about-us']);
+
+    expect($page->getKey())->toBe('about-us');
 });
 
 it('gives every document a key of its own when none is named', function () {
+    $pages = DocumentPageFactory::createMany(3);
 
-    $keys = array_map(static fn (Page $page) => $page->getKey(), DocumentPageFactory::createMany(3));
+    $keys = array_map(
+        static fn (Page $page): string => $page->getKey(),
+        $pages,
+    );
 
     expect(array_unique($keys))->toHaveCount(3);
 });
 
-it('hands back a document that was never written', function () {
-
-    $page = DocumentPageFactory::new()->unsaved()->create();
+it('returns a document that was never written', function () {
+    $page = DocumentPageFactory::new()
+        ->unsaved()
+        ->create();
 
     expect($page)
         ->toBeInstanceOf(Page::class)
-        ->and($page->getId())
+        ->getId()
         ->toBeNull();
 });
 
-it('puts a document below another one', function () {
-
+it('puts a document below its parent', function () {
     $parent = DocumentPageFactory::createOne(['key' => 'en']);
-    $child = DocumentPageFactory::new()->withParent($parent)->create(['key' => 'about-us']);
 
-    expect($child->getParentId())
-        ->toBe($parent->getId())
-        ->and($child->getFullPath())
-        ->toBe('/en/about-us');
+    $child = DocumentPageFactory::new()
+        ->withParent($parent)
+        ->create(['key' => 'about-us']);
+
+    expect($child->getFullPath())->toBe('/en/about-us');
 });
 
 it('marks the language a document belongs to', function () {
-
-    $page = DocumentPageFactory::new()->withLocale('de_CH')->create();
+    $page = DocumentPageFactory::new()
+        ->withLocale('de_CH')
+        ->create();
 
     expect($page->getProperty('language'))->toBe('de_CH');
 });
 
-it('leaves a document unpublished when asked to', function () {
-    expect(DocumentPageFactory::new()->unpublished()->create()->isPublished())
-        ->toBeFalse()
-        ->and(DocumentPageFactory::createOne()->isPublished())
-        ->toBeTrue();
+it('publishes a document', function () {
+    $page = DocumentPageFactory::createOne();
+
+    expect($page->isPublished())->toBeTrue();
 });
 
-it('leaves the controller to the application unless a test names one', function () {
+it('leaves a document unpublished on request', function () {
+    $page = DocumentPageFactory::new()
+        ->unpublished()
+        ->create();
 
-    $named = DocumentPageFactory::new()->withController(DefaultController::class, 'javascriptAction')->create();
+    expect($page->isPublished())->toBeFalse();
+});
 
-    expect($named->getController())
-        ->toBe(DefaultController::class . '::javascriptAction')
-        ->and(DocumentPageFactory::createOne()->getController())
-        ->toBe(DefaultController::class . '::defaultAction');
+it('uses the default controller unless a test names one', function () {
+    $page = DocumentPageFactory::createOne();
+
+    expect($page->getController())->toBe(sprintf('%s::defaultAction', DefaultController::class));
+});
+
+it('uses the controller a test names', function () {
+    $page = DocumentPageFactory::new()
+        ->withController(DefaultController::class, 'javascriptAction')
+        ->create();
+
+    expect($page->getController())->toBe(sprintf('%s::javascriptAction', DefaultController::class));
 });
 
 it('writes a snippet', function () {
-    expect(DocumentSnippetFactory::createOne()->getId())->toBeGreaterThan(0);
+    $snippet = DocumentSnippetFactory::createOne();
+
+    expect(reloaded($snippet))->toBeInstanceOf(Document\Snippet::class);
 });
 
 it('points a link at another document', function () {
-
     $target = DocumentPageFactory::createOne();
-    $link = DocumentLinkFactory::new()->withTarget($target)->create();
+
+    $link = DocumentLinkFactory::new()
+        ->withTarget($target)
+        ->create();
 
     expect($link)
         ->toBeInstanceOf(Link::class)
-        ->and($link->getInternal())
+        ->getInternal()
         ->toBe($target->getId())
-        ->and($link->getLinktype())
+        ->getLinktype()
         ->toBe('internal');
 });
 
 it('mirrors a document with a hardlink', function () {
-
     $source = DocumentPageFactory::createOne();
-    $hardlink = DocumentHardlinkFactory::new()->withSource($source)->withLocale('de')->create();
+
+    $hardlink = DocumentHardlinkFactory::new()
+        ->withSource($source)
+        ->withLocale('de')
+        ->create();
 
     expect($hardlink)
         ->toBeInstanceOf(Hardlink::class)
-        ->and($hardlink->getSourceId())
+        ->getSourceId()
         ->toBe($source->getId())
-        ->and($hardlink->getChildrenFromSource())
+        ->getChildrenFromSource()
         ->toBeTrue()
-        ->and($hardlink->getProperty('language'))
+        ->getProperty('language')
         ->toBe('de');
 });
 
 it('links a document as the language variant of another', function () {
+    $en = DocumentPageFactory::new()
+        ->withLocale('en')
+        ->create();
 
-    $en = DocumentPageFactory::new()->withLocale('en')->create(['key' => 'en']);
-    $de = DocumentPageFactory::new()->withLocale('de')->withTranslationOf($en)->create(['key' => 'de']);
+    $de = DocumentPageFactory::new()
+        ->withLocale('de')
+        ->withTranslationOf($en)
+        ->create();
 
     $variants = (new Document\Service())->getTranslations($en);
-
-    expect($variants)
-        ->toHaveKey('de')
-        ->and($variants['de'])
-        ->toBe($de->getId());
+    expect($variants)->toHaveKey('de', $de->getId());
 });
 
 it('joins a third document to the same set of variants', function () {
+    $en = DocumentPageFactory::new()
+        ->withLocale('en')
+        ->create();
+    $de = DocumentPageFactory::new()
+        ->withLocale('de')
+        ->withTranslationOf($en)
+        ->create();
 
-    $en = DocumentPageFactory::new()->withLocale('en')->create(['key' => 'en-root']);
-    $de = DocumentPageFactory::new()->withLocale('de')->withTranslationOf($en)->create(['key' => 'de-root']);
-    $fr = DocumentPageFactory::new()->withLocale('fr')->withTranslationOf($de)->create(['key' => 'fr-root']);
+    $fr = DocumentPageFactory::new()
+        ->withLocale('fr')
+        ->withTranslationOf($de)
+        ->create();
 
     $variants = (new Document\Service())->getTranslations($en);
-    ksort($variants);
+    expect($variants)
+        ->toHaveCount(3)
+        ->toHaveKey('de', $de->getId())
+        ->toHaveKey('en', $en->getId())
+        ->toHaveKey('fr', $fr->getId());
+});
 
-    expect($variants)->toBe(['de' => $de->getId(), 'en' => $en->getId(), 'fr' => $fr->getId()]);
+it('links no language variant for a document that was never written', function () {
+    $en = DocumentPageFactory::new()
+        ->withLocale('en')
+        ->create();
+
+    DocumentPageFactory::new()
+        ->withLocale('de')
+        ->withTranslationOf($en)
+        ->unsaved()
+        ->create();
+
+    $variants = (new Document\Service())->getTranslations($en);
+    expect($variants)->not->toHaveKey('de');
+});
+
+it('names a page in the navigation after its key', function () {
+    $page = DocumentPageFactory::createOne(['key' => 'contact']);
+
+    expect($page->getProperty('navigation_name'))->toBe('contact');
+});
+
+it('names a document in the navigation as a test asks', function () {
+    $link = DocumentLinkFactory::new()
+        ->withNavigationName('Get in touch')
+        ->create();
+
+    expect($link->getProperty('navigation_name'))->toBe('Get in touch');
 });

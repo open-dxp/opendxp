@@ -21,19 +21,29 @@ use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tool\Frontend;
 
 beforeEach(function () {
-    $this->site = SiteFactory::createOne(['mainDomain' => 'example2.com']);
-    $this->otherSite = SiteFactory::createOne(['mainDomain' => 'example.com']);
-    $this->page = DocumentPageFactory::createOne(['key' => 'testing', 'parentId' => $this->site->getRootDocument()->getId()]);
+    $this->site = SiteFactory::createOne();
+    $this->otherSite = SiteFactory::createOne();
+    $this->page = DocumentPageFactory::new()
+        ->withParent($this->site->getRootDocument())
+        ->create();
 });
 
 it('counts a document below the root of a site as part of that site', function () {
-    expect(Frontend::isDocumentInSite($this->site, $this->page))->toBeTrue();
+    $inSite = Frontend::isDocumentInSite($this->site, $this->page);
+
+    expect($inSite)->toBeTrue();
 });
 
 it('counts the root document itself as part of its site', function () {
-    expect(Frontend::isDocumentInSite($this->site, $this->site->getRootDocument()))->toBeTrue();
+    $root = $this->site->getRootDocument();
+
+    $inSite = Frontend::isDocumentInSite($this->site, $root);
+
+    expect($inSite)->toBeTrue();
 });
 
 it('counts a document of one site as no part of another', function () {
-    expect(Frontend::isDocumentInSite($this->otherSite, $this->page))->toBeFalse();
+    $inSite = Frontend::isDocumentInSite($this->otherSite, $this->page);
+
+    expect($inSite)->toBeFalse();
 });

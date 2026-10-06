@@ -14,9 +14,11 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Feature\Seo;
 
 use Doctrine\DBAL\Connection;
+use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
@@ -31,48 +33,79 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Lock\LockFactory;
 
-it('looks a request up with a single cache read', function (string $uri, bool $beforeRouting) {
-    RedirectFactory::createOne([
-        'source' => '/listed',
-        'target' => '/somewhere',
-    ]);
-    RedirectFactory::createOne([
-        'source' => '@^/pattern/(.*)$@',
-        'target' => '/other/$1',
-        'regex' => true,
-    ]);
-    RedirectFactory::createOne([
-        'source' => '/overriding',
-        'target' => '/first',
-        'priority' => 99,
-    ]);
+/**
+ * The second status query counts itself, so it is taken off.
+ */
+function queriesOf(callable $work): int
+{
+    $questions = static function (): int {
+        $status = Db::get()->fetchAssociative("SHOW SESSION STATUS LIKE 'Questions'");
 
-    nextRequest();
-    Container::get(RedirectHandler::class)->checkForRedirect(Request::create($uri), $beforeRouting);
+        return (int) $status['Value'];
+    };
 
-    nextRequest();
+    $before = $questions();
+    $work();
+
+    return $questions() - $before - 1;
+}
+
+function hitsOf(Redirect $redirect): int
+{
+    return (int) Db::get()->fetchOne(
+        'SELECT hits FROM redirect_hits WHERE redirectId = ?',
+        [$redirect->getId()],
+    );
+}
+
+function lastHitOf(Redirect $redirect): ?int
+{
+    $lastHit = Db::get()->fetchOne(
+        'SELECT lastHit FROM redirect_hits WHERE redirectId = ?',
+        [$redirect->getId()],
+    );
+
+    return $lastHit === false || $lastHit === null ? null : (int) $lastHit;
+}
+
+it('looks a request up with a single cache read', function (string $uri, bool $override) {
+    RedirectFactory::createOne(['source' => '/listed']);
+    RedirectFactory::new()
+        ->matching('@^/pattern/(.*)$@')
+        ->create(['target' => '/other/$1']);
+    RedirectFactory::new()
+        ->withPriority(99)
+        ->create(['source' => '/overriding']);
+    $warmUp = Request::create($uri);
+    $request = Request::create($uri);
+    resetServices();
+    Container::get(RedirectHandler::class)->checkForRedirect($warmUp, $override);
+    resetServices();
     $handler = Container::get(RedirectHandler::class);
 
+    $queries = queriesOf(fn () => $handler->checkForRedirect($request, $override));
+
     // The tag-aware cache reads the revision and the version of its tag.
-    expect(queriesOf(fn () => $handler->checkForRedirect(Request::create($uri), $beforeRouting)))
-        ->toBeLessThanOrEqual(2);
+    expect($queries)->toBeLessThanOrEqual(2);
 })->with([
-    'a page, before routing' => ['/some/page', true],
-    'an unknown URL, after routing' => ['/does/not/exist', false],
+    'a page before routing' => ['/some/page', true],
+    'an unknown URL after routing' => ['/does/not/exist', false],
     'an exact source' => ['/listed', false],
     'a regular expression' => ['/pattern/x', false],
 ]);
 
 it('looks a request up with a single cache read when there are no redirects', function () {
-    nextRequest();
-    Container::get(RedirectHandler::class)->checkForRedirect(Request::create('/page'), true);
-
-    nextRequest();
+    $warmUp = Request::create('/page');
+    $request = Request::create('/page');
+    resetServices();
+    Container::get(RedirectHandler::class)->checkForRedirect($warmUp, override: true);
+    resetServices();
     $handler = Container::get(RedirectHandler::class);
 
+    $queries = queriesOf(fn () => $handler->checkForRedirect($request, override: true));
+
     // The tag-aware cache reads the revision and the version of its tag.
-    expect(queriesOf(fn () => $handler->checkForRedirect(Request::create('/page'), true)))
-        ->toBeLessThanOrEqual(2);
+    expect($queries)->toBeLessThanOrEqual(2);
 });
 
 it('follows a changed redirect on the next request', function () {
@@ -80,125 +113,117 @@ it('follows a changed redirect on the next request', function () {
         'source' => '/changing',
         'target' => '/before',
     ]);
-    nextRequest();
-
-    expect(answerTo('/changing'))
-        ->toRedirectTo('/before');
-
+    resetServices();
+    answerTo('/changing');
     $redirect->setTarget('/after');
     $redirect->save();
-    nextRequest();
+    resetServices();
 
-    expect(answerTo('/changing'))
-        ->toRedirectTo('/after');
+    $response = answerTo('/changing');
+
+    expect($response)->toRedirectTo('/after');
 });
 
 it('stops redirecting once a redirect is deleted', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/deleted',
-        'target' => '/gone',
-    ]);
-    nextRequest();
-
-    expect(answerTo('/deleted'))
-        ->toBeAnsweredBy($redirect);
-
+    $redirect = RedirectFactory::createOne(['source' => '/deleted']);
+    resetServices();
+    answerTo('/deleted');
     $redirect->delete();
-    nextRequest();
+    resetServices();
 
-    expect(answerTo('/deleted'))
-        ->toBeAnsweredBy(null);
+    $response = answerTo('/deleted');
+
+    expect($response)->toComeFromNoRedirect();
 });
 
-it('answers without redirects when the redirects cannot be read', function () {
+it('falls back to a table without redirects when the redirects cannot be read', function () {
     $connection = $this->createMock(Connection::class);
     $connection
         ->method('iterateAssociative')
         ->willThrowException(new RuntimeException('Unknown column'));
+    // A revision left in the cache would serve the table of an earlier test from its file.
     Cache::remove('seo_redirect_table_revision');
-
     $tables = new RedirectTableProvider(
         $connection,
         Container::get(LockFactory::class),
         new NullLogger(),
-        sys_get_temp_dir() . '/redirect-table-' . uniqid(),
+        sprintf('%s/redirect-table-%s', sys_get_temp_dir(), uniqid()),
     );
 
-    expect($tables->get()->isInstalled())
-        ->toBeFalse();
+    $table = $tables->get();
+
+    expect($table->isInstalled())->toBeFalse();
 });
 
-it('counts the hits of a redirect', function () {
-    $page = DocumentPageFactory::createOne([
-        'key' => 'counted-' . uniqid(),
-        'published' => true,
-    ]);
-    $exact = RedirectFactory::createOne([
-        'source' => '/counted',
-        'target' => '/target',
-    ]);
-    $overriding = RedirectFactory::createOne([
-        'source' => $page->getFullPath(),
-        'target' => '/target',
-        'priority' => 99,
-    ]);
-    nextRequest();
+it('counts a hit of a redirect', function () {
+    $redirect = RedirectFactory::createOne(['source' => '/counted']);
+    $before = time();
+    resetServices();
 
     answerTo('/counted');
+
+    expect(hitsOf($redirect))
+        ->toBe(1)
+        ->and(lastHitOf($redirect))
+        ->toBeGreaterThanOrEqual($before);
+});
+
+it('adds a hit to the hits counted before', function () {
+    $redirect = RedirectFactory::createOne(['source' => '/counted']);
+    recordHits($redirect, 5, 1700000000);
+    resetServices();
+
     answerTo('/counted');
+
+    expect(hitsOf($redirect))->toBe(6);
+});
+
+it('counts a hit of a redirect that overrides an existing page', function () {
+    $page = DocumentPageFactory::createOne();
+    $redirect = RedirectFactory::new()
+        ->withPriority(99)
+        ->create(['source' => $page->getFullPath()]);
+    resetServices();
+
     answerTo($page->getFullPath());
 
-    expect(hitsOf($exact))
-        ->toBe(2)
-        ->and(lastHitOf($exact))
-        ->toBeGreaterThanOrEqual(time() - 60)
-        ->and(hitsOf($overriding))
-        ->toBe(1);
+    expect(hitsOf($redirect))->toBe(1);
 });
 
 it('counts no hit when a redirect is only looked up', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/looked-up',
-        'target' => '/target',
-    ]);
-    nextRequest();
+    $redirect = RedirectFactory::createOne(['source' => '/looked-up']);
+    $request = Request::create('/looked-up');
+    resetServices();
 
-    Container::get(RedirectHandler::class)->checkForRedirect(Request::create('/looked-up'));
+    Container::get(RedirectHandler::class)->checkForRedirect($request);
     Container::get(RedirectHitCounter::class)->flush();
 
-    expect(hitsOf($redirect))
-        ->toBe(0);
+    expect(hitsOf($redirect))->toBe(0);
 });
 
 it('counts no hit when counting is switched off', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/uncounted',
-        'target' => '/target',
-    ]);
-    $response = new Response(status: 301, headers: [
-        RedirectHandler::RESPONSE_HEADER_NAME_ID => (string) $redirect->getId(),
-    ]);
+    $redirect = RedirectFactory::createOne();
+    $response = new Response(
+        status: 301,
+        headers: [RedirectHandler::RESPONSE_HEADER_NAME_ID => (string) $redirect->getId()],
+    );
+    $counter = new RedirectHitCounter(
+        Db::get(),
+        new NullLogger(),
+        ['count_hits' => false],
+    );
 
-    $counter = new RedirectHitCounter(Db::get(), new NullLogger(), [
-        'count_hits' => false,
-    ]);
     $counter->count($response);
     $counter->flush();
 
-    expect(hitsOf($redirect))
-        ->toBe(0);
+    expect(hitsOf($redirect))->toBe(0);
 });
 
 it('forgets the hits of a deleted redirect', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/forgotten',
-        'target' => '/target',
-    ]);
-    nextRequest();
-    answerTo('/forgotten');
+    $redirect = RedirectFactory::createOne();
+    recordHits($redirect, 3, time());
 
     $redirect->delete();
 
-    expect(hitsOf($redirect))
-        ->toBe(0);
+    expect(hitsOf($redirect))->toBe(0);
 });

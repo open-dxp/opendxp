@@ -30,31 +30,29 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 it('keeps the locale the route asked for over the language of the document', function () {
-
     $document = $this->createMock(Document\Page::class);
-    $document->method('isPublished')->willReturn(true);
-    $document->method('getProperty')->with('language')->willReturn('de');
-
+    $document
+        ->method('isPublished')
+        ->willReturn(true);
+    $document
+        ->method('getProperty')
+        ->with('language')
+        ->willReturn('de');
     $context = $this->createMock(OpenDxpContextResolver::class);
-    $context->method('matchesOpenDxpContext')->willReturn(true);
-
-    $requestHelper = $this->createMock(RequestHelper::class);
-    $requestHelper->method('isFrontendRequestByAdmin')->willReturn(false);
-
+    $context
+        ->method('matchesOpenDxpContext')
+        ->willReturn(true);
     $request = Request::create('/de/product/it');
     $requests = new RequestStack();
     $requests->push($request);
-
     $resolver = new DocumentResolver($requests);
     $resolver->setDocument($request, $document);
-
-    // Symfony's own locale listener has run by now and taken the locale from the route.
+    // Symfony's own locale listener has run by now. It took the locale from the route.
     $request->setLocale('it');
-
     $listener = new ElementListener(
         $resolver,
         $this->createMock(EditmodeResolver::class),
-        $requestHelper,
+        $this->createMock(RequestHelper::class),
         $this->createMock(UserLoader::class),
     );
     $listener->setOpenDxpContextResolver($context);

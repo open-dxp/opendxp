@@ -19,12 +19,10 @@ namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Asset\Document;
 
+use function Zenstruck\Foundry\lazy;
+
 /**
  * @extends AbstractElementFactory<Document>
- *
- * @method Document create(array|callable $attributes = [])
- * @method static Document createOne(array $attributes = [])
- * @method static list<Document> createMany(int $number, array $attributes = [])
  */
 final class AssetDocumentFactory extends AbstractElementFactory
 {
@@ -42,9 +40,8 @@ final class AssetDocumentFactory extends AbstractElementFactory
     {
         return [
             ...parent::defaults(),
-            'type'     => 'document',
-            'filename' => sprintf('document-%s.pdf', uniqid()),
-            'data'     => file_get_contents(self::fixture()),
+            'filename' => sprintf('%s.pdf', self::faker()->unique()->slug()),
+            'data'     => lazy(static fn () => file_get_contents(self::fixture())),
         ];
     }
 }

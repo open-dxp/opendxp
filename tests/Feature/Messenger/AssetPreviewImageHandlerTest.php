@@ -25,7 +25,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 use Throwable;
 
-function handled(AssetPreviewImageMessage $message): ?Throwable
+function errorOnHandling(AssetPreviewImageMessage $message): ?Throwable
 {
     $error = null;
 
@@ -38,7 +38,7 @@ function handled(AssetPreviewImageMessage $message): ?Throwable
 
     $handler = new AssetPreviewImageHandler(new NullLogger());
     $handler($message, $acknowledger);
-    $handler->flush(true);
+    $handler->flush(force: true);
 
     return $error;
 }
@@ -48,22 +48,25 @@ function previewOf(Asset $asset): Asset\Image\Thumbnail
     return $asset->getThumbnail(Asset\Image\Thumbnail\Config::getPreviewConfig());
 }
 
-it('writes the preview image of an asset it is handed', function () {
-
+it('writes the preview image of an asset', function () {
     $asset = AssetImageFactory::createOne();
+    // Thumbnails live outside the transaction. A run with the same faker seed finds the files of the last one.
+    $asset->clearThumbnails(force: true);
 
-    expect(previewOf($asset)->exists())->toBeFalse();
+    $error = errorOnHandling(new AssetPreviewImageMessage($asset->getId()));
 
-    expect(handled(new AssetPreviewImageMessage($asset->getId())))->toBeNull();
-
-    expect(previewOf($asset)->exists())->toBeTrue();
+    expect($error)
+        ->toBeNull()
+        ->and(previewOf($asset)->exists())
+        ->toBeTrue();
 });
 
-it('reports back the failure when the asset is no image at all', function () {
+it('reports the failure for an asset that is no image', function () {
+    $asset = AssetImageFactory::createOne(['data' => 'no image']);
 
-    $asset = AssetImageFactory::createOne(['data' => 'this-is-not-a-valid-image']);
+    $error = errorOnHandling(new AssetPreviewImageMessage($asset->getId()));
 
-    expect(handled(new AssetPreviewImageMessage($asset->getId())))
+    expect($error)
         ->toBeInstanceOf(ThumbnailGenerationFailedException::class)
         ->and(previewOf($asset)->exists())
         ->toBeFalse();

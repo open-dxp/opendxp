@@ -22,10 +22,6 @@ use OpenDxp\Model\Document\Link;
 
 /**
  * @extends AbstractDocumentFactory<Link>
- *
- * @method Link create(array|callable $attributes = [])
- * @method static Link createOne(array $attributes = [])
- * @method static list<Link> createMany(int $number, array $attributes = [])
  */
 final class DocumentLinkFactory extends AbstractDocumentFactory
 {
@@ -43,15 +39,8 @@ final class DocumentLinkFactory extends AbstractDocumentFactory
     {
         return [
             ...parent::defaults(),
-            'key'          => sprintf('link-%s', uniqid()),
-            'type'         => 'link',
             'linktype'     => 'internal',
             'internalType' => 'document',
         ];
-    }
-
-    protected function initialize(): static
-    {
-        return parent::initialize()->withNavigationName();
     }
 }

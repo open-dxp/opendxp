@@ -21,10 +21,6 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<Inheritance>
- *
- * @method Inheritance create(array|callable $attributes = [])
- * @method static Inheritance createOne(array $attributes = [])
- * @method static list<Inheritance> createMany(int $number, array $attributes = [])
  */
 final class InheritanceFactory extends AbstractDataObjectFactory
 {

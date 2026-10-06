@@ -14,58 +14,37 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Db;
-use OpenDxp\Model\DataObject\Concrete;
-use OpenDxp\Model\Element\AbstractElement;
+use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\Element\ElementInterface;
-use OpenDxp\Model\Element\Service;
-use OpenDxp\Model\Element\Tag;
-use OpenDxp\Test\Factory\AssetFolderFactory;
-use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
 
-function elementWithPathLength(int $length): Concrete
+/**
+ * Loads the element again the way the next request would, past every cache of this process.
+ *
+ * @template T of ElementInterface
+ *
+ * @param T $element
+ *
+ * @return T
+ */
+function reloaded(ElementInterface $element): ElementInterface
 {
-    $object = TestObjectFactory::createOne();
-    $object->setKey(str_repeat('a', $length - mb_strlen($object->getRealPath(), 'UTF-8')));
+    RuntimeCache::clear();
 
-    return $object;
+    return $element::getById(
+        $element->getId(),
+        ['force' => true],
+    );
 }
 
-function validatePathLength(AbstractElement $element): void
+/**
+ * @param array<ElementInterface> $elements
+ *
+ * @return list<int>
+ */
+function elementIds(array $elements): array
 {
-    (new ReflectionMethod($element, 'validatePathLength'))->invoke($element);
-}
-
-function allowPath(string $type, int $ownerId, string $path, ?int $elementId = null): int
-{
-    return writeWorkspace($type, $ownerId, $path, $elementId, list: 1);
-}
-
-function forbidPath(string $type, int $ownerId, string $path, ?int $elementId = null): int
-{
-    return writeWorkspace($type, $ownerId, $path, $elementId, list: 0);
-}
-
-function writeWorkspace(string $type, int $ownerId, string $path, ?int $elementId, int $list): int
-{
-    $elementId ??= match ($type) {
-        'object' => TestObjectFactory::createOne()->getId(),
-        'document' => DocumentPageFactory::createOne()->getId(),
-        'asset' => AssetFolderFactory::createOne()->getId(),
-    };
-
-    Db::get()->insert(sprintf('users_workspaces_%s', $type), [
-        'userId' => $ownerId,
-        'cpath'  => $path,
-        'cid'    => $elementId,
-        'list'   => $list,
-    ]);
-
-    return $elementId;
-}
-
-function tagElement(Tag $tag, ElementInterface $element): void
-{
-    Tag::addTagToElement(Service::getElementType($element), $element->getId(), $tag);
+    return array_map(
+        static fn (ElementInterface $element): int => $element->getId(),
+        array_values($elements),
+    );
 }

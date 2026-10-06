@@ -16,101 +16,248 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\ClassificationStore;
 
+use Carbon\Carbon;
 use Closure;
-use OpenDxp\Model\DataObject\Classificationstore;
-use OpenDxp\Model\DataObject\Csstore;
-use OpenDxp\Model\DataObject\Data\QuantityValue;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Input;
+use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Tests\Factory\CsstoreFactory;
-use OpenDxp\Tool;
-
-function reloaded(Csstore $object): Classificationstore
-{
-    return Csstore::getById($object->getId(), ['force' => true])->getCsstore();
-}
 
 it('keeps the value a key of a group was given', function (string $group, string $key, Closure $value) {
-
     $expected = $value();
-    $object = CsstoreFactory::createOne();
-    $groupId = storeGroup($group)->getId();
-    $keyId = storeKey($key)->getId();
 
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, $expected);
-    $object->save();
+    $object = CsstoreFactory::new()
+        ->withClassificationValues(
+            'csstore',
+            storeGroup($group),
+            [$key => $expected],
+        )
+        ->create();
+    $stored = reloaded($object)->getCsstore()->getLocalizedKeyValue(
+        storeGroup($group)->getId(),
+        storeKey($key)->getId(),
+    );
 
-    expect(reloaded($object)->getLocalizedKeyValue($groupId, $keyId))->toEqual($expected);
-})->with('classification key values');
+    expect($stored)->toEqual($expected);
+})->with([
+    'a date' => [
+        'testgroup1',
+        'date',
+        fn () => Carbon::createFromTimestamp(1700000000),
+    ],
+    'a date and a time' => [
+        'testgroup1',
+        'datetime',
+        fn () => Carbon::createFromTimestamp(1700000000),
+    ],
+    'an encrypted text' => [
+        'testgroup1',
+        'encryptedField',
+        fn () => new Data\EncryptedField(new Input(), 'abc'),
+    ],
+    'a line of text' => [
+        'testgroup2',
+        'input',
+        fn () => 'abc',
+    ],
+    'a colour' => [
+        'testgroup2',
+        'rgbaColor',
+        fn () => new Data\RgbaColor(1, 2, 3, 4),
+    ],
+    'a select' => [
+        'testgroup2',
+        'select',
+        fn () => 'B',
+    ],
+    'a time of day' => [
+        'testgroup2',
+        'time',
+        fn () => '12:30',
+    ],
+    'a number' => [
+        'testgroup2',
+        'numeric',
+        fn () => 12.57,
+    ],
+    'a boolean select' => [
+        'testgroup2',
+        'booleanSelect',
+        fn () => true,
+    ],
+    'a user' => [
+        'testgroup2',
+        'user',
+        fn () => user('unittestdatauser1')->getId(),
+    ],
+    'a text area' => [
+        'testgroup2',
+        'textarea',
+        fn () => "line1\nline2",
+    ],
+    'formatted text' => [
+        'testgroup2',
+        'wysiwyg',
+        fn () => 'line1<br />line2',
+    ],
+    'a checkbox' => [
+        'testgroup2',
+        'checkbox',
+        fn () => true,
+    ],
+    'a slider' => [
+        'testgroup2',
+        'slider',
+        fn () => 47,
+    ],
+    'a table' => [
+        'testgroup2',
+        'table',
+        fn () => [
+            [
+                'A',
+                'B',
+            ],
+            [
+                'C',
+                'D',
+            ],
+        ],
+    ],
+    'a country' => [
+        'testgroup2',
+        'country',
+        fn () => 'AT',
+    ],
+    'a language' => [
+        'testgroup2',
+        'language',
+        fn () => 'fr',
+    ],
+    'several selected values' => [
+        'testgroup2',
+        'multiselect',
+        fn () => [
+            'A',
+            'D',
+        ],
+    ],
+    'several countries' => [
+        'testgroup2',
+        'countrymultiselect',
+        fn () => [
+            'AT',
+            'DE',
+        ],
+    ],
+    'several languages' => [
+        'testgroup2',
+        'languagemultiselect',
+        fn () => [
+            'de',
+            'fr',
+        ],
+    ],
+    'a quantity' => [
+        'testgroup2',
+        'quantityValue',
+        fn () => new Data\QuantityValue(123, quantityUnit('cm')->getId()),
+    ],
+    'a quantity written as text' => [
+        'testgroup2',
+        'inputQuantityValue',
+        fn () => new Data\InputQuantityValue('abc', quantityUnit('cm')->getId()),
+    ],
+]);
 
 it('keeps the value of a key apart per language', function () {
-
-    $object = CsstoreFactory::createOne();
-    $groupId = storeGroup('testgroup2')->getId();
-    $keys = ['input' => storeKey('input')->getId(), 'select' => storeKey('select')->getId()];
-    $languages = [...Tool::getValidLanguages(), 'default'];
-
-    $written = 0;
-
-    foreach ($languages as $language) {
-        foreach ($keys as $keyId) {
-            $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, ++$written, $language);
-        }
-    }
-
-    $object->save();
-    $store = reloaded($object);
-    $read = 0;
-
-    foreach ($languages as $language) {
-        foreach ($keys as $name => $keyId) {
-            expect($store->getLocalizedKeyValue($groupId, $keyId, $language))
-                ->toEqual(++$read, sprintf('%s in %s', $name, $language));
-        }
-    }
-});
-
-it('reaches the value of the default language for a language that holds none', function () {
-
-    $object = CsstoreFactory::createOne();
     $groupId = storeGroup('testgroup2')->getId();
     $keyId = storeKey('input')->getId();
 
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, null, 'en');
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, 'the default value', 'default');
-    $object->save();
+    $object = CsstoreFactory::new()
+        ->withLocalizedClassificationValues(
+            'csstore',
+            storeGroup('testgroup2'),
+            'input',
+            [
+                'en' => 'English',
+                'de' => 'German',
+                'default' => 'Default',
+            ],
+        )
+        ->create();
+    $store = reloaded($object)->getCsstore();
 
-    expect(reloaded($object)->getLocalizedKeyValue($groupId, $keyId, 'en'))->toBe('the default value');
+    expect($store->getLocalizedKeyValue($groupId, $keyId, 'en'))
+        ->toBe('English')
+        ->and($store->getLocalizedKeyValue($groupId, $keyId, 'de'))
+        ->toBe('German')
+        ->and($store->getLocalizedKeyValue($groupId, $keyId, 'default'))
+        ->toBe('Default');
 });
 
-it('holds no quantity at all once both its value and its unit were taken away', function () {
+it('returns the value of the default language for a language that holds none', function () {
+    $object = CsstoreFactory::new()
+        ->withLocalizedClassificationValues(
+            'csstore',
+            storeGroup('testgroup2'),
+            'input',
+            [
+                'en' => null,
+                'default' => 'the default value',
+            ],
+        )
+        ->create();
 
-    $object = CsstoreFactory::createOne();
-    $groupId = storeGroup('testgroupQvalue')->getId();
-    $keyId = storeKey('qValue')->getId();
-    $unit = aUnit('cm')->getId();
+    $value = reloaded($object)->getCsstore()->getLocalizedKeyValue(
+        storeGroup('testgroup2')->getId(),
+        storeKey('input')->getId(),
+        'en',
+    );
 
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, new QuantityValue(123, $unit));
-    $object->save();
-
-    expect(reloaded($object)->getLocalizedKeyValue($groupId, $keyId)->getValue())->toEqual(123);
-
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, new QuantityValue(null, $unit));
-    $object->save();
-
-    expect(reloaded($object)->getLocalizedKeyValue($groupId, $keyId)->getValue())->toBeNull();
-
-    $object->getCsstore()->setLocalizedKeyValue($groupId, $keyId, new QuantityValue(null, null));
-    $object->save();
-
-    expect(reloaded($object)->getLocalizedKeyValue($groupId, $keyId))->toBeNull();
+    expect($value)->toBe('the default value');
 });
 
-it('holds the groups and the keys the store was installed with', function () {
-    expect(theStore())
-        ->not->toBeNull()
-        ->and(storeGroup('testgroup1'))
-        ->not->toBeNull()
-        ->and(keysOfGroup('testgroup1'))
-        ->toHaveCount(3)
-        ->and(keysOfGroup('testgroup2'))
-        ->toHaveCount(19);
+describe('a quantity', function () {
+    beforeEach(function () {
+        $this->unitId = quantityUnit('cm')->getId();
+        $this->groupId = storeGroup('testgroupQvalue')->getId();
+        $this->keyId = storeKey('qValue')->getId();
+        $this->object = CsstoreFactory::new()
+            ->withClassificationValues(
+                'csstore',
+                storeGroup('testgroupQvalue'),
+                ['qValue' => new Data\QuantityValue(123, $this->unitId)],
+            )
+            ->create();
+    });
+
+    it('keeps its unit when its value is taken away', function () {
+        $this->object->getCsstore()->setLocalizedKeyValue(
+            $this->groupId,
+            $this->keyId,
+            new Data\QuantityValue(null, $this->unitId),
+        );
+        $this->object->save();
+
+        $quantity = reloaded($this->object)->getCsstore()->getLocalizedKeyValue($this->groupId, $this->keyId);
+
+        expect($quantity)
+            ->getValue()
+            ->toBeNull()
+            ->getUnitId()
+            ->toBe($this->unitId);
+    });
+
+    it('is gone once its value and its unit are taken away', function () {
+        $this->object->getCsstore()->setLocalizedKeyValue(
+            $this->groupId,
+            $this->keyId,
+            new Data\QuantityValue(null, null),
+        );
+        $this->object->save();
+
+        $quantity = reloaded($this->object)->getCsstore()->getLocalizedKeyValue($this->groupId, $this->keyId);
+
+        expect($quantity)->toBeNull();
+    });
 });

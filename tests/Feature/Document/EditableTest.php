@@ -17,121 +17,135 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Document;
 
 use Carbon\Carbon;
-use OpenDxp\Model\Asset;
+use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Model\Document\Editable;
-use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\AssetVideoFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-const AREABLOCK = [
-    ['key' => 4, 'type' => 'standard-teaser', 'hidden' => false],
-    ['key' => 1, 'type' => 'wysiwyg', 'hidden' => true],
-];
-
-const SCHEDULEDBLOCK = [
-    ['key' => 4, 'date' => 1613383346],
-    ['key' => 1, 'date' => 1613383352],
-];
-
-const TABLE = [
-    ['a1', 'b1', 'c1'],
-    [2, 3, 4],
-];
-
-function saved(Page $page, Editable $editable): Editable
+function savedAndLoaded(Editable $editable): Editable
 {
-    $page->setEditable($editable);
-    $page->save();
+    $page = DocumentPageFactory::new()
+        ->withEditables(['field' => $editable])
+        ->create();
 
-    return Page::getById($page->getId(), ['force' => true])->getEditable($editable->getName());
+    return reloaded($page)->getEditable('field');
 }
 
-function editable(string $type, string $setter, mixed $data): Editable
-{
-    $editable = new $type();
-    $editable->setName('field');
-    $editable->{$setter}($data);
-
-    return $editable;
-}
-
-beforeEach(fn () => $this->page = DocumentPageFactory::createOne());
-
-it('hands an editable back with the value it was saved with', function (string $type, string $setter, mixed $data, mixed $expected) {
-
-    $reloaded = saved($this->page, editable($type, $setter, $data));
+it('keeps the value of an editable', function (Editable $editable) {
+    $reloaded = savedAndLoaded($editable);
 
     expect($reloaded)
-        ->toBeInstanceOf($type)
+        ->toBeInstanceOf($editable::class)
         ->and($reloaded->getValue())
-        ->toEqual($expected);
+        ->toEqual($editable->getValue());
 })->with([
-    'a line of text' => [Editable\Input::class, 'setDataFromEditmode', 'content1', 'content1'],
-    'several lines of text' => [Editable\Textarea::class, 'setDataFromEditmode', 'content<br />1', 'content<br />1'],
-    'formatted text' => [Editable\Wysiwyg::class, 'setDataFromEditmode', 'content<br />1', 'content<br />1'],
-    'a number' => [Editable\Numeric::class, 'setDataFromEditmode', 124, 124],
-    'a checkbox' => [Editable\Checkbox::class, 'setDataFromResource', true, true],
-    'a selected option' => [Editable\Select::class, 'setDataFromEditmode', 2, 2],
-    'several selected options' => [Editable\Multiselect::class, 'setDataFromEditmode', ['1', '2'], ['1', '2']],
-    'a table' => [Editable\Table::class, 'setDataFromEditmode', TABLE, TABLE],
-    'an areablock' => [Editable\Areablock::class, 'setDataFromEditmode', AREABLOCK, AREABLOCK],
-    'a scheduled block' => [Editable\Scheduledblock::class, 'setDataFromEditmode', SCHEDULEDBLOCK, SCHEDULEDBLOCK],
+    'a line of text' => [fn () => (new Editable\Input())->setDataFromEditmode('content1')],
+    'several lines of text' => [fn () => (new Editable\Textarea())->setDataFromEditmode('content<br />1')],
+    'formatted text' => [fn () => (new Editable\Wysiwyg())->setDataFromEditmode('content<br />1')],
+    'a number' => [fn () => (new Editable\Numeric())->setDataFromEditmode(124)],
+    'a checkbox' => [fn () => (new Editable\Checkbox())->setDataFromResource(true)],
+    'a selected option' => [fn () => (new Editable\Select())->setDataFromEditmode(2)],
+    'several selected options' => [
+        fn () => (new Editable\Multiselect())->setDataFromEditmode([
+            '1',
+            '2',
+        ]),
+    ],
+    'a table' => [
+        fn () => (new Editable\Table())->setDataFromEditmode([
+            [
+                'a1',
+                'b1',
+                'c1',
+            ],
+            [
+                2,
+                3,
+                4,
+            ],
+        ]),
+    ],
+    'an areablock' => [
+        fn () => (new Editable\Areablock())->setDataFromEditmode([
+            [
+                'key' => 4,
+                'type' => 'standard-teaser',
+                'hidden' => false,
+            ],
+            [
+                'key' => 1,
+                'type' => 'wysiwyg',
+                'hidden' => true,
+            ],
+        ]),
+    ],
+    'a scheduled block' => [
+        fn () => (new Editable\Scheduledblock())->setDataFromEditmode([
+            [
+                'key' => 4,
+                'date' => 1613383346,
+            ],
+            [
+                'key' => 1,
+                'date' => 1613383352,
+            ],
+        ]),
+    ],
 ]);
 
-it('hands back the url it embeds', function () {
+it('keeps the url of an embed', function () {
+    $embed = (new Editable\Embed())->setDataFromEditmode(['url' => 'https://someurl1']);
 
-    $reloaded = saved($this->page, editable(Editable\Embed::class, 'setDataFromEditmode', ['url' => 'https://someurl1']));
+    $reloaded = savedAndLoaded($embed);
 
     expect($reloaded->getUrl())->toBe('https://someurl1');
 });
 
-it('hands a date back as a point in time', function () {
+it('keeps the date of a date editable as a point in time', function () {
+    $date = (new Editable\Date())->setDataFromEditmode('2021-02-11');
 
-    $reloaded = saved($this->page, editable(Editable\Date::class, 'setDataFromEditmode', '2021-02-11'));
+    $value = savedAndLoaded($date)->getValue();
 
-    expect($reloaded->getValue())
+    expect($value)
         ->toBeInstanceOf(Carbon::class)
-        ->and($reloaded->getValue()->getTimestamp())
+        ->and($value->getTimestamp())
         ->toBe(strtotime('2021-02-11'));
 });
 
-it('hands back the image it points at', function () {
-
+it('keeps the image of an image editable', function () {
     $image = AssetImageFactory::createOne();
+    $editable = (new Editable\Image())->setDataFromEditmode(['id' => $image->getId()]);
 
-    $reloaded = saved($this->page, editable(Editable\Image::class, 'setDataFromEditmode', ['id' => $image->getId()]));
+    $reloaded = savedAndLoaded($editable);
 
-    expect($reloaded->getImage())
-        ->toBeInstanceOf(Asset\Image::class)
-        ->and($reloaded->getImage()->getId())
-        ->toBe($image->getId());
+    expect($reloaded->getImage()->getId())->toBe($image->getId());
 });
 
-it('hands back the pdf it points at', function () {
-
+it('keeps the pdf of a pdf editable', function () {
     $pdf = AssetDocumentFactory::createOne();
+    $editable = (new Editable\Pdf())->setDataFromEditmode(['id' => $pdf->getId()]);
 
-    $reloaded = saved($this->page, editable(Editable\Pdf::class, 'setDataFromEditmode', ['id' => $pdf->getId()]));
+    $reloaded = savedAndLoaded($editable);
 
     expect($reloaded->getElement()->getId())->toBe($pdf->getId());
 });
 
-it('hands back the video, its poster and its wording', function () {
-
+it('keeps a video with its poster, title and description', function () {
     $video = AssetVideoFactory::createOne();
     $poster = AssetImageFactory::createOne();
-
-    $reloaded = saved($this->page, editable(Editable\Video::class, 'setDataFromEditmode', [
+    $editable = (new Editable\Video())->setDataFromEditmode([
         'id' => $video->getId(),
         'path' => $video->getFullPath(),
         'title' => 'some title',
         'description' => 'some description',
         'poster' => $poster->getFullPath(),
         'type' => 'asset',
-    ]));
+    ]);
+
+    $reloaded = savedAndLoaded($editable);
 
     expect($reloaded->getVideoAsset()->getId())
         ->toBe($video->getId())
@@ -143,18 +157,18 @@ it('hands back the video, its poster and its wording', function () {
         ->toBe('some description');
 });
 
-it('hands back the link with its wording and where it opens', function () {
-
+it('keeps a link with its text, title and target', function () {
     $target = AssetImageFactory::createOne();
-
-    $reloaded = saved($this->page, editable(Editable\Link::class, 'setDataFromEditmode', [
+    $editable = (new Editable\Link())->setDataFromEditmode([
         'internalType' => 'asset',
         'linktype' => 'internal',
         'path' => $target->getFullPath(),
         'text' => 'some text',
         'title' => 'some title',
         'target' => '_blank',
-    ]));
+    ]);
+
+    $reloaded = savedAndLoaded($editable);
 
     expect($reloaded->getHref())
         ->toBe($target->getFullPath())
@@ -166,49 +180,57 @@ it('hands back the link with its wording and where it opens', function () {
         ->toBe('_blank');
 });
 
-it('hands back the one element it relates to', function () {
-
+it('keeps the element of a relation', function () {
     $target = UnittestFactory::createOne();
-
-    $reloaded = saved($this->page, editable(Editable\Relation::class, 'setDataFromEditmode', [
+    $editable = (new Editable\Relation())->setDataFromEditmode([
         'id' => $target->getId(),
         'type' => 'object',
-    ]));
+    ]);
+
+    $reloaded = savedAndLoaded($editable);
 
     expect($reloaded->getElement()->getId())->toBe($target->getId());
 });
 
-it('hands back every element it relates to', function () {
-
+it('keeps every element of a list of relations', function () {
     $targets = UnittestFactory::createMany(4);
-    $related = array_map(static fn ($target) => ['id' => $target->getId(), 'type' => 'object'], $targets);
+    $related = array_map(
+        static fn (Unittest $target): array => [
+            'id' => $target->getId(),
+            'type' => 'object',
+        ],
+        $targets,
+    );
+    $editable = (new Editable\Relations())->setDataFromEditmode($related);
 
-    $reloaded = saved($this->page, editable(Editable\Relations::class, 'setDataFromEditmode', $related));
+    $reloaded = savedAndLoaded($editable);
 
-    expect(array_map(static fn ($element) => $element->getId(), $reloaded->getElements()))
-        ->toBe(array_map(static fn ($target) => $target->getId(), $targets));
+    expect(elementIds($reloaded->getElements()))->toBe(elementIds($targets));
 });
 
-it('hands back the editables of every index of a block', function () {
-
+it('keeps the editables of every index of a block', function () {
     $image = AssetImageFactory::createOne();
+    $page = DocumentPageFactory::new()
+        ->withEditables([
+            'field' => (new Editable\Block())->setDataFromEditmode([
+                1,
+                2,
+            ]),
+            'field:1.input' => (new Editable\Input())->setDataFromResource('first text'),
+            'field:1.image' => (new Editable\Image())->setDataFromEditmode(['id' => $image->getId()]),
+            'field:2.input' => (new Editable\Input())->setDataFromResource('second text'),
+            'field:2.image' => (new Editable\Image())->setDataFromEditmode(['id' => $image->getId()]),
+        ])
+        ->create();
 
-    foreach ([1, 2] as $index) {
-        $this->page->setEditable(editable(Editable\Input::class, 'setDataFromResource', 'block text ' . $index)
-            ->setName('field:' . $index . '.input'));
+    [$first, $second] = reloaded($page)->getEditable('field')->getElements();
 
-        $this->page->setEditable(editable(Editable\Image::class, 'setDataFromEditmode', ['id' => $image->getId()])
-            ->setName('field:' . $index . '.image'));
-    }
-
-    $reloaded = saved($this->page, editable(Editable\Block::class, 'setDataFromEditmode', [1, 2]));
-
-    expect($reloaded->getValue())->toBe([1, 2]);
-
-    foreach ($reloaded->getElements() as $position => $element) {
-        expect($element->getEditable('input')->getValue())
-            ->toBe('block text ' . ($position + 1))
-            ->and($element->getEditable('image')->getImage())
-            ->toBeInstanceOf(Asset\Image::class);
-    }
+    expect($first->getEditable('input')->getValue())
+        ->toBe('first text')
+        ->and($first->getEditable('image')->getImage()->getId())
+        ->toBe($image->getId())
+        ->and($second->getEditable('input')->getValue())
+        ->toBe('second text')
+        ->and($second->getEditable('image')->getImage()->getId())
+        ->toBe($image->getId());
 });

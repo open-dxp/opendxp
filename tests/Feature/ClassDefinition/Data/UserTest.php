@@ -20,54 +20,20 @@ use OpenDxp;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\User;
 use OpenDxp\Test\Factory\UserFactory;
 
-const DEFINITION = [
-    'name' => 'openDxpUser',
-    'title' => 'OpenDxp User',
-    'tooltip' => '',
-    'mandatory' => false,
-    'noteditable' => false,
-    'index' => false,
-    'locked' => false,
-    'style' => '',
-    'permissions' => null,
-    'datatype' => 'data',
-    'fieldtype' => 'user',
-    'relationType' => false,
-    'invisible' => false,
-    'visibleGridView' => false,
-    'visibleSearch' => false,
-    'blockedVarsForExport' => [],
-    'options' => null,
-    'width' => '',
-    'defaultValue' => null,
-    'optionsProviderClass' => null,
-    'optionsProviderData' => null,
-    'columnLength' => 190,
-    'dynamicOptions' => false,
-    'defaultValueGenerator' => '',
-    'unique' => false,
-];
-
-beforeEach(fn () => $this->wasInAdmin = OpenDxp::inAdmin());
-
-afterEach(function () {
-    $this->wasInAdmin ? OpenDxp::setAdminMode() : OpenDxp::unsetAdminMode();
-});
-
-it('offers every user to pick from while the admin is being served', function () {
-
+it('offers every user to pick from when it is loaded in admin mode', function () {
     $user = UserFactory::createOne();
     OpenDxp::setAdminMode();
 
-    $options = User::__set_state(DEFINITION)->getOptions();
+    $field = User::__set_state(['name' => 'openDxpUser']);
 
-    expect(array_column($options, 'value'))->toContain($user->getId());
+    $values = array_column($field->getOptions(), 'value');
+    expect($values)->toContain($user->getId());
 });
 
-it('offers nothing to pick from outside the admin', function () {
-
+it('offers nothing to pick from when it is loaded outside of admin mode', function () {
     UserFactory::createOne();
-    OpenDxp::unsetAdminMode();
 
-    expect(User::__set_state(DEFINITION)->getOptions())->toBeEmpty();
+    $field = User::__set_state(['name' => 'openDxpUser']);
+
+    expect($field->getOptions())->toBeEmpty();
 });

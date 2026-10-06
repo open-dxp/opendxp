@@ -16,104 +16,109 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Seo;
 
-use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Test\Factory\RedirectFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 
 it('redirects every path of a domain to the target', function (string $path) {
-    $redirect = RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'summer.example.test',
-        'target' => 'https://example.test/summer',
-    ]);
+    $redirect = RedirectFactory::new()
+        ->forDomain('summer.example.test')
+        ->create(['target' => 'https://example.test/summer']);
 
-    expect(answerTo('http://summer.example.test' . $path))
-        ->toBeAnsweredBy($redirect)
+    $response = answerTo(sprintf('http://summer.example.test%s', $path));
+
+    expect($response)
+        ->toComeFrom($redirect)
         ->toRedirectTo('https://example.test/summer');
 })->with([
-    '/',
-    '/tickets',
-    '/a/deep/path?x=1',
+    'the root' => ['/'],
+    'a path' => ['/tickets'],
+    'a deep path with a query' => ['/a/deep/path?x=1'],
 ]);
 
 it('appends the path of the request when the redirect passes it through', function () {
-    RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'old-brand.test',
-        'target' => 'https://new-brand.test/',
-        'passThroughPath' => true,
-        'passThroughParameters' => true,
-    ]);
+    RedirectFactory::new()
+        ->forDomain('old-brand.test')
+        ->passingThroughPath()
+        ->passingThroughParameters()
+        ->create(['target' => 'https://new-brand.test/']);
 
-    expect(answerTo('http://old-brand.test/products/shoes?size=42'))
-        ->toRedirectTo('https://new-brand.test/products/shoes?size=42');
+    $response = answerTo('http://old-brand.test/products/shoes?size=42');
+
+    expect($response)->toRedirectTo('https://new-brand.test/products/shoes?size=42');
 });
 
 it('compares the domain regardless of case', function () {
-    $redirect = RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'Event.Example.test',
-        'target' => 'https://example.test/',
-    ]);
+    $redirect = RedirectFactory::new()
+        ->forDomain('Event.Example.test')
+        ->create(['target' => 'https://example.test/']);
 
-    expect(answerTo('http://event.example.test/'))
-        ->toBeAnsweredBy($redirect);
+    $response = answerTo('http://event.example.test/');
+
+    expect($response)->toComeFrom($redirect);
 });
 
 it('leaves other domains alone', function () {
-    RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'summer.example.test',
-        'target' => 'https://example.test/summer',
-    ]);
+    RedirectFactory::new()
+        ->forDomain('summer.example.test')
+        ->create(['target' => 'https://example.test/summer']);
 
-    expect(answerTo('http://winter.example.test/'))
-        ->toBeAnsweredBy(null);
+    $response = answerTo('http://winter.example.test/');
+
+    expect($response)->toComeFromNoRedirect();
 });
 
 it('redirects a domain before the site sends it to its main domain', function () {
-    $site = SiteFactory::new()
+    SiteFactory::new()
         ->withDomains(['event.site.test'])
         ->create(['redirectToMainDomain' => true]);
+    RedirectFactory::new()
+        ->forDomain('event.site.test')
+        ->create(['target' => 'https://campaign.test/']);
+    resetServices();
 
-    expect(answerTo('http://event.site.test/page')->headers->get('Location'))
-        ->toStartWith('http://' . $site->getMainDomain());
+    $response = answerTo('http://event.site.test/page');
 
-    RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'event.site.test',
-        'target' => 'https://campaign.test/',
-    ]);
-    nextRequest();
-
-    expect(answerTo('http://event.site.test/page'))
-        ->toRedirectTo('https://campaign.test/');
+    expect($response)->toRedirectTo('https://campaign.test/');
 });
 
-it('redirects a domain while the redirect is valid', function () {
-    $redirect = RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'timed.example.test',
-        'target' => 'https://example.test/',
-        'validFrom' => time() - 3600,
-    ]);
+it('redirects a domain while the redirect is in effect', function (RedirectFactory $factory) {
+    $redirect = $factory
+        ->forDomain('timed.example.test')
+        ->create(['target' => 'https://example.test/']);
 
-    expect(answerTo('http://timed.example.test/'))
-        ->toBeAnsweredBy($redirect);
-});
+    $response = answerTo('http://timed.example.test/');
 
-it('leaves a domain alone while the redirect is not valid', function (array $values) {
-    RedirectFactory::createOne([
-        'type' => Redirect::TYPE_DOMAIN,
-        'source' => 'timed.example.test',
-        'target' => 'https://example.test/',
-        ...$values,
-    ]);
-
-    expect(answerTo('http://timed.example.test/'))
-        ->toBeAnsweredBy(null);
+    expect($response)->toComeFrom($redirect);
 })->with([
-    'not yet valid' => [['validFrom' => time() + 3600]],
-    'expired' => [['expiry' => time() - 60]],
-    'inactive' => [['active' => false]],
+    'after its start' => [
+        fn () => RedirectFactory::new()
+            ->started(),
+    ],
+    'before its expiry' => [
+        fn () => RedirectFactory::new()
+            ->expiring(),
+    ],
+]);
+
+it('leaves a domain alone while the redirect is not in effect', function (RedirectFactory $factory) {
+    $factory
+        ->forDomain('timed.example.test')
+        ->create(['target' => 'https://example.test/']);
+
+    $response = answerTo('http://timed.example.test/');
+
+    expect($response)->toComeFromNoRedirect();
+})->with([
+    'before its start' => [
+        fn () => RedirectFactory::new()
+            ->scheduled(),
+    ],
+    'after its expiry' => [
+        fn () => RedirectFactory::new()
+            ->expired(),
+    ],
+    'while inactive' => [
+        fn () => RedirectFactory::new()
+            ->inactive(),
+    ],
 ]);

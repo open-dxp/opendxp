@@ -20,7 +20,7 @@ use OpenDxp\Bundle\CoreBundle\HttpCache\Strategy\WebsiteSettingCacheStrategy;
 use OpenDxp\Event\Model\WebsiteSettingLoadEvent;
 use OpenDxp\Model\WebsiteSetting;
 
-function setting(int $id): WebsiteSetting
+function websiteSetting(int $id): WebsiteSetting
 {
     $setting = new WebsiteSetting();
     $setting->setId($id);
@@ -28,18 +28,26 @@ function setting(int $id): WebsiteSetting
     return $setting;
 }
 
-it('names the tags a website setting is cached under', function (callable $subject, array $expected) {
+it('tags a website setting', function (WebsiteSettingLoadEvent|WebsiteSetting $subject, array $expected) {
+    $strategy = new WebsiteSettingCacheStrategy();
 
-    $tags = (new WebsiteSettingCacheStrategy())->getTags($subject());
+    $tags = $strategy->getTags($subject);
 
     expect(array_map(strval(...), $tags))->toBe($expected);
 })->with([
     'a single setting that was loaded' => [
-        fn () => new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_SINGLE, setting: setting(5)),
+        fn () => new WebsiteSettingLoadEvent(
+            WebsiteSettingLoadEvent::TYPE_SINGLE,
+            setting: websiteSetting(5),
+        ),
         ['website_setting_5'],
     ],
     'the data of a setting that was loaded' => [
-        fn () => new WebsiteSettingLoadEvent(WebsiteSettingLoadEvent::TYPE_DATA, key: 'featureToggleX', id: 5),
+        fn () => new WebsiteSettingLoadEvent(
+            WebsiteSettingLoadEvent::TYPE_DATA,
+            key: 'featureToggleX',
+            id: 5,
+        ),
         ['website_setting_5'],
     ],
     'a listing that was loaded' => [
@@ -47,7 +55,10 @@ it('names the tags a website setting is cached under', function (callable $subje
         ['website_setting_list'],
     ],
     'a setting that changed' => [
-        fn () => setting(5),
-        ['website_setting_5', 'website_setting_list'],
+        fn () => websiteSetting(5),
+        [
+            'website_setting_5',
+            'website_setting_list',
+        ],
     ],
 ]);

@@ -16,86 +16,58 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Cache;
 
+use OpenDxp\Cache\Core\CoreCacheHandler;
+
+it('takes the write lock on a change to the cache', function (callable $pool, callable $change) {
+    $this->useCachePool($pool);
+
+    $change($this->handler);
+
+    expect($this->lock->hasLock())->toBeTrue();
+})->with('cache pools')->with([
+    'removing an entry' => [
+        fn (CoreCacheHandler $handler) => $handler->remove('foo'),
+    ],
+    'clearing a tag' => [
+        fn (CoreCacheHandler $handler) => $handler->clearTag('foo'),
+    ],
+    'clearing several tags' => [
+        fn (CoreCacheHandler $handler) => $handler->clearTags(['foo']),
+    ],
+    'clearing everything' => [
+        fn (CoreCacheHandler $handler) => $handler->clearAll(),
+    ],
+    'holding a tag for the shutdown' => [
+        fn (CoreCacheHandler $handler) => $handler->addTagClearedOnShutdown('foo'),
+    ],
+]);
+
 describe('the write lock', function () {
-    it('is taken when an entry is removed', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->lock->hasLock())->toBeFalse();
-
-        $this->handler->remove('foo');
-
-        expect($this->lock->hasLock())->toBeTrue();
-    });
-
-    it('is taken when a tag is cleared', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->lock->hasLock())->toBeFalse();
-
-        $this->handler->clearTag('foo');
-
-        expect($this->lock->hasLock())->toBeTrue();
-    });
-
-    it('is taken when several tags are cleared', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->lock->hasLock())->toBeFalse();
-
-        $this->handler->clearTags(['foo']);
-
-        expect($this->lock->hasLock())->toBeTrue();
-    });
-
-    it('is taken when everything is cleared', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->lock->hasLock())->toBeFalse();
-
-        $this->handler->clearAll();
-
-        expect($this->lock->hasLock())->toBeTrue();
-    });
-
-    it('is taken when a tag is held back for the shutdown', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->lock->hasLock())->toBeFalse();
-
-        $this->handler->addTagClearedOnShutdown('foo');
-
-        expect($this->lock->hasLock())->toBeTrue();
-    });
-
     it('is given up on shutdown', function (callable $pool) {
-
         $this->useCachePool($pool);
         $this->handler->clearAll();
-
-        expect($this->lock->hasLock())->toBeTrue();
 
         $this->handler->shutdown();
 
         expect($this->lock->hasLock())->toBeFalse();
     });
 
-    it('does not stop an entry the caller forces', function (callable $pool) {
-
+    it('holds the save queue back', function (callable $pool) {
         $this->useCachePool($pool);
-        $this->handler->save('itemA', 'test', [], null, null, true);
+        $this->handler->save('itemA', 'test');
+        $this->lock->lock();
+
+        $this->handler->writeSaveQueue();
+
+        expect($this->poolHasItem('itemA'))->toBeFalse();
+    });
+
+    it('lets an entry through that the caller forces', function (callable $pool) {
+        $this->useCachePool($pool);
+        $this->lock->lock();
+
+        $this->handler->save('itemA', 'test', force: true);
 
         expect($this->poolHasItem('itemA'))->toBeTrue();
-
-        $this->lock->lock();
-        $this->lock->disable();
-
-        $this->handler->save('itemB', 'test', [], null, null, true);
-
-        expect($this->poolHasItem('itemB'))->toBeTrue();
     });
 })->with('cache pools');

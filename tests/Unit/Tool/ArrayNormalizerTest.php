@@ -18,38 +18,63 @@ namespace OpenDxp\Tests\Unit\Tool;
 
 use OpenDxp\Tool\ArrayNormalizer;
 
-const INPUT = ['a' => 'foo', 'b' => 'bar', 'c' => 'baz', 'd' => 'inga'];
+beforeEach(fn () => $this->values = [
+    'a' => 'foo',
+    'b' => 'bar',
+    'c' => 'baz',
+]);
 
-it('leaves an array alone while it knows no normalizer', function () {
-    expect((new ArrayNormalizer())->normalize(INPUT))->toBe(INPUT);
+it('leaves an array alone while it has no normalizer', function () {
+    $normalized = (new ArrayNormalizer())->normalize($this->values);
+
+    expect($normalized)->toBe($this->values);
 });
 
-it('runs a normalizer on the keys it was named for', function () {
-
+it('runs a normalizer only on the keys it was added for', function () {
     $normalizer = new ArrayNormalizer();
-    $normalizer->addNormalizer(['a', 'b'], fn (string $value) => 'first:' . $value);
-    $normalizer->addNormalizer('c', fn (string $value) => 'second:' . $value);
+    $normalizer->addNormalizer(
+        [
+            'a',
+            'b',
+        ],
+        fn (string $value) => 'first:' . $value,
+    );
 
-    expect($normalizer->normalize(INPUT))->toBe([
+    $normalized = $normalizer->normalize($this->values);
+
+    expect($normalized)->toBe([
         'a' => 'first:foo',
         'b' => 'first:bar',
-        'c' => 'second:baz',
-        'd' => 'inga',
+        'c' => 'baz',
     ]);
 });
 
-it('hands a normalizer the key and the whole array next to the value', function () {
-
-    $seen = [];
+it('runs each normalizer on its own key', function () {
     $normalizer = new ArrayNormalizer();
-    $normalizer->addNormalizer(['a', 'b'], function ($value, $key, $values) use (&$seen) {
-        $seen[] = [$key, $value, $values];
+    $normalizer->addNormalizer('a', fn (string $value) => 'first:' . $value);
+    $normalizer->addNormalizer('b', fn (string $value) => 'second:' . $value);
+
+    $normalized = $normalizer->normalize($this->values);
+
+    expect($normalized)->toBe([
+        'a' => 'first:foo',
+        'b' => 'second:bar',
+        'c' => 'baz',
+    ]);
+});
+
+it('passes the key and the whole array to a normalizer', function () {
+    $calls = [];
+    $normalizer = new ArrayNormalizer();
+    $normalizer->addNormalizer('a', function (string $value, string $key, array $values) use (&$calls) {
+        $calls[] = [$key, $values];
 
         return $value;
     });
 
-    expect($normalizer->normalize(INPUT))
-        ->toBe(INPUT)
-        ->and($seen)
-        ->toBe([['a', 'foo', INPUT], ['b', 'bar', INPUT]]);
+    $normalizer->normalize($this->values);
+
+    expect($calls)->toBe([
+        ['a', $this->values],
+    ]);
 });

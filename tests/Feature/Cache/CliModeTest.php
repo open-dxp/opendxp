@@ -16,61 +16,36 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Cache;
 
-describe('a handler running on the command line', function () {
-    it('writes nothing, whether the queue is written or not', function (callable $pool) {
+describe('a handler on the command line', function () {
+    it('refuses an entry', function (callable $pool) {
+        $this->useCachePool($pool);
+        $this->handler->setHandleCli(false);
 
-        $this->useCachePool($pool, cli: true);
+        $saved = $this->handler->save('itemA', 'test');
 
-        expect($this->handler->save('itemA', 'test'))->toBeFalse();
-
-        $this->handler->writeSaveQueue();
-
-        expect($this->poolHasItem('itemA'))->toBeFalse();
+        expect($saved)->toBeFalse();
     });
 
-    it('writes nothing even when it writes immediately', function (callable $pool) {
-
-        $this->useCachePool($pool, cli: true);
+    it('refuses an entry even when it writes at once', function (callable $pool) {
+        $this->useCachePool($pool);
+        $this->handler->setHandleCli(false);
         $this->handler->setForceImmediateWrite(true);
 
-        expect($this->handler->save('itemA', 'test'))
+        $saved = $this->handler->save('itemA', 'test');
+
+        expect($saved)
             ->toBeFalse()
             ->and($this->poolHasItem('itemA'))
             ->toBeFalse();
     });
 
     it('writes an entry the caller forces', function (callable $pool) {
+        $this->useCachePool($pool);
+        $this->handler->setHandleCli(false);
 
-        $this->useCachePool($pool, cli: true);
+        $saved = $this->handler->save('itemA', 'test', force: true);
 
-        expect($this->handler->save('itemA', 'test', [], null, 0, true))
-            ->toBeTrue()
-            ->and($this->poolHasItem('itemA'))
-            ->toBeTrue();
-    });
-
-    it('writes once it is told to handle the command line', function (callable $pool) {
-
-        $this->useCachePool($pool, cli: true);
-        $this->handler->setHandleCli(true);
-
-        expect($this->handler->save('itemA', 'test'))
-            ->toBeTrue()
-            ->and($this->poolHasItem('itemA'))
-            ->toBeFalse();
-
-        $this->handler->writeSaveQueue();
-
-        expect($this->poolHasItem('itemA'))->toBeTrue();
-    });
-
-    it('writes immediately when it handles the command line and writes immediately', function (callable $pool) {
-
-        $this->useCachePool($pool, cli: true);
-        $this->handler->setHandleCli(true);
-        $this->handler->setForceImmediateWrite(true);
-
-        expect($this->handler->save('itemA', 'test'))
+        expect($saved)
             ->toBeTrue()
             ->and($this->poolHasItem('itemA'))
             ->toBeTrue();

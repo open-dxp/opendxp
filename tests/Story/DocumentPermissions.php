@@ -17,104 +17,71 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Story;
 
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\User;
+use OpenDxp\Test\Factory\AbstractElementFactory;
+use OpenDxp\Test\Factory\AbstractUserRoleFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Test\Factory\UserFactory;
-use OpenDxp\Test\Factory\UserRoleFactory;
-use Zenstruck\Foundry\Story;
 
-final class DocumentPermissions extends Story
+/**
+ * @method static Document\Folder root()
+ * @method static Document\Folder permissionfoo()
+ * @method static Document\Folder permissionbar()
+ * @method static Document\Folder bars()
+ * @method static Document\Folder userfolder()
+ * @method static Document\Folder groupfolder()
+ * @method static Document\Page usertestobject()
+ * @method static User\Role testrole()
+ * @method static User\Role dummyRole()
+ * @method static User permissiontest1()
+ * @method static User permissiontest2()
+ */
+final class DocumentPermissions extends PermissionTree
 {
-    public const array USERS = ['admin', 'Permissiontest1', 'Permissiontest2'];
-
-    public const array SEES = ['list' => true, 'view' => true];
-
-    public const array BLIND = ['list' => false, 'view' => false];
-
-    public function build(): void
+    protected function folders(): AbstractElementFactory
     {
-        $root = indexed(DocumentFolderFactory::createOne(['key' => 'permissioncpath', 'parentId' => 1]));
-        $a = indexed(DocumentFolderFactory::createOne(['key' => 'a', 'parentId' => $root->getId()]));
-        $b = indexed(DocumentFolderFactory::createOne(['key' => 'b', 'parentId' => $a->getId()]));
-        indexed(DocumentPageFactory::createOne(['key' => 'c', 'parentId' => $b->getId()]));
-        indexed(DocumentPageFactory::createOne(['key' => 'abcdefghjkl', 'parentId' => $root->getId()]));
-
-        $foo = indexed(DocumentFolderFactory::createOne(['key' => 'permissionfoo', 'parentId' => 1]));
-        $bar = indexed(DocumentFolderFactory::createOne(['key' => 'permissionbar', 'parentId' => 1]));
-        $hidden = indexed(DocumentFolderFactory::createOne(['key' => 'foo', 'parentId' => $bar->getId()]));
-        $bars = indexed(DocumentFolderFactory::createOne(['key' => 'bars', 'parentId' => $foo->getId()]));
-        $userfolder = indexed(DocumentFolderFactory::createOne(['key' => 'userfolder', 'parentId' => $bars->getId()]));
-        $groupfolder = indexed(DocumentFolderFactory::createOne(['key' => 'groupfolder', 'parentId' => $bars->getId()]));
-
-        indexed(DocumentPageFactory::createOne(['key' => 'hiddenobject', 'parentId' => $hidden->getId()]));
-        indexed(DocumentPageFactory::createOne(['key' => 'hugo', 'parentId' => $bars->getId()]));
-        indexed(DocumentPageFactory::createOne(['key' => 'usertestobject', 'parentId' => $userfolder->getId()]));
-        indexed(DocumentPageFactory::createOne(['key' => 'grouptestobject', 'parentId' => $groupfolder->getId()]));
-
-        UserRoleFactory::createOne([
-            'name' => 'Testrole',
-            'workspacesDocument' => [
-                documentWorkspace('/permissionfoo/bars/groupfolder', [...self::SEES, 'save' => true, 'publish' => false]),
-            ],
-        ]);
-        UserRoleFactory::createOne([
-            'name' => 'dummyRole',
-            'workspacesDocument' => [
-                documentWorkspace('/permissionfoo/bars/groupfolder', [
-                    ...self::BLIND, 'save' => false, 'publish' => false, 'unpublish' => true,
-                ]),
-            ],
-        ]);
-
-        $roles = [User\Role::getByName('Testrole')->getId(), User\Role::getByName('dummyRole')->getId()];
-
-        UserFactory::createOne([
-            'name' => 'Permissiontest1',
-            'permissions' => ['documents'],
-            'roles' => $roles,
-            'workspacesDocument' => [
-                documentWorkspace('/permissionfoo', self::SEES),
-                documentWorkspace('/permissionbar', self::SEES),
-                documentWorkspace('/permissionbar/foo', self::BLIND),
-                documentWorkspace('/permissionfoo/bars', self::BLIND),
-                documentWorkspace('/permissionfoo/bars/userfolder', [...self::SEES, 'create' => true, 'rename' => true]),
-                documentWorkspace('/permissioncpath/a/b/c', self::SEES),
-                documentWorkspace('/permissioncpath/abcdefghjkl', self::SEES),
-            ],
-        ]);
-        UserFactory::createOne([
-            'name' => 'Permissiontest2',
-            'permissions' => ['documents'],
-            'roles' => $roles,
-            'workspacesDocument' => [
-                documentWorkspace('/permissionfoo', self::SEES),
-                documentWorkspace('/permissionbar', self::SEES),
-                documentWorkspace('/permissionbar/foo', self::BLIND),
-                documentWorkspace('/permissionfoo/bars', self::BLIND),
-                documentWorkspace('/permissionfoo/bars/userfolder', self::SEES),
-                documentWorkspace('/permissionfoo/bars/groupfolder', [
-                    ...self::BLIND, 'save' => true, 'publish' => true, 'unpublish' => false,
-                ]),
-            ],
-        ]);
+        return DocumentFolderFactory::new();
     }
 
-    /**
-     * A test that cannot roll back takes back what the story wrote.
-     */
-    public static function forget(): void
+    protected function element(string $key): AbstractElementFactory
     {
-        foreach (['/permissioncpath', '/permissionfoo', '/permissionbar', '/manyElements'] as $path) {
-            Document::getByPath($path)?->delete();
-        }
+        return DocumentPageFactory::new()
+            ->with(['key' => $key]);
+    }
 
-        foreach (['Permissiontest1', 'Permissiontest2'] as $name) {
-            User::getByName($name)?->delete();
-        }
+    protected function withWorkspace(
+        AbstractUserRoleFactory $owner,
+        ElementInterface $element,
+        string ...$permissions,
+    ): AbstractUserRoleFactory {
+        return $owner->withDocumentWorkspace($element, ...$permissions);
+    }
 
-        foreach (['Testrole', 'dummyRole'] as $name) {
-            User\Role::getByName($name)?->delete();
-        }
+    protected function module(): string
+    {
+        return 'documents';
+    }
+
+    protected function testroleGrants(): array
+    {
+        return [
+            'list',
+            'view',
+            'save',
+        ];
+    }
+
+    protected function dummyRoleGrants(): array
+    {
+        return ['unpublish'];
+    }
+
+    protected function secondUserGrants(): array
+    {
+        return [
+            'save',
+            'publish',
+        ];
     }
 }

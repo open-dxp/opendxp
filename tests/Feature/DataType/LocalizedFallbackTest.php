@@ -31,11 +31,12 @@ function countedWithLocale(string $locale, string $condition): int
     return count($listing->load());
 }
 
-afterEach(fn () => Localizedfield::setStrictMode((bool) Localizedfield::STRICT_DISABLED));
+afterEach(fn () => Localizedfield::setStrictMode(false));
 
 it('takes a value with and without a language while strict mode is off', function () {
-
-    $object = UnittestFactory::new()->unsaved()->create();
+    $object = UnittestFactory::new()
+        ->unsaved()
+        ->create();
 
     $object->setLinput('Test');
     $object->setLinput('TestKo', 'ko');
@@ -47,31 +48,31 @@ it('takes a value with and without a language while strict mode is off', functio
 });
 
 it('refuses a value in strict mode', function (?string $language, string $complaint) {
-
-    $object = UnittestFactory::new()->unsaved()->create();
+    $object = UnittestFactory::new()
+        ->unsaved()
+        ->create();
     Localizedfield::setStrictMode(Localizedfield::STRICT_ENABLED);
 
-    expect(fn () => $object->setLinput('Test', $language))
-        ->toThrow(Exception::class, $complaint);
+    expect(fn () => $object->setLinput('Test', $language))->toThrow(Exception::class, $complaint);
 })->with([
     'a value that names no language' => [null, 'Language  not accepted in strict mode'],
     'a value in a language the object does not hold' => ['ko', 'Language ko not accepted in strict mode'],
 ]);
 
-it('keeps a language of a field collection item when another one is written on it later', function () {
-
+it('keeps a language of a field collection item when another one is written later', function () {
     $item = new Fieldcollection\Data\Unittestfieldcollection();
     $item->setLinput('textEN', 'en');
+    $object = UnittestFactory::new()
+        ->withFieldcollection(
+            'fieldcollection',
+            $item,
+        )
+        ->create();
 
-    $object = UnittestFactory::createOne([
-        'fieldcollection' => new Fieldcollection([$item], 'fieldcollection'),
-    ]);
-
-    $loaded = Unittest::getById($object->getId(), ['force' => true]);
+    $loaded = reloaded($object);
     $loaded->getFieldcollection()->get(0)->setLinput('textDE', 'de');
     $loaded->save();
-
-    $written = Unittest::getById($object->getId(), ['force' => true])->getFieldcollection()->get(0);
+    $written = reloaded($object)->getFieldcollection()->get(0);
 
     expect($written->getLinput('en'))
         ->toBe('textEN')
@@ -79,70 +80,56 @@ it('keeps a language of a field collection item when another one is written on i
         ->toBe('textDE');
 });
 
-it('reaches the value of the fallback language for a field that holds none', function () {
+it('returns the value of the fallback language only for an empty field', function (
+    string $field,
+    mixed $fallback,
+    mixed $own,
+    mixed $expected,
+) {
+    $object = UnittestFactory::new()
+        ->withLocalizedValues(
+            $field,
+            [
+                'en' => $fallback,
+                'de' => $own,
+            ],
+        )
+        ->create();
 
-    $object = UnittestFactory::new()->unsaved()->create();
+    $value = reloaded($object)->get($field, 'de');
 
-    foreach (['en' => ['TestEN', true, 123], 'de' => ['TestDE', true, 456]] as $language => [$text, $flag, $number]) {
-        $object->setLinput($text, $language);
-        $object->setLcheckbox($flag, $language);
-        $object->setLnumber($number, $language);
-    }
-
-    $object->save();
-
-    expect($object->getLinput('de'))
-        ->toBe('TestDE')
-        ->and($object->getLnumber('de'))
-        ->toEqual(456);
-
-    $object->setLinput('', 'de');
-    $object->setLcheckbox(null, 'de');
-    $object->setLnumber(null, 'de');
-    $object->save();
-
-    $written = Unittest::getById($object->getId(), ['force' => true]);
-
-    expect($written->getLinput('de'))
-        ->toBe('TestEN')
-        ->and($written->getLnumber('de'))
-        ->toEqual(123)
-        ->and($written->getLcheckbox('de'))
-        ->toBeTrue();
-
-    expect(countedWithLocale('de', "lcheckbox = '1'"))
-        ->toBe(1)
-        ->and(countedWithLocale('de', "lnumber = '123'"))
-        ->toBe(1);
-});
-
-it('hands back a value of its own that only looks empty instead of reaching the fallback', function (string $field, mixed $fallback, mixed $own) {
-
-    $setter = 'set' . ucfirst($field);
-    $object = UnittestFactory::new()->unsaved()->create();
-
-    $object->{$setter}($fallback, 'en');
-    $object->{$setter}($own, 'de');
-    $object->save();
-
-    expect(Unittest::getById($object->getId(), ['force' => true])->{'get' . ucfirst($field)}('de'))
-        ->toEqual($own);
+    expect($value)->toEqual($expected);
 })->with([
-    'a checkbox that is not ticked' => ['lcheckbox', true, false],
-    'a number that is zero' => ['lnumber', 123, 0],
+    'an empty line of text' => ['linput', 'TestEN', '', 'TestEN'],
+    'an empty checkbox' => ['lcheckbox', true, null, true],
+    'an empty number' => ['lnumber', 123, null, 123],
+    'a checkbox that is not ticked' => ['lcheckbox', true, false, false],
+    'a number that is zero' => ['lnumber', 123, 0, 0],
 ]);
 
-it('finds no object through a listing for a value it holds as empty itself', function (string $field, mixed $fallback, mixed $own, string $condition) {
+it('finds an object in a listing through the fallback language only for an empty field', function (
+    string $field,
+    mixed $fallback,
+    mixed $own,
+    string $condition,
+    int $expected,
+) {
+    UnittestFactory::new()
+        ->withLocalizedValues(
+            $field,
+            [
+                'en' => $fallback,
+                'de' => $own,
+            ],
+        )
+        ->create();
 
-    $setter = 'set' . ucfirst($field);
-    $object = UnittestFactory::new()->unsaved()->create();
+    $count = countedWithLocale('de', $condition);
 
-    $object->{$setter}($fallback, 'en');
-    $object->{$setter}($own, 'de');
-    $object->save();
-
-    expect(countedWithLocale('de', $condition))->toBe(0);
+    expect($count)->toBe($expected);
 })->with([
-    'a checkbox that is not ticked' => ['lcheckbox', true, false, "lcheckbox = '1'"],
-    'a number that is zero' => ['lnumber', 123, 0, "lnumber = '123'"],
+    'an empty checkbox' => ['lcheckbox', true, null, "lcheckbox = '1'", 1],
+    'an empty number' => ['lnumber', 123, null, "lnumber = '123'", 1],
+    'a checkbox that is not ticked' => ['lcheckbox', true, false, "lcheckbox = '1'", 0],
+    'a number that is zero' => ['lnumber', 123, 0, "lnumber = '123'", 0],
 ]);

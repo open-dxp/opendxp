@@ -14,49 +14,52 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+
 namespace OpenDxp\Tests\Feature\Seo;
 
+use Closure;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\RedirectFactory;
 use OpenDxp\Test\Factory\SiteFactory;
 
-dataset('an exact source and a regular expression', [
+dataset('redirect sources', [
     'an exact source' => [
-        fn (string $path): string => $path,
-        false,
+        fn (string $path): RedirectFactory => RedirectFactory::new()
+            ->with(['source' => $path]),
     ],
     'a regular expression' => [
-        fn (string $path): string => '@^' . preg_quote($path, '@') . '$@',
-        true,
+        fn (string $path): RedirectFactory => RedirectFactory::new()
+            ->matching(sprintf('@^%s$@', preg_quote($path, '@'))),
     ],
 ]);
 
 it('redirects a path with the status code of the redirect', function (int $statusCode) {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/old-page',
-        'target' => '/new-page',
-        'statusCode' => $statusCode,
-    ]);
+    $redirect = RedirectFactory::new()
+        ->withStatusCode($statusCode)
+        ->create([
+            'source' => '/old-page',
+            'target' => '/new-page',
+        ]);
+
     $response = answerTo('/old-page');
 
     expect($response)
         ->toRedirectTo('/new-page')
-        ->toBeAnsweredBy($redirect)
+        ->toComeFrom($redirect)
         ->and($response->getStatusCode())
         ->toBe($statusCode);
 })->with([
-    301,
-    302,
-    307,
+    'moved permanently' => [301],
+    'found' => [302],
+    'temporary redirect' => [307],
 ]);
 
-it('answers with a status code that is no redirect without a location', function () {
-    RedirectFactory::createOne([
-        'source' => '/removed',
-        'target' => '/anything',
-        'statusCode' => 410,
-    ]);
+it('answers 410 Gone without a location', function () {
+    RedirectFactory::new()
+        ->withStatusCode(410)
+        ->create(['source' => '/removed']);
+
     $response = answerTo('/removed');
 
     expect($response->getStatusCode())
@@ -66,83 +69,86 @@ it('answers with a status code that is no redirect without a location', function
 });
 
 it('compares a path regardless of case and accents', function () {
-    $redirect = RedirectFactory::createOne([
-        'source' => '/Über-Uns',
-        'target' => '/about',
-    ]);
+    $redirect = RedirectFactory::createOne(['source' => '/Über-Uns']);
 
-    expect(answerTo('/uber-uns'))
-        ->toBeAnsweredBy($redirect);
+    $response = answerTo('/uber-uns');
+
+    expect($response)->toComeFrom($redirect);
 });
 
-it('compares the part of the URL the type names', function (
+it('redirects a URL that matches in the part the redirect type selects', function (
     string $type,
     string $source,
-    string $matching,
-    string $other,
+    string $url,
 ) {
     $redirect = RedirectFactory::createOne([
         'type' => $type,
         'source' => $source,
-        'target' => '/target',
     ]);
 
-    expect(answerTo($matching))
-        ->toBeAnsweredBy($redirect)
-        ->and(answerTo($other))
-        ->toBeAnsweredBy(null);
+    $response = answerTo($url);
+
+    expect($response)->toComeFrom($redirect);
 })->with([
-    'the path, without the query' => [
-        Redirect::TYPE_PATH,
-        '/shop',
-        '/shop?id=5',
-        '/shop/cart',
-    ],
-    'the path and the query' => [
-        Redirect::TYPE_PATH_QUERY,
-        '/shop?id=5',
-        '/shop?id=5',
-        '/shop?id=6',
-    ],
-    'the entire URI' => [
-        Redirect::TYPE_ENTIRE_URI,
-        'http://localhost/shop',
-        'http://localhost/shop',
-        'http://other.test/shop',
-    ],
-    'the path, for a redirect created automatically' => [
-        Redirect::TYPE_AUTO_CREATE,
-        '/moved',
-        '/moved?x=1',
-        '/moved/away',
-    ],
+    'the path, without the query' => [Redirect::TYPE_PATH, '/shop', '/shop?id=5'],
+    'the path and the query' => [Redirect::TYPE_PATH_QUERY, '/shop?id=5', '/shop?id=5'],
+    'the entire URI' => [Redirect::TYPE_ENTIRE_URI, 'http://localhost/shop', 'http://localhost/shop'],
+    'the path of a redirect created automatically' => [Redirect::TYPE_AUTO_CREATE, '/moved', '/moved?x=1'],
 ]);
 
-it('passes the query on when the redirect asks for it', function (bool $passThrough, string $location) {
+it('ignores a URL that differs in the part the redirect type selects', function (
+    string $type,
+    string $source,
+    string $url,
+) {
+    RedirectFactory::createOne([
+        'type' => $type,
+        'source' => $source,
+    ]);
+
+    $response = answerTo($url);
+
+    expect($response)->toComeFromNoRedirect();
+})->with([
+    'the path' => [Redirect::TYPE_PATH, '/shop', '/shop/cart'],
+    'the query' => [Redirect::TYPE_PATH_QUERY, '/shop?id=5', '/shop?id=6'],
+    'the host of the entire URI' => [Redirect::TYPE_ENTIRE_URI, 'http://localhost/shop', 'http://other.test/shop'],
+    'the path of a redirect created automatically' => [Redirect::TYPE_AUTO_CREATE, '/moved', '/moved/away'],
+]);
+
+it('passes the query on when the redirect asks for it', function () {
+    RedirectFactory::new()
+        ->passingThroughParameters()
+        ->create([
+            'source' => '/campaign',
+            'target' => '/landing',
+        ]);
+
+    $response = answerTo('/campaign?utm=mail');
+
+    expect($response)->toRedirectTo('/landing?utm=mail');
+});
+
+it('drops the query by default', function () {
     RedirectFactory::createOne([
         'source' => '/campaign',
         'target' => '/landing',
-        'passThroughParameters' => $passThrough,
     ]);
 
-    expect(answerTo('/campaign?utm=mail'))
-        ->toRedirectTo($location);
-})->with([
-    'passed on' => [true, '/landing?utm=mail'],
-    'dropped' => [false, '/landing'],
-]);
+    $response = answerTo('/campaign?utm=mail');
+
+    expect($response)->toRedirectTo('/landing');
+});
 
 it('redirects to the path of a target document', function () {
-    $page = DocumentPageFactory::createOne([
-        'key' => 'target-' . uniqid(),
-    ]);
-    RedirectFactory::createOne([
-        'source' => '/to-document',
-        'target' => (string) $page->getId(),
-    ]);
+    $page = DocumentPageFactory::createOne();
+    RedirectFactory::new()
+        ->toDocument($page)
+        ->create(['source' => '/to-document']);
 
-    expect(answerTo('/to-document'))
-        ->toRedirectTo($page->getFullPath());
+    $response = answerTo('/to-document');
+
+    expect($response)->toRedirectTo($page->getFullPath());
 });
 
 it('does not redirect to a target document that no longer exists', function () {
@@ -150,238 +156,198 @@ it('does not redirect to a target document that no longer exists', function () {
         'source' => '/to-nowhere',
         'target' => '999999999',
     ]);
+
     $response = answerTo('/to-nowhere');
 
     expect($response)
-        ->toBeAnsweredBy(null)
+        ->toComeFromNoRedirect()
         ->and($response->getStatusCode())
         ->toBe(404);
 });
 
 it('replaces the back-references of a regular expression in the target', function () {
-    RedirectFactory::createOne([
-        'source' => '@^/blog/(\d+)/(\w+)$@',
-        'target' => '/news/$2/$1',
-        'regex' => true,
-    ]);
+    RedirectFactory::new()
+        ->matching('@^/blog/(\d+)/(\w+)$@')
+        ->create(['target' => '/news/$2/$1']);
 
-    expect(answerTo('/blog/42/hello'))
-        ->toRedirectTo('/news/hello/42');
+    $response = answerTo('/blog/42/hello');
+
+    expect($response)->toRedirectTo('/news/hello/42');
 });
 
 it('takes the regular expression with the highest priority', function () {
-    RedirectFactory::createOne([
-        'source' => '@^/promo/@',
-        'target' => '/low',
-        'regex' => true,
-        'priority' => 3,
-    ]);
-    $high = RedirectFactory::createOne([
-        'source' => '@^/promo/.*@',
-        'target' => '/high',
-        'regex' => true,
-        'priority' => 7,
-    ]);
+    RedirectFactory::new()
+        ->matching('@^/promo/@')
+        ->withPriority(3)
+        ->create();
+    $high = RedirectFactory::new()
+        ->matching('@^/promo/.*@')
+        ->withPriority(7)
+        ->create();
 
-    expect(answerTo('/promo/summer'))
-        ->toBeAnsweredBy($high);
+    $response = answerTo('/promo/summer');
+
+    expect($response)->toComeFrom($high);
 });
 
 it('takes an exact source before any regular expression', function () {
-    $exact = RedirectFactory::createOne([
-        'source' => '/sale',
-        'target' => '/exact',
-        'priority' => 1,
-    ]);
-    RedirectFactory::createOne([
-        'source' => '@^/sale$@',
-        'target' => '/regex',
-        'regex' => true,
-        'priority' => 10,
-    ]);
+    $exact = RedirectFactory::new()
+        ->withPriority(1)
+        ->create(['source' => '/sale']);
+    RedirectFactory::new()
+        ->matching('@^/sale$@')
+        ->withPriority(10)
+        ->create();
 
-    expect(answerTo('/sale'))
-        ->toBeAnsweredBy($exact);
+    $response = answerTo('/sale');
+
+    expect($response)->toComeFrom($exact);
 });
 
-it('redirects away from an existing page with priority 99', function (callable $source, bool $regex) {
-    $page = DocumentPageFactory::createOne([
-        'key' => 'existing-' . uniqid(),
-        'published' => true,
-    ]);
-    $redirect = RedirectFactory::createOne([
-        'source' => $source($page->getFullPath()),
-        'target' => '/elsewhere',
-        'regex' => $regex,
-        'priority' => 99,
-    ]);
+it('redirects away from an existing page with priority 99', function (Closure $redirectFrom) {
+    $page = DocumentPageFactory::createOne();
+    $redirect = $redirectFrom($page->getFullPath())
+        ->withPriority(99)
+        ->create();
 
-    expect(answerTo($page->getFullPath()))
-        ->toBeAnsweredBy($redirect);
-})->with('an exact source and a regular expression');
+    $response = answerTo($page->getFullPath());
 
-it('leaves an existing page alone with a priority below 99', function (callable $source, bool $regex) {
-    $page = DocumentPageFactory::createOne([
-        'key' => 'existing-' . uniqid(),
-        'published' => true,
-    ]);
-    RedirectFactory::createOne([
-        'source' => $source($page->getFullPath()),
-        'target' => '/elsewhere',
-        'regex' => $regex,
-        'priority' => 10,
-    ]);
+    expect($response)->toComeFrom($redirect);
+})->with('redirect sources');
+
+it('leaves an existing page alone with a priority below 99', function (Closure $redirectFrom) {
+    $page = DocumentPageFactory::createOne();
+    $redirectFrom($page->getFullPath())
+        ->withPriority(10)
+        ->create();
+
     $response = answerTo($page->getFullPath());
 
     expect($response)
-        ->toBeAnsweredBy(null)
+        ->toComeFromNoRedirect()
         ->and($response->getStatusCode())
         ->toBe(200);
-})->with('an exact source and a regular expression');
+})->with('redirect sources');
 
-it('ignores a redirect that is inactive or has expired', function (callable $source, bool $regex, array $values) {
-    RedirectFactory::createOne([
-        'source' => $source('/timed'),
-        'target' => '/later',
-        'regex' => $regex,
-        ...$values,
+it('applies a redirect while it is in effect', function (Closure $redirectFrom, Closure $period) {
+    $factory = $redirectFrom('/timed');
+    $redirect = $period($factory)->create();
+
+    $response = answerTo('/timed');
+
+    expect($response)->toComeFrom($redirect);
+})
+    ->with('redirect sources')
+    ->with([
+        'after its start' => [fn (RedirectFactory $factory): RedirectFactory => $factory->started()],
+        'before its expiry' => [fn (RedirectFactory $factory): RedirectFactory => $factory->expiring()],
     ]);
 
-    expect(answerTo('/timed'))
-        ->toBeAnsweredBy(null);
-})->with('an exact source and a regular expression')->with([
-    'inactive' => [['active' => false]],
-    'expired' => [['expiry' => time() - 60]],
-]);
+it('ignores a redirect that is not in effect', function (Closure $redirectFrom, Closure $period) {
+    $factory = $redirectFrom('/timed');
+    $period($factory)->create();
 
-it('applies a redirect until it expires', function (callable $source, bool $regex) {
-    $redirect = RedirectFactory::createOne([
-        'source' => $source('/timed'),
-        'target' => '/later',
-        'regex' => $regex,
-        'expiry' => time() + 3600,
+    $response = answerTo('/timed');
+
+    expect($response)->toComeFromNoRedirect();
+})
+    ->with('redirect sources')
+    ->with([
+        'before its start' => [fn (RedirectFactory $factory): RedirectFactory => $factory->scheduled()],
+        'after its expiry' => [fn (RedirectFactory $factory): RedirectFactory => $factory->expired()],
+        'while inactive' => [fn (RedirectFactory $factory): RedirectFactory => $factory->inactive()],
     ]);
 
-    expect(answerTo('/timed'))
-        ->toBeAnsweredBy($redirect);
-})->with('an exact source and a regular expression');
-
-it('limits a redirect with a source site to that site', function (callable $source, bool $regex) {
+it('applies a redirect with a source site on that site', function (Closure $redirectFrom) {
     $site = SiteFactory::createOne();
-    $redirect = RedirectFactory::createOne([
-        'source' => $source('/local'),
-        'target' => '/there',
-        'regex' => $regex,
-        'sourceSite' => $site->getId(),
-    ]);
+    $redirect = $redirectFrom('/local')
+        ->forSite($site)
+        ->create();
 
-    expect(answerTo('http://' . $site->getMainDomain() . '/local'))
-        ->toBeAnsweredBy($redirect)
-        ->and(answerTo('http://localhost/local'))
-        ->toBeAnsweredBy(null);
-})->with('an exact source and a regular expression');
+    $response = answerTo(sprintf('http://%s/local', $site->getMainDomain()));
 
-it('applies a redirect without a source site only outside of sites', function (callable $source, bool $regex) {
+    expect($response)->toComeFrom($redirect);
+})->with('redirect sources');
+
+it('ignores a redirect with a source site outside of that site', function (Closure $redirectFrom) {
     $site = SiteFactory::createOne();
-    $redirect = RedirectFactory::createOne([
-        'source' => $source('/global'),
-        'target' => '/there',
-        'regex' => $regex,
-    ]);
+    $redirectFrom('/local')
+        ->forSite($site)
+        ->create();
 
-    expect(answerTo('/global'))
-        ->toBeAnsweredBy($redirect)
-        ->and(answerTo('http://' . $site->getMainDomain() . '/global'))
-        ->toBeAnsweredBy(null);
-})->with('an exact source and a regular expression');
+    $response = answerTo('http://localhost/local');
+
+    expect($response)->toComeFromNoRedirect();
+})->with('redirect sources');
+
+it('applies a redirect without a source site outside of sites', function (Closure $redirectFrom) {
+    $redirect = $redirectFrom('/global')->create();
+
+    $response = answerTo('/global');
+
+    expect($response)->toComeFrom($redirect);
+})->with('redirect sources');
+
+it('ignores a redirect without a source site on a site', function (Closure $redirectFrom) {
+    $site = SiteFactory::createOne();
+    $redirectFrom('/global')->create();
+
+    $response = answerTo(sprintf('http://%s/global', $site->getMainDomain()));
+
+    expect($response)->toComeFromNoRedirect();
+})->with('redirect sources');
 
 it('redirects to the main domain of the target site', function () {
     $site = SiteFactory::createOne();
-    RedirectFactory::createOne([
-        'source' => '/to-site',
-        'target' => '/welcome',
-        'targetSite' => $site->getId(),
-    ]);
+    RedirectFactory::new()
+        ->toSite($site)
+        ->create([
+            'source' => '/to-site',
+            'target' => '/welcome',
+        ]);
 
-    expect(answerTo('/to-site'))
-        ->toRedirectTo('http://' . $site->getMainDomain() . '/welcome');
+    $response = answerTo('/to-site');
+
+    expect($response)->toRedirectTo(sprintf('http://%s/welcome', $site->getMainDomain()));
 });
 
-it('redirects once the redirect has started', function (callable $source, bool $regex) {
-    $redirect = RedirectFactory::createOne([
-        'source' => $source('/scheduled'),
-        'target' => '/campaign',
-        'regex' => $regex,
-        'validFrom' => time() - 3600,
-    ]);
-
-    expect(answerTo('/scheduled'))
-        ->toBeAnsweredBy($redirect);
-})->with('an exact source and a regular expression');
-
-it('does not redirect before the redirect starts', function (callable $source, bool $regex) {
-    RedirectFactory::createOne([
-        'source' => $source('/scheduled'),
-        'target' => '/campaign',
-        'regex' => $regex,
-        'validFrom' => time() + 3600,
-    ]);
-
-    expect(answerTo('/scheduled'))
-        ->toBeAnsweredBy(null);
-})->with('an exact source and a regular expression');
-
 it('takes a protected exact source before an unprotected one with a higher priority', function () {
-    $protected = RedirectFactory::createOne([
-        'source' => '/relaunch',
-        'target' => '/kept',
-        'priority' => 1,
-        'protected' => true,
-    ]);
-    RedirectFactory::createOne([
-        'source' => '/relaunch',
-        'target' => '/override',
-        'priority' => 10,
-    ]);
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->withPriority(1)
+        ->create(['source' => '/relaunch']);
+    RedirectFactory::new()
+        ->withPriority(10)
+        ->create(['source' => '/relaunch']);
 
-    expect(answerTo('/relaunch'))
-        ->toBeAnsweredBy($protected);
+    $response = answerTo('/relaunch');
+
+    expect($response)->toComeFrom($protected);
 });
 
 it('takes a protected regular expression before an unprotected exact source', function () {
-    $protected = RedirectFactory::createOne([
-        'source' => '@^/legacy/.*@',
-        'target' => '/kept',
-        'regex' => true,
-        'protected' => true,
-    ]);
-    RedirectFactory::createOne([
-        'source' => '/legacy/page',
-        'target' => '/override',
-        'priority' => 10,
-    ]);
+    $protected = RedirectFactory::new()
+        ->matching('@^/legacy/.*@')
+        ->protected()
+        ->create();
+    RedirectFactory::new()
+        ->withPriority(10)
+        ->create(['source' => '/legacy/page']);
 
-    expect(answerTo('/legacy/page'))
-        ->toBeAnsweredBy($protected);
-});
+    $response = answerTo('/legacy/page');
 
-it('offers 410 Gone for removed content', function () {
-    expect(Redirect::getStatusCodes())
-        ->toHaveKey(410);
+    expect($response)->toComeFrom($protected);
 });
 
 it('ignores a regular expression that does not compile', function () {
-    RedirectFactory::createOne([
-        'source' => '@^/broken(@',
-        'target' => '/x',
-        'regex' => true,
-    ]);
-    $valid = RedirectFactory::createOne([
-        'source' => '@^/broken@',
-        'target' => '/y',
-        'regex' => true,
-    ]);
+    RedirectFactory::new()
+        ->matching('@^/broken(@')
+        ->create();
+    $valid = RedirectFactory::new()
+        ->matching('@^/broken@')
+        ->create();
 
-    expect(answerTo('/broken('))
-        ->toBeAnsweredBy($valid);
+    $response = answerTo('/broken(');
+
+    expect($response)->toComeFrom($valid);
 });

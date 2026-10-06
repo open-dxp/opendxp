@@ -18,7 +18,7 @@ namespace OpenDxp\Tests\Fixtures\Bundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class CountingBundle extends Bundle
+final class CountingBundle extends Bundle
 {
     use CountsItsInstances;
 }

@@ -27,10 +27,14 @@ use Zenstruck\Foundry\ObjectFactory;
 abstract class AbstractSavingFactory extends ObjectFactory
 {
     /**
-     * Foundry runs the hooks from the highest priority down, so writing last lets a state still
-     * change the object.
+     * Foundry runs the hooks from the highest priority down. Writing this late lets every state change the model first.
      */
-    private const int WRITE = -1000;
+    protected const int WRITE = -1000;
+
+    /**
+     * A hook at this priority runs after the write, so the model already has its id.
+     */
+    protected const int AFTER_WRITE = -2000;
 
     private bool $writes = true;
 
@@ -47,11 +51,31 @@ abstract class AbstractSavingFactory extends ObjectFactory
         return $this->afterInstantiate(
             static function (AbstractModel $model, array $parameters, self $factory): void {
                 if ($factory->writes) {
-                    // Not every model declares save(), several reach their dao through __call.
+                    // Not every model declares save(). Several reach their dao through __call.
                     $model->save();
                 }
             },
             self::WRITE,
         );
+    }
+
+    /**
+     * @param callable(T): void $hook
+     */
+    protected function afterWriting(callable $hook): static
+    {
+        return $this->afterInstantiate(
+            static function (AbstractModel $model, array $parameters, self $factory) use ($hook): void {
+                if ($factory->writes) {
+                    $hook($model);
+                }
+            },
+            self::AFTER_WRITE,
+        );
+    }
+
+    protected function writes(): bool
+    {
+        return $this->writes;
     }
 }

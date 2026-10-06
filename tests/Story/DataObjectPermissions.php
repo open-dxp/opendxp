@@ -18,143 +18,138 @@ namespace OpenDxp\Tests\Story;
 
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\User;
+use OpenDxp\Test\Factory\AbstractElementFactory;
+use OpenDxp\Test\Factory\AbstractUserRoleFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
-use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
-use Zenstruck\Foundry\Story;
 
-final class DataObjectPermissions extends Story
+/**
+ * The quick search answers for every user at once, so the object tree has four more users and an asset beside it.
+ *
+ * @method static DataObject\Folder root()
+ * @method static DataObject\Folder permissionfoo()
+ * @method static DataObject\Folder permissionbar()
+ * @method static DataObject\Folder bars()
+ * @method static DataObject\Folder userfolder()
+ * @method static DataObject\Folder groupfolder()
+ * @method static DataObject\Unittest usertestobject()
+ * @method static User\Role testrole()
+ * @method static User\Role dummyRole()
+ * @method static User permissiontest1()
+ * @method static User permissiontest2()
+ * @method static User permissiontest3()
+ * @method static User permissiontest4()
+ * @method static User permissiontest5()
+ * @method static User permissiontest6()
+ * @method static Asset\Image assetelement()
+ */
+final class DataObjectPermissions extends PermissionTree
 {
-    public const array USERS = ['admin', 'Permissiontest1', 'Permissiontest2'];
-
     /**
-     * The quick search answers for every user, so it needs the four that only exist for it.
+     * The quotes belong to the name. A path reaches the permission query as a string, so one that carries quotes
+     * has to survive it.
      */
-    public const array EVERY_USER = [
-        'admin', 'Permissiontest1', 'Permissiontest2',
-        'Permissiontest3', 'Permissiontest4', 'Permissiontest5', 'Permissiontest6',
-    ];
-
-    public const array SEES = ['list' => true, 'view' => true];
-
-    public const array BLIND = ['list' => false, 'view' => false];
-
-    /**
-     * The quotes belong to the name. A path reaches the permission query as a string, so one that
-     * carries quotes has to survive it.
-     */
-    public const string ROOT = '/permission\'"cpath';
+    protected const string ROOT_KEY = 'permission\'"cpath';
 
     public function build(): void
     {
-        $root = indexed(DataObjectFolderFactory::createOne(['key' => 'permission\'"cpath', 'parentId' => 1]));
-        $a = indexed(DataObjectFolderFactory::createOne(['key' => 'a', 'parentId' => $root->getId()]));
-        $b = indexed(DataObjectFolderFactory::createOne(['key' => 'b', 'parentId' => $a->getId()]));
-        indexed(UnittestFactory::createOne(['key' => 'c', 'input' => 'c', 'parentId' => $b->getId()]));
-        indexed(UnittestFactory::createOne(['key' => 'abcdefghjkl', 'input' => 'abcdefghjkl', 'parentId' => $root->getId()]));
+        parent::build();
 
-        $foo = indexed(DataObjectFolderFactory::createOne(['key' => 'permissionfoo', 'parentId' => 1]));
-        $bar = indexed(DataObjectFolderFactory::createOne(['key' => 'permissionbar', 'parentId' => 1]));
-        $hidden = indexed(DataObjectFolderFactory::createOne(['key' => 'foo', 'parentId' => $bar->getId()]));
-        $bars = indexed(DataObjectFolderFactory::createOne(['key' => 'bars', 'parentId' => $foo->getId()]));
-        $userfolder = indexed(DataObjectFolderFactory::createOne(['key' => 'userfolder', 'parentId' => $bars->getId()]));
-        $groupfolder = indexed(DataObjectFolderFactory::createOne(['key' => 'groupfolder', 'parentId' => $bars->getId()]));
+        $usertestobject = self::usertestobject();
+        $assetelement = AssetImageFactory::createOne(['key' => 'assetelement.gif']);
+        $this->addToPool('elements', $assetelement);
 
-        indexed(UnittestFactory::createOne(['key' => 'hiddenobject', 'input' => 'hiddenobject', 'parentId' => $hidden->getId()]));
-        indexed(UnittestFactory::createOne(['key' => 'hugo', 'input' => 'hugo', 'parentId' => $bars->getId()]));
-        indexed(UnittestFactory::createOne(['key' => 'usertestobject', 'input' => 'usertestobject', 'parentId' => $userfolder->getId()]));
-        indexed(UnittestFactory::createOne(['key' => 'grouptestobject', 'input' => 'grouptestobject', 'parentId' => $groupfolder->getId()]));
+        $third = UserFactory::new()
+            ->withPermissions('objects')
+            ->withObjectWorkspace($usertestobject, 'list', 'view');
+        $fourth = UserFactory::new()
+            ->withPermissions('objects')
+            ->withRoles(
+                self::testrole(),
+                self::dummyRole(),
+            );
+        $fifth = UserFactory::new()
+            ->withPermissions('assets', 'objects')
+            ->withObjectWorkspace($usertestobject, 'list', 'view')
+            ->withAssetWorkspace($assetelement, 'list', 'view');
+        $sixth = UserFactory::new()
+            ->withObjectWorkspace($usertestobject, 'list', 'view')
+            ->withAssetWorkspace($assetelement, 'list', 'view');
 
-        indexed(AssetImageFactory::createOne(['key' => 'assetelement.gif', 'parentId' => 1]));
-
-        UserRoleFactory::createOne([
-            'name' => 'Testrole',
-            'workspacesObject' => [
-                objectWorkspace('/permissionfoo/bars/groupfolder', [...self::SEES, 'save' => true, 'publish' => false]),
-            ],
-        ]);
-        UserRoleFactory::createOne([
-            'name' => 'dummyRole',
-            'workspacesObject' => [
-                objectWorkspace('/permissionfoo/bars/groupfolder', [
-                    ...self::BLIND, 'save' => false, 'publish' => false, 'settings' => true,
-                ]),
-            ],
-        ]);
-
-        $roles = [User\Role::getByName('Testrole')->getId(), User\Role::getByName('dummyRole')->getId()];
-
-        UserFactory::createOne([
-            'name' => 'Permissiontest1',
-            'permissions' => ['objects'],
-            'roles' => $roles,
-            'workspacesObject' => [
-                objectWorkspace('/permissionfoo', self::SEES),
-                objectWorkspace('/permissionbar', self::SEES),
-                objectWorkspace('/permissionbar/foo', self::BLIND),
-                objectWorkspace('/permissionfoo/bars', self::BLIND),
-                objectWorkspace('/permissionfoo/bars/userfolder', [...self::SEES, 'create' => true, 'rename' => true]),
-                objectWorkspace(self::ROOT . '/a/b/c', self::SEES),
-                objectWorkspace(self::ROOT . '/abcdefghjkl', self::SEES),
-            ],
-        ]);
-        UserFactory::createOne([
-            'name' => 'Permissiontest2',
-            'permissions' => ['objects'],
-            'roles' => $roles,
-            'workspacesObject' => [
-                objectWorkspace('/permissionfoo', self::SEES),
-                objectWorkspace('/permissionbar', self::SEES),
-                objectWorkspace('/permissionbar/foo', self::BLIND),
-                objectWorkspace('/permissionfoo/bars', self::BLIND),
-                objectWorkspace('/permissionfoo/bars/userfolder', self::SEES),
-                objectWorkspace('/permissionfoo/bars/groupfolder', [
-                    ...self::BLIND, 'save' => true, 'publish' => true, 'settings' => false,
-                ]),
-            ],
-        ]);
-
-        $onOneObject = [objectWorkspace('/permissionfoo/bars/userfolder/usertestobject', self::SEES)];
-        $onTheAsset = [assetWorkspace('/assetelement.gif', self::SEES)];
-
-        UserFactory::createOne(['name' => 'Permissiontest3', 'permissions' => ['objects'], 'workspacesObject' => $onOneObject]);
-        UserFactory::createOne(['name' => 'Permissiontest4', 'permissions' => ['objects'], 'roles' => $roles]);
-        UserFactory::createOne([
-            'name' => 'Permissiontest5',
-            'permissions' => ['assets', 'objects'],
-            'workspacesObject' => $onOneObject,
-            'workspacesAsset' => $onTheAsset,
-        ]);
-        UserFactory::createOne([
-            'name' => 'Permissiontest6',
-            'permissions' => [],
-            'workspacesObject' => $onOneObject,
-            'workspacesAsset' => $onTheAsset,
-        ]);
+        $this->addState('assetelement', $assetelement);
+        $this->addState('permissiontest3', $third->create(['name' => 'Permissiontest3']));
+        $this->addState('permissiontest4', $fourth->create(['name' => 'Permissiontest4']));
+        $this->addState('permissiontest5', $fifth->create(['name' => 'Permissiontest5']));
+        $this->addState('permissiontest6', $sixth->create(['name' => 'Permissiontest6']));
     }
 
-    /**
-     * A test that cannot roll back takes back what the story wrote.
-     */
     public static function forget(): void
     {
-        foreach ([self::ROOT, '/permissionfoo', '/permissionbar', '/manyElements'] as $path) {
-            DataObject::getByPath($path)?->delete();
-        }
+        parent::forget();
 
-        Asset::getByPath('/assetelement.gif')?->delete();
+        $written = [
+            self::assetelement(),
+            self::permissiontest3(),
+            self::permissiontest4(),
+            self::permissiontest5(),
+            self::permissiontest6(),
+        ];
 
-        foreach (self::EVERY_USER as $name) {
-            if ($name !== 'admin') {
-                User::getByName($name)?->delete();
-            }
+        foreach ($written as $model) {
+            $model->delete();
         }
+    }
 
-        foreach (['Testrole', 'dummyRole'] as $name) {
-            User\Role::getByName($name)?->delete();
-        }
+    protected function folders(): AbstractElementFactory
+    {
+        return DataObjectFolderFactory::new();
+    }
+
+    protected function element(string $key): AbstractElementFactory
+    {
+        return UnittestFactory::new()
+            ->with([
+                'key' => $key,
+                'input' => $key,
+            ]);
+    }
+
+    protected function withWorkspace(
+        AbstractUserRoleFactory $owner,
+        ElementInterface $element,
+        string ...$permissions,
+    ): AbstractUserRoleFactory {
+        return $owner->withObjectWorkspace($element, ...$permissions);
+    }
+
+    protected function module(): string
+    {
+        return 'objects';
+    }
+
+    protected function testroleGrants(): array
+    {
+        return [
+            'list',
+            'view',
+            'save',
+        ];
+    }
+
+    protected function dummyRoleGrants(): array
+    {
+        return ['settings'];
+    }
+
+    protected function secondUserGrants(): array
+    {
+        return [
+            'save',
+            'publish',
+        ];
     }
 }

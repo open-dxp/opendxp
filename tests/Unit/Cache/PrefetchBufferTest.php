@@ -18,107 +18,113 @@ namespace OpenDxp\Tests\Unit\Cache;
 
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
+use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Contracts\Service\ResetInterface;
+
+/**
+ * The write bypasses the handler. A load that still returns the old value therefore read it from the buffer.
+ */
+function writeBehindHandler(TagAwareAdapterInterface $pool, string $key, string $value): void
+{
+    $item = $pool->getItem($key);
+    $item->set($value);
+    $pool->save($item);
+}
 
 beforeEach(function () {
     $this->pool = new TagAwareAdapter(new ArrayAdapter());
     $this->handler = cacheHandler($this->pool);
+    $this->handler->setForceImmediateWrite(true);
 });
 
 it('serves a prefetched entry from the buffer', function () {
+    $this->handler->save('bufferedKey', 'buffered-data', []);
+    $this->handler->prefetch(['bufferedKey']);
+    writeBehindHandler($this->pool, 'bufferedKey', 'fresh-data');
 
-    $this->handler->save('hitKey', 'hit-data', []);
-    $this->handler->prefetch(['hitKey', 'missKey']);
+    $loaded = $this->handler->load('bufferedKey');
 
-    expect($this->handler->load('hitKey'))
-        ->toBe('hit-data')
-        ->and($this->handler->load('missKey'))
-        ->toBeFalse();
+    expect($loaded)->toBe('buffered-data');
 });
 
 it('reads a key that was never prefetched from the pool', function () {
-
     $this->handler->save('plainKey', 'plain-data', []);
     $this->handler->prefetch(['someOtherKey']);
 
-    expect($this->handler->load('plainKey'))->toBe('plain-data');
+    $loaded = $this->handler->load('plainKey');
+
+    expect($loaded)->toBe('plain-data');
 });
 
 it('lets a write overrule a buffered miss', function () {
-
     $this->handler->prefetch(['freshKey']);
     $this->handler->save('freshKey', 'fresh-data', []);
 
-    expect($this->handler->load('freshKey'))->toBe('fresh-data');
+    $loaded = $this->handler->load('freshKey');
+
+    expect($loaded)->toBe('fresh-data');
 });
 
 it('lets a removal overrule a buffered entry', function () {
-
     $this->handler->save('removedKey', 'stale-data', []);
     $this->handler->prefetch(['removedKey']);
     $this->handler->remove('removedKey');
 
-    expect($this->handler->load('removedKey'))->toBeFalse();
+    $loaded = $this->handler->load('removedKey');
+
+    expect($loaded)->toBeFalse();
 });
 
 it('lets a cleared tag overrule a buffered entry', function () {
-
     $this->handler->save('taggedKey', 'tagged-data', ['some_tag']);
     $this->handler->prefetch(['taggedKey']);
     $this->handler->clearTags(['some_tag']);
 
-    expect($this->handler->load('taggedKey'))->toBeFalse();
+    $loaded = $this->handler->load('taggedKey');
+
+    expect($loaded)->toBeFalse();
 });
 
-it('hands a prefetched entry out once and reads the pool afterwards', function () {
-
-    $this->handler->save('onceKey', 'first-value', []);
+it('serves a prefetched entry only once', function () {
+    $this->handler->save('onceKey', 'buffered-data', []);
     $this->handler->prefetch(['onceKey']);
+    $this->handler->load('onceKey');
+    writeBehindHandler($this->pool, 'onceKey', 'fresh-data');
 
-    expect($this->handler->load('onceKey'))->toBe('first-value');
+    $loaded = $this->handler->load('onceKey');
 
-    $this->handler->save('onceKey', 'second-value', []);
-
-    expect($this->handler->load('onceKey'))->toBe('second-value');
+    expect($loaded)->toBe('fresh-data');
 });
 
-it('invalidates only the keys it is given', function () {
+it('invalidates only the prefetched keys it is given', function () {
+    $this->handler->save('invalidatedKey', 'buffered-data', []);
+    $this->handler->save('keptKey', 'buffered-data', []);
+    $this->handler->prefetch([
+        'invalidatedKey',
+        'keptKey',
+    ]);
+    writeBehindHandler($this->pool, 'invalidatedKey', 'fresh-data');
+    writeBehindHandler($this->pool, 'keptKey', 'fresh-data');
 
-    $this->handler->save('batchKey', 'batch-data', []);
-    $this->handler->save('otherBatchKey', 'other-batch-data', []);
-    $this->handler->prefetch(['batchKey', 'otherBatchKey']);
+    $this->handler->invalidatePrefetched(['invalidatedKey']);
 
-    // Written past the handler, so a load can only answer with the buffered value.
-    foreach (['batchKey' => 'fresh-batch-data', 'otherBatchKey' => 'fresh-other-batch-data'] as $key => $value) {
-        $item = $this->pool->getItem($key);
-        $item->set($value);
-        $this->pool->save($item);
-    }
-
-    $this->handler->invalidatePrefetched(['batchKey']);
-
-    expect($this->handler->load('batchKey'))
-        ->toBe('fresh-batch-data')
-        ->and($this->handler->load('otherBatchKey'))
-        ->toBe('other-batch-data');
+    expect($this->handler->load('invalidatedKey'))
+        ->toBe('fresh-data')
+        ->and($this->handler->load('keptKey'))
+        ->toBe('buffered-data');
 });
 
 it('drops the buffer when it is reset', function () {
-
-    $this->handler->save('resetKey', 'stale-data', []);
+    $this->handler->save('resetKey', 'buffered-data', []);
     $this->handler->prefetch(['resetKey']);
-
-    $item = $this->pool->getItem('resetKey');
-    $item->set('fresh-data');
-    $this->pool->save($item);
+    writeBehindHandler($this->pool, 'resetKey', 'fresh-data');
 
     $this->handler->reset();
 
     expect($this->handler->load('resetKey'))->toBe('fresh-data');
 });
 
-// kernel.reset picks the handler up through autoconfiguration, so a messenger
-// worker only gets a clean buffer as long as this interface is implemented.
-it('can be reset between messenger messages', function () {
+// Symfony resets a service between two messenger messages only when it implements this interface.
+it('can be reset between two messenger messages', function () {
     expect($this->handler)->toBeInstanceOf(ResetInterface::class);
 });

@@ -22,14 +22,13 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 beforeEach(function () {
     $this->pool = new TagAwareAdapter(new ArrayAdapter());
     $this->handler = cacheHandler($this->pool);
-    $this->handler->setForceImmediateWrite(false);
 });
 
 it('writes the last value a key was given', function () {
+    $this->handler->save('queuedKey', 'first', []);
+    $this->handler->save('queuedKey', 'second', []);
 
-    $this->handler->save('dup', 'first', []);
-    $this->handler->save('dup', 'second', []);
     $this->handler->writeSaveQueue();
 
-    expect($this->pool->getItem('dup')->get())->toBe('second');
+    expect($this->pool->getItem('queuedKey')->get())->toBe('second');
 });

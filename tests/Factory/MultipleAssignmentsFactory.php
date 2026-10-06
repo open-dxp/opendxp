@@ -21,10 +21,6 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<MultipleAssignments>
- *
- * @method MultipleAssignments create(array|callable $attributes = [])
- * @method static MultipleAssignments createOne(array $attributes = [])
- * @method static list<MultipleAssignments> createMany(int $number, array $attributes = [])
  */
 final class MultipleAssignmentsFactory extends AbstractDataObjectFactory
 {

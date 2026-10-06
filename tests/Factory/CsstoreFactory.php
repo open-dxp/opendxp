@@ -21,10 +21,6 @@ use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
  * @extends AbstractDataObjectFactory<Csstore>
- *
- * @method Csstore create(array|callable $attributes = [])
- * @method static Csstore createOne(array $attributes = [])
- * @method static list<Csstore> createMany(int $number, array $attributes = [])
  */
 final class CsstoreFactory extends AbstractDataObjectFactory
 {

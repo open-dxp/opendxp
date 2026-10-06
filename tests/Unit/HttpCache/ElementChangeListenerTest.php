@@ -17,71 +17,97 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\HttpCache;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\ElementChangeListener;
+use OpenDxp\Event\AssetEvents;
+use OpenDxp\Event\DataObjectEvents;
+use OpenDxp\Event\DocumentEvents;
 use OpenDxp\Event\Model\AssetEvent;
 use OpenDxp\Event\Model\DataObjectEvent;
 use OpenDxp\Event\Model\DocumentEvent;
+use OpenDxp\Event\Model\ElementEventInterface;
 use OpenDxp\Event\Model\TranslationEvent;
+use OpenDxp\Event\TranslationEvents;
 use OpenDxp\HttpCache\HttpCache;
 use OpenDxp\HttpCache\HttpCacheArguments;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Translation;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Contracts\EventDispatcher\Event;
 
 beforeEach(function () {
     $this->invalidator = $this->createMock(HttpCache::class);
-    $this->listener = new ElementChangeListener($this->invalidator);
+    $this->dispatcher = new EventDispatcher();
+    $this->dispatcher->addSubscriber(new ElementChangeListener($this->invalidator));
 });
 
-it('hands a changed element to the invalidator', function (string $event, string $element, string $getter, string $listens) {
+it('invalidates a changed element', function (ElementEventInterface $event, string $eventName) {
+    $this->invalidator
+        ->expects($this->once())
+        ->method('invalidate')
+        ->with($event->getElement());
 
-    $changed = $this->createMock($element);
-    $fired = $this->createMock($event);
-    $fired->method($getter)->willReturn($changed);
-    $fired->method('hasArgument')->willReturn(false);
-
-    $this->invalidator->expects($this->once())->method('invalidate')->with($changed);
-
-    $this->listener->{$listens}($fired);
+    $this->dispatcher->dispatch($event, $eventName);
 })->with([
-    'a document' => [DocumentEvent::class, Document::class, 'getElement', 'onDocumentChange'],
-    'an object' => [DataObjectEvent::class, Concrete::class, 'getElement', 'onDataObjectChange'],
-    'an asset' => [AssetEvent::class, Asset::class, 'getAsset', 'onAssetChange'],
+    'a document' => [
+        fn () => new DocumentEvent($this->createMock(Document::class)),
+        DocumentEvents::POST_UPDATE,
+    ],
+    'an object' => [
+        fn () => new DataObjectEvent($this->createMock(Concrete::class)),
+        DataObjectEvents::POST_UPDATE,
+    ],
+    'an asset' => [
+        fn () => new AssetEvent($this->createMock(Asset::class)),
+        AssetEvents::POST_UPDATE,
+    ],
 ]);
 
-it('leaves the cache alone for a save that only writes a version', function (string $event, string $element, string $listens, string $argument) {
+it('invalidates a changed translation', function () {
+    $translation = new Translation();
+    $event = new TranslationEvent($translation);
 
-    $fired = $this->createMock($event);
-    $fired->method('getElement')->willReturn($this->createMock($element));
-    $fired->method('hasArgument')->willReturnCallback(fn (string $key) => $key === $argument);
+    $this->invalidator
+        ->expects($this->once())
+        ->method('invalidate')
+        ->with($translation);
 
-    $this->invalidator->expects($this->never())->method('invalidate');
+    $this->dispatcher->dispatch($event, TranslationEvents::POST_SAVE);
+});
 
-    $this->listener->{$listens}($fired);
+it('does not invalidate a change it is told to skip', function (Event $event, string $eventName) {
+    $this->invalidator
+        ->expects($this->never())
+        ->method('invalidate');
+
+    $this->dispatcher->dispatch($event, $eventName);
 })->with([
-    'a document saved as a version' => [DocumentEvent::class, Document::class, 'onDocumentChange', 'saveVersionOnly'],
-    'a document saved by itself' => [DocumentEvent::class, Document::class, 'onDocumentChange', 'autoSave'],
-    'an object saved as a version' => [DataObjectEvent::class, Concrete::class, 'onDataObjectChange', 'saveVersionOnly'],
+    'a document saved as a version only' => [
+        fn () => new DocumentEvent(
+            $this->createMock(Document::class),
+            ['saveVersionOnly' => true],
+        ),
+        DocumentEvents::POST_UPDATE,
+    ],
+    'a document saved automatically' => [
+        fn () => new DocumentEvent(
+            $this->createMock(Document::class),
+            ['autoSave' => true],
+        ),
+        DocumentEvents::POST_UPDATE,
+    ],
+    'an object saved as a version only' => [
+        fn () => new DataObjectEvent(
+            $this->createMock(Concrete::class),
+            ['saveVersionOnly' => true],
+        ),
+        DataObjectEvents::POST_UPDATE,
+    ],
+    'a translation that skips invalidation' => [
+        fn () => new TranslationEvent(
+            new Translation(),
+            [HttpCacheArguments::SKIP_INVALIDATION => true],
+        ),
+        TranslationEvents::POST_SAVE,
+    ],
 ]);
-
-it('hands a changed translation to the invalidator', function () {
-
-    $fired = $this->createMock(TranslationEvent::class);
-    $fired->method('getTranslation')->willReturn(new Translation());
-    $fired->method('hasArgument')->willReturn(false);
-
-    $this->invalidator->expects($this->once())->method('invalidate');
-
-    $this->listener->onTranslationChange($fired);
-});
-
-it('leaves the cache alone for a translation that asks to be skipped', function () {
-
-    $fired = $this->createMock(TranslationEvent::class);
-    $fired->method('hasArgument')
-        ->willReturnCallback(fn (string $key) => $key === HttpCacheArguments::SKIP_INVALIDATION);
-
-    $this->invalidator->expects($this->never())->method('invalidate');
-
-    $this->listener->onTranslationChange($fired);
-});

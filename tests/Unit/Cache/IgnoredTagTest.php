@@ -22,10 +22,10 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 beforeEach(function () {
     $this->pool = new TagAwareAdapter(new ArrayAdapter());
     $this->handler = cacheHandler($this->pool);
+    $this->handler->setForceImmediateWrite(true);
 });
 
 it('saves an entry whose tags are all allowed', function () {
-
     $saved = $this->handler->save('plainKey', 'plain-data', ['some_tag']);
 
     expect($saved)
@@ -34,10 +34,17 @@ it('saves an entry whose tags are all allowed', function () {
         ->toBeTrue();
 });
 
-it('refuses an entry carrying a tag that is ignored on save', function () {
-
+it('refuses an entry with a tag that is ignored on save', function () {
     $this->handler->addTagIgnoredOnSave('blocked');
-    $saved = $this->handler->save('blockedKey', 'blocked-data', ['some_tag', 'blocked']);
+
+    $saved = $this->handler->save(
+        'blockedKey',
+        'blocked-data',
+        [
+            'some_tag',
+            'blocked',
+        ],
+    );
 
     expect($saved)
         ->toBeFalse()
@@ -45,40 +52,42 @@ it('refuses an entry carrying a tag that is ignored on save', function () {
         ->toBeFalse();
 });
 
-it('saves again once the tag is allowed on save', function () {
-
+it('saves an entry again once its tag is allowed on save', function () {
     $this->handler->addTagIgnoredOnSave('blocked');
     $this->handler->removeTagIgnoredOnSave('blocked');
 
-    expect($this->handler->save('laterKey', 'later-data', ['blocked']))
+    $saved = $this->handler->save('laterKey', 'later-data', ['blocked']);
+
+    expect($saved)
         ->toBeTrue()
         ->and($this->pool->getItem('laterKey')->isHit())
         ->toBeTrue();
 });
 
-it('takes one removal for a tag that was ignored twice', function () {
-
+it('allows a tag again after one removal', function () {
     $this->handler->addTagIgnoredOnSave('blocked');
     $this->handler->addTagIgnoredOnSave('blocked');
     $this->handler->removeTagIgnoredOnSave('blocked');
 
-    expect($this->handler->save('laterKey', 'later-data', ['blocked']))->toBeTrue();
+    $saved = $this->handler->save('laterKey', 'later-data', ['blocked']);
+
+    expect($saved)->toBeTrue();
 });
 
 it('keeps an entry whose tag is ignored on clear', function () {
-
     $this->handler->save('keptKey', 'kept-data', ['protected']);
     $this->handler->addTagIgnoredOnClear('protected');
+
     $this->handler->clearTags(['protected']);
 
     expect($this->pool->getItem('keptKey')->isHit())->toBeTrue();
 });
 
-it('clears again once the tag is allowed on clear', function () {
-
+it('clears an entry again once its tag is allowed on clear', function () {
     $this->handler->addTagIgnoredOnClear('protected');
     $this->handler->save('keptKey', 'kept-data', ['protected']);
     $this->handler->removeTagIgnoredOnClear('protected');
+
     $this->handler->clearTags(['protected']);
 
     expect($this->pool->getItem('keptKey')->isHit())->toBeFalse();

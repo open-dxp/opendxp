@@ -19,25 +19,12 @@ namespace OpenDxp\Test\Factory;
 use OpenDxp\Model\Document\Folder;
 
 /**
- * @extends AbstractElementFactory<Folder>
- *
- * @method Folder create(array|callable $attributes = [])
- * @method static Folder createOne(array $attributes = [])
- * @method static list<Folder> createMany(int $number, array $attributes = [])
+ * @extends AbstractDocumentFactory<Folder>
  */
-final class DocumentFolderFactory extends AbstractElementFactory
+final class DocumentFolderFactory extends AbstractDocumentFactory
 {
     public static function class(): string
     {
         return Folder::class;
-    }
-
-    protected function defaults(): array
-    {
-        return [
-            ...parent::defaults(),
-            'key'  => sprintf('document-folder-%s', uniqid()),
-            'type' => 'folder',
-        ];
     }
 }

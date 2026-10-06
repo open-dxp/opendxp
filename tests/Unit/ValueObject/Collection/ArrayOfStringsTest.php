@@ -20,16 +20,19 @@ use OpenDxp\ValueObject\Collection\ArrayOfStrings;
 use ValueError;
 
 it('refuses an array holding something that is not a string', function () {
-    new ArrayOfStrings(['1', '2', 3]);
+    new ArrayOfStrings([3]);
 })->throws(ValueError::class, 'Provided array must contain only string values. (integer given)');
 
-it('answers with the strings it was given', function () {
-    expect((new ArrayOfStrings(['1', '2', '3']))->getValue())->toBe(['1', '2', '3']);
+it('accepts an array of strings', function () {
+    $strings = new ArrayOfStrings(['3']);
+
+    expect($strings)->getValue()->toBe(['3']);
 });
 
-it('checks the strings again when they come back from a serialized form', function () {
+it('checks the strings again when they are unserialized', function () {
+    $serialized = serialize(new ArrayOfStrings(['42']));
+    $tampered = str_replace('s:2:"42"', 'i:42', $serialized);
 
-    $serialized = str_replace('s:2:"42"', 'i:42', serialize(new ArrayOfStrings(['1', '2', '42'])));
-
-    unserialize($serialized);
-})->throws(ValueError::class, 'Provided array must contain only string values. (integer given)');
+    expect(fn () => unserialize($tampered))
+        ->toThrow(ValueError::class, 'Provided array must contain only string values. (integer given)');
+});

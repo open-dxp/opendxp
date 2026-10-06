@@ -18,10 +18,25 @@ namespace OpenDxp\Tests\Feature\Installer;
 
 use OpenDxp\Db;
 
-afterEach(fn () => forgetTestInstallation());
+/**
+ * @return list<string>
+ */
+function columnsOf(string $table): array
+{
+    $columns = Db::get()->createSchemaManager()->listTableColumns($table);
 
-it('creates the tables of the entities in the namespace of the bundle, in whichever folder they live', function () {
-    schemaInstaller()->install();
+    return array_keys($columns);
+}
+
+function tableExists(string $table): bool
+{
+    return Db::get()->createSchemaManager()->tablesExist([$table]);
+}
+
+it('creates the tables of the bundle entities in every folder', function () {
+    $installer = $this->schemaInstaller();
+
+    $installer->install();
 
     expect(tableExists('installer_bundle_note'))
         ->toBeTrue()
@@ -31,27 +46,28 @@ it('creates the tables of the entities in the namespace of the bundle, in whiche
         ->toBeTrue();
 });
 
-it('leaves the entities of a namespace that only starts like the bundle alone', function () {
-    schemaInstaller()->install();
+it('skips the entities of a namespace that only starts like the bundle', function () {
+    $installer = $this->schemaInstaller();
 
-    expect(tableExists('installer_bundle_extension_other'))
-        ->toBeFalse();
+    $installer->install();
+
+    expect(tableExists('installer_bundle_extension_other'))->toBeFalse();
 });
 
 it('brings an existing table of the bundle to its mapping', function () {
     Db::get()->executeStatement('CREATE TABLE installer_bundle_note (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY(id))');
+    $installer = $this->schemaInstaller();
 
-    schemaInstaller()->install();
+    $installer->install();
 
-    expect(columnsOf('installer_bundle_note'))
-        ->toContain('title');
+    expect(columnsOf('installer_bundle_note'))->toContain('title');
 });
 
 it('leaves every other table untouched', function () {
     Db::get()->executeStatement('CREATE TABLE installer_bundle_unrelated (id INT NOT NULL, PRIMARY KEY(id))');
+    $installer = $this->schemaInstaller();
 
-    schemaInstaller()->install();
+    $installer->install();
 
-    expect(tableExists('installer_bundle_unrelated'))
-        ->toBeTrue();
+    expect(tableExists('installer_bundle_unrelated'))->toBeTrue();
 });

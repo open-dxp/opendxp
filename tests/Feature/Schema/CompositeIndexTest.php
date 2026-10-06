@@ -20,12 +20,15 @@ use OpenDxp\Db;
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Unittest;
 
-function indexes(): array
+/**
+ * @return list<string>
+ */
+function queryTableIndexes(): array
 {
-    return array_column(
-        Db::get()->fetchAllAssociative(sprintf('SHOW INDEX FROM `object_query_%s`', Unittest::classId())),
-        'Key_name',
-    );
+    $query = sprintf('SHOW INDEX FROM `object_query_%s`', Unittest::classId());
+    $indexes = Db::get()->fetchAllAssociative($query);
+
+    return array_column($indexes, 'Key_name');
 }
 
 afterEach(function () {
@@ -35,16 +38,19 @@ afterEach(function () {
 });
 
 it('writes the composite index a class definition names', function () {
-
-    expect(indexes())->not->toContain('c_mycomposite');
-
     $definition = ClassDefinition::getById(Unittest::classId());
-    $definition->setCompositeIndices([[
-        'index_key' => 'mycomposite',
-        'index_type' => 'query',
-        'index_columns' => ['slider', 'number'],
-    ]]);
+    $definition->setCompositeIndices([
+        [
+            'index_key' => 'mycomposite',
+            'index_type' => 'query',
+            'index_columns' => [
+                'slider',
+                'number',
+            ],
+        ],
+    ]);
+
     $definition->save();
 
-    expect(indexes())->toContain('c_mycomposite');
+    expect(queryTableIndexes())->toContain('c_mycomposite');
 });

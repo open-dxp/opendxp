@@ -22,30 +22,34 @@ use OpenDxp\TestFoundation\Container;
 
 beforeEach(fn () => $this->processor = Container::get(Processor::class));
 
-it('turns the term it finds into a link to the glossary entry', function (string $term, string $link, string $source, string $expected) {
+it('links a glossary term in the text', function (string $term, string $link, string $source, string $expected) {
+    GlossaryFactory::createOne([
+        'text' => $term,
+        'link' => $link,
+    ]);
 
-    GlossaryFactory::createOne(['text' => $term, 'link' => $link]);
+    $parsed = $this->processor->parse($source, [], 'en', document: null, uri: null);
 
-    // Depending on the libxml version, the processor keeps an entity or decodes it, so both sides are compared decoded.
-    expect(html_entity_decode($this->processor->parse($source, [], 'en', null, null)))->toBe(html_entity_decode($expected));
+    // Depending on the libxml version, the processor keeps an entity or decodes it. Both sides are compared decoded.
+    expect(html_entity_decode($parsed))->toBe(html_entity_decode($expected));
 })->with([
     'a term in a sentence' => [
         'Glossary',
         '/test',
-        '<head></head><body><p>This is a Test for the Glossary</p></body>',
-        '<head></head><body><p>This is a Test for the <a class="opendxp_glossary" href="/test">Glossary</a></p></body>',
+        '<head></head><body><p>A test of the Glossary</p></body>',
+        '<head></head><body><p>A test of the <a class="opendxp_glossary" href="/test">Glossary</a></p></body>',
     ],
     'a term behind a non breaking space' => [
         'Entity',
         '/test',
-        '<head></head><body><p>This is a Test for the&nbsp;Entity &copy;</p></body>',
-        html_entity_decode('<head></head><body><p>This is a Test for the&nbsp;<a class="opendxp_glossary" href="/test">Entity</a> &copy;</p></body>'),
+        '<head></head><body><p>A test of&nbsp;Entity &copy;</p></body>',
+        '<head></head><body><p>A test of&nbsp;<a class="opendxp_glossary" href="/test">Entity</a> &copy;</p></body>',
     ],
     'a term between a non breaking space and a copyright sign' => [
         'Eintrag',
         '/test',
         '<head></head><body><p>Test &nbsp; Eintrag ©</p></body>',
-        html_entity_decode('<head></head><body><p>Test &nbsp; <a class="opendxp_glossary" href="/test">Eintrag</a> &copy;</p></body>'),
+        '<head></head><body><p>Test &nbsp; <a class="opendxp_glossary" href="/test">Eintrag</a> &copy;</p></body>',
     ],
     'a term next to an ampersand' => [
         'hans',
@@ -62,25 +66,21 @@ it('turns the term it finds into a link to the glossary entry', function (string
     'a term deep inside markup' => [
         'HTML',
         '/test',
-        <<<HTML
-        <section class="c-content" id="c-20-content-0">
+        <<<'HTML'
+            <section class="c-content">
                 <div class="container">
-                    <div class="text-content">
-                        <h2 class="text-content__title text-center">Seit&nbsp; 1909</h2>
-                        <p>Another &nbsp; HTML &copy;</p>
-                    </div>
+                    <h2 class="text-center">Seit&nbsp; 1909</h2>
+                    <p>Another &nbsp; HTML &copy;</p>
                 </div>
             </section>
-        HTML,
-        html_entity_decode(<<<HTML
-        <section class="c-content" id="c-20-content-0">
+            HTML,
+        <<<'HTML'
+            <section class="c-content">
                 <div class="container">
-                    <div class="text-content">
-                        <h2 class="text-content__title text-center">Seit&nbsp; 1909</h2>
-                        <p>Another &nbsp; <a class="opendxp_glossary" href="/test">HTML</a> &copy;</p>
-                    </div>
+                    <h2 class="text-center">Seit&nbsp; 1909</h2>
+                    <p>Another &nbsp; <a class="opendxp_glossary" href="/test">HTML</a> &copy;</p>
                 </div>
             </section>
-        HTML),
+            HTML,
     ],
 ]);

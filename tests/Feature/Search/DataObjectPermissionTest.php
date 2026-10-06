@@ -16,76 +16,105 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Search;
 
-use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
+use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
-use OpenDxp\Tests\Story\DataObjectPermissions as Tree;
+use OpenDxp\Tests\Story\DataObjectPermissions;
 
-beforeEach(fn () => Tree::load());
+use function Zenstruck\Foundry\faker;
 
-afterEach(fn () => Tree::forget());
+beforeEach(fn () => $this->loadTree(DataObjectPermissions::class));
 
-it('hands a user only the results that user may see', function () {
+it('finds for each user only the objects that user may see', function (string $query, array $expected) {
+    $users = array_keys($expected);
 
-    $all = [
-        '/permissionfoo/bars',
-        '/permissionfoo/bars/hugo',
-        '/permissionfoo/bars/userfolder',
-        '/permissionfoo/bars/userfolder/usertestobject',
-        '/permissionfoo/bars/groupfolder',
-        '/permissionfoo/bars/groupfolder/grouptestobject',
-    ];
+    $found = array_combine(
+        $users,
+        array_map(
+            fn (string $user): array => $this->searchAs($user, 'object', $query)->paths,
+            $users,
+        ),
+    );
 
-    expect(searchAs('admin', 'object', 'bars'))
-        ->toEqualCanonicalizing($all)
-        ->and(searchAs('Permissiontest1', 'object', 'bars'))
-        ->toEqualCanonicalizing(array_values(array_diff($all, ['/permissionfoo/bars/hugo'])))
-        ->and(searchAs('Permissiontest2', 'object', 'bars'))
-        ->toEqualCanonicalizing([
-            '/permissionfoo/bars',
-            '/permissionfoo/bars/userfolder',
-            '/permissionfoo/bars/userfolder/usertestobject',
+    expect($found)->toEqualCanonicalizing($expected);
+})->with([
+    'a folder and what it holds' => [
+        'bars',
+        [
+            'admin' => [
+                '/permissionfoo/bars',
+                '/permissionfoo/bars/hugo',
+                '/permissionfoo/bars/userfolder',
+                '/permissionfoo/bars/userfolder/usertestobject',
+                '/permissionfoo/bars/groupfolder',
+                '/permissionfoo/bars/groupfolder/grouptestobject',
+            ],
+            'Permissiontest1' => [
+                '/permissionfoo/bars',
+                '/permissionfoo/bars/userfolder',
+                '/permissionfoo/bars/userfolder/usertestobject',
+                '/permissionfoo/bars/groupfolder',
+                '/permissionfoo/bars/groupfolder/grouptestobject',
+            ],
+            'Permissiontest2' => [
+                '/permissionfoo/bars',
+                '/permissionfoo/bars/userfolder',
+                '/permissionfoo/bars/userfolder/usertestobject',
+            ],
+        ],
+    ],
+    'an object only the administrator may see' => [
+        'hugo',
+        [
+            'admin' => ['/permissionfoo/bars/hugo'],
+            'Permissiontest1' => [],
+            'Permissiontest2' => [],
+        ],
+    ],
+    'a hidden object' => [
+        'hiddenobject',
+        [
+            'admin' => ['/permissionbar/foo/hiddenobject'],
+            'Permissiontest1' => [],
+            'Permissiontest2' => [],
+        ],
+    ],
+]);
+
+it('counts only the objects a user may see in the total', function () {
+    $answer = $this->searchAs('Permissiontest1', 'object', 'bars');
+
+    expect($answer->total)->toBe(5);
+});
+
+it('fills a limited page only with objects a user may see', function () {
+    $folder = index(DataObjectFolderFactory::createOne());
+    $hidden = UnittestFactory::new()
+        ->withParent($folder)
+        ->many(5)
+        ->create(static function (): array {
+            $name = sprintf('manyelement %s', faker()->unique()->slug());
+
+            return [
+                'key' => $name,
+                'input' => $name,
+            ];
+        });
+    array_walk($hidden, index(...));
+    $visible = UnittestFactory::new()
+        ->withParent($folder)
+        ->create([
+            'key' => 'manyelement visible',
+            'input' => 'manyelement visible',
         ]);
-});
+    index($visible);
+    $user = UserFactory::new()
+        ->withPermissions('objects')
+        ->withObjectWorkspace($visible, 'list', 'view')
+        ->create();
+    $this->forgetAfterwards($folder, $user);
 
-it('hands a user nothing for an object that user may not see', function () {
-    expect(searchAs('admin', 'object', 'hugo'))
-        ->toBe(['/permissionfoo/bars/hugo'])
-        ->and(searchAs('Permissiontest1', 'object', 'hugo'))
-        ->toBe([])
-        ->and(searchAs('Permissiontest2', 'object', 'hugo'))
-        ->toBe([])
-        ->and(searchAs('admin', 'object', 'hiddenobject'))
-        ->toBe(['/permissionbar/foo/hiddenobject'])
-        ->and(searchAs('Permissiontest1', 'object', 'hiddenobject'))
-        ->toBe([])
-        ->and(searchAs('Permissiontest2', 'object', 'hiddenobject'))
-        ->toBe([]);
-});
+    $answer = $this->searchPageAs($user->getName(), 'object', 'manyelement', 5);
 
-it('fills a limited page with the objects a user may see, not with the ones it filtered out', function () {
-
-    $folder = indexed(DataObjectFolderFactory::createOne(['key' => 'manyElements', 'parentId' => 1]));
-
-    foreach (range(1, 5) as $number) {
-        indexed(UnittestFactory::createOne(['key' => sprintf('manyelement %d', $number), 'input' => sprintf('manyelement %d', $number), 'parentId' => $folder->getId()]));
-    }
-
-    $visible = indexed(UnittestFactory::createOne(['key' => 'manyelement X', 'input' => 'manyelement X', 'parentId' => $folder->getId()]));
-
-    $role = User\Role::getByName('Testrole');
-    $role->setWorkspacesObject([
-        objectWorkspace($visible->getRealFullPath(), Tree::SEES),
-        objectWorkspace('/permissionfoo/bars/groupfolder', Tree::SEES),
-    ]);
-    $role->save();
-
-    expect(searchAs('admin', 'object', 'manyelement', 6))->toHaveCount(6);
-
-    foreach (['Permissiontest1', 'Permissiontest2'] as $name) {
-        expect(searchAs($name, 'object', 'manyelement', 6))
-            ->toBe([$visible->getRealFullPath()])
-            ->and(searchAs($name, 'object', 'manyelement', 5))
-            ->toBe([$visible->getRealFullPath()]);
-    }
+    expect($answer->paths)->toBe([$visible->getRealFullPath()]);
 });

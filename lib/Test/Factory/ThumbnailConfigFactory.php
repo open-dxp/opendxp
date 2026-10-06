@@ -20,10 +20,6 @@ use OpenDxp\Model\Asset\Image\Thumbnail\Config;
 
 /**
  * @extends AbstractSavingFactory<Config>
- *
- * @method Config create(array|callable $attributes = [])
- * @method static Config createOne(array $attributes = [])
- * @method static list<Config> createMany(int $number, array $attributes = [])
  */
 final class ThumbnailConfigFactory extends AbstractSavingFactory
 {
@@ -32,34 +28,68 @@ final class ThumbnailConfigFactory extends AbstractSavingFactory
         return Config::class;
     }
 
-    public function scalingByWidth(int $width, bool $forceResize = false): static
+    public function scalingByWidth(int $width): static
     {
-        return $this
-            ->with(['name' => sprintf('scale-by-width-%d-%s', $width, $forceResize ? 'forced' : 'free')])
-            ->transforming('scaleByWidth', ['width' => $width, 'forceResize' => $forceResize]);
+        return $this->transforming(
+            'scaleByWidth',
+            [
+                'width'       => $width,
+                'forceResize' => false,
+            ],
+        );
+    }
+
+    public function enlargingToWidth(int $width): static
+    {
+        return $this->transforming(
+            'scaleByWidth',
+            [
+                'width'       => $width,
+                'forceResize' => true,
+            ],
+        );
+    }
+
+    /**
+     * A cover thumbnail fills the whole box, so it enlarges an image that is too small.
+     */
+    public function covering(int $width, int $height): static
+    {
+        return $this->transforming(
+            'cover',
+            [
+                'width'       => $width,
+                'height'      => $height,
+                'positioning' => 'center',
+                'forceResize' => true,
+            ],
+        );
     }
 
     public function rotating(int $angle): static
     {
-        return $this
-            ->with(['name' => sprintf('rotate-%d', $angle)])
-            ->transforming('rotate', ['angle' => $angle]);
-    }
-
-    private function transforming(string $transformation, array $parameters): static
-    {
-        // The default priority puts this before AbstractSavingFactory's save.
-        return $this->afterInstantiate(
-            static function (Config $config) use ($transformation, $parameters): void {
-                $config->addItem($transformation, $parameters, 'default');
-            },
+        return $this->transforming(
+            'rotate',
+            ['angle' => $angle],
         );
     }
 
     protected function defaults(): array
     {
         return [
-            'name' => sprintf('thumbnail-%s', uniqid()),
+            'name' => self::faker()->unique()->slug(2),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    private function transforming(string $transformation, array $parameters): static
+    {
+        return $this->afterInstantiate(
+            static function (Config $config) use ($transformation, $parameters): void {
+                $config->addItem($transformation, $parameters, 'default');
+            },
+        );
     }
 }

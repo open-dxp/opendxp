@@ -19,28 +19,35 @@ namespace OpenDxp\Tests\Feature\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-it('reads nothing out of an empty field the backend sent', function (string $type, mixed $sent) {
-
-    $object = UnittestFactory::createOne();
-
-    expect((new $type())->getDataFromEditmode($sent, $object))->toBeNull();
-})->with([
-    'a line of text' => [Data\Input::class],
-    'several lines of text' => [Data\Textarea::class],
-    'formatted text' => [Data\Wysiwyg::class],
-    'a password' => [Data\Password::class],
-])->with([
-    'left empty' => [''],
-    'left out' => [null],
+dataset('empty values', [
+    'left empty' => '',
+    'left out' => null,
 ]);
 
-it('reads nothing out of an empty quantity the backend sent', function (mixed $value) {
-
+it('reads nothing out of an empty field the backend sent', function (Data $definition, ?string $sent) {
     $object = UnittestFactory::createOne();
 
-    expect((new Data\InputQuantityValue())->getDataFromEditmode(['value' => $value, 'unit' => $value], $object))
-        ->toBeNull();
+    $value = $definition->getDataFromEditmode($sent, $object);
+
+    expect($value)->toBeNull();
 })->with([
-    'left empty' => [''],
-    'left out' => [null],
-]);
+    'a line of text' => fn () => new Data\Input(),
+    'several lines of text' => fn () => new Data\Textarea(),
+    'formatted text' => fn () => new Data\Wysiwyg(),
+    'a password' => fn () => new Data\Password(),
+])->with('empty values');
+
+it('reads nothing out of an empty quantity the backend sent', function (?string $sent) {
+    $object = UnittestFactory::createOne();
+    $definition = new Data\InputQuantityValue();
+
+    $value = $definition->getDataFromEditmode(
+        [
+            'value' => $sent,
+            'unit' => $sent,
+        ],
+        $object,
+    );
+
+    expect($value)->toBeNull();
+})->with('empty values');

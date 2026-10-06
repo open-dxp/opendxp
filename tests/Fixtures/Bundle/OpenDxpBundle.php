@@ -18,6 +18,6 @@ namespace OpenDxp\Tests\Fixtures\Bundle;
 
 use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 
-class OpenDxpBundle extends AbstractOpenDxpBundle
+final class OpenDxpBundle extends AbstractOpenDxpBundle
 {
 }

@@ -16,95 +16,157 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Cache;
 
-describe('clearing a tag', function () {
-    it('takes out every entry carrying it', function (callable $pool, string $tag, array $kept) {
+it('takes out every entry that carries the cleared tag', function (callable $pool, string $tag, array $kept) {
+    $this->useCachePool($pool);
+    $this->queueSampleEntries();
+    $this->handler->writeSaveQueue();
 
-        $this->useCachePool($pool);
-        $this->queueSampleEntries();
-        $this->handler->writeSaveQueue();
+    $this->handler->clearTag($tag);
 
-        $this->handler->clearTag($tag);
-
-        expect($this->keptEntries())->toBe($kept);
-    });
+    expect($this->keptEntries())->toBe($kept);
 })->with('cache pools')->with([
-    ['tag_a', ['B', 'C']],
-    ['tag_b', ['A', 'C']],
-    ['tag_c', ['A', 'B']],
-    ['tag_ab', ['C']],
-    ['tag_bc', ['A']],
-    ['tag_all', []],
+    'a tag of A alone' => [
+        'tag_a',
+        [
+            'B',
+            'C',
+        ],
+    ],
+    'a tag of B alone' => [
+        'tag_b',
+        [
+            'A',
+            'C',
+        ],
+    ],
+    'a tag of C alone' => [
+        'tag_c',
+        [
+            'A',
+            'B',
+        ],
+    ],
+    'a tag of A and B' => [
+        'tag_ab',
+        ['C'],
+    ],
+    'a tag of B and C' => [
+        'tag_bc',
+        ['A'],
+    ],
+    'a tag of every entry' => [
+        'tag_all',
+        [],
+    ],
 ]);
 
-describe('clearing several tags', function () {
-    it('takes out every entry carrying any of them', function (callable $pool, array $tags, array $kept) {
+it('takes out every entry that carries one of the cleared tags', function (callable $pool, array $tags, array $kept) {
+    $this->useCachePool($pool);
+    $this->queueSampleEntries();
+    $this->handler->writeSaveQueue();
 
-        $this->useCachePool($pool);
-        $this->queueSampleEntries();
-        $this->handler->writeSaveQueue();
+    $this->handler->clearTags($tags);
 
-        $this->handler->clearTags($tags);
-
-        expect($this->keptEntries())->toBe($kept);
-    });
+    expect($this->keptEntries())->toBe($kept);
 })->with('cache pools')->with([
-    [['tag_a', 'tag_b'], ['C']],
-    [['tag_a', 'tag_c'], ['B']],
-    [['tag_b', 'tag_c'], ['A']],
-    [['tag_ab', 'tag_bc'], []],
-    [['tag_a', 'tag_bc'], []],
-    [['tag_c', 'tag_ab'], []],
+    'the tags of A alone and of B alone' => [
+        [
+            'tag_a',
+            'tag_b',
+        ],
+        ['C'],
+    ],
+    'the tags of A alone and of C alone' => [
+        [
+            'tag_a',
+            'tag_c',
+        ],
+        ['B'],
+    ],
+    'the tags of B alone and of C alone' => [
+        [
+            'tag_b',
+            'tag_c',
+        ],
+        ['A'],
+    ],
+    'the tags of A and B and of B and C' => [
+        [
+            'tag_ab',
+            'tag_bc',
+        ],
+        [],
+    ],
+    'the tags of A alone and of B and C' => [
+        [
+            'tag_a',
+            'tag_bc',
+        ],
+        [],
+    ],
+    'the tags of C alone and of A and B' => [
+        [
+            'tag_c',
+            'tag_ab',
+        ],
+        [],
+    ],
 ]);
 
-describe('the lists a cleared tag lands on', function () {
-    it('names every tag that was cleared', function (callable $pool) {
+it('keeps a new entry under a cleared tag out of the cache', function (callable $pool) {
+    $this->useCachePool($pool);
+    $this->handler->setForceImmediateWrite(true);
+    $this->handler->clearTag('tag_a');
 
+    $saved = $this->handler->save('itemA', 'test', ['tag_a']);
+
+    expect($saved)
+        ->toBeFalse()
+        ->and($this->poolHasItem('itemA'))
+        ->toBeFalse();
+})->with('cache pools');
+
+it('keeps an entry under the output tag when the tag is cleared', function (callable $pool) {
+    $this->useCachePool($pool);
+    $this->handler->setForceImmediateWrite(true);
+    $this->handler->save('itemA', 'test', ['output']);
+
+    $this->handler->clearTag('output');
+
+    expect($this->poolHasItem('itemA'))->toBeTrue();
+})->with('cache pools');
+
+it('takes an entry under a cleared output tag out at the shutdown', function (callable $pool) {
+    $this->useCachePool($pool);
+    $this->handler->setForceImmediateWrite(true);
+    $this->handler->save('itemA', 'test', ['output']);
+    $this->handler->clearTag('output');
+
+    $this->handler->clearTagsOnShutdown();
+
+    expect($this->poolHasItem('itemA'))->toBeFalse();
+})->with('cache pools');
+
+describe('a tag held for the shutdown', function () {
+    it('takes its entries out when the held tags are cleared', function (callable $pool) {
         $this->useCachePool($pool);
-
-        expect($this->handlerProperty('clearedTags'))->toBeEmpty();
-
-        $this->handler->clearTags(['tag_a', 'tag_b', 'output']);
-
-        expect($this->handlerProperty('clearedTags'))->toBe(['tag_a' => true, 'tag_b' => true]);
-    });
-
-    it('holds an output tag back for the shutdown', function (callable $pool) {
-
-        $this->useCachePool($pool);
-
-        expect($this->handlerProperty('tagsClearedOnShutdown'))->toBeEmpty();
-
-        $this->handler->clearTags(['tag_a', 'tag_b', 'output']);
-
-        expect($this->handlerProperty('tagsClearedOnShutdown'))->toBe(['output']);
+        $this->handler->setForceImmediateWrite(true);
+        $this->handler->save('itemA', 'test', ['tag_a']);
+        $this->handler->addTagClearedOnShutdown('tag_a');
 
         $this->handler->clearTagsOnShutdown();
 
-        expect($this->handlerProperty('clearedTags'))
-            ->toBe(['tag_a' => true, 'tag_b' => true, 'output' => true]);
+        expect($this->poolHasItem('itemA'))->toBeFalse();
     });
 
-    it('is worked off when the shutdown clear is called', function (callable $pool) {
-
+    it('takes its entries out on shutdown', function (callable $pool) {
         $this->useCachePool($pool);
-        $this->handler->addTagClearedOnShutdown('foo');
-
-        expect($this->handlerProperty('tagsClearedOnShutdown'))->toBe(['foo']);
-
-        $this->handler->clearTagsOnShutdown();
-
-        expect($this->handlerProperty('clearedTags'))->toBe(['foo' => true]);
-    });
-
-    it('is worked off on shutdown', function (callable $pool) {
-
-        $this->useCachePool($pool);
-        $this->handler->addTagClearedOnShutdown('foo');
-
-        expect($this->handlerProperty('tagsClearedOnShutdown'))->toBe(['foo']);
+        $this->handler->setForceImmediateWrite(true);
+        $this->handler->save('itemA', 'test', ['tag_a']);
+        $this->handler->addTagClearedOnShutdown('tag_a');
 
         $this->handler->shutdown();
 
-        expect($this->handlerProperty('clearedTags'))->toBe(['foo' => true]);
+        expect($this->poolHasItem('itemA'))->toBeFalse();
     });
 })->with('cache pools');

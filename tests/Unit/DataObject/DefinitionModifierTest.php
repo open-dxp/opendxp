@@ -16,12 +16,13 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Unit\DataObject;
 
+use Closure;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Input;
 use OpenDxp\Model\DataObject\ClassDefinition\Layout;
 use OpenDxp\Model\DataObject\ClassDefinition\Layout\Panel;
 use OpenDxp\Model\DataObject\DefinitionModifier;
 
-function panel(string $name, array $children = []): Panel
+function panel(string $name, array $children): Panel
 {
     $panel = new Panel();
     $panel->setName($name);
@@ -38,40 +39,6 @@ function input(string $name): Input
     return $field;
 }
 
-/**
- * A layout of a panel that holds a field, another panel beside it, and a field after that. Every test
- * builds its own, because the modifier changes the tree it is handed.
- */
-function aLayout(): Panel
-{
-    return panel('root', [
-        input('before'),
-        panel('inner', [input('inside')]),
-        input('after'),
-    ]);
-}
-
-/**
- * Finds a name among the children of the layout, searching the panels below it as well. The modifier
- * works by name, so the tests read the result the same way.
- */
-function indexOf(Layout $layout, string $name): int
-{
-    foreach ($layout->getChildren() as $index => $child) {
-        if ($child->getName() === $name) {
-            return $index;
-        }
-    }
-
-    foreach ($layout->getChildren() as $child) {
-        if ($child instanceof Layout && ($found = indexOf($child, $name)) >= 0) {
-            return $found;
-        }
-    }
-
-    return -1;
-}
-
 function childNames(Layout $layout): array
 {
     return array_map(static fn ($child) => $child->getName(), $layout->getChildren());
@@ -79,62 +46,180 @@ function childNames(Layout $layout): array
 
 beforeEach(function () {
     $this->modifier = new DefinitionModifier();
-    $this->layout = aLayout();
+    $this->inner = panel('inner', [input('inside')]);
+    $this->layout = panel('root', [
+        input('before'),
+        $this->inner,
+        input('after'),
+    ]);
 });
 
-it('puts a field after the one it was told to append to', function () {
+it('puts fields after the one it appends to', function () {
+    $modified = $this->modifier->appendFields(
+        $this->layout,
+        'inner',
+        [
+            input('first'),
+            input('second'),
+        ],
+    );
 
-    expect($this->modifier->appendFields($this->layout, 'inner', [input('first'), input('second')]))->toBeTrue();
-
-    expect(childNames($this->layout))->toBe(['before', 'inner', 'first', 'second', 'after']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->layout))
+        ->toBe([
+            'before',
+            'inner',
+            'first',
+            'second',
+            'after',
+        ]);
 });
 
-it('puts a field before the one it was told to prepend to', function () {
+it('puts fields before the one it prepends to', function () {
+    $modified = $this->modifier->prependFields(
+        $this->layout,
+        'inner',
+        [
+            input('first'),
+            input('second'),
+        ],
+    );
 
-    expect($this->modifier->prependFields($this->layout, 'inner', [input('first'), input('second')]))->toBeTrue();
-
-    expect(childNames($this->layout))->toBe(['before', 'first', 'second', 'inner', 'after']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->layout))
+        ->toBe([
+            'before',
+            'first',
+            'second',
+            'inner',
+            'after',
+        ]);
 });
 
-it('puts a field where the one it replaced sat', function () {
+it('puts fields where the one it replaces was', function () {
+    $modified = $this->modifier->replaceField(
+        $this->layout,
+        'inner',
+        [input('instead')],
+    );
 
-    expect($this->modifier->replaceField($this->layout, 'inner', [input('instead')]))->toBeTrue();
-
-    expect(childNames($this->layout))->toBe(['before', 'instead', 'after']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->layout))
+        ->toBe([
+            'before',
+            'instead',
+            'after',
+        ]);
 });
 
-it('takes a field out', function () {
+it('removes a field', function () {
+    $modified = $this->modifier->removeField($this->layout, 'inner');
 
-    expect($this->modifier->removeField($this->layout, 'inner'))->toBeTrue();
-
-    expect(childNames($this->layout))->toBe(['before', 'after']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->layout))
+        ->toBe([
+            'before',
+            'after',
+        ]);
 });
 
-it('puts a field at the front of the panel it names', function () {
+it('puts fields at the front of the panel it names', function () {
+    $modified = $this->modifier->insertFieldsFront(
+        $this->layout,
+        'inner',
+        [
+            input('first'),
+            input('second'),
+        ],
+    );
 
-    expect($this->modifier->insertFieldsFront($this->layout, 'inner', [input('first'), input('second')]))->toBeTrue();
-
-    expect(childNames($this->layout->getChildren()[1]))->toBe(['first', 'second', 'inside']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->inner))
+        ->toBe([
+            'first',
+            'second',
+            'inside',
+        ]);
 });
 
-it('puts a field at the back of the panel it names', function () {
+it('puts fields at the back of the panel it names', function () {
+    $modified = $this->modifier->insertFieldsBack(
+        $this->layout,
+        'inner',
+        [
+            input('first'),
+            input('second'),
+        ],
+    );
 
-    expect($this->modifier->insertFieldsBack($this->layout, 'inner', [input('first'), input('second')]))->toBeTrue();
-
-    expect(childNames($this->layout->getChildren()[1]))->toBe(['inside', 'first', 'second']);
+    expect($modified)
+        ->toBeTrue()
+        ->and(childNames($this->inner))
+        ->toBe([
+            'inside',
+            'first',
+            'second',
+        ]);
 });
 
-it('refuses to insert into a field, because only a panel holds children', function (string $operation) {
+it('inserts nothing into a field', function (Closure $insert) {
+    $modified = $insert($this->modifier, $this->layout);
 
-    expect($this->modifier->{$operation}($this->layout, 'before', [input('first')]))->toBeFalse();
-})->with(['insertFieldsFront', 'insertFieldsBack']);
+    expect($modified)->toBeFalse();
+})->with([
+    'at the front' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->insertFieldsFront(
+        $layout,
+        'before',
+        [input('first')],
+    ),
+    'at the back' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->insertFieldsBack(
+        $layout,
+        'before',
+        [input('first')],
+    ),
+]);
 
-it('changes nothing for a name the layout does not hold', function (string $operation) {
+it('changes nothing for a name the layout does not hold', function (Closure $modify) {
+    $modified = $modify($this->modifier, $this->layout);
 
-    expect($this->modifier->{$operation}($this->layout, 'nowhere', [input('first')]))
+    expect($modified)
         ->toBeFalse()
         ->and(childNames($this->layout))
-        ->toBe(['before', 'inner', 'after']);
+        ->toBe([
+            'before',
+            'inner',
+            'after',
+        ]);
 })->with([
-    'appendFields', 'prependFields', 'replaceField', 'removeField', 'insertFieldsFront', 'insertFieldsBack',
+    'appending' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->appendFields(
+        $layout,
+        'nowhere',
+        [input('first')],
+    ),
+    'prepending' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->prependFields(
+        $layout,
+        'nowhere',
+        [input('first')],
+    ),
+    'replacing' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->replaceField(
+        $layout,
+        'nowhere',
+        [input('first')],
+    ),
+    'removing' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->removeField($layout, 'nowhere'),
+    'inserting at the front' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->insertFieldsFront(
+        $layout,
+        'nowhere',
+        [input('first')],
+    ),
+    'inserting at the back' => fn (DefinitionModifier $modifier, Layout $layout) => $modifier->insertFieldsBack(
+        $layout,
+        'nowhere',
+        [input('first')],
+    ),
 ]);

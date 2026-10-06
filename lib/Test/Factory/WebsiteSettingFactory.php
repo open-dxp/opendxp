@@ -16,14 +16,11 @@ declare(strict_types=1);
 
 namespace OpenDxp\Test\Factory;
 
+use OpenDxp\Model\Site;
 use OpenDxp\Model\WebsiteSetting;
 
 /**
  * @extends AbstractSavingFactory<WebsiteSetting>
- *
- * @method WebsiteSetting create(array|callable $attributes = [])
- * @method static WebsiteSetting createOne(array $attributes = [])
- * @method static list<WebsiteSetting> createMany(int $number, array $attributes = [])
  */
 final class WebsiteSettingFactory extends AbstractSavingFactory
 {
@@ -32,10 +29,20 @@ final class WebsiteSettingFactory extends AbstractSavingFactory
         return WebsiteSetting::class;
     }
 
+    public function forSite(Site $site): static
+    {
+        return $this->with(['siteId' => $site->getId()]);
+    }
+
+    public function inLanguage(string $language): static
+    {
+        return $this->with(['language' => $language]);
+    }
+
     protected function defaults(): array
     {
         return [
-            'name' => sprintf('setting-%s', uniqid()),
+            'name' => self::faker()->unique()->slug(2),
             'type' => 'text',
         ];
     }

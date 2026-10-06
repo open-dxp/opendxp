@@ -22,109 +22,96 @@ use UnderflowException;
 
 beforeEach(fn () => $this->state = new BlockState());
 
-describe('blocks', function () {
-
-    it('holds none to begin with', function () {
-        expect($this->state->hasBlocks())
-            ->toBeFalse()
-            ->and($this->state->getBlocks())
-            ->toBeEmpty();
-    });
-
-    it('comes back in the order it was pushed', function () {
-
-        $names = [new BlockName('A', 'realA'), new BlockName('B', 'realB')];
-
-        $this->state->pushBlock($names[0]);
-        $this->state->pushBlock($names[1]);
-
-        expect($this->state->hasBlocks())
-            ->toBeTrue()
-            ->and($this->state->getBlocks())
-            ->toEqual($names);
-    });
-
-    it('loses the one pushed last when it is popped', function () {
-
-        $first = new BlockName('A', 'realA');
-        $this->state->pushBlock($first);
-        $this->state->pushBlock(new BlockName('B', 'realB'));
-
-        $this->state->popBlock();
-
-        expect($this->state->getBlocks())->toEqual([$first]);
-
-        $this->state->popBlock();
-
-        expect($this->state->hasBlocks())->toBeFalse();
-    });
-
-    it('refuses to pop when it holds none', function () {
-        $this->state->popBlock();
-    })->throws(UnderflowException::class);
-
-    it('loses all of them at once when they are cleared', function () {
-
-        $this->state->pushBlock(new BlockName('A', 'realA'));
-        $this->state->pushBlock(new BlockName('B', 'realB'));
-
-        $this->state->clearBlocks();
-
-        expect($this->state->hasBlocks())
-            ->toBeFalse()
-            ->and($this->state->getBlocks())
-            ->toBeEmpty();
-    });
+it('holds no blocks at first', function () {
+    expect($this->state->hasBlocks())
+        ->toBeFalse()
+        ->and($this->state->getBlocks())
+        ->toBeEmpty();
 });
 
-describe('indexes', function () {
+it('returns its blocks in the order they were pushed', function () {
+    $first = new BlockName('A', 'realA');
+    $second = new BlockName('B', 'realB');
 
-    it('holds none to begin with', function () {
-        expect($this->state->hasIndexes())
-            ->toBeFalse()
-            ->and($this->state->getIndexes())
-            ->toBeEmpty();
-    });
+    $this->state->pushBlock($first);
+    $this->state->pushBlock($second);
 
-    it('comes back in the order it was pushed', function () {
+    expect($this->state->hasBlocks())
+        ->toBeTrue()
+        ->and($this->state->getBlocks())
+        ->toBe([
+            $first,
+            $second,
+        ]);
+});
 
-        $this->state->pushIndex(1);
-        $this->state->pushIndex(2);
+it('removes the block pushed last when it pops a block', function () {
+    $first = new BlockName('A', 'realA');
+    $this->state->pushBlock($first);
+    $this->state->pushBlock(new BlockName('B', 'realB'));
 
-        expect($this->state->hasIndexes())
-            ->toBeTrue()
-            ->and($this->state->getIndexes())
-            ->toBe([1, 2]);
-    });
+    $this->state->popBlock();
 
-    it('loses the one pushed last when it is popped', function () {
+    expect($this->state->getBlocks())->toBe([$first]);
+});
 
-        $this->state->pushIndex(1);
-        $this->state->pushIndex(2);
+it('refuses to pop a block while it holds none', function () {
+    $this->state->popBlock();
+})->throws(UnderflowException::class, 'There are no blocks to pop from as blocks list is empty');
 
-        $this->state->popIndex();
+it('removes every block when its blocks are cleared', function () {
+    $this->state->pushBlock(new BlockName('A', 'realA'));
+    $this->state->pushBlock(new BlockName('B', 'realB'));
 
-        expect($this->state->getIndexes())->toBe([1]);
+    $this->state->clearBlocks();
 
-        $this->state->popIndex();
+    expect($this->state->hasBlocks())
+        ->toBeFalse()
+        ->and($this->state->getBlocks())
+        ->toBeEmpty();
+});
 
-        expect($this->state->hasIndexes())->toBeFalse();
-    });
+it('holds no indexes at first', function () {
+    expect($this->state->hasIndexes())
+        ->toBeFalse()
+        ->and($this->state->getIndexes())
+        ->toBeEmpty();
+});
 
-    it('refuses to pop when it holds none', function () {
-        $this->state->popIndex();
-    })->throws(UnderflowException::class);
+it('returns its indexes in the order they were pushed', function () {
+    $this->state->pushIndex(1);
+    $this->state->pushIndex(2);
 
-    it('loses all of them at once when they are cleared', function () {
+    expect($this->state->hasIndexes())
+        ->toBeTrue()
+        ->and($this->state->getIndexes())
+        ->toBe([
+            1,
+            2,
+        ]);
+});
 
-        $this->state->pushIndex(1);
-        $this->state->pushIndex(2);
+it('removes the index pushed last when it pops an index', function () {
+    $this->state->pushIndex(1);
+    $this->state->pushIndex(2);
 
-        $this->state->clearIndexes();
+    $this->state->popIndex();
 
-        expect($this->state->hasIndexes())
-            ->toBeFalse()
-            ->and($this->state->getIndexes())
-            ->toBeEmpty();
-    });
+    expect($this->state->getIndexes())->toBe([1]);
+});
+
+it('refuses to pop an index while it holds none', function () {
+    $this->state->popIndex();
+})->throws(UnderflowException::class, 'There are no indexes to pop from as index list is empty');
+
+it('removes every index when its indexes are cleared', function () {
+    $this->state->pushIndex(1);
+    $this->state->pushIndex(2);
+
+    $this->state->clearIndexes();
+
+    expect($this->state->hasIndexes())
+        ->toBeFalse()
+        ->and($this->state->getIndexes())
+        ->toBeEmpty();
 });

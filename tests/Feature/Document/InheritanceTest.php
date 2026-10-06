@@ -18,62 +18,42 @@ namespace OpenDxp\Tests\Feature\Document;
 
 use Exception;
 use OpenDxp\Model\Document\Editable\Input;
-use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 
-function pageWithHeadline(string $headline): Page
-{
-    $editable = new Input();
-    $editable->setName('headline');
-    $editable->setDataFromResource($headline);
-
-    $page = DocumentPageFactory::createOne();
-    $page->setEditable($editable);
-    $page->save();
-
-    return $page;
-}
-
-it('hands back the editable it was saved with', function () {
-
-    $page = pageWithHeadline('test');
-
-    expect(Page::getById($page->getId(), ['force' => true])->getEditable('headline')->getValue())->toBe('test');
+beforeEach(function () {
+    $this->main = DocumentPageFactory::new()
+        ->withEditables(['headline' => (new Input())->setDataFromResource('test')])
+        ->create();
 });
 
-it('carries no editable of a page it is not bound to', function () {
+it('inherits no editable from its parent alone', function () {
+    $child = DocumentPageFactory::new()
+        ->withParent($this->main)
+        ->create();
 
-    pageWithHeadline('test');
+    $headline = reloaded($child)->getEditable('headline');
 
-    expect(DocumentPageFactory::createOne()->getEditable('headline'))->toBeNull();
+    expect($headline)->toBeNull();
 });
 
-it('still carries no editable once it only became a child', function () {
+it('takes the editables of its content main document', function () {
+    $page = DocumentPageFactory::new()
+        ->withContentMainDocument($this->main)
+        ->create();
 
-    $main = pageWithHeadline('test');
-    $child = DocumentPageFactory::createOne(['parentId' => $main->getId()]);
+    $headline = reloaded($page)->getEditable('headline');
 
-    expect(Page::getById($child->getId(), ['force' => true])->getEditable('headline'))->toBeNull();
+    expect($headline->getValue())->toBe('test');
 });
 
-it('takes the editable over once it names a main document', function () {
+it('refuses a content main document that already points back at it', function () {
+    $follower = DocumentPageFactory::new()
+        ->withContentMainDocument($this->main)
+        ->create();
 
-    $main = pageWithHeadline('test');
-    $child = DocumentPageFactory::createOne(['parentId' => $main->getId()]);
-
-    $child->setContentMainDocumentId($main->getId(), true);
-    $child->save();
-
-    expect(Page::getById($child->getId(), ['force' => true])->getEditable('headline')->getValue())->toBe('test');
+    expect(fn () => $this->main->setContentMainDocumentId($follower->getId(), validate: true))
+        ->toThrow(
+            Exception::class,
+            'This document is already part of the main document chain, please choose a different one.',
+        );
 });
-
-it('refuses a main document that already points back at it', function () {
-
-    $first = DocumentPageFactory::createOne();
-    $second = DocumentPageFactory::createOne();
-
-    $first->setContentMainDocumentId($second->getId(), true);
-    $first->save();
-
-    $second->setContentMainDocumentId($first->getId(), true);
-})->throws(Exception::class, 'This document is already part of the main document chain, please choose a different one.');
