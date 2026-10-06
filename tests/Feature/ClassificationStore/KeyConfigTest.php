@@ -51,3 +51,19 @@ it('refuses to save a key whose definition names an invalid field', function (st
     'a name that starts with a digit' => ['2nd_color'],
     'a name longer than 63 characters' => [str_repeat('a', 64)],
 ]);
+
+it('refuses to save a key with an invalid name, also when its definition names a valid field', function () {
+    $key = storeKey('input');
+    $key->setName('color-code');
+
+    expect(fn () => $key->save())->toThrow(InvalidArgumentException::class, 'Invalid field name "color-code"');
+});
+
+it('names the field of a key after the key', function () {
+    $key = storeKey('input');
+    $key->setName('color_code');
+
+    $key->save();
+
+    expect(json_decode($key->getDefinition(), true)['name'])->toBe('color_code');
+});
