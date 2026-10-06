@@ -25,6 +25,8 @@
 - Bugfix: A long-running process, such as a Messenger worker, caches items with a tag again after an earlier request cleared that tag. Before, `CoreCacheHandler::reset()` kept the cleared tags, and the process refused to cache them until it restarted.
 - Bugfix: The `Cache` facade uses the cache handler of the current kernel. After a kernel reboot in the same process, it kept talking to the handler of the old kernel.
 - Chore: The console no longer calls the deprecated `Application::add()` of Symfony 7.4.
+- Bugfix: Removing the focal point of an image clears its thumbnails.
+- Bugfix: A cover thumbnail respects a focal point on the left edge of an image.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
