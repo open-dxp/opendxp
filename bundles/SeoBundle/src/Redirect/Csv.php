@@ -19,7 +19,7 @@ namespace OpenDxp\Bundle\SeoBundle\Redirect;
 
 use DateTime;
 use InvalidArgumentException;
-use League\Csv\EncloseField;
+use League\Csv\Bom;
 use League\Csv\Reader;
 use League\Csv\Statement;
 use League\Csv\Writer;
@@ -81,12 +81,12 @@ class Csv
      */
     public function createExportWriter(Redirect\Listing $list): Writer
     {
-        $writer = Writer::createFromPath('php://temp');
+        $writer = Writer::from('php://temp');
         $writer->setDelimiter(';');
-        $writer->setOutputBOM(Writer::BOM_UTF8);
+        $writer->setOutputBOM(Bom::Utf8);
 
         // force "" enclosure as it allows us to just open the file in excel
-        EncloseField::addTo($writer, "\t\x1f");
+        $writer->forceEnclosure();
 
         $writer->insertOne([...$this->columns, ...array_keys($this->optionalColumns)]);
 
@@ -155,8 +155,8 @@ class Csv
 
         $dialect = Admin::determineCsvDialect($filename);
 
-        $reader = Reader::createFromString($content);
-        $reader->setOutputBOM(Reader::BOM_UTF8);
+        $reader = Reader::fromString($content);
+        $reader->setOutputBOM(Bom::Utf8);
         $reader->setDelimiter($dialect->delimiter);
         $reader->setHeaderOffset(0);
 

@@ -27,6 +27,7 @@
 - Chore: The console no longer calls the deprecated `Application::add()` of Symfony 7.4.
 - Bugfix: Removing the focal point of an image clears its thumbnails.
 - Bugfix: A cover thumbnail respects a focal point on the left edge of an image.
+- Chore: Require `league/csv` ^9.27
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
