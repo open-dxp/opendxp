@@ -478,6 +478,8 @@ Working example of a WebP encode delegate (defined in `/etc/ImageMagick-6/delega
 
 Besides embedding thumbnails into CMS pages and distributing them via other channels, backend users can download a thumbnail of an asset.
 In order to make a thumbnail downloadable, mark "List as option in download section on image detail view" option in Image Thumbnail Advanced settings. All thumbnails with this option enabled are listed in the "Download Thumbnail" dropdown on the detail view of an Asset. To download the thumbnail of the asset choose the thumbnail from the list and hit the "Download" button.
+The same thumbnails are offered by "Download as ZIP" > "Thumbnails" on a folder, which downloads the thumbnails of its
+images, or of the selected ones, as one ZIP file.
 
 ## Customize Auto (Web-Optimized) Format
 
