@@ -113,7 +113,7 @@ class IncludeRenderer
         }
 
         // write contents to the cache, if output-cache is enabled & not in editmode
-        if ($cacheConfig && !$editmode && !DeviceDetector::getInstance()->wasUsed()) {
+        if ($cacheConfig && !DeviceDetector::getInstance()->wasUsed()) {
             $cacheTags = ['output_inline'];
             $cacheTags[] = $cacheConfig['lifetime'] ? 'output_lifetime' : 'output';
             Cache::save($content, $cacheKey, $cacheTags, $cacheConfig['lifetime']);

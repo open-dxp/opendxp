@@ -175,18 +175,6 @@ parameters:
 			path: bundles/SeoBundle/src/Model/Redirect/Listing/Dao.php
 
 		-
-			message: '#^Method OpenDxp\\Bundle\\SimpleBackendSearchBundle\\MessageHandler\\SearchBackendHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/MessageHandler/SearchBackendHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Bundle\\SimpleBackendSearchBundle\\MessageHandler\\SearchBackendHandler\:\:shouldFlush\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: bundles/SimpleBackendSearchBundle/src/MessageHandler/SearchBackendHandler.php
-
-		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
 			identifier: ergebnis.declareStrictTypes
 			count: 1
@@ -365,48 +353,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: lib/Kernel.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\AssetPreviewImageHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/AssetPreviewImageHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\AssetPreviewImageHandler\:\:shouldFlush\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/AssetPreviewImageHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\CleanupThumbnailsHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/CleanupThumbnailsHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\OptimizeImageHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/OptimizeImageHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\OptimizeImageHandler\:\:shouldFlush\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/OptimizeImageHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\SanityCheckHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/SanityCheckHandler.php
-
-		-
-			message: '#^Method OpenDxp\\Messenger\\Handler\\VersionDeleteHandler\:\:process\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: lib/Messenger/Handler/VersionDeleteHandler.php
 
 		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
@@ -1167,12 +1113,6 @@ parameters:
 		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
 			identifier: ergebnis.declareStrictTypes
-			count: 1
-			path: models/Translation/Dao.php
-
-		-
-			message: '#^Variable \$user might not be defined\.$#'
-			identifier: variable.undefined
 			count: 1
 			path: models/Translation/Dao.php
 
