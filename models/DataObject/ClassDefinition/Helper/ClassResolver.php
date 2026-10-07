@@ -38,22 +38,29 @@ abstract class ClassResolver
 
         $return = null;
         if ($showError) {
-            $return = self::$cache[$class] ??= self::returnValidServiceOrNull(
-                str_starts_with($class, '@') ? OpenDxp::getContainer()->get(substr($class, 1)) : new $class,
-                $validationCallback
-            );
+            $return = self::resolveClass($class, $validationCallback);
         }
 
         try {
-            $return = self::$cache[$class] ??= self::returnValidServiceOrNull(
-                str_starts_with($class, '@') ? OpenDxp::getContainer()->get(substr($class, 1)) : new $class,
-                $validationCallback
-            );
+            $return = self::resolveClass($class, $validationCallback);
         } catch (Error $e) {
             Logger::error($e->getMessage());
         }
 
         return $return;
+    }
+
+    /**
+     * The container shares its services itself. Kept here, a service would outlive a container that was built again,
+     * as it is for every test.
+     */
+    private static function resolveClass(string $class, ?callable $validationCallback): ?object
+    {
+        if (str_starts_with($class, '@')) {
+            return self::returnValidServiceOrNull(OpenDxp::getContainer()->get(substr($class, 1)), $validationCallback);
+        }
+
+        return self::$cache[$class] ??= self::returnValidServiceOrNull(new $class, $validationCallback);
     }
 
     private static function returnValidServiceOrNull(object $service, ?callable $validationCallback = null): ?object
