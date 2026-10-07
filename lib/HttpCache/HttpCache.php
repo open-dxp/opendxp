@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace OpenDxp\HttpCache;
 
 use FOS\HttpCacheBundle\CacheManager;
+use OpenDxp\Event\HttpCache\HttpCacheInvalidateEvent;
 use OpenDxp\Event\HttpCache\HttpCacheTagGuardEvent;
 use OpenDxp\Event\HttpCacheEvents;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -78,6 +79,7 @@ class HttpCache
             return;
         }
 
+        $this->dispatcher->dispatch(new HttpCacheInvalidateEvent($tags, $element), HttpCacheEvents::INVALIDATE);
         $this->cacheManager?->invalidateTags(array_map(strval(...), $tags));
     }
 }

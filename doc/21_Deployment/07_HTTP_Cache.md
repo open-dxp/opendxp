@@ -367,6 +367,34 @@ $document->save([HttpCacheArguments::SKIP_INVALIDATION => true]);
 
 ***
 
+## Reacting to an invalidation
+
+Every change that `HttpCache::invalidate()` handles dispatches `HttpCacheEvents::INVALIDATE` with the tags of the change.
+A listener can pass them on to a cache that FOSHttpCacheBundle does not know, for example the cache of a headless
+frontend. The event fires with or without a configured proxy client.
+
+```php
+use OpenDxp\Event\HttpCache\HttpCacheInvalidateEvent;
+use OpenDxp\Event\HttpCacheEvents;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(event: HttpCacheEvents::INVALIDATE)]
+class FrontendCachePurger
+{
+    public function __invoke(HttpCacheInvalidateEvent $event): void
+    {
+        $tags = array_map(strval(...), $event->getTags());
+
+        // send $tags to the frontend
+    }
+}
+```
+
+Invalidations that FOSHttpCacheBundle starts on its own, like `#[InvalidateTag]` on a controller, do not pass through
+this event.
+
+***
+
 ## Filtering tag collection
 
 Subscribe to `HttpCacheEvents::TAG_GUARD` to conditionally prevent tags from being tracked for specific elements. 

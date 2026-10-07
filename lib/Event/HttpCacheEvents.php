@@ -25,4 +25,11 @@ final class HttpCacheEvents
      * @Event("OpenDxp\Event\HttpCache\HttpCacheTagGuardEvent")
      */
     public const string TAG_GUARD = 'opendxp.httpCache.tagGuard';
+
+    /**
+     * Fired in HttpCache::invalidate() with the tags a change invalidates, also without a proxy client.
+     *
+     * @Event("OpenDxp\Event\HttpCache\HttpCacheInvalidateEvent")
+     */
+    public const string INVALIDATE = 'opendxp.httpCache.invalidate';
 }
