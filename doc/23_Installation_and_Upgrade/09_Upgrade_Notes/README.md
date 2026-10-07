@@ -39,6 +39,7 @@
 - Bugfix: A mail placeholder that breaks the sandbox policy names what is not allowed.
 - Bugfix: Saving a classification store key checks its definition. A key whose definition names an invalid field is not saved.
 - Bugfix: Saving a classification store key writes the name of the key into its definition, so the key name follows the rule for field names too.
+- Bugfix: A messenger worker sends the HTTP cache invalidations after each message, so a page that a scheduled task publishes reaches the proxy right away.
 - Bugfix: A Twig placeholder in a link of the WYSIWYG editor keeps its spaces, for example `mailto:{{ email }}`. A link that already holds `{{%20email%20}}` is repaired the next time its editor is saved.
 
 ## OpenDXP 1.4.3

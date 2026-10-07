@@ -83,6 +83,8 @@ The reverse proxy stores this header alongside the cached response and strips it
 
 When a Document, DataObject, Asset, Translation or WebsiteSetting is saved or deleted, `ElementChangeListener` calls `HttpCache::invalidate()` directly. FOSHttpCacheBundle's `InvalidationListener` flushes all queued invalidation requests to the proxy after the response is sent (`kernel.terminate`).
 
+A messenger worker sends the invalidations after each message it handles. A page that a scheduled task publishes, or data that an import saves in a worker, reaches the proxy right away and not only when the worker stops.
+
 ```
 Save Document 42
   → ElementChangeListener::onDocumentChange()
