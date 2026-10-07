@@ -11,6 +11,9 @@ services:
     test.calculatorservice:
         class: OpenDxp\Tests\Application\Service\Calculator
 
+    OpenDxp\Tests\Application\Service\FixedOptionsProvider:
+        public: true
+
     # The proxy lets a test swap the version storage adapter at runtime.
     OpenDxp\Model\Version\Adapter\ProxyVersionStorageAdapter:
         autowire: true
