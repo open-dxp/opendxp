@@ -8,6 +8,10 @@ services:
     OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\ElementChangeListener: ~
     OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\WebsiteSettingLoadListener: ~
 
+    OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\WorkerFlushListener:
+        arguments:
+            $cacheManager: '@?FOS\HttpCacheBundle\CacheManager'
+
     OpenDxp\HttpCache\HttpCacheScope:
         tags:
             - { name: kernel.reset, method: reset }
