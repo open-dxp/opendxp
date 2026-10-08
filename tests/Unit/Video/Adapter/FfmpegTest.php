@@ -17,15 +17,11 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\Video\Adapter;
 
 use Closure;
+use OpenDxp\Tests\Application\Video\MockFfmpeg;
 use OpenDxp\Video\Adapter\Ffmpeg;
 
 it('builds the scale filter ffmpeg is called with', function (Closure $scale, string $filter) {
-    $ffmpeg = new class() extends Ffmpeg {
-        public function videoFilter(): array
-        {
-            return $this->videoFilter;
-        }
-    };
+    $ffmpeg = new MockFfmpeg();
 
     $scale($ffmpeg);
 
