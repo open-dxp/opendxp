@@ -22,6 +22,7 @@ use OpenDxp\Bundle\SeoBundle\Event\RedirectEvents;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Helper\StringHelper;
+use OpenDxp\Http\Request\Host\GeneralHostProviderInterface;
 use OpenDxp\Http\Request\Host\GeneralHostResolver;
 use OpenDxp\Http\Request\Resolver\SiteResolver;
 use OpenDxp\Http\RequestHelper;
@@ -211,7 +212,7 @@ final class RedirectHandler
                 }
             } else {
                 $site = Site::getByDomain($request->getHost());
-                $redirectDomain = $site instanceof Site ? $request->getHost() : $this->generalHostResolver->resolve(['source' => $request]);
+                $redirectDomain = $site instanceof Site ? $request->getHost() : $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
 
                 if ($redirectDomain) {
                     // prepend the host and scheme to avoid infinite loops when using "domain" redirects

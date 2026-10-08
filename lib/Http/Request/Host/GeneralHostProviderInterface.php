@@ -15,18 +15,13 @@ declare(strict_types=1);
 
 namespace OpenDxp\Http\Request\Host;
 
-/**
- * Implement this interface and tag the service with `opendxp.general_host_provider`
- * to participate in general host resolution.
- *
- * Providers are tried in descending priority order. The first non-null return value wins.
- * If no provider returns a value, the static `opendxp.general.domain` config is used as fallback.
- *
- * The optional $context array may carry arbitrary caller-supplied information, e.g.:
- *   ['source' => $request]
- */
 interface GeneralHostProviderInterface
 {
+    public const string CONTEXT_SOURCE = 'source';
+    public const string CONTEXT_CHANNEL = 'channel';
+
+    public const string CHANNEL_ADMIN = 'admin';
+
     /**
      * @param array<string, mixed> $context
      */

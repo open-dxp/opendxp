@@ -53,8 +53,28 @@ using the following priority order:
 `resolve()` passes an optional `$context` array.
 
 ```php
-$host = $this->generalHostResolver->resolve(['source' => $request]);
+use OpenDxp\Http\Request\Host\GeneralHostProviderInterface;
+
+$host = $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
 ```
+
+| Key       | Constant                                        | Value                                                                                 |
+|-----------|-------------------------------------------------|---------------------------------------------------------------------------------------|
+| `source`  | `GeneralHostProviderInterface::CONTEXT_SOURCE`  | The current `Request`, if there is one                                                |
+| `channel` | `GeneralHostProviderInterface::CONTEXT_CHANNEL` | `GeneralHostProviderInterface::CHANNEL_ADMIN` when the host is meant for the admin UI |
+
+The admin channel is passed by the admin login links (lost password, invitation, token login) and by the redirect to the
+main domain in the admin context:
+
+```php
+$host = $this->generalHostResolver->resolve([
+    GeneralHostProviderInterface::CONTEXT_SOURCE => $request,
+    GeneralHostProviderInterface::CONTEXT_CHANNEL => GeneralHostProviderInterface::CHANNEL_ADMIN,
+]);
+```
+
+A provider that returns a host the admin UI is not served on, such as the domain of a decoupled frontend, returns `null`
+for the admin channel. The resolution then goes on with the next provider and finally with `opendxp.general.domain`.
 
 ## Implementing a Custom Provider
 
