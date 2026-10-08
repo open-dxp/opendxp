@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Document\Editable;
-use OpenDxp\Model\Document\Editable\Areablock;
 use OpenDxp\Model\Document\PageSnippet;
+use OpenDxp\Test\Document\Areablocks;
 use OpenDxp\Test\Document\Brick;
 
 /**
@@ -60,30 +60,7 @@ abstract class AbstractPageSnippetFactory extends AbstractDocumentFactory
 
     public function withBricks(string $areablock, Brick ...$bricks): static
     {
-        $indices = [];
-        $editables = [];
-
-        foreach (array_values($bricks) as $position => $brick) {
-            $key = (string) ($position + 1);
-            $indices[] = [
-                'key' => $key,
-                'type' => $brick->id(),
-                'hidden' => false,
-            ];
-
-            foreach ($brick->editables() as $name => $editable) {
-                $nameInAreablock = sprintf('%s:%s.%s', $areablock, $key, $name);
-                $editables[$nameInAreablock] = $editable;
-            }
-        }
-
-        $block = new Areablock();
-        $block->setDataFromEditmode($indices);
-
-        return $this->withEditables([
-            $areablock => $block,
-            ...$editables,
-        ]);
+        return $this->withEditables(Areablocks::filledWith($areablock, ...$bricks));
     }
 
     protected function defaults(): array
