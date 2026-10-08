@@ -1,7 +1,7 @@
 # Upgrade Notes
 
 ## OpenDXP 1.5.0
-- Feature: `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. `GeneralHostProviderInterface::CONTEXT_CHANNEL` and `GeneralHostProviderInterface::CHANNEL_ADMIN` tell a general host provider that the host is meant for the admin UI. The redirect to the main domain in the admin context passes them, and so do the admin login links of `open-dxp/admin-bundle` ^1.5. A provider that returns a frontend-only host returns `null` for the admin channel. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
+- Feature: `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
 - Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
 - Chore: Replace Codeception with Pest and `open-dxp/test-foundation`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.

@@ -151,9 +151,7 @@ class RoutingListener implements EventSubscriberInterface
         $hostRedirect = null;
 
         if ($adminContext) {
-            $hostRedirect = $this->resolveConfigDomainRedirectHost($request, [
-                GeneralHostProviderInterface::CONTEXT_CHANNEL => GeneralHostProviderInterface::CHANNEL_ADMIN,
-            ]);
+            $hostRedirect = $this->resolveConfigDomainRedirectHost($request);
         } elseif (Site::isSiteRequest()) {
             $site = Site::getCurrentSite();
             if ($site->getRedirectToMainDomain() && $site->getMainDomain() !== $request->getHost()) {
@@ -178,14 +176,11 @@ class RoutingListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param array<string, mixed> $context
-     */
-    private function resolveConfigDomainRedirectHost(Request $request, array $context = []): ?string
+    private function resolveConfigDomainRedirectHost(Request $request): ?string
     {
         $systemConfig = SystemSettingsConfig::get();
         if (isset($systemConfig['general']['redirect_to_maindomain']) && $systemConfig['general']['redirect_to_maindomain'] === true) {
-            $domain = $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request] + $context);
+            $domain = $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
             if ($domain !== null && $domain !== $request->getHost()) {
                 return $domain;
             }

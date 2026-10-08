@@ -18,9 +18,6 @@ namespace OpenDxp\Http\Request\Host;
 interface GeneralHostProviderInterface
 {
     public const string CONTEXT_SOURCE = 'source';
-    public const string CONTEXT_CHANNEL = 'channel';
-
-    public const string CHANNEL_ADMIN = 'admin';
 
     /**
      * @param array<string, mixed> $context
