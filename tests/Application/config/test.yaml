@@ -7,6 +7,10 @@ services:
         tags:
             - { name: opendxp.area.brick, id: greeting }
 
+    OpenDxp\Tests\Application\Areabrick\Box:
+        tags:
+            - { name: opendxp.area.brick, id: box }
+
     # The Unittest class definition names this id for its calculated value.
     test.calculatorservice:
         class: OpenDxp\Tests\Application\Service\Calculator

@@ -180,6 +180,22 @@ final readonly class GreetingBrick implements Brick
 A bundle that ships areabricks ships a brick class for each of them, in its namespace `Test\Brick`.
 A project that uses the bundle then builds its pages with the bricks of the bundle.
 
+The template of an areabrick can hold an areablock of its own, like a container that holds other bricks.
+`OpenDxp\Test\Document\Areablocks::filledWith()` returns the editables of such an areablock with the bricks in it.
+The brick adds them to its own editables:
+
+```php
+use OpenDxp\Test\Document\Areablocks;
+
+public function editables(): array
+{
+    return Areablocks::filledWith('inside', ...$this->bricks);
+}
+```
+
+OpenDXP then names the editables of the inner bricks like `content:1.inside:1.text`. `withBricks()` fills the
+outer areablock the same way.
+
 A page renders through the default controller of the test application unless you name another one:
 
 ```php

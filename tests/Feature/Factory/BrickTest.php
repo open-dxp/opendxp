@@ -21,6 +21,7 @@ use OpenDxp\Model\Document\Editable\Input;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\DocumentSnippetFactory;
 use OpenDxp\TestFoundation\Browser;
+use OpenDxp\Tests\Application\Brick\BoxBrick;
 use OpenDxp\Tests\Application\Brick\GreetingBrick;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -64,6 +65,45 @@ it('stores the bricks with the document', function () {
             ],
         ])
         ->and($stored->getEditable('content:1.text'))
+        ->getData()
+        ->toBe('Hello');
+});
+
+it('places bricks in an areablock inside a brick', function () {
+    $page = DocumentPageFactory::new()
+        ->withBricks(
+            'content',
+            BoxBrick::containing(
+                GreetingBrick::saying('Hello'),
+                GreetingBrick::saying('Goodbye'),
+            ),
+        )
+        ->create();
+
+    $greetings = Browser::visit($page->getFullPath())
+        ->crawler()
+        ->filter('section.box p.greeting')
+        ->each(static fn (Crawler $greeting): string => trim($greeting->text()));
+
+    expect($greetings)->toBe([
+        'Hello',
+        'Goodbye',
+    ]);
+});
+
+it('stores a brick inside a brick under the name OpenDXP gives it', function () {
+    $page = DocumentPageFactory::new()
+        ->withBricks(
+            'content',
+            BoxBrick::containing(GreetingBrick::saying('Hello')),
+        )
+        ->create();
+
+    $stored = reloaded($page);
+
+    expect($stored->getEditable('content:1.inside'))
+        ->toBeInstanceOf(Areablock::class)
+        ->and($stored->getEditable('content:1.inside:1.text'))
         ->getData()
         ->toBe('Hello');
 });
