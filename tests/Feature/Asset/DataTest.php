@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Asset;
 
 use OpenDxp\Test\Factory\AssetImageFactory;
+use OpenDxp\Tool\Storage;
 
 it('stores the data of an asset', function () {
     $data = file_get_contents(AssetImageFactory::fixture());
@@ -34,4 +35,18 @@ it('stores the data an asset is given later', function () {
     $image->save();
 
     expect(reloaded($image)->getData())->toBe($replacement);
+});
+
+it('renames the file when new data comes with another file extension', function () {
+    $image = AssetImageFactory::createOne(['filename' => 'harbour.jpg']);
+    $image->setData(file_get_contents(fixture('image.png')));
+    $image->setFilename('harbour.png');
+    $storage = Storage::get('asset');
+
+    $image->save();
+
+    expect($storage->fileExists($image->getRealFullPath()))
+        ->toBeTrue()
+        ->and($storage->fileExists(sprintf('%s/harbour.jpg', $image->getRealPath())))
+        ->toBeFalse();
 });

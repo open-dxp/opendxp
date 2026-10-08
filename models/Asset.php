@@ -526,11 +526,14 @@ class Asset extends Element\AbstractElement
                         // finally move the actual assets themselves
                         // We do this last so that any prior errors don't require a rollback
                         // on potentially a remote service.
-                        try {
-                            $storage->move($oldPath, $this->getRealFullPath());
-                        } catch (UnableToMoveFile) {
-                            //update children, if unable to move parent
-                            $this->updateChildPaths($storage, $oldPath);
+                        // update() has already written new data under the new name.
+                        if ($storage->fileExists($oldPath) || $storage->directoryExists($oldPath)) {
+                            try {
+                                $storage->move($oldPath, $this->getRealFullPath());
+                            } catch (UnableToMoveFile) {
+                                //update children, if unable to move parent
+                                $this->updateChildPaths($storage, $oldPath);
+                            }
                         }
                     }
 
