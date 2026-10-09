@@ -50,3 +50,16 @@ it('renames the file when new data comes with another file extension', function 
         ->and($storage->fileExists(sprintf('%s/harbour.jpg', $image->getRealPath())))
         ->toBeFalse();
 });
+
+it('moves the file when the asset gets another name', function () {
+    $image = AssetImageFactory::createOne(['filename' => 'harbour.jpg']);
+    $image->setFilename('port.jpg');
+    $storage = Storage::get('asset');
+
+    $image->save();
+
+    expect($storage->fileExists($image->getRealFullPath()))
+        ->toBeTrue()
+        ->and($storage->fileExists(sprintf('%s/harbour.jpg', $image->getRealPath())))
+        ->toBeFalse();
+});

@@ -526,8 +526,8 @@ class Asset extends Element\AbstractElement
                         // finally move the actual assets themselves
                         // We do this last so that any prior errors don't require a rollback
                         // on potentially a remote service.
-                        // update() has already written new data under the new name.
-                        if ($storage->fileExists($oldPath) || $storage->directoryExists($oldPath)) {
+                        // With new data, update() has written the file under the new path and removed the old one.
+                        if (!$this->getDataChanged()) {
                             try {
                                 $storage->move($oldPath, $this->getRealFullPath());
                             } catch (UnableToMoveFile) {
