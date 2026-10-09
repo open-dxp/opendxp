@@ -9,30 +9,31 @@ how to use them and how to write factories of your own.
 Every factory is in `OpenDxp\Test\Factory`. A factory fills every value a test leaves out with random
 data.
 
-| Factory                    | Builds                         |
-|----------------------------|--------------------------------|
-| `AssetDocumentFactory`     | `Asset\Document`               |
-| `AssetFolderFactory`       | `Asset\Folder`                 |
-| `AssetImageFactory`        | `Asset\Image`                  |
-| `AssetVideoFactory`        | `Asset\Video`                  |
-| `DataObjectFolderFactory`  | `DataObject\Folder`            |
-| `DocumentEmailFactory`     | `Document\Email`               |
-| `DocumentFolderFactory`    | `Document\Folder`              |
-| `DocumentHardlinkFactory`  | `Document\Hardlink`            |
-| `DocumentLinkFactory`      | `Document\Link`                |
-| `DocumentPageFactory`      | `Document\Page`                |
-| `DocumentSnippetFactory`   | `Document\Snippet`             |
-| `GlossaryFactory`          | `Glossary`                     |
-| `QuantityValueUnitFactory` | `QuantityValue\Unit`           |
-| `RedirectFactory`          | `Redirect`                     |
-| `SiteFactory`              | `Site`                         |
-| `StaticRouteFactory`       | `Staticroute`                  |
-| `TagFactory`               | `Element\Tag`                  |
-| `ThumbnailConfigFactory`   | `Asset\Image\Thumbnail\Config` |
-| `TranslationFactory`       | `Translation`                  |
-| `UserFactory`              | `User`                         |
-| `UserRoleFactory`          | `User\Role`                    |
-| `WebsiteSettingFactory`    | `WebsiteSetting`               |
+| Factory                       | Builds                         |
+|-------------------------------|--------------------------------|
+| `AssetDocumentFactory`        | `Asset\Document`               |
+| `AssetFolderFactory`          | `Asset\Folder`                 |
+| `AssetImageFactory`           | `Asset\Image`                  |
+| `AssetVideoFactory`           | `Asset\Video`                  |
+| `DataObjectFolderFactory`     | `DataObject\Folder`            |
+| `DocumentEmailFactory`        | `Document\Email`               |
+| `DocumentFolderFactory`       | `Document\Folder`              |
+| `DocumentHardlinkFactory`     | `Document\Hardlink`            |
+| `DocumentLinkFactory`         | `Document\Link`                |
+| `DocumentPageFactory`         | `Document\Page`                |
+| `DocumentSnippetFactory`      | `Document\Snippet`             |
+| `GlossaryFactory`             | `Glossary`                     |
+| `QuantityValueUnitFactory`    | `QuantityValue\Unit`           |
+| `RedirectFactory`             | `Redirect`                     |
+| `SiteFactory`                 | `Site`                         |
+| `StaticRouteFactory`          | `Staticroute`                  |
+| `TagFactory`                  | `Element\Tag`                  |
+| `ThumbnailConfigFactory`      | `Asset\Image\Thumbnail\Config` |
+| `TranslationFactory`          | `Translation`                  |
+| `UserFactory`                 | `User`                         |
+| `UserRoleFactory`             | `User\Role`                    |
+| `VideoThumbnailConfigFactory` | `Asset\Video\Thumbnail\Config` |
+| `WebsiteSettingFactory`       | `WebsiteSetting`               |
 
 `GlossaryFactory`, `RedirectFactory` and `StaticRouteFactory` build models of the glossary, SEO and
 static routes bundles. They need that bundle in the kernel of your test application.
@@ -54,6 +55,7 @@ A state returns the factory, so states chain. These states belong to a kind of m
 
 These states belong to one factory:
 
+- `AssetVideoFactory`: `convertedTo()`.
 - `DocumentHardlinkFactory`: `withSource()`.
 - `DocumentLinkFactory`: `withTarget()`.
 - `RedirectFactory`: `forDomain()`, `matching()`, `forSite()`, `toSite()`, `toDocument()`,
@@ -66,6 +68,7 @@ These states belong to one factory:
 - `ThumbnailConfigFactory`: `scalingByWidth()`, `enlargingToWidth()`, `covering()`, `rotating()`.
 - `TranslationFactory`: `withTranslations()`, `inAdminDomain()`.
 - `UserFactory`: `admin()`, `withRoles()`, `withPassword()`.
+- `VideoThumbnailConfigFactory`: `scalingByWidth()`.
 - `WebsiteSettingFactory`: `forSite()`, `inLanguage()`.
 
 ## Expectations
@@ -80,12 +83,12 @@ Fields::register();
 Redirects::register();
 ```
 
-| Expectation               | Checks                                                                 |
-|---------------------------|------------------------------------------------------------------------|
-| `toCarryField()`          | A data object carries the value in the field.                          |
+| Expectation               | Checks                                                                |
+|---------------------------|-----------------------------------------------------------------------|
+| `toCarryField()`          | A data object carries the value in the field.                         |
 | `toCarryLocalizedField()` | A data object carries the value in one language of a localized field. |
-| `toRedirectTo()`          | A response redirects to the location.                                  |
-| `toComeFrom()`            | A redirect answered the request.                                       |
-| `toComeFromNoRedirect()`  | No redirect answered the request.                                      |
+| `toRedirectTo()`          | A response redirects to the location.                                 |
+| `toComeFrom()`            | A redirect answered the request.                                      |
+| `toComeFromNoRedirect()`  | No redirect answered the request.                                     |
 
 `Redirects` needs the SEO bundle in the kernel of your test application.

@@ -201,14 +201,14 @@ it('gives a brick value of the parent to every descendant', function (Inheritanc
 })->with('descendants');
 ```
 
-Where a dataset lives depends on who uses it. A named dataset is only visible in its scope.
+The scope of a dataset follows its use. A named dataset is only visible in its scope.
 
-| Used by | Where it goes |
-|---|---|
-| one test | inline, with `->with([...])` |
-| several tests of one file | `dataset('name', ...)` in that file |
-| the tests of one directory | `Datasets.php` in that directory |
-| the whole suite | a file under `tests/Datasets/` |
+| Used by                    | Where it goes                       |
+|----------------------------|-------------------------------------|
+| one test                   | inline, with `->with([...])`        |
+| several tests of one file  | `dataset('name', ...)` in that file |
+| the tests of one directory | `Datasets.php` in that directory    |
+| the whole suite            | a file under `tests/Datasets/`      |
 
 ## Share the setup
 
@@ -464,7 +464,7 @@ function redisDsn(): string
 A condition that is only known after `beforeEach` goes into `->skip()` as a closure:
 `->skip(fn () => ..., 'reason')`.
 
-### What a suite leaves alone
+### Out of scope
 
 A bundle does not test its own migrations or its own installer. No test only checks that the test
 application installs. The application is installed before every run, so a broken installation fails

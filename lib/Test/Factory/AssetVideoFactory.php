@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Asset\Video;
+use OpenDxp\Model\Asset\Video\Thumbnail\Processor;
 
 use function Zenstruck\Foundry\lazy;
 
@@ -34,6 +35,16 @@ final class AssetVideoFactory extends AbstractElementFactory
     public static function fixture(): string
     {
         return dirname(__DIR__) . '/Fixtures/video.mp4';
+    }
+
+    public function convertedTo(string $thumbnailName): static
+    {
+        return $this->afterWriting(
+            static function (Video $video) use ($thumbnailName): void {
+                $video->getThumbnail($thumbnailName);
+                Processor::execute($video->getCustomSetting('thumbnails')[$thumbnailName]['processId']);
+            },
+        );
     }
 
     protected function defaults(): array

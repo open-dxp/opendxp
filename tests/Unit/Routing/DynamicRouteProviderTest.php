@@ -17,36 +17,10 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Unit\Routing;
 
 use OpenDxp\Http\Request\Resolver\SiteResolver;
-use OpenDxp\Routing\Dynamic\DynamicRequestContext;
-use OpenDxp\Routing\Dynamic\DynamicRouteHandlerInterface;
 use OpenDxp\Routing\DynamicRouteProvider;
+use OpenDxp\Tests\Application\Routing\MockDynamicRouteHandler;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
-
-/**
- * @param array<string, Route> $routes
- */
-function routeHandler(array $routes): DynamicRouteHandlerInterface
-{
-    return new class($routes) implements DynamicRouteHandlerInterface {
-        /**
-         * @param array<string, Route> $routes
-         */
-        public function __construct(private array $routes)
-        {
-        }
-
-        public function getRouteByName(string $name): ?Route
-        {
-            return $this->routes[$name] ?? throw new RouteNotFoundException();
-        }
-
-        public function matchRequest(RouteCollection $collection, DynamicRequestContext $context): void
-        {
-        }
-    };
-}
 
 beforeEach(fn () => $this->siteResolver = $this->createMock(SiteResolver::class));
 
@@ -64,7 +38,7 @@ it('returns no routes when no names are asked for', function (?array $names) {
 it('returns the routes in the order the names were asked for', function () {
     $first = new Route('/a');
     $second = new Route('/b');
-    $handler = routeHandler([
+    $handler = new MockDynamicRouteHandler([
         'route_a' => $first,
         'route_b' => $second,
     ]);
@@ -83,7 +57,7 @@ it('returns the routes in the order the names were asked for', function () {
 
 it('leaves out a name no handler knows', function () {
     $route = new Route('/a');
-    $handler = routeHandler(['exists' => $route]);
+    $handler = new MockDynamicRouteHandler(['exists' => $route]);
     $provider = new DynamicRouteProvider($this->siteResolver, [$handler]);
 
     $routes = $provider->getRoutesByNames([
@@ -100,8 +74,8 @@ it('asks the next handler when the first one does not know a name', function () 
     $provider = new DynamicRouteProvider(
         $this->siteResolver,
         [
-            routeHandler([]),
-            routeHandler(['anything' => $route]),
+            new MockDynamicRouteHandler([]),
+            new MockDynamicRouteHandler(['anything' => $route]),
         ],
     );
 
@@ -111,7 +85,7 @@ it('asks the next handler when the first one does not know a name', function () 
 });
 
 it('refuses a single name no handler knows', function () {
-    $provider = new DynamicRouteProvider($this->siteResolver, [routeHandler([])]);
+    $provider = new DynamicRouteProvider($this->siteResolver, [new MockDynamicRouteHandler([])]);
 
     expect(fn () => $provider->getRouteByName('any'))
         ->toThrow(RouteNotFoundException::class, "Route for name 'any' was not found");
