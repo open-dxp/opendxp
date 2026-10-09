@@ -28,7 +28,7 @@ services: [redis]
 Run `ddev restart` in the testkit afterwards. The testkit then sets `OPENDXP_TEST_REDIS_DSN` for
 every run.
 
-## Where things live
+## Directory structure
 
 ```
 tests/
