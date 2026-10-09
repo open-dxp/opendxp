@@ -28,10 +28,12 @@ Redirects::register();
 
 // Unit tests need no application, so they get no test case.
 pest()->extend(TestCase::class)->in(
+    'Feature/ApplicationLogger',
     'Feature/Asset',
     'Feature/ClassDefinition',
     'Feature/ClassificationStore',
     'Feature/Console',
+    'Feature/CustomReports',
     'Feature/DataObject',
     'Feature/DataType',
     'Feature/Dependency',

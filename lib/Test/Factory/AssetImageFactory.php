@@ -36,6 +36,15 @@ final class AssetImageFactory extends AbstractElementFactory
         return dirname(__DIR__) . '/Fixtures/image.jpg';
     }
 
+    public function withMetadata(string $name, string $type, mixed $data, ?string $language = null): static
+    {
+        return $this->afterInstantiate(
+            static function (Image $image) use ($name, $type, $data, $language): void {
+                $image->addMetadata($name, $type, $data, $language);
+            },
+        );
+    }
+
     protected function defaults(): array
     {
         return [

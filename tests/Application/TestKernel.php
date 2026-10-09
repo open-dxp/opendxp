@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Application;
 
 use FOS\HttpCacheBundle\FOSHttpCacheBundle;
+use OpenDxp\Bundle\ApplicationLoggerBundle\OpenDxpApplicationLoggerBundle;
+use OpenDxp\Bundle\CustomReportsBundle\OpenDxpCustomReportsBundle;
 use OpenDxp\Bundle\GlossaryBundle\OpenDxpGlossaryBundle;
 use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\OpenDxpSimpleBackendSearchBundle;
@@ -32,6 +34,8 @@ final class TestKernel extends Foundation
     {
         parent::registerCoreBundlesToCollection($collection);
 
+        $collection->addBundle(new OpenDxpApplicationLoggerBundle());
+        $collection->addBundle(new OpenDxpCustomReportsBundle());
         $collection->addBundle(new OpenDxpGlossaryBundle());
         $collection->addBundle(new OpenDxpSeoBundle());
         $collection->addBundle(new OpenDxpSimpleBackendSearchBundle());

@@ -20,10 +20,6 @@ opendxp.bundle.customreports.custom.report = Class.create(opendxp.bundle.customr
     drillDownFilters: {},
     drillDownStores: [],
 
-    progressBar: {},
-    progressWindow: {},
-    progressStop: false,
-
     matchType: function (type) {
         var types = ["global"];
         if (opendxp.bundle.customreports.abstract.prototype.matchTypeValidate(type, types)) {
@@ -187,43 +183,12 @@ opendxp.bundle.customreports.custom.report = Class.create(opendxp.bundle.customr
         var topBar = this.buildTopBar(this.drillDownFilterDefinitions);
 
         //export button
-        var exportBtnHandler = function (btn) {
-            this.progressBar = Ext.create('Ext.ProgressBar', {
-                renderTo: Ext.getBody(),
-                width: 300
-            });
-            this.progressWindow = new Ext.Window({
-                modal: true,
-                title: "Progress",
-                width: 300,
-                height: 120,
-                closable: false,
-                items: [this.progressBar],
-                buttons: [{
-                    text: t("cancel"),
-                    handler: function () {
-                        this.progressStop = true;
-                        this.progressWindow.close();
-                    }.bind(this)
-                }]
-            });
-            this.progressWindow.show();
-            this.createCsv(btn, "", 0, btn.getItemId() === 'exportWithHeaders' ? "1" : "");
-        };
-
         topBar.push("->");
 
         topBar.push({
-            xtype: 'splitbutton',
-            text: t("export_csv"),
+            text: t("export"),
             iconCls: "opendxp_icon_export",
-            handler: exportBtnHandler.bind(this),
-            menu: [{
-                text: t("export_csv_include_headers"),
-                itemId: 'exportWithHeaders',
-                iconCls: "opendxp_icon_export",
-                handler: exportBtnHandler.bind(this)
-            }]
+            handler: this.startExport.bind(this)
         });
 
         this.grid = new Ext.grid.GridPanel({
@@ -556,34 +521,19 @@ opendxp.bundle.customreports.custom.report = Class.create(opendxp.bundle.customr
         return this.panel;
     },
 
-    createCsv: function (btn, exportFile, offset, withHeader) {
-        let filterData = this.store.getFilters().items;
-        let proxy = this.store.getProxy();
+    startExport: function () {
+        new opendxp.element.gridexport.runner({
+            source: "custom-reports",
+            getParameters: function () {
+                var parameters = opendxp.element.gridexport.runner.getStoreParameters(this.store);
 
-        Ext.Ajax.request({
-            url: Routing.generate('opendxp_bundle_customreports_customreport_createcsv'),
-            params: {
-                exportFile: exportFile,
-                offset: offset,
-                name: this.config.name,
-                filter: filterData.length > 0 ? encodeURIComponent(proxy.encodeFilters(filterData)) : "",
-                headers: withHeader,
-                drillDownFilters: JSON.stringify(this.drillDownFilters)
-            },
-            success: function (response) {
-                response = JSON.parse(response["responseText"]);
-                if(response["finished"]) {
-                    this.progressBar.updateProgress(1,"100%");
-                    this.progressWindow.close();
-                    var downloadUrl = Routing.generate('opendxp_bundle_customreports_customreport_downloadcsv') + '?exportFile=' + response["exportFile"];
-                    opendxp.helpers.download(downloadUrl);
-                }else{
-                    this.progressBar.updateProgress(response["progress"],Number.parseFloat(response["progress"]*100).toFixed(0)+"%");
-                    if(!this.progressStop){
-                        this.createCsv(btn, response["exportFile"], response["offset"], 0);
-                    }
-                }
+                return {
+                    name: this.config.name,
+                    filter: parameters.filter,
+                    sort: parameters.sort,
+                    drillDownFilters: this.drillDownFilters
+                };
             }.bind(this)
-        });
+        }).start();
     }
 });

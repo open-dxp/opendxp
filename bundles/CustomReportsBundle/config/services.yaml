@@ -13,6 +13,7 @@ services:
         public: true
         tags: ['controller.service_arguments']
 
+    OpenDxp\Bundle\CustomReportsBundle\GridExport\CustomReportGridExportSource: ~
 
     opendxp.custom_report.adapter.factory.sql:
         class: OpenDxp\Bundle\CustomReportsBundle\Tool\Adapter\DefaultCustomReportAdapterFactory
