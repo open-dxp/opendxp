@@ -22,11 +22,9 @@ use InvalidArgumentException;
 use League\Csv\Bom;
 use League\Csv\Reader;
 use League\Csv\Statement;
-use League\Csv\Writer;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\DateFormat;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Element\Service;
 use OpenDxp\Tool\Admin;
 use OpenDxp\Tool\ArrayNormalizer;
 use OpenDxp\Tool\Text;
@@ -74,64 +72,59 @@ class Csv
     }
 
     /**
-     * @throws \League\Csv\CannotInsertRecord
-     * @throws \League\Csv\Exception
+     * Returns the columns of a CSV file that the import reads.
+     *
+     * @return list<string>
      */
-    public function createExportWriter(Redirect\Listing $list): Writer
+    public function getExportColumns(): array
     {
-        $writer = Writer::from('php://temp');
-        $writer->setDelimiter(';');
-        $writer->setOutputBOM(Bom::Utf8);
+        return [...$this->columns, ...array_keys(self::OPTIONAL_COLUMNS)];
+    }
 
-        // force "" enclosure as it allows us to just open the file in excel
-        $writer->forceEnclosure();
+    /**
+     * Returns the values of a redirect in the order of the export columns.
+     *
+     * @return list<mixed>
+     */
+    public function createExportRecord(Redirect $redirect): array
+    {
+        $target = $redirect->getTarget();
 
-        $writer->insertOne([...$this->columns, ...array_keys(self::OPTIONAL_COLUMNS)]);
+        if (is_numeric($redirect->getTarget())) {
+            $document = Document::getById((int)$redirect->getTarget());
 
-        foreach ($list->getRedirects() as $redirect) {
-            $target = $redirect->getTarget();
-
-            if (is_numeric($redirect->getTarget())) {
-                $document = Document::getById((int)$redirect->getTarget());
-
-                if ($document) {
-                    $target = $document->getRealFullPath();
-                }
+            if ($document) {
+                $target = $document->getRealFullPath();
             }
-
-            $expiry = null;
-            if ($redirect->getExpiry()) {
-                $expiry = (new DateTime('@' . $redirect->getExpiry()))->format(DateFormat::ISO_8601);
-            }
-
-            $validFrom = null;
-            if ($redirect->getValidFrom()) {
-                $validFrom = (new DateTime('@' . $redirect->getValidFrom()))->format(DateFormat::ISO_8601);
-            }
-
-            $data = [
-                $redirect->getId(),
-                $redirect->getType(),
-                $redirect->getSource(),
-                $redirect->getSourceSite(),
-                $target,
-                $redirect->getTargetSite(),
-                $redirect->getStatusCode(),
-                $redirect->getPriority(),
-                $redirect->getRegex(),
-                $redirect->getPassThroughParameters(),
-                $redirect->getActive(),
-                $expiry,
-                $validFrom,
-                $redirect->getPassThroughPath(),
-                $redirect->isProtected(),
-            ];
-            $data = Service::escapeCsvRecord($data);
-
-            $writer->insertOne($data);
         }
 
-        return $writer;
+        $expiry = null;
+        if ($redirect->getExpiry()) {
+            $expiry = (new DateTime('@' . $redirect->getExpiry()))->format(DateFormat::ISO_8601);
+        }
+
+        $validFrom = null;
+        if ($redirect->getValidFrom()) {
+            $validFrom = (new DateTime('@' . $redirect->getValidFrom()))->format(DateFormat::ISO_8601);
+        }
+
+        return [
+            $redirect->getId(),
+            $redirect->getType(),
+            $redirect->getSource(),
+            $redirect->getSourceSite(),
+            $target,
+            $redirect->getTargetSite(),
+            $redirect->getStatusCode(),
+            $redirect->getPriority(),
+            $redirect->getRegex(),
+            $redirect->getPassThroughParameters(),
+            $redirect->getActive(),
+            $expiry,
+            $validFrom,
+            $redirect->getPassThroughPath(),
+            $redirect->isProtected(),
+        ];
     }
 
     /**

@@ -1,6 +1,11 @@
 # Upgrade Notes
 
 ## OpenDXP 1.5.0
+- Feature: The redirects, the custom reports and the application log export as CSV or XLSX.
+- Chore: Remove the old export routes of the redirects and the custom reports.
+- Chore: Remove `OpenDxp\Bundle\SeoBundle\Redirect\Csv::createExportWriter()`.
+- Chore: Require `open-dxp/admin-bundle` ^1.5
+- Feature: The test API adds `CustomReportFactory`, `EmailLogFactory` and `AssetImageFactory::withMetadata()`.
 - Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
 - Chore: Replace Codeception with Pest and `open-dxp/test-foundation`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.

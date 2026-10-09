@@ -19,18 +19,13 @@ namespace OpenDxp\Bundle\CustomReportsBundle\Controller\Reports;
 use Exception;
 use OpenDxp\Bundle\CustomReportsBundle\Exception\InvalidQueryException;
 use OpenDxp\Bundle\CustomReportsBundle\Tool;
+use OpenDxp\Bundle\CustomReportsBundle\Tool\ReportDataQuery;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
-use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Exception\ConfigWriteException;
-use stdClass;
-use Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Throwable;
 
 /**
@@ -263,8 +258,19 @@ class CustomReportController extends UserAwareController
 
         $configuration = $config->getDataSourceConfig();
         $adapter = Tool\Config::getAdapter($configuration, $config);
-        $sortFilters = $this->getSortAndFilters($request, $configuration);
-        $result = $adapter->getData($sortFilters['filters'], $sortFilters['sort'], $sortFilters['dir'], $offset, $limit, null, $sortFilters['drillDownFilters']);
+        $query = ReportDataQuery::fromParameters(
+            [...$request->request->all(), ...$request->query->all()],
+            $configuration,
+        );
+        $result = $adapter->getData(
+            $query->filters,
+            $query->sort,
+            $query->dir,
+            $offset,
+            $limit,
+            null,
+            $query->drillDownFilters,
+        );
 
         return $this->jsonResponse([
             'success' => true,
@@ -303,107 +309,25 @@ class CustomReportController extends UserAwareController
 
         $configuration = $config->getDataSourceConfig();
         $adapter = Tool\Config::getAdapter($configuration, $config);
-        $sortFilters = $this->getSortAndFilters($request, $configuration);
-        $result = $adapter->getData($sortFilters['filters'], $sortFilters['sort'], $sortFilters['dir'], null, null, null, $sortFilters['drillDownFilters']);
+        $query = ReportDataQuery::fromParameters(
+            [...$request->request->all(), ...$request->query->all()],
+            $configuration,
+        );
+        $result = $adapter->getData(
+            $query->filters,
+            $query->sort,
+            $query->dir,
+            null,
+            null,
+            null,
+            $query->drillDownFilters,
+        );
 
         return $this->jsonResponse([
             'success' => true,
             'data' => $result['data'],
             'total' => $result['total'],
         ]);
-    }
-
-    protected function getTemporaryFileFromFileName(string $exportFileName): string
-    {
-        $exportFileName = basename($exportFileName);
-        if (!str_ends_with($exportFileName, '.csv')) {
-            throw new InvalidArgumentException($exportFileName . ' is not a valid csv file.');
-        }
-
-        return OPENDXP_SYSTEM_TEMP_DIRECTORY . '/' . $exportFileName;
-    }
-
-    #[Route('/create-csv', name: 'opendxp_bundle_customreports_customreport_createcsv', methods: ['GET'])]
-    public function createCsvAction(Request $request): JsonResponse
-    {
-        $this->checkPermission('reports');
-
-        set_time_limit(300);
-
-        $sort = $request->query->getString('sort');
-        $dir = $request->query->getString('dir');
-        $filters = $request->query->has('filter') ? json_decode(urldecode($request->query->getString('filter')), true) : null;
-        $drillDownFilters = $request->query->getString('drillDownFilters');
-        if ($drillDownFilters) {
-            $drillDownFilters = json_decode($drillDownFilters, true);
-        }
-        $includeHeaders = $request->query->getBoolean('headers');
-
-        $config = $this->loadReport($request->query->getString('name'), true);
-
-        $columns = $config->getColumnConfiguration();
-        $fields = [];
-        foreach ($columns as $column) {
-            if ($column['export']) {
-                $fields[] = $column['name'];
-            }
-        }
-
-        $configuration = $config->getDataSourceConfig();
-
-        $adapter = Tool\Config::getAdapter($configuration, $config);
-
-        $offset = $request->query->getInt('offset');
-        $limit = 5000;
-        $result = $adapter->getData($filters, $sort, $dir, $offset * $limit, $limit, $fields, $drillDownFilters);
-        ++$offset;
-
-        if (!($exportFile = $request->query->getString('exportFile'))) {
-            $exportFile = OPENDXP_SYSTEM_TEMP_DIRECTORY . '/report-export-' . uniqid() . '.csv';
-            @unlink($exportFile);
-        } else {
-            $exportFile = $this->getTemporaryFileFromFileName($exportFile);
-        }
-
-        $fp = fopen($exportFile, 'ab');
-
-        if ($includeHeaders) {
-            fputcsv($fp, $fields, ';');
-        }
-
-        foreach ($result['data'] as $row) {
-            $row = Service::escapeCsvRecord($row);
-            fputcsv($fp, array_values($row), ';');
-        }
-
-        fclose($fp);
-
-        $progress = $result['total'] ? ($offset * $limit) / $result['total'] : 1;
-        $progress = $progress > 1 ? 1 : $progress;
-
-        return new JsonResponse([
-            'exportFile' => basename($exportFile),
-            'offset' => $offset,
-            'progress' => $progress,
-            'finished' => empty($result['data']) || count($result['data']) < $limit,
-        ]);
-    }
-
-    #[Route('/download-csv', name: 'opendxp_bundle_customreports_customreport_downloadcsv', methods: ['GET'])]
-    public function downloadCsvAction(Request $request): BinaryFileResponse
-    {
-        $this->checkPermission('reports');
-        if ($exportFile = $request->query->getString('exportFile')) {
-            $exportFile = $this->getTemporaryFileFromFileName($exportFile);
-            $response = new BinaryFileResponse($exportFile);
-            $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
-            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'export.csv');
-            $response->deleteFileAfterSend(true);
-
-            return $response;
-        }
-
-        throw new FileNotFoundException("File \"$exportFile\" not found!");
     }
 
     private function loadReport(string $name, bool $checkAccess = false): Tool\Config
@@ -428,39 +352,5 @@ class CustomReportController extends UserAwareController
         if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $configName)) {
             throw new Exception('The customer report name is invalid');
         }
-    }
-
-    // gets the sort, direction, filters, drilldownfilters from grid or initial config
-    private function getSortAndFilters(Request $request, stdClass $configuration): array
-    {
-        $sort = null;
-        $dir = null;
-        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
-
-        if ($sortingSettings['orderKey']) {
-            $sort = $sortingSettings['orderKey'];
-            $dir = $sortingSettings['order'];
-        }
-
-        $filters = ($request->request->has('filter') ? json_decode($request->request->getString('filter'), true) : null);
-        $drillDownFilters = $request->request->all('drillDownFilters');
-
-        if (
-            $sort === null &&
-            $dir === null &&
-            property_exists($configuration, 'orderby') &&
-            $configuration->orderby !== '' &&
-            $configuration->orderbydir !== ''
-        ) {
-            $sort = $configuration->orderby;
-            $dir = $configuration->orderbydir;
-        }
-
-        return [
-            'sort'             => $sort,
-            'dir'              => $dir,
-            'filters'          => $filters,
-            'drillDownFilters' => $drillDownFilters,
-        ];
     }
 }
