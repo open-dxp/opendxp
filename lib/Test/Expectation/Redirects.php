@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
  * `toRedirectTo` checks that a response redirects to a location. A location that starts with a slash is compared with
  * the path and the query of the redirect, so a test does not depend on the host.
  *
- * `toComeFrom` checks which redirect answered a request, and `toComeFromNoRedirect` checks that none did.
+ * `toBeAnsweredBy` checks which redirect answered a request, and `toBeAnsweredWithoutRedirect` checks that none did.
  */
 final class Redirects
 {
@@ -51,7 +51,7 @@ final class Redirects
         );
 
         expect()->extend(
-            'toComeFrom',
+            'toBeAnsweredBy',
             function (Redirect $redirect): Expectation {
                 expect($this->value)
                     ->toBeInstanceOf(Response::class)
@@ -63,7 +63,7 @@ final class Redirects
         );
 
         expect()->extend(
-            'toComeFromNoRedirect',
+            'toBeAnsweredWithoutRedirect',
             function (): Expectation {
                 expect($this->value)
                     ->toBeInstanceOf(Response::class)

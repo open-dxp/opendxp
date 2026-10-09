@@ -134,13 +134,13 @@ expect(reloaded($object))
 
 The redirect expectations check the response to a request. `toRedirectTo()` checks the location.
 A location that starts with a slash is compared with the path and the query only, so the test does
-not depend on the host. `toComeFrom()` names the redirect that answered, and
-`toComeFromNoRedirect()` checks that none did:
+not depend on the host. `toBeAnsweredBy()` names the redirect that answered, and
+`toBeAnsweredWithoutRedirect()` checks that none did:
 
 ```php
 expect($response)
     ->toRedirectTo('/new-page')
-    ->toComeFrom($redirect);
+    ->toBeAnsweredBy($redirect);
 ```
 
 [Test API](./07_Test_API.md#expectations) lists all of them.

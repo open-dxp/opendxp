@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Seo;
 
 use Closure;
-use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\RedirectFactory;
 use OpenDxp\Test\Factory\SiteFactory;
@@ -45,7 +44,7 @@ it('redirects a path with the status code of the redirect', function (int $statu
 
     expect($response)
         ->toRedirectTo('/new-page')
-        ->toComeFrom($redirect)
+        ->toBeAnsweredBy($redirect)
         ->and($response->getStatusCode())
         ->toBe($statusCode);
 })->with([
@@ -72,7 +71,7 @@ it('compares a path regardless of case and accents', function () {
 
     $response = answerTo('/uber-uns');
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 });
 
 it('redirects a URL that matches in the part the redirect type selects', function (
@@ -87,12 +86,12 @@ it('redirects a URL that matches in the part the redirect type selects', functio
 
     $response = answerTo($url);
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })->with([
-    'the path, without the query' => [Redirect::TYPE_PATH, '/shop', '/shop?id=5'],
-    'the path and the query' => [Redirect::TYPE_PATH_QUERY, '/shop?id=5', '/shop?id=5'],
-    'the entire URI' => [Redirect::TYPE_ENTIRE_URI, 'http://localhost/shop', 'http://localhost/shop'],
-    'the path of a redirect created automatically' => [Redirect::TYPE_AUTO_CREATE, '/moved', '/moved?x=1'],
+    'the path, without the query' => ['path', '/shop', '/shop?id=5'],
+    'the path and the query' => ['path_query', '/shop?id=5', '/shop?id=5'],
+    'the entire URI' => ['entire_uri', 'http://localhost/shop', 'http://localhost/shop'],
+    'the path of a redirect created automatically' => ['auto_create', '/moved', '/moved?x=1'],
 ]);
 
 it('ignores a URL that differs in the part the redirect type selects', function (
@@ -107,12 +106,12 @@ it('ignores a URL that differs in the part the redirect type selects', function 
 
     $response = answerTo($url);
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 })->with([
-    'the path' => [Redirect::TYPE_PATH, '/shop', '/shop/cart'],
-    'the query' => [Redirect::TYPE_PATH_QUERY, '/shop?id=5', '/shop?id=6'],
-    'the host of the entire URI' => [Redirect::TYPE_ENTIRE_URI, 'http://localhost/shop', 'http://other.test/shop'],
-    'the path of a redirect created automatically' => [Redirect::TYPE_AUTO_CREATE, '/moved', '/moved/away'],
+    'the path' => ['path', '/shop', '/shop/cart'],
+    'the query' => ['path_query', '/shop?id=5', '/shop?id=6'],
+    'the host of the entire URI' => ['entire_uri', 'http://localhost/shop', 'http://other.test/shop'],
+    'the path of a redirect created automatically' => ['auto_create', '/moved', '/moved/away'],
 ]);
 
 it('passes the query on when the redirect asks for it', function () {
@@ -159,7 +158,7 @@ it('does not redirect to a target document that no longer exists', function () {
     $response = answerTo('/to-nowhere');
 
     expect($response)
-        ->toComeFromNoRedirect()
+        ->toBeAnsweredWithoutRedirect()
         ->and($response->getStatusCode())
         ->toBe(404);
 });
@@ -186,7 +185,7 @@ it('takes the regular expression with the highest priority', function () {
 
     $response = answerTo('/promo/summer');
 
-    expect($response)->toComeFrom($high);
+    expect($response)->toBeAnsweredBy($high);
 });
 
 it('takes an exact source before any regular expression', function () {
@@ -200,7 +199,7 @@ it('takes an exact source before any regular expression', function () {
 
     $response = answerTo('/sale');
 
-    expect($response)->toComeFrom($exact);
+    expect($response)->toBeAnsweredBy($exact);
 });
 
 it('redirects away from an existing page with priority 99', function (Closure $redirectFrom) {
@@ -211,7 +210,7 @@ it('redirects away from an existing page with priority 99', function (Closure $r
 
     $response = answerTo($page->getFullPath());
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })->with('redirect sources');
 
 it('leaves an existing page alone with a priority below 99', function (Closure $redirectFrom) {
@@ -223,7 +222,7 @@ it('leaves an existing page alone with a priority below 99', function (Closure $
     $response = answerTo($page->getFullPath());
 
     expect($response)
-        ->toComeFromNoRedirect()
+        ->toBeAnsweredWithoutRedirect()
         ->and($response->getStatusCode())
         ->toBe(200);
 })->with('redirect sources');
@@ -234,7 +233,7 @@ it('applies a redirect while it is in effect', function (Closure $redirectFrom, 
 
     $response = answerTo('/timed');
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })
     ->with('redirect sources')
     ->with([
@@ -248,7 +247,7 @@ it('ignores a redirect that is not in effect', function (Closure $redirectFrom, 
 
     $response = answerTo('/timed');
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 })
     ->with('redirect sources')
     ->with([
@@ -265,7 +264,7 @@ it('applies a redirect with a source site on that site', function (Closure $redi
 
     $response = answerTo(sprintf('http://%s/local', $site->getMainDomain()));
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })->with('redirect sources');
 
 it('ignores a redirect with a source site outside of that site', function (Closure $redirectFrom) {
@@ -276,7 +275,7 @@ it('ignores a redirect with a source site outside of that site', function (Closu
 
     $response = answerTo('http://localhost/local');
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 })->with('redirect sources');
 
 it('applies a redirect without a source site outside of sites', function (Closure $redirectFrom) {
@@ -284,7 +283,7 @@ it('applies a redirect without a source site outside of sites', function (Closur
 
     $response = answerTo('/global');
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })->with('redirect sources');
 
 it('ignores a redirect without a source site on a site', function (Closure $redirectFrom) {
@@ -293,7 +292,7 @@ it('ignores a redirect without a source site on a site', function (Closure $redi
 
     $response = answerTo(sprintf('http://%s/global', $site->getMainDomain()));
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 })->with('redirect sources');
 
 it('redirects to the main domain of the target site', function () {
@@ -321,7 +320,7 @@ it('takes a protected exact source before an unprotected one with a higher prior
 
     $response = answerTo('/relaunch');
 
-    expect($response)->toComeFrom($protected);
+    expect($response)->toBeAnsweredBy($protected);
 });
 
 it('takes a protected regular expression before an unprotected exact source', function () {
@@ -335,7 +334,30 @@ it('takes a protected regular expression before an unprotected exact source', fu
 
     $response = answerTo('/legacy/page');
 
-    expect($response)->toComeFrom($protected);
+    expect($response)->toBeAnsweredBy($protected);
+});
+
+it('keeps a redirect with priority 99 from overriding a protected source', function (Closure $redirectFrom) {
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->withPriority(1)
+        ->create(['source' => '/agency']);
+    $redirectFrom('/agency')
+        ->withPriority(99)
+        ->create(['type' => 'path_query']);
+
+    $response = answerTo('/agency');
+
+    expect($response)->toBeAnsweredBy($protected);
+})->with('redirect sources');
+
+it('takes the older of two redirects with the same priority', function () {
+    $older = RedirectFactory::createOne(['source' => '/twice']);
+    RedirectFactory::createOne(['source' => '/twice']);
+
+    $response = answerTo('/twice');
+
+    expect($response)->toBeAnsweredBy($older);
 });
 
 it('ignores a regular expression that does not compile', function () {
@@ -348,5 +370,5 @@ it('ignores a regular expression that does not compile', function () {
 
     $response = answerTo('/broken(');
 
-    expect($response)->toComeFrom($valid);
+    expect($response)->toBeAnsweredBy($valid);
 });

@@ -27,7 +27,7 @@ it('redirects every path of a domain to the target', function (string $path) {
     $response = answerTo(sprintf('http://summer.example.test%s', $path));
 
     expect($response)
-        ->toComeFrom($redirect)
+        ->toBeAnsweredBy($redirect)
         ->toRedirectTo('https://example.test/summer');
 })->with([
     'the root' => ['/'],
@@ -47,6 +47,17 @@ it('appends the path of the request when the redirect passes it through', functi
     expect($response)->toRedirectTo('https://new-brand.test/products/shoes?size=42');
 });
 
+it('appends the path in front of the query of the target', function () {
+    RedirectFactory::new()
+        ->forDomain('campaign.test')
+        ->passingThroughPath()
+        ->create(['target' => 'https://example.test/?utm_source=campaign']);
+
+    $response = answerTo('http://campaign.test/shoes');
+
+    expect($response)->toRedirectTo('https://example.test/shoes?utm_source=campaign');
+});
+
 it('compares the domain regardless of case', function () {
     $redirect = RedirectFactory::new()
         ->forDomain('Event.Example.test')
@@ -54,7 +65,7 @@ it('compares the domain regardless of case', function () {
 
     $response = answerTo('http://event.example.test/');
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 });
 
 it('leaves other domains alone', function () {
@@ -64,7 +75,7 @@ it('leaves other domains alone', function () {
 
     $response = answerTo('http://winter.example.test/');
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 });
 
 it('redirects a domain before the site sends it to its main domain', function () {
@@ -88,7 +99,7 @@ it('redirects a domain while the redirect is in effect', function (RedirectFacto
 
     $response = answerTo('http://timed.example.test/');
 
-    expect($response)->toComeFrom($redirect);
+    expect($response)->toBeAnsweredBy($redirect);
 })->with([
     'after its start' => [
         fn () => RedirectFactory::new()
@@ -107,7 +118,7 @@ it('leaves a domain alone while the redirect is not in effect', function (Redire
 
     $response = answerTo('http://timed.example.test/');
 
-    expect($response)->toComeFromNoRedirect();
+    expect($response)->toBeAnsweredWithoutRedirect();
 })->with([
     'before its start' => [
         fn () => RedirectFactory::new()

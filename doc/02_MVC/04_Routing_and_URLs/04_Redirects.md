@@ -73,14 +73,16 @@ reach it under its pretty URL.
 The type of a redirect decides which part of the URL is compared: the path, the path with the query, or the entire
 URI. Exact sources ignore upper and lower case and accents, so `/Über-Uns` matches `/uber-uns`.
 
-Exact sources are checked before regular expressions. If several regular expressions match, the one with the highest
-priority wins. A redirect without a source site only applies to requests outside of any site.
+Protected redirects come first, exact sources before regular expressions. Then come the redirects that are not
+protected, again exact sources before regular expressions. Among several matches, the one with the highest priority
+wins, and among the same priority the older one. A redirect without a source site only applies to requests outside of
+any site.
 
 
 #### Domain Redirects
 
-A domain redirect sends every request for a host to another address, whatever the path. The source is the host name,
-for example `summer2026.example.com`. The target is a full URL or a path on a target site.
+A domain redirect sends every request for a host to another address, whatever the path. The source is the host name
+without a port, for example `summer2026.example.com`. It applies on every site. The target is a full URL or a path on a target site.
 
 With "Pass through path", the path of the request is added to the target. This moves a whole domain:
 `old-brand.com/products/shoes` goes to `new-brand.com/products/shoes`.
@@ -103,9 +105,9 @@ Only users with the permission "Manage protected redirects" (`redirects_protecte
 Administrators have this permission. Use it for redirects that an agency or the SEO team is responsible for, for
 example after a relaunch.
 
-Users without the permission cannot override a protected redirect:
+A protected redirect wins over every redirect that is not protected, whatever its priority. Users without the
+permission cannot get around it:
 
-* A protected redirect wins over redirects that are not protected, whatever their priority.
 * They cannot create, import or change a redirect with the same exact source. The error message does not reveal the
   protected redirect.
 * They cannot change, delete, export or import a protected redirect.
@@ -142,11 +144,18 @@ opendxp_seo:
 
 #### Performance
 
-OpenDXP compiles all active redirects into a PHP file in the cache directory. OPcache keeps this file in memory. A
-request therefore needs no database query for redirects, only one cache lookup, however many redirects exist.
+OpenDXP keeps the regular expressions and the domain redirects in the cache. Exact sources stay in the database, where
+an index finds them:
 
-Saving, deleting or importing a redirect clears the cache tag `redirect`, and the next request compiles the file
-again. In a cluster, every server compiles its own file.
+* A request that a document or a route answers queries no exact source, unless an exact source has priority 99.
+* A request that nothing answers looks up its exact source with one query.
+
+The number of exact sources therefore does not change the cost of a request.
+
+A regular expression has no index. Every request reads all active regular expressions from the cache, and a request
+that nothing answers checks each of them. A fixed URL belongs in an exact source.
+
+Saving, deleting or importing a redirect clears the cache tag `redirect`.
 
 
 #### Creating custom redirect status codes

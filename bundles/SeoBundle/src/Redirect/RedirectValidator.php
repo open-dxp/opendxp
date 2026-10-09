@@ -38,72 +38,62 @@ final readonly class RedirectValidator
     /**
      * @param bool $mayManageProtected whether the editor holds the permission redirects_protected
      */
-    public function validate(Redirect $redirect, bool $mayManageProtected): RedirectValidation
+    public function validate(Redirect $redirect, bool $mayManageProtected): RedirectValidationResult
     {
-        $validation = new RedirectValidation();
+        $result = new RedirectValidationResult();
         $source = (string) $redirect->getSource();
 
         if ($source === '') {
-            return $validation->withError('source', 'redirect_source_missing');
+            return $result->withError('source', 'redirect_source_missing');
         }
 
-        if ($redirect->isRegex() && !$this->compiles($source)) {
-            $validation = $validation->withError('source', 'redirect_regex_invalid');
+        if ($redirect->isRegex() && !$redirect->hasValidRegex()) {
+            $result = $result->withError('source', 'redirect_regex_invalid');
         }
 
-        if ($redirect->getValidFrom() !== null && $redirect->getExpiry() !== null && $redirect->getExpiry() <= $redirect->getValidFrom()) {
-            $validation = $validation->withError('expiry', 'redirect_expires_before_start');
+        $validFrom = $redirect->getValidFrom();
+        $expiry = $redirect->getExpiry();
+        if ($validFrom !== null && $expiry !== null && $expiry <= $validFrom) {
+            $result = $result->withError('expiry', 'redirect_expires_before_start');
         }
 
         if ($redirect->getType() === Redirect::TYPE_DOMAIN) {
-            $validation = $this->validateDomain($redirect, $validation);
+            $result = $this->validateDomain($redirect, $result);
         } elseif (!$redirect->isRegex() && $this->pointsToItself($redirect)) {
-            $validation = $validation->withError('target', 'redirect_loop');
+            $result = $result->withError('target', 'redirect_loop');
         }
 
         if ($redirect->isRegex()) {
-            return $validation;
+            return $result;
         }
 
         foreach ($this->sameSource($redirect) as $other) {
             if ($other['protected'] && !$mayManageProtected) {
-                return $validation->withError('source', 'redirect_source_protected');
+                return $result->withError('source', 'redirect_source_protected');
             }
 
-            $validation = $validation->withWarning('redirect_source_duplicate', ['%id%' => $other['id']]);
+            $result = $result->withWarning('redirect_source_duplicate', ['%id%' => $other['id']]);
         }
 
         if (($chained = $this->redirectFromTarget($redirect)) !== null) {
-            $validation = $validation->withWarning('redirect_chain', ['%id%' => $chained]);
+            $result = $result->withWarning('redirect_chain', ['%id%' => $chained]);
         }
 
-        return $validation;
+        return $result;
     }
 
-    private function compiles(string $pattern): bool
+    private function validateDomain(Redirect $redirect, RedirectValidationResult $result): RedirectValidationResult
     {
-        // An invalid pattern raises a warning, which is the answer here and not an error of the application.
-        set_error_handler(static fn (): bool => true);
-
-        try {
-            return preg_match($pattern, '') !== false;
-        } finally {
-            restore_error_handler();
-        }
-    }
-
-    private function validateDomain(Redirect $redirect, RedirectValidation $validation): RedirectValidation
-    {
-        if (preg_match('/^[a-z0-9.-]+(:\d+)?$/i', (string) $redirect->getSource()) !== 1) {
-            $validation = $validation->withError('source', 'redirect_domain_source_invalid');
+        if (preg_match('/^[a-z0-9.-]+$/i', (string) $redirect->getSource()) !== 1) {
+            $result = $result->withError('source', 'redirect_domain_source_invalid');
         }
 
-        // A relative target stays on the host of the request, which is the very domain that redirects.
+        // A relative target stays on the same host, so the domain would redirect to itself.
         if (!$redirect->getTargetSite() && preg_match('@^https?://@i', (string) $redirect->getTarget()) !== 1) {
-            $validation = $validation->withError('target', 'redirect_domain_target_relative');
+            $result = $result->withError('target', 'redirect_domain_target_relative');
         }
 
-        return $validation;
+        return $result;
     }
 
     private function pointsToItself(Redirect $redirect): bool
@@ -116,27 +106,51 @@ final readonly class RedirectValidator
             return false;
         }
 
-        return RedirectTable::normalize($redirect->getTargetPath()) === RedirectTable::normalize((string) $redirect->getSource());
+        // The database compares like a request does, regardless of case and accents.
+        return (bool) $this->db->fetchOne(
+            'SELECT CAST(:target AS CHAR) = CAST(:source AS CHAR)',
+            [
+                'target' => $redirect->getTargetPath(),
+                'source' => (string) $redirect->getSource(),
+            ],
+        );
     }
 
     /**
-     * The database compares sources regardless of case and accents, just like a request is matched.
+     * Returns the other exact redirects that answer the same requests. The database compares the sources like a request
+     * does, regardless of case and accents.
+     *
+     * A source is compared with:
+     * - the other domain redirects of its host, on every site
+     * - the exact sources of every other type, on the same site
      *
      * @return list<array{id: int, protected: bool}>
      */
     private function sameSource(Redirect $redirect): array
     {
-        $types = in_array($redirect->getType(), self::PATH_TYPES, true) ? self::PATH_TYPES : [$redirect->getType()];
+        $isDomain = $redirect->getType() === Redirect::TYPE_DOMAIN;
 
         $rows = $this->db->fetchAllAssociative(
             'SELECT id, protected FROM redirects
-                WHERE source = :source AND type IN (:types) AND (regex IS NULL OR regex = 0) AND sourceSite <=> :site AND id <> :id
+                WHERE source = :source AND (type = :domain) = :isDomain AND (regex IS NULL OR regex = 0)
+                    AND (:isDomain = 1 OR sourceSite <=> :site) AND id <> :id
                 ORDER BY protected DESC, id',
-            ['source' => $redirect->getSource(), 'types' => $types, 'site' => $redirect->getSourceSite(), 'id' => (int) $redirect->getId()],
-            ['types' => ArrayParameterType::STRING]
+            [
+                'source' => $redirect->getSource(),
+                'domain' => Redirect::TYPE_DOMAIN,
+                'isDomain' => (int) $isDomain,
+                'site' => $redirect->getSourceSite(),
+                'id' => (int) $redirect->getId(),
+            ],
         );
 
-        return array_map(static fn (array $row): array => ['id' => (int) $row['id'], 'protected' => (bool) $row['protected']], $rows);
+        return array_map(
+            static fn (array $row): array => [
+                'id' => (int) $row['id'],
+                'protected' => (bool) $row['protected'],
+            ],
+            $rows,
+        );
     }
 
     private function redirectFromTarget(Redirect $redirect): ?int
@@ -146,7 +160,9 @@ final readonly class RedirectValidator
         }
 
         $id = $this->db->fetchOne(
-            'SELECT id FROM redirects WHERE source = :target AND type IN (:types) AND (regex IS NULL OR regex = 0) AND active = 1 AND sourceSite <=> :site AND id <> :id',
+            'SELECT id FROM redirects
+                WHERE source = :target AND type IN (:types) AND (regex IS NULL OR regex = 0) AND active = 1
+                    AND sourceSite <=> :site AND id <> :id',
             [
                 'target' => $redirect->getTargetPath(),
                 'types' => self::PATH_TYPES,
