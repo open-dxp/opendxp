@@ -83,12 +83,12 @@ Fields::register();
 Redirects::register();
 ```
 
-| Expectation               | Checks                                                                |
-|---------------------------|-----------------------------------------------------------------------|
-| `toCarryField()`          | A data object carries the value in the field.                         |
-| `toCarryLocalizedField()` | A data object carries the value in one language of a localized field. |
-| `toRedirectTo()`          | A response redirects to the location.                                 |
-| `toComeFrom()`            | A redirect answered the request.                                      |
-| `toComeFromNoRedirect()`  | No redirect answered the request.                                     |
+| Expectation                     | Checks                                                                |
+|---------------------------------|-----------------------------------------------------------------------|
+| `toCarryField()`                | A data object carries the value in the field.                         |
+| `toCarryLocalizedField()`       | A data object carries the value in one language of a localized field. |
+| `toRedirectTo()`                | A response redirects to the location.                                 |
+| `toBeAnsweredBy()`              | A redirect answered the request.                                      |
+| `toBeAnsweredWithoutRedirect()` | No redirect answered the request.                                     |
 
 `Redirects` needs the SEO bundle in the kernel of your test application.

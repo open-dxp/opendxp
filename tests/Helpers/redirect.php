@@ -15,6 +15,8 @@ declare(strict_types=1);
  */
 
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
+use OpenDxp\Bundle\SeoBundle\Redirect\CachedRedirects;
+use OpenDxp\Cache;
 use OpenDxp\Db;
 
 function recordHits(Redirect $redirect, int $hits, int $lastHit): void
@@ -24,4 +26,19 @@ function recordHits(Redirect $redirect, int $hits, int $lastHit): void
         'hits' => $hits,
         'lastHit' => $lastHit,
     ]);
+}
+
+/**
+ * Caches the redirects as a request finds them while the SEO bundle is not installed.
+ */
+function cacheRedirectsAsNotInstalled(): void
+{
+    Cache::getHandler()->removeClearedTags(['redirect']);
+    Cache::save(
+        CachedRedirects::notInstalled(),
+        'system_route_redirect',
+        ['system', 'redirect', 'route'],
+        force: true,
+    );
+    resetServices();
 }

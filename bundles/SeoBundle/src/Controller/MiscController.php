@@ -119,7 +119,10 @@ class MiscController extends UserAwareController
     {
         $this->checkPermission('http_errors');
 
-        Db::get()->executeStatement('DELETE FROM http_error_log WHERE uriHash = ?', [sha1($request->query->getString('uri'), true)]);
+        Db::get()->executeStatement(
+            'DELETE FROM http_error_log WHERE uriHash = ?',
+            [sha1($request->query->getString('uri'), true)],
+        );
 
         return $this->jsonResponse(['success' => true]);
     }

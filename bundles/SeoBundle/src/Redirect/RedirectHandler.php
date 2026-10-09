@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle\Redirect;
 
 use Exception;
+use Generator;
 use OpenDxp\Bundle\SeoBundle\Event\Model\RedirectEvent;
 use OpenDxp\Bundle\SeoBundle\Event\RedirectEvents;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
@@ -45,7 +46,7 @@ final class RedirectHandler
     public function __construct(
         private RequestHelper $requestHelper,
         private SiteResolver $siteResolver,
-        private RedirectTableProvider $tables,
+        private RedirectCache $redirectCache,
         private LoggerInterface $logger,
         private LoggerInterface $redirectLogger,
         private GeneralHostResolver $generalHostResolver,
@@ -62,32 +63,35 @@ final class RedirectHandler
             return null;
         }
 
+        $cachedRedirects = $this->redirectCache->get();
+        if (!$cachedRedirects->installed) {
+            return null;
+        }
+
         // get current site if available
         if (!$sourceSite && $this->siteResolver->isSiteRequest($request)) {
             $sourceSite = $this->siteResolver->getSite($request);
         }
 
-        $table = $this->tables->get();
-        $stage = $override ? RedirectTable::BEFORE_ROUTING : RedirectTable::NOT_FOUND;
         $partResolver = new RedirectUrlPartResolver($request);
         $now = time();
 
-        $exactMatch = $table->exactMatch($stage, $sourceSite?->getId(), $partResolver, $now);
-        $exactMatchIsProtected = !empty($exactMatch['protected']);
+        $redirects = $this->matchingRedirects($request, $override, $sourceSite, $cachedRedirects, $partResolver, $now);
+        foreach ($redirects as [$redirect, $matches]) {
+            // A redirect with priority 99 does not take a request away from a protected redirect.
+            if ($override && !$redirect->isProtected()
+                && $this->matchesProtectedRedirect($request, $sourceSite, $cachedRedirects, $partResolver, $now)
+            ) {
+                return null;
+            }
 
-        if ($exactMatch !== null && $exactMatchIsProtected && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
-            return $response;
+            $response = $this->buildRedirectResponse($redirect, $request, $matches);
+            if ($response instanceof Response) {
+                return $response;
+            }
         }
 
-        if (($response = $this->matchRegularExpressions($table->regularExpressions($stage, true), $request, $partResolver, $sourceSite, $now)) instanceof Response) {
-            return $response;
-        }
-
-        if ($exactMatch !== null && !$exactMatchIsProtected && ($response = $this->buildRedirectResponse($this->hydrate($exactMatch), $request)) instanceof Response) {
-            return $response;
-        }
-
-        return $this->matchRegularExpressions($table->regularExpressions($stage, false), $request, $partResolver, $sourceSite, $now);
+        return null;
     }
 
     /**
@@ -101,26 +105,11 @@ final class RedirectHandler
             return null;
         }
 
-        $row = $this->tables->get()->domainMatch($request->getHost(), time());
+        $now = time();
 
-        return $row === null ? null : $this->buildRedirectResponse($this->hydrate($row), $request);
-    }
-
-    /**
-     * @param list<array<string, mixed>> $rows
-     *
-     * @throws Exception
-     */
-    private function matchRegularExpressions(array $rows, Request $request, RedirectUrlPartResolver $partResolver, ?Site $sourceSite, int $now): ?Response
-    {
-        foreach ($rows as $row) {
-            // this is the case when maintenance did't deactivate the redirect yet but it is already expired
-            if ((!empty($row['expiry']) && (int) $row['expiry'] < $now) || !RedirectTable::hasStarted($row, $now)) {
-                continue;
-            }
-
-            if (($response = $this->matchRegexRedirect($row, $request, $partResolver, $sourceSite)) instanceof Response) {
-                return $response;
+        foreach ($this->redirectCache->get()->domainRedirects[$request->getHost()] ?? [] as $redirect) {
+            if ($this->isInEffect($redirect, $now)) {
+                return $this->buildRedirectResponse($redirect, $request);
             }
         }
 
@@ -128,41 +117,93 @@ final class RedirectHandler
     }
 
     /**
-     * @param array<string, mixed> $row
+     * Yields the redirects that match the request, each with the matches of its regular expression:
+     * - protected redirects before the others
+     * - an exact source before a regular expression
      *
-     * @throws Exception
+     * @return Generator<array{Redirect, array<int|string, string>}>
      */
-    private function matchRegexRedirect(
-        array $row,
+    private function matchingRedirects(
         Request $request,
+        bool $override,
+        ?Site $sourceSite,
+        CachedRedirects $cachedRedirects,
         RedirectUrlPartResolver $partResolver,
-        ?Site $sourceSite = null
-    ): ?Response {
-        $matches = [];
-        if (!@preg_match((string) $row['source'], $partResolver->getRequestUriPart($row['type']), $matches)) {
-            return null;
+        int $now,
+    ): Generator {
+        // Before routing, only a source with priority 99 may redirect. The database is asked only when one exists.
+        $exactMatch = !$override || $cachedRedirects->hasOverridingSources
+            ? Redirect::getByExactMatch($request, $sourceSite, $override)
+            : null;
+
+        foreach ([true, false] as $protected) {
+            if ($exactMatch !== null && $exactMatch->isProtected() === $protected) {
+                yield [$exactMatch, []];
+            }
+
+            foreach ($cachedRedirects->regularExpressions as $redirect) {
+                if ($redirect->isProtected() !== $protected || ($redirect->getPriority() === 99) !== $override) {
+                    continue;
+                }
+
+                $matches = $this->matchRegularExpression($redirect, $partResolver, $sourceSite, $now);
+                if ($matches !== null) {
+                    yield [$redirect, $matches];
+                }
+            }
+        }
+    }
+
+    private function matchesProtectedRedirect(
+        Request $request,
+        ?Site $sourceSite,
+        CachedRedirects $cachedRedirects,
+        RedirectUrlPartResolver $partResolver,
+        int $now,
+    ): bool {
+        if (Redirect::getByExactMatch($request, $sourceSite)?->isProtected()) {
+            return true;
         }
 
-        // check for a site
-        $redirectSite = (int) ($row['sourceSite'] ?? 0);
-        if (($redirectSite || $sourceSite) && (!$sourceSite || $sourceSite->getId() !== $redirectSite)) {
-            return null;
+        foreach ($cachedRedirects->regularExpressions as $redirect) {
+            if ($redirect->isProtected()
+                && $this->matchRegularExpression($redirect, $partResolver, $sourceSite, $now) !== null
+            ) {
+                return true;
+            }
         }
 
-        return $this->buildRedirectResponse($this->hydrate($row), $request, $matches);
+        return false;
     }
 
     /**
-     * Turns a row of the redirect table into the model that Redirect::getById() would load.
+     * Returns the matches of the regular expression, or null when the redirect does not apply to the request.
      *
-     * @param array<string, mixed> $row
+     * @return array<int|string, string>|null
      */
-    private function hydrate(array $row): Redirect
-    {
-        $redirect = new Redirect();
-        $redirect->setValues($row);
+    private function matchRegularExpression(
+        Redirect $redirect,
+        RedirectUrlPartResolver $partResolver,
+        ?Site $sourceSite,
+        int $now,
+    ): ?array {
+        if (!$this->isInEffect($redirect, $now) || $redirect->getSourceSite() !== $sourceSite?->getId()) {
+            return null;
+        }
 
-        return $redirect;
+        $matches = [];
+        $part = $partResolver->getRequestUriPart($redirect->getType());
+
+        return preg_match((string) $redirect->getSource(), $part, $matches) === 1 ? $matches : null;
+    }
+
+    /**
+     * Returns whether the redirect applies at the time. The database applies the same rule to exact sources.
+     */
+    private function isInEffect(Redirect $redirect, int $now): bool
+    {
+        return ($redirect->getValidFrom() === null || $redirect->getValidFrom() <= $now)
+            && ($redirect->getExpiry() === null || $redirect->getExpiry() > $now);
     }
 
     /**
@@ -221,7 +262,8 @@ final class RedirectHandler
         }
 
         if ($redirect->getType() === Redirect::TYPE_DOMAIN && $redirect->getPassThroughPath()) {
-            $url = rtrim($url, '/') . $request->getPathInfo();
+            [$path, $query] = array_pad(explode('?', $url, 2), 2, null);
+            $url = rtrim($path, '/') . $request->getPathInfo() . ($query !== null ? '?' . $query : '');
         }
 
         // pass-through parameters if specified

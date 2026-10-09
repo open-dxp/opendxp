@@ -76,6 +76,9 @@ final class Version20261003120000 extends AbstractMigration
                 $this->addSql(sprintf('ALTER TABLE `redirects` ADD `%s` %s', $column, $definition));
             }
         }
+
+        // The model reads an expiry of 0 as no expiry, but the lookup in the database reads it as expired.
+        $this->addSql('UPDATE `redirects` SET `expiry` = NULL WHERE `expiry` = 0');
     }
 
     private function addProtectedPermission(): void
