@@ -10,15 +10,10 @@ use OpenDxp\Model\Site;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Creates the listing of the redirect grid with the filter, the view and the sorting of the grid.
- *
  * @internal
  */
-final class RedirectGridListingFactory
+final class RedirectListingFactory
 {
-    /**
-     * A redirect without a hit for this many seconds counts as unused.
-     */
     private const int UNUSED_AFTER = 90 * 86400;
 
     public function __construct(private readonly RedirectHandler $redirectHandler)

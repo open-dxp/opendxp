@@ -10,7 +10,7 @@ use OpenDxp\Bundle\AdminBundle\GridExport\GridExportQuery;
 use OpenDxp\Bundle\AdminBundle\GridExport\GridExportSourceInterface;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\Csv;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectGridListingFactory;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory;
 use OpenDxp\Model\User;
 use OpenDxp\Security\CorePermission;
 
@@ -18,7 +18,7 @@ use OpenDxp\Security\CorePermission;
 final class RedirectGridExportSource implements GridExportSourceInterface
 {
     public function __construct(
-        private readonly RedirectGridListingFactory $listingFactory,
+        private readonly RedirectListingFactory $listingFactory,
         private readonly Csv $csv,
     ) {
     }
@@ -46,7 +46,7 @@ final class RedirectGridExportSource implements GridExportSourceInterface
         foreach ($listing->getRedirects() as $redirect) {
             yield array_combine(
                 $this->csv->getExportColumns(),
-                array_map($this->formatValue(...), $this->csv->createExportRecord($redirect)),
+                array_map($this->formatValue(...), $this->csv->getExportValues($redirect)),
             );
         }
     }

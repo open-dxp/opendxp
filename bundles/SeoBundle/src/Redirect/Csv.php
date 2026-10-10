@@ -72,8 +72,6 @@ class Csv
     }
 
     /**
-     * Returns the columns of a CSV file that the import reads.
-     *
      * @return list<string>
      */
     public function getExportColumns(): array
@@ -82,11 +80,9 @@ class Csv
     }
 
     /**
-     * Returns the values of a redirect in the order of the export columns.
-     *
      * @return list<mixed>
      */
-    public function createExportRecord(Redirect $redirect): array
+    public function getExportValues(Redirect $redirect): array
     {
         $target = $redirect->getTarget();
 

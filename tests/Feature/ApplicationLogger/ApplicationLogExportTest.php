@@ -41,7 +41,7 @@ it('exports the entries that the filters of the grid find', function () {
     $file = GridExports::export($this->admin, 'application-log', ['component' => 'import']);
 
     expect($file)
-        ->column('Message')
+        ->getColumn('Message')
         ->toBe(['Import failed']);
 });
 
@@ -59,7 +59,7 @@ it('exports the time of an entry in the timezone of the user', function () {
     );
 
     expect($file)
-        ->column('Timestamp')
+        ->getColumn('Timestamp')
         ->toBe(['2026-10-09 14:00:00']);
 });
 
@@ -73,6 +73,6 @@ it('exports the type and the id of a related element together, as the grid shows
     $file = GridExports::export($this->admin, 'application-log', ['component' => 'related']);
 
     expect($file)
-        ->column('Related object')
+        ->getColumn('Related object')
         ->toBe(['document 42']);
 });

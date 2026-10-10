@@ -21,7 +21,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Exception;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\Csv;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectGridListingFactory;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
@@ -61,7 +61,7 @@ class RedirectsController extends UserAwareController
     #[Route('/list', name: 'opendxp_bundle_seo_redirects_redirects', methods: ['POST'])]
     public function redirectsAction(
         Request $request,
-        RedirectGridListingFactory $listingFactory,
+        RedirectListingFactory $listingFactory,
         RedirectValidator $validator,
     ): JsonResponse {
         // check permission for both update and listing

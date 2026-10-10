@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\ApplicationLoggerBundle\Controller;
 
 use Carbon\Carbon;
-use OpenDxp\Bundle\ApplicationLoggerBundle\Grid\LogGridQueryFactory;
+use OpenDxp\Bundle\ApplicationLoggerBundle\Grid\ApplicationLogQueryFactory;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
 use OpenDxp\Controller\KernelControllerEventInterface;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
@@ -46,7 +46,7 @@ class LogController extends UserAwareController implements KernelControllerEvent
     }
 
     #[Route('/log/show', name: 'opendxp_admin_bundle_applicationlogger_log_show', methods: ['POST'])]
-    public function showAction(Request $request, LogGridQueryFactory $queryFactory): JsonResponse
+    public function showAction(Request $request, ApplicationLogQueryFactory $queryFactory): JsonResponse
     {
         $requestSource = $request->request;
 
