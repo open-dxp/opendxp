@@ -22,6 +22,7 @@ data.
 | `DocumentLinkFactory`         | `Document\Link`                |
 | `DocumentPageFactory`         | `Document\Page`                |
 | `DocumentSnippetFactory`      | `Document\Snippet`             |
+| `EmailLogFactory`             | `Tool\Email\Log`               |
 | `GlossaryFactory`             | `Glossary`                     |
 | `QuantityValueUnitFactory`    | `QuantityValue\Unit`           |
 | `RedirectFactory`             | `Redirect`                     |
@@ -55,9 +56,11 @@ A state returns the factory, so states chain. These states belong to a kind of m
 
 These states belong to one factory:
 
+- `AssetImageFactory`: `withMetadata()`.
 - `AssetVideoFactory`: `convertedTo()`.
 - `DocumentHardlinkFactory`: `withSource()`.
 - `DocumentLinkFactory`: `withTarget()`.
+- `EmailLogFactory`: `forDocument()`, `sentAt()`.
 - `RedirectFactory`: `forDomain()`, `matching()`, `forSite()`, `toSite()`, `toDocument()`,
   `withStatusCode()`, `withPriority()`, `passingThroughPath()`, `passingThroughParameters()`,
   `protected()`, `inactive()`, `started()`, `scheduled()`, `expiring()`, `expired()`.
