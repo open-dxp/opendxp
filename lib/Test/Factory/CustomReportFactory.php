@@ -17,11 +17,9 @@ final class CustomReportFactory extends AbstractSavingFactory
     }
 
     /**
-     * Reads the rows of the report with an SQL query. The grid and the export show every column of the list.
-     *
      * @param list<string> $columns
      */
-    public function selecting(string $sql, array $columns): static
+    public function withSqlDataSource(string $sql, array $columns): static
     {
         return $this->with([
             'dataSourceConfig' => [

@@ -59,7 +59,7 @@ These states belong to one factory:
 
 - `AssetImageFactory`: `withMetadata()`.
 - `AssetVideoFactory`: `convertedTo()`.
-- `CustomReportFactory`: `selecting()`.
+- `CustomReportFactory`: `withSqlDataSource()`.
 - `DocumentHardlinkFactory`: `withSource()`.
 - `DocumentLinkFactory`: `withTarget()`.
 - `EmailLogFactory`: `forDocument()`, `sentAt()`.

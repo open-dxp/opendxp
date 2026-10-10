@@ -11,18 +11,15 @@ use OpenDxp\Bundle\AdminBundle\GridExport\GridExportColumn;
 use OpenDxp\Bundle\AdminBundle\GridExport\GridExportColumnType;
 use OpenDxp\Bundle\AdminBundle\GridExport\GridExportQuery;
 use OpenDxp\Bundle\AdminBundle\GridExport\GridExportSourceInterface;
-use OpenDxp\Bundle\ApplicationLoggerBundle\Grid\LogGridQueryFactory;
+use OpenDxp\Bundle\ApplicationLoggerBundle\Grid\ApplicationLogQueryFactory;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Security\ApplicationLoggerPermission;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * Exports the entries of the application log that the filters of the log grid find. The archive tables stay out.
- */
 #[AsGridExportSource(name: 'application-log', permission: ApplicationLoggerPermission::ApplicationLogging->value)]
-final class LogGridExportSource implements GridExportSourceInterface
+final class ApplicationLogGridExportSource implements GridExportSourceInterface
 {
     public function __construct(
-        private readonly LogGridQueryFactory $queryFactory,
+        private readonly ApplicationLogQueryFactory $queryFactory,
         private readonly TranslatorInterface $translator,
     ) {
     }

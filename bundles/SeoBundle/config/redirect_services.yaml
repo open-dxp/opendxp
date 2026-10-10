@@ -13,7 +13,7 @@ services:
 
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator: ~
 
-    OpenDxp\Bundle\SeoBundle\Redirect\RedirectGridListingFactory: ~
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory: ~
 
     #
     # REDIRECTS Export

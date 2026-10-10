@@ -8,9 +8,6 @@ use OpenDxp\Bundle\AdminBundle\Helper\QueryParams;
 use stdClass;
 
 /**
- * Holds the sorting and the filters of a report grid.
- * Without a sorting of the grid, the sorting of the report applies.
- *
  * @internal
  */
 final readonly class ReportDataQuery

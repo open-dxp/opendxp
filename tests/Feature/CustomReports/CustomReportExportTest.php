@@ -17,19 +17,19 @@ beforeEach(function () {
 
 it('exports the rows of a report', function () {
     $report = CustomReportFactory::new()
-        ->selecting("SELECT 'Ada' AS person UNION SELECT 'Grace'", ['person'])
+        ->withSqlDataSource("SELECT 'Ada' AS person UNION SELECT 'Grace'", ['person'])
         ->create();
 
     $file = GridExports::export($this->admin, 'custom-reports', ['name' => $report->getName()]);
 
     expect($file)
-        ->column('person')
+        ->getColumn('person')
         ->toBe(['Ada', 'Grace']);
 });
 
 it('exports the rows in the sorting of the grid', function () {
     $report = CustomReportFactory::new()
-        ->selecting("SELECT 'Ada' AS person UNION SELECT 'Grace'", ['person'])
+        ->withSqlDataSource("SELECT 'Ada' AS person UNION SELECT 'Grace'", ['person'])
         ->create();
     $parameters = [
         'name' => $report->getName(),
@@ -39,25 +39,25 @@ it('exports the rows in the sorting of the grid', function () {
     $file = GridExports::export($this->admin, 'custom-reports', $parameters);
 
     expect($file)
-        ->column('person')
+        ->getColumn('person')
         ->toBe(['Grace', 'Ada']);
 });
 
 it('exports only the columns that the report marks for the export', function () {
     $report = CustomReportFactory::new()
-        ->selecting("SELECT 'Ada' AS person, 'secret' AS password", ['person'])
+        ->withSqlDataSource("SELECT 'Ada' AS person, 'secret' AS password", ['person'])
         ->create();
 
     $file = GridExports::export($this->admin, 'custom-reports', ['name' => $report->getName()]);
 
     expect($file)
-        ->header()
+        ->getHeader()
         ->toBe(['person']);
 });
 
 it('refuses a report that is not shared with the user', function () {
     $report = CustomReportFactory::new()
-        ->selecting("SELECT 'Ada' AS person", ['person'])
+        ->withSqlDataSource("SELECT 'Ada' AS person", ['person'])
         ->create(['shareGlobally' => false]);
     $user = UserFactory::new()
         ->withPermissions('reports')

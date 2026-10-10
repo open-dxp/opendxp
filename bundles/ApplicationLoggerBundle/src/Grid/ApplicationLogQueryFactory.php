@@ -14,7 +14,7 @@ use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
 /**
  * @internal
  */
-final class LogGridQueryFactory
+final class ApplicationLogQueryFactory
 {
     public function __construct(private readonly Connection $db)
     {
