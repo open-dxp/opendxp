@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\EventListener\Frontend;
 
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
 use OpenDxp\Config;
+use OpenDxp\Http\Request\Host\GeneralHostProviderInterface;
 use OpenDxp\Http\Request\Host\GeneralHostResolver;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Http\Request\Resolver\SiteResolver;
@@ -179,7 +180,7 @@ class RoutingListener implements EventSubscriberInterface
     {
         $systemConfig = SystemSettingsConfig::get();
         if (isset($systemConfig['general']['redirect_to_maindomain']) && $systemConfig['general']['redirect_to_maindomain'] === true) {
-            $domain = $this->generalHostResolver->resolve(['source' => $request]);
+            $domain = $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
             if ($domain !== null && $domain !== $request->getHost()) {
                 return $domain;
             }
