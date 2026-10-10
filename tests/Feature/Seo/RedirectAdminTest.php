@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Seo;
 
+use OpenDxp\Bundle\AdminBundle\Test\GridExport\GridExports;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\RedirectFactory;
@@ -88,11 +89,12 @@ function listedRedirects(User $user): array
     return filteredRedirects($user, []);
 }
 
-function exportedRedirects(User $user): string
+/**
+ * @param array<string, mixed> $parameters
+ */
+function exportedRedirects(User $user, array $parameters = []): string
 {
-    return Browser::actingAs($user)
-        ->visit('/admin/bundle/seo/redirects/csv-export')
-        ->content();
+    return GridExports::export($user, 'redirects', $parameters)->content;
 }
 
 /**
@@ -544,6 +546,40 @@ it('exports a protected redirect for a user who may manage it', function () {
     $export = exportedRedirects($this->seoSpecialist);
 
     expect($export)->toContain($protected->getSource());
+});
+
+it('exports the redirects of the view that the grid shows', function () {
+    $active = RedirectFactory::createOne(['active' => true]);
+    $inactive = RedirectFactory::createOne(['active' => false]);
+
+    $export = exportedRedirects($this->editor, ['show' => 'active']);
+
+    expect($export)
+        ->toContain($active->getSource())
+        ->not->toContain($inactive->getSource());
+});
+
+it('exports a redirect that the import reads back', function () {
+    $redirect = RedirectFactory::createOne([
+        'source' => '/exported',
+        'target' => '/target',
+        'statusCode' => 302,
+    ]);
+    $export = exportedRedirects($this->seoSpecialist);
+    $redirect->delete();
+
+    $result = importRedirects($this->seoSpecialist, explode("\n", trim($export)));
+
+    $imported = new Redirect\Listing();
+    $imported->setCondition('source = ?', ['/exported']);
+    expect($result)
+        ->created
+        ->toBe(1)
+        ->and($imported->load()[0])
+        ->getTarget()
+        ->toBe('/target')
+        ->getStatusCode()
+        ->toBe(302);
 });
 
 it('keeps an editor from importing a protected redirect', function () {

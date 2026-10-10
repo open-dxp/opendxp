@@ -79,12 +79,6 @@ parameters:
 			path: bundles/CoreBundle/src/EventListener/Traits/PreviewRequestTrait.php
 
 		-
-			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: bundles/CustomReportsBundle/src/Controller/Reports/CustomReportController.php
-
-		-
 			message: '#^File is missing a "declare\(strict_types\=1\)" declaration\.$#'
 			identifier: ergebnis.declareStrictTypes
 			count: 1

@@ -1465,42 +1465,6 @@ class Service extends Model\Element\Service
         return $event->getArgument('objectData');
     }
 
-    /**
-     * @param string[] $fields
-     *
-     * @internal
-     */
-    public static function getCsvData(string $requestedLanguage, LocaleServiceInterface $localeService, Listing $list, array $fields, string $header = '', bool $addTitles = true, array $context = []): array
-    {
-        $data = [];
-        Logger::debug('objects in list:' . $list->getCount());
-
-        if ($fields) {
-            $helperDefinitions = GridData\DataObject::getHelperDefinitions();
-
-            $objects = $list->getObjects();
-            foreach ($objects as $object) {
-                if (!$object instanceof Concrete) {
-                    continue;
-                }
-                if ($addTitles && $data === []) {
-                    $tmp = [];
-                    $mapped = self::getCsvDataForObject($object, $requestedLanguage, $fields, $helperDefinitions, $localeService, $header, true, $context);
-                    foreach (array_keys($mapped) as $key) {
-                        $tmp[] = '"' . $key . '"';
-                    }
-                    $data[] = $tmp;
-                }
-
-                $rowData = self::getCsvDataForObject($object, $requestedLanguage, $fields, $helperDefinitions, $localeService, $header, false, $context);
-                $rowData = self::escapeCsvRecord($rowData);
-                $data[] = $rowData;
-            }
-        }
-
-        return $data;
-    }
-
     protected static function mapFieldname(array $field, array $helperDefinitions, string $header): string
     {
         if ($header === 'no_header') {

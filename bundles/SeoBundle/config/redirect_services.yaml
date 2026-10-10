@@ -13,8 +13,12 @@ services:
 
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator: ~
 
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory: ~
+
     #
     # REDIRECTS Export
     #
 
     OpenDxp\Bundle\SeoBundle\Redirect\Csv: ~
+
+    OpenDxp\Bundle\SeoBundle\GridExport\RedirectGridExportSource: ~

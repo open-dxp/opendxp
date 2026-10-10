@@ -9,34 +9,36 @@ how to use them and how to write factories of your own.
 Every factory is in `OpenDxp\Test\Factory`. A factory fills every value a test leaves out with random
 data.
 
-| Factory                       | Builds                         |
-|-------------------------------|--------------------------------|
-| `AssetDocumentFactory`        | `Asset\Document`               |
-| `AssetFolderFactory`          | `Asset\Folder`                 |
-| `AssetImageFactory`           | `Asset\Image`                  |
-| `AssetVideoFactory`           | `Asset\Video`                  |
-| `DataObjectFolderFactory`     | `DataObject\Folder`            |
-| `DocumentEmailFactory`        | `Document\Email`               |
-| `DocumentFolderFactory`       | `Document\Folder`              |
-| `DocumentHardlinkFactory`     | `Document\Hardlink`            |
-| `DocumentLinkFactory`         | `Document\Link`                |
-| `DocumentPageFactory`         | `Document\Page`                |
-| `DocumentSnippetFactory`      | `Document\Snippet`             |
-| `GlossaryFactory`             | `Glossary`                     |
-| `QuantityValueUnitFactory`    | `QuantityValue\Unit`           |
-| `RedirectFactory`             | `Redirect`                     |
-| `SiteFactory`                 | `Site`                         |
-| `StaticRouteFactory`          | `Staticroute`                  |
-| `TagFactory`                  | `Element\Tag`                  |
-| `ThumbnailConfigFactory`      | `Asset\Image\Thumbnail\Config` |
-| `TranslationFactory`          | `Translation`                  |
-| `UserFactory`                 | `User`                         |
-| `UserRoleFactory`             | `User\Role`                    |
-| `VideoThumbnailConfigFactory` | `Asset\Video\Thumbnail\Config` |
-| `WebsiteSettingFactory`       | `WebsiteSetting`               |
+| Factory                       | Builds                            |
+|-------------------------------|-----------------------------------|
+| `AssetDocumentFactory`        | `Asset\Document`                  |
+| `AssetFolderFactory`          | `Asset\Folder`                    |
+| `AssetImageFactory`           | `Asset\Image`                     |
+| `AssetVideoFactory`           | `Asset\Video`                     |
+| `CustomReportFactory`         | `CustomReportsBundle\Tool\Config` |
+| `DataObjectFolderFactory`     | `DataObject\Folder`               |
+| `DocumentEmailFactory`        | `Document\Email`                  |
+| `DocumentFolderFactory`       | `Document\Folder`                 |
+| `DocumentHardlinkFactory`     | `Document\Hardlink`               |
+| `DocumentLinkFactory`         | `Document\Link`                   |
+| `DocumentPageFactory`         | `Document\Page`                   |
+| `DocumentSnippetFactory`      | `Document\Snippet`                |
+| `EmailLogFactory`             | `Tool\Email\Log`                  |
+| `GlossaryFactory`             | `Glossary`                        |
+| `QuantityValueUnitFactory`    | `QuantityValue\Unit`              |
+| `RedirectFactory`             | `Redirect`                        |
+| `SiteFactory`                 | `Site`                            |
+| `StaticRouteFactory`          | `Staticroute`                     |
+| `TagFactory`                  | `Element\Tag`                     |
+| `ThumbnailConfigFactory`      | `Asset\Image\Thumbnail\Config`    |
+| `TranslationFactory`          | `Translation`                     |
+| `UserFactory`                 | `User`                            |
+| `UserRoleFactory`             | `User\Role`                       |
+| `VideoThumbnailConfigFactory` | `Asset\Video\Thumbnail\Config`    |
+| `WebsiteSettingFactory`       | `WebsiteSetting`                  |
 
-`GlossaryFactory`, `RedirectFactory` and `StaticRouteFactory` build models of the glossary, SEO and
-static routes bundles. They need that bundle in the kernel of your test application.
+`CustomReportFactory`, `GlossaryFactory`, `RedirectFactory` and `StaticRouteFactory` build models of the custom
+reports, glossary, SEO and static routes bundles. They need that bundle in the kernel of your test application.
 
 ## States
 
@@ -55,9 +57,12 @@ A state returns the factory, so states chain. These states belong to a kind of m
 
 These states belong to one factory:
 
+- `AssetImageFactory`: `withMetadata()`.
 - `AssetVideoFactory`: `convertedTo()`.
+- `CustomReportFactory`: `withSqlDataSource()`.
 - `DocumentHardlinkFactory`: `withSource()`.
 - `DocumentLinkFactory`: `withTarget()`.
+- `EmailLogFactory`: `forDocument()`, `sentAt()`.
 - `RedirectFactory`: `forDomain()`, `matching()`, `forSite()`, `toSite()`, `toDocument()`,
   `withStatusCode()`, `withPriority()`, `passingThroughPath()`, `passingThroughParameters()`,
   `protected()`, `inactive()`, `started()`, `scheduled()`, `expiring()`, `expired()`.

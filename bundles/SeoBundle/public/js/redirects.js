@@ -478,11 +478,9 @@ opendxp.settings.redirects = Class.create({
                     }]
                 },
                 {
-                    text: t("export_csv"),
+                    text: t("export"),
                     iconCls: "opendxp_icon_export",
-                    handler: function () {
-                        opendxp.helpers.download(Routing.generate('opendxp_bundle_seo_redirects_csvexport'));
-                    }
+                    handler: this.startExport.bind(this)
                 },
                 {
                     text: t("import_csv"),
@@ -716,6 +714,21 @@ opendxp.settings.redirects = Class.create({
                 this.store.remove(selection);
             }
         }.bind(this));
+    },
+
+    startExport: function () {
+        new opendxp.element.gridexport.runner({
+            source: "redirects",
+            getParameters: function () {
+                return opendxp.element.gridexport.runner.getStoreParameters(this.store);
+            }.bind(this),
+            filters: {filter: "", show: ""},
+            getSelectedIds: function () {
+                return this.grid.getSelectionModel().getSelection().map(function (record) {
+                    return record.get("id");
+                });
+            }.bind(this)
+        }).start();
     },
 
     cleanupExpiredRedirects: function () {

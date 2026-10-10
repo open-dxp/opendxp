@@ -17,9 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\ApplicationLoggerBundle\Controller;
 
 use Carbon\Carbon;
-use DateTime;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Types;
+use OpenDxp\Bundle\ApplicationLoggerBundle\Grid\ApplicationLogQueryFactory;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
 use OpenDxp\Controller\KernelControllerEventInterface;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
@@ -48,58 +46,16 @@ class LogController extends UserAwareController implements KernelControllerEvent
     }
 
     #[Route('/log/show', name: 'opendxp_admin_bundle_applicationlogger_log_show', methods: ['POST'])]
-    public function showAction(Request $request, Connection $db): JsonResponse
+    public function showAction(Request $request, ApplicationLogQueryFactory $queryFactory): JsonResponse
     {
         $requestSource = $request->request;
 
         $this->checkPermission('application_logging');
 
-        $qb = $db->createQueryBuilder();
+        $qb = $queryFactory->create([...$request->request->all(), ...$request->query->all()]);
         $qb
-            ->select('*')
-            ->from(ApplicationLoggerDb::TABLE_NAME)
             ->setFirstResult($requestSource->getInt('start', 0))
             ->setMaxResults($requestSource->getInt('limit', 50));
-
-        $qb->orderBy('id', 'DESC');
-
-        $sortingSettings = \OpenDxp\Bundle\AdminBundle\Helper\QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
-
-        if ($sortingSettings['orderKey']) {
-            $qb->orderBy($db->quoteIdentifier($sortingSettings['orderKey']), $sortingSettings['order']);
-        }
-
-        $priority = $requestSource->getString('priority');
-        if (!empty($priority)) {
-            $qb->andWhere($qb->expr()->eq('priority', ':priority'));
-            $qb->setParameter('priority', $priority);
-        }
-
-        if ($fromDate = $this->parseDateObject($requestSource->getString('fromDate'), $requestSource->getString('fromTime'))) {
-            $qb->andWhere('timestamp > :fromDate');
-            $qb->setParameter('fromDate', $fromDate, Types::DATETIME_MUTABLE);
-        }
-
-        if ($toDate = $this->parseDateObject($requestSource->getString('toDate'), $requestSource->getString('toTime'))) {
-            $qb->andWhere('timestamp <= :toDate');
-            $qb->setParameter('toDate', $toDate, Types::DATETIME_MUTABLE);
-        }
-
-        if (!empty($component = $requestSource->getString('component'))) {
-            $qb->andWhere('component = ' . $qb->createNamedParameter($component));
-        }
-
-        if (!empty($relatedObject = $requestSource->getString('relatedobject'))) {
-            $qb->andWhere('relatedobject = ' . $qb->createNamedParameter($relatedObject));
-        }
-
-        if (!empty($message = $requestSource->getString('message'))) {
-            $qb->andWhere('message LIKE ' . $qb->createNamedParameter('%' . $message . '%'));
-        }
-
-        if (!empty($pid = $requestSource->getInt('pid'))) {
-            $qb->andWhere('pid LIKE ' . $qb->createNamedParameter('%' . $pid . '%'));
-        }
 
         $totalQb = clone $qb;
         $totalQb->setMaxResults(null)
@@ -140,26 +96,6 @@ class LogController extends UserAwareController implements KernelControllerEvent
             'p_totalCount' => $total,
             'p_results' => $logEntries,
         ]);
-    }
-
-    private function parseDateObject(?string $date, ?string $time): ?DateTime
-    {
-        if (empty($date)) {
-            return null;
-        }
-
-        $pattern = '/^(?P<date>\d{4}\-\d{2}\-\d{2})T(?P<time>\d{2}:\d{2}:\d{2})$/';
-
-        $dateTime = null;
-        if (preg_match($pattern, $date, $dateMatches)) {
-            if (!empty($time) && preg_match($pattern, $time, $timeMatches)) {
-                $dateTime = new DateTime(sprintf('%sT%s', $dateMatches['date'], $timeMatches['time']));
-            } else {
-                $dateTime = new DateTime($date);
-            }
-        }
-
-        return $dateTime;
     }
 
     #[Route('/log/priority-json', name: 'opendxp_admin_bundle_applicationlogger_log_priorityjson', methods: ['GET'])]
