@@ -722,6 +722,7 @@ opendxp.settings.redirects = Class.create({
             getParameters: function () {
                 return opendxp.element.gridexport.runner.getStoreParameters(this.store);
             }.bind(this),
+            filters: {filter: "", show: ""},
             getSelectedIds: function () {
                 return this.grid.getSelectionModel().getSelection().map(function (record) {
                     return record.get("id");
