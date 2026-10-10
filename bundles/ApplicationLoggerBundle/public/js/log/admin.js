@@ -429,6 +429,11 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
         this.searchParams.component = null;
         this.searchParams.message = null;
         this.searchParams.pid = null;
+
+        if (!this.config.localMode) {
+            this.searchParams.relatedobject = null;
+        }
+
         this.store.baseParams = this.searchParams;
         this.store.reload({
             params: this.searchParams
@@ -437,11 +442,27 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
 
 
     startExport: function () {
+        var filters = {
+            fromDate: null,
+            fromTime: null,
+            toDate: null,
+            toTime: null,
+            priority: null,
+            component: null,
+            message: null,
+            pid: null
+        };
+
+        if (!this.config.localMode) {
+            filters.relatedobject = null;
+        }
+
         new opendxp.element.gridexport.runner({
             source: 'application-log',
             getParameters: function () {
                 return opendxp.element.gridexport.runner.getStoreParameters(this.store);
-            }.bind(this)
+            }.bind(this),
+            filters: filters
         }).start();
     },
 

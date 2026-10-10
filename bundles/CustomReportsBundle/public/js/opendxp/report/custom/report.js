@@ -533,7 +533,8 @@ opendxp.bundle.customreports.custom.report = Class.create(opendxp.bundle.customr
                     sort: parameters.sort,
                     drillDownFilters: this.drillDownFilters
                 };
-            }.bind(this)
+            }.bind(this),
+            filters: {filter: "", drillDownFilters: {}}
         }).start();
     }
 });
