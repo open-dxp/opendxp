@@ -287,9 +287,9 @@ class Service extends Model\Element\Service
      *
      * @internal
      */
-    public static function expandGridColumnForExport(array $helperDefinitions, string $key): ?array
+    public static function expandGridColumnForExport(array $helperDefinitions, string $key, array $context = []): ?array
     {
-        $config = self::getConfigForHelperDefinition($helperDefinitions, $key);
+        $config = self::getConfigForHelperDefinition($helperDefinitions, $key, $context);
         if ($config instanceof AbstractOperator && $config->expandLocales()) {
             return $config->getValidLanguages();
         }
@@ -1408,17 +1408,27 @@ class Service extends Model\Element\Service
         $objectData = [];
         $mappedFieldnames = [];
         $currentLocale = $localeService->getLocale();
+        // The grid operators get only the user.
+        // The rest of the context belongs to the listeners of POST_CSV_ITEM_EXPORT.
+        $operatorContext = array_intersect_key($context, ['user' => true]);
 
         foreach ($fields as $field) {
             $key = $field['key'];
             if (static::isHelperGridColumnConfig($key)) {
-                $validLanguages = static::expandGridColumnForExport($helperDefinitions, $key);
+                $validLanguages = static::expandGridColumnForExport($helperDefinitions, $key, $operatorContext);
                 if ($validLanguages) {
                     $mappedFieldnameBase = self::mapFieldname($field, $helperDefinitions, $header);
 
                     foreach ($validLanguages as $validLanguage) {
                         $localeService->setLocale($validLanguage);
-                        $fieldData = self::getCsvFieldData($currentLocale, $key, $object, $validLanguage, $helperDefinitions);
+                        $fieldData = self::getCsvFieldData(
+                            $currentLocale,
+                            $key,
+                            $object,
+                            $validLanguage,
+                            $helperDefinitions,
+                            $operatorContext,
+                        );
                         $localizedFieldKey = $key . '-' . $validLanguage;
                         if ($returnMappedFieldNames && !isset($mappedFieldnames[$localizedFieldKey])) {
                             $mappedFieldnames[$localizedFieldKey] = $mappedFieldnameBase . '-' . $validLanguage;
@@ -1433,7 +1443,14 @@ class Service extends Model\Element\Service
                 }
             }
 
-            $fieldData = self::getCsvFieldData($requestedLanguage, $key, $object, $requestedLanguage, $helperDefinitions);
+            $fieldData = self::getCsvFieldData(
+                $requestedLanguage,
+                $key,
+                $object,
+                $requestedLanguage,
+                $helperDefinitions,
+                $operatorContext,
+            );
             if ($returnMappedFieldNames && !isset($mappedFieldnames[$key])) {
                 $mappedFieldnames[$key] = self::mapFieldname($field, $helperDefinitions, $header);
 
@@ -1544,7 +1561,14 @@ class Service extends Model\Element\Service
     /**
      * @internal
      */
-    protected static function getCsvFieldData(string $fallbackLanguage, string $field, Concrete $object, string $requestedLanguage, array $helperDefinitions): string
+    protected static function getCsvFieldData(
+        string $fallbackLanguage,
+        string $field,
+        Concrete $object,
+        string $requestedLanguage,
+        array $helperDefinitions,
+        array $context = [],
+    ): string
     {
         //check if field is systemfield
         $systemFieldMap = [
@@ -1572,7 +1596,12 @@ class Service extends Model\Element\Service
         // check for objects bricks and localized fields
         if (static::isHelperGridColumnConfig($field)) {
             if ($helperDefinitions[$field]) {
-                $cellValue = static::calculateCellValue($object, $helperDefinitions, $field, ['language' => $requestedLanguage]);
+                $cellValue = static::calculateCellValue(
+                    $object,
+                    $helperDefinitions,
+                    $field,
+                    [...$context, 'language' => $requestedLanguage],
+                );
 
                 // Mimic grid concatenation behavior
                 if (is_array($cellValue)) {
