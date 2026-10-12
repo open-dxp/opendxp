@@ -1,6 +1,7 @@
 # Upgrade Notes
 
 ## OpenDXP 1.5.0
+- Feature: `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
 - Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
 - Chore: Replace Codeception with Pest and `open-dxp/test-foundation`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
