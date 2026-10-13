@@ -21,6 +21,7 @@ use Doctrine\DBAL\Exception;
 use LogicException;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRun;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Extractor\JobRunExtractorInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecutionEngineMessageInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
@@ -30,6 +31,7 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Storage\JobRunArtifactStorage;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Constants\TableConstants;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\ErrorHandlingMode;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\SelectionProcessingMode;
+use OpenDxp\Model\Element\ElementDescriptor;
 use OpenDxp\Model\Exception\NotFoundException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Envelope;
@@ -57,6 +59,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
         private readonly ExecutionContextInterface $executionContext,
         private readonly JobRunRepository $jobRunRepository,
         private readonly JobRunErrorLogRepositoryInterface $jobRunErrorLogRepository,
+        private readonly JobRunExtractorInterface $jobRunExtractor,
         private readonly JobRunArtifactStorage $jobRunArtifactStorage,
         private readonly PendingOperations $pendingOperations,
         private readonly Connection $db,
@@ -254,7 +257,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
             return;
         }
 
-        $this->genericExecutionEngineLogger->info("[JobRun {$jobRun->getId()}]: JobRun cancelled.");
+        $this->genericExecutionEngineLogger->info(sprintf('[JobRun %d]: JobRun cancelled.', $jobRun->getId()));
         $jobRun->setState(JobRunStates::CANCELLED);
         $this->jobRunRepository->updateLogLocalizedWithDomain(
             $jobRun,
@@ -285,7 +288,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
         }
 
         $this->jobRunRepository->delete($jobRun);
-        $this->genericExecutionEngineLogger->info("[JobRun {$jobRunId}]: JobRun deleted.");
+        $this->genericExecutionEngineLogger->info(sprintf('[JobRun %d]: JobRun deleted.', $jobRunId));
     }
 
     public function isRunning(int $jobRunId): bool
@@ -336,7 +339,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
      */
     private function addError(JobRun $jobRun, ?int $elementId, Throwable $throwable): void
     {
-        $this->genericExecutionEngineLogger->error("[JobRun {$jobRun->getId()}]: " . $throwable);
+        $this->genericExecutionEngineLogger->error(sprintf('[JobRun %d]: %s', $jobRun->getId(), $throwable));
 
         $errorMessage = $throwable->getMessage();
         if ($this->isDev) {
@@ -344,7 +347,6 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
         }
 
         $this->jobRunErrorLogRepository->createFromJobRun($jobRun, $elementId, $errorMessage);
-        $this->jobRunRepository->updateLog($jobRun, $errorMessage);
     }
 
     /**
@@ -368,7 +370,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
 
         $jobRun->setCurrentStep(null);
         $this->jobRunRepository->updateLogLocalizedWithDomain($jobRun, $message, $this->getLogParams($jobRun));
-        $this->genericExecutionEngineLogger->info("[JobRun {$jobRun->getId()}]: JobRun ended.");
+        $this->genericExecutionEngineLogger->info(sprintf('[JobRun %d]: JobRun ended.', $jobRun->getId()));
 
         $this->deleteDisposableJobRun($jobRun);
     }
@@ -380,7 +382,7 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
     {
         $jobRun->setState(JobRunStates::FAILED);
         $this->jobRunRepository->updateLogLocalizedWithDomain($jobRun, $message, $params);
-        $this->genericExecutionEngineLogger->info("[JobRun {$jobRun->getId()}]: JobRun failed.");
+        $this->genericExecutionEngineLogger->info(sprintf('[JobRun %d]: JobRun failed.', $jobRun->getId()));
 
         $this->deleteDisposableJobRun($jobRun);
     }
@@ -425,23 +427,45 @@ final class JobExecutionAgent implements JobExecutionAgentInterface
             return;
         }
 
-        $this->genericExecutionEngineLogger->info(
-            "[JobRun {$jobRun->getId()}]: Starting job step {$jobRun->getCurrentStep()} of Job '{$job->getName()}'."
-        );
-
-        $selectedElements = $job->getSelectedElements();
-        if ($selectedElements === [] || $this->getSelectionProcessingMode($jobRun) === SelectionProcessingMode::ONCE) {
-            $this->dispatchMessage(new $messageClass($jobRun->getId(), $jobRun->getCurrentStep()));
+        if (!$this->jobRunExtractor->checkStepCondition($jobRun, $jobStep)) {
+            $this->jobRunRepository->updateLogLocalizedWithDomain($jobRun, 'gee_middleware_step_condition_not_met', [
+                '%jobName%' => $job->getName(),
+                '%stepId%' => $jobRun->getCurrentStep(),
+                '%stepName%' => $jobStep->getName(),
+            ]);
         } else {
-            foreach ($selectedElements as $selectedElement) {
-                $this->dispatchMessage(
-                    new $messageClass($jobRun->getId(), $jobRun->getCurrentStep(), $selectedElement),
-                );
-            }
+            $this->dispatchMessagesOfStep($jobRun, $job->getName(), $messageClass, $job->getSelectedElements());
         }
 
         if ($this->pendingOperations->remove($jobRun->getId())) {
             $this->continueJobRun($jobRun->getId());
+        }
+    }
+
+    /**
+     * @param list<ElementDescriptor> $selectedElements
+     */
+    private function dispatchMessagesOfStep(
+        JobRun $jobRun,
+        string $jobName,
+        string $messageClass,
+        array $selectedElements,
+    ): void {
+        $this->genericExecutionEngineLogger->info(sprintf(
+            "[JobRun %d]: Starting job step %d of Job '%s'.",
+            $jobRun->getId(),
+            $jobRun->getCurrentStep(),
+            $jobName,
+        ));
+
+        if ($selectedElements === [] || $this->getSelectionProcessingMode($jobRun) === SelectionProcessingMode::ONCE) {
+            $this->dispatchMessage(new $messageClass($jobRun->getId(), $jobRun->getCurrentStep()));
+
+            return;
+        }
+
+        foreach ($selectedElements as $selectedElement) {
+            $this->dispatchMessage(new $messageClass($jobRun->getId(), $jobRun->getCurrentStep(), $selectedElement));
         }
     }
 

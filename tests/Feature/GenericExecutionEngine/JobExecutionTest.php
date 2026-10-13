@@ -10,6 +10,7 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Event\JobRunStateChangedEvent;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Constants\TableConstants;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\SelectionProcessingMode;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\ValueObjects\LogLine;
 use OpenDxp\Db;
 use OpenDxp\TestFoundation\Container;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -54,6 +55,29 @@ it('skips a step whose condition is not met', function () {
         ->toBe(JobRunStates::FINISHED)
         ->getContext()
         ->toBe(['notes' => ['1:1']]);
+});
+
+it('logs a skipped step once for all its elements', function () {
+    $jobRun = $this->agent->startJobExecution(createJob([1, 2, 3], [createNoteStep(condition: 'false')]), null);
+
+    $this->consumeJobMessages();
+
+    $skips = array_filter(
+        $this->loadJobRun($jobRun)->getLogs(),
+        static fn (LogLine $line): bool => str_contains($line->getLogLine(), 'Skipping step'),
+    );
+
+    expect($skips)->toHaveCount(1);
+});
+
+it('keeps the errors of messages out of the log of the job run', function () {
+    $jobRun = $this->agent->startJobExecution(createJob([1, 2], [createNoteStep(failFor: [2])]), null);
+
+    $this->consumeJobMessages();
+
+    $lines = array_map(static fn (LogLine $line): string => $line->getLogLine(), $this->loadJobRun($jobRun)->getLogs());
+
+    expect(implode("\n", $lines))->not->toContain('The element 2 fails.');
 });
 
 it('counts an element once when its step condition fails only after the step was dispatched', function () {

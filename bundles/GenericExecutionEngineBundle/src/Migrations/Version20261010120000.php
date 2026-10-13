@@ -29,6 +29,8 @@ final class Version20261010120000 extends AbstractMigration
             TableConstants::JOB_RUN_TABLE,
         ));
 
+        $this->addSql(sprintf('ALTER TABLE %s MODIFY log MEDIUMTEXT DEFAULT NULL', TableConstants::JOB_RUN_TABLE));
+
         $this->addSql(sprintf(
             'ALTER TABLE %s MODIFY stepNumber INT UNSIGNED DEFAULT NULL',
             TableConstants::ERROR_LOG_TABLE,

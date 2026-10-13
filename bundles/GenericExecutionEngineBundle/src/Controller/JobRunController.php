@@ -7,9 +7,11 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Controller;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgent;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRun;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRunErrorLog;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Grid\JobRunGridInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunFilter;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunErrorLogRepositoryInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepository;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Security\GenericExecutionEnginePermission;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Storage\JobRunArtifactStorage;
@@ -43,6 +45,7 @@ final class JobRunController extends UserAwareController
     public function __construct(
         private readonly JobExecutionAgent $jobExecutionAgent,
         private readonly JobRunRepository $jobRunRepository,
+        private readonly JobRunErrorLogRepositoryInterface $jobRunErrorLogRepository,
         private readonly JobRunArtifactStorage $jobRunArtifactStorage,
         private readonly ExecutionContextInterface $executionContext,
         private readonly JobRunGridInterface $jobRunGrid,
@@ -110,6 +113,27 @@ final class JobRunController extends UserAwareController
         }
 
         return $this->jsonResponse(['jobNames' => array_values($jobNames)]);
+    }
+
+    #[Route('/errors', name: 'opendxp_bundle_genericexecutionengine_jobrun_errors', methods: ['GET'])]
+    public function errorsAction(Request $request): JsonResponse
+    {
+        $jobRunId = $this->getVisibleJobRun($request->query->getInt('id'))->getId();
+        $errors = $this->jobRunErrorLogRepository->getLogsByJobRunId(
+            $jobRunId,
+            orderBy: ['id' => 'ASC'],
+            limit: min(max($request->query->getInt('limit', self::PANEL_LIMIT), 1), self::PANEL_LIMIT),
+            offset: max($request->query->getInt('start'), 0),
+        );
+
+        return $this->jsonResponse([
+            'errors' => array_map(static fn (JobRunErrorLog $error): array => [
+                'step' => $error->getStepNumber(),
+                'elementId' => $error->getElementId(),
+                'message' => $error->getErrorMessage(),
+            ], $errors),
+            'total' => $this->jobRunErrorLogRepository->getTotalCountByJobRunId($jobRunId),
+        ]);
     }
 
     #[Route('/cancel', name: 'opendxp_bundle_genericexecutionengine_jobrun_cancel', methods: ['POST'])]

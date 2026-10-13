@@ -38,10 +38,7 @@ An icon in the sidebar shows the own job runs to every user, also without a perm
 - The admin reports the end of each job run with a notification. A job run started from this browser tab hands over
   its files as a download at once.
 
-:::caution
-
-The engine dispatches the messages of a job through the transport `opendxp_generic_execution_engine`. Run a worker for
-this transport, for example `bin/console messenger:consume opendxp_generic_execution_engine`. Without a worker, a job
-does not start its steps.
-
-:::
+> [!CAUTION]
+> The engine dispatches the messages of a job through the transport `opendxp_generic_execution_engine`. Run a worker
+> for this transport, for example `bin/console messenger:consume opendxp_generic_execution_engine`. Without a worker,
+> a job does not start its steps.

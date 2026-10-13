@@ -80,17 +80,19 @@ final readonly class JobRunExtractor implements JobRunExtractorInterface
 
     public function checkCondition(GenericExecutionEngineMessageInterface $message): bool
     {
-        $jobRun = $this->getJobRun($message);
-        $jobRunContext = $jobRun->getContext();
-        $currentStep = $this->getJobStep($message);
-        $currentStepCondition = $currentStep->getCondition();
-        $contentVariables = $this->extractContentVariables($jobRunContext, $this->getEnvironmentData($jobRun));
+        return $this->checkStepCondition($this->getJobRun($message), $this->getJobStep($message));
+    }
 
-        if ($currentStepCondition === '') {
+    public function checkStepCondition(JobRun $jobRun, JobStepInterface $jobStep): bool
+    {
+        if ($jobStep->getCondition() === '') {
             return true;
         }
 
-        return $this->symfonyExpressionService->evaluate($currentStepCondition, $contentVariables);
+        return $this->symfonyExpressionService->evaluate(
+            $jobStep->getCondition(),
+            $this->extractContentVariables($jobRun->getContext(), $this->getEnvironmentData($jobRun)),
+        );
     }
 
     private function extractContentVariables(

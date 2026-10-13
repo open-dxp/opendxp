@@ -57,7 +57,7 @@ class JobRun
     #[ORM\Column(type: 'text', length: 65535, nullable: true)]
     private ?string $currentMessage = null;
 
-    #[ORM\Column(type: 'text', length: 65535, nullable: true)]
+    #[ORM\Column(type: 'text', length: 16777215, nullable: true)]
     private ?string $log = null;
 
     private ?SerializerInterface $serializer = null;

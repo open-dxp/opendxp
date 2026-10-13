@@ -124,7 +124,27 @@ it('hides a job run from a user who may not see it', function (string $method, s
     'a cancel' => ['POST', 'cancel'],
     'a delete' => ['DELETE', 'delete'],
     'a download' => ['GET', 'download'],
+    'the errors' => ['GET', 'errors'],
 ]);
+
+it('lists the errors of a job run', function () {
+    $jobRun = $this->agent->startJobExecution(createJob([1, 2], [createNoteStep(failFor: [2])]), $this->owner->getId());
+    $this->consumeJobMessages();
+
+    $answer = json_decode(
+        sendJobRunRequest($this->owner, 'GET', 'errors', ['id' => $jobRun->getId()])->content(),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+
+    expect($answer['total'])
+        ->toBe(1)
+        ->and($answer['errors'][0])
+        ->elementId
+        ->toBe(2)
+        ->message
+        ->toStartWith('The element 2 fails.');
+});
 
 it('refuses to delete a running job run', function () {
     sendJobRunRequest($this->owner, 'DELETE', 'delete', ['id' => $this->jobRun->getId()])->assertStatus(409);

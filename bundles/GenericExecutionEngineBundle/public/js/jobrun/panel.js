@@ -352,8 +352,6 @@ opendxp.bundle.genericexecutionengine.jobrun.panel = Class.create({
     },
 
     showLog: function (record) {
-        const localeDateTime = opendxp.globalmanager.get('localeDateTime');
-
         new Ext.window.Window({
             title: Ext.util.Format.htmlEncode(record.get('job_name')) + ' (' + record.get('id') + ')',
             iconCls: 'opendxp_icon_job_runs',
@@ -362,32 +360,91 @@ opendxp.bundle.genericexecutionengine.jobrun.panel = Class.create({
             modal: true,
             layout: 'fit',
             items: [{
-                xtype: 'grid',
+                xtype: 'tabpanel',
                 border: false,
-                store: Ext.create('Ext.data.Store', {
-                    fields: ['createdAt', 'logMessage'],
-                    data: record.get('log') || []
-                }),
-                viewConfig: {
-                    enableTextSelection: true,
-                    emptyText: t('no_items_found'),
-                    deferEmptyText: false
-                },
-                columns: [{
-                    text: t('gee_job_run_time'),
-                    dataIndex: 'createdAt',
-                    width: 150,
-                    renderer: function (createdAt) {
-                        return Ext.Date.format(new Date(createdAt), localeDateTime.getDateTimeFormat());
-                    }
-                }, {
-                    text: t('gee_job_run_log'),
-                    dataIndex: 'logMessage',
-                    flex: 1,
-                    cellWrap: true,
-                    renderer: Ext.util.Format.htmlEncode
-                }]
+                items: [this.createLogGrid(record), this.createErrorGrid(record)]
             }]
         }).show();
+    },
+
+    createLogGrid: function (record) {
+        const localeDateTime = opendxp.globalmanager.get('localeDateTime');
+
+        return {
+            xtype: 'grid',
+            title: t('gee_job_run_log'),
+            border: false,
+            store: Ext.create('Ext.data.Store', {
+                fields: ['createdAt', 'logMessage'],
+                data: record.get('log') || []
+            }),
+            viewConfig: {
+                enableTextSelection: true,
+                emptyText: t('no_items_found'),
+                deferEmptyText: false
+            },
+            columns: [{
+                text: t('gee_job_run_time'),
+                dataIndex: 'createdAt',
+                width: 150,
+                renderer: function (createdAt) {
+                    return Ext.Date.format(new Date(createdAt), localeDateTime.getDateTimeFormat());
+                }
+            }, {
+                text: t('gee_job_run_message'),
+                dataIndex: 'logMessage',
+                flex: 1,
+                cellWrap: true,
+                renderer: Ext.util.Format.htmlEncode
+            }]
+        };
+    },
+
+    createErrorGrid: function (record) {
+        const store = Ext.create('Ext.data.Store', {
+            pageSize: opendxp.helpers.grid.getDefaultPageSize(),
+            proxy: {
+                type: 'ajax',
+                url: Routing.generate('opendxp_bundle_genericexecutionengine_jobrun_errors'),
+                extraParams: {
+                    id: record.get('id')
+                },
+                reader: {
+                    type: 'json',
+                    rootProperty: 'errors',
+                    totalProperty: 'total'
+                }
+            },
+            fields: ['step', 'elementId', 'message'],
+            autoLoad: true
+        });
+
+        return {
+            xtype: 'grid',
+            title: t('gee_job_run_errors'),
+            border: false,
+            store: store,
+            viewConfig: {
+                enableTextSelection: true,
+                emptyText: t('no_items_found'),
+                deferEmptyText: false
+            },
+            columns: [{
+                text: t('gee_job_run_step'),
+                dataIndex: 'step',
+                width: 80
+            }, {
+                text: t('gee_job_run_element'),
+                dataIndex: 'elementId',
+                width: 100
+            }, {
+                text: t('gee_job_run_message'),
+                dataIndex: 'message',
+                flex: 1,
+                cellWrap: true,
+                renderer: Ext.util.Format.htmlEncode
+            }],
+            bbar: opendxp.helpers.grid.buildDefaultPagingToolbar(store, {hideSelection: true})
+        };
     }
 });

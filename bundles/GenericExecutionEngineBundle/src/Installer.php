@@ -114,7 +114,7 @@ final class Installer extends SettingsStoreAwareInstaller
                     'length' => 65535,
                 ]
             );
-            $jobRunTable->addColumn('log', 'text', ['notnull' => false, 'length' => 65535]);
+            $jobRunTable->addColumn('log', 'text', ['notnull' => false, 'length' => 16777215]);
             $jobRunTable->addColumn(
                 'serializedJob',
                 'text',

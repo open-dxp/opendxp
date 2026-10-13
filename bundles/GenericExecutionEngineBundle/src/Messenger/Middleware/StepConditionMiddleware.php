@@ -42,36 +42,15 @@ final readonly class StepConditionMiddleware implements MiddlewareInterface
                 return $stack->next()->handle($envelope, $stack);
             }
 
-            $this->logToJobRun(
-                $message,
-            );
+            $this->genericExecutionEngineLogger->info(sprintf(
+                '[JobRun %d]: Skipping a message of step %d. The condition of the step is no longer met.',
+                $message->getJobRunId(),
+                $message->getCurrentJobStep(),
+            ));
 
             return $envelope;
         }
 
         return $stack->next()->handle($envelope, $stack);
-    }
-
-    private function logToJobRun(
-        GenericExecutionEngineMessageInterface $message
-    ): void {
-        $jobRun = $this->jobRunExtractor->getJobRun($message);
-        $jobName = $jobRun->getJob()?->getName();
-        $stepId = $message->getCurrentJobStep();
-        $stepName = $jobRun->getJob()?->getSteps()[$stepId]->getName();
-        $params['%jobName%'] = $jobName;
-        $params['%stepId%'] = $stepId;
-        $params['%stepName%'] = $stepName;
-
-        $this->jobRunExtractor->logMessageToJobRun(
-            $jobRun,
-            'gee_middleware_step_condition_not_met',
-            $params
-        );
-
-        $this->genericExecutionEngineLogger->info(
-            "[JobRun {$jobRun->getId()}]:
-            Skipping step $stepName with id $stepId of Job '$jobName', job condition not met."
-        );
     }
 }

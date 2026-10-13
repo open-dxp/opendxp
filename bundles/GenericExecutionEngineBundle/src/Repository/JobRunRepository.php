@@ -133,7 +133,7 @@ final readonly class JobRunRepository implements JobRunRepositoryInterface
             ]
         );
 
-        $this->genericExecutionEngineLogger->info("[JobRun {$jobRun->getId()}]: " . $message);
+        $this->genericExecutionEngineLogger->info(sprintf('[JobRun %d]: %s', $jobRun->getId(), $message));
 
         $this->openDxpEntityManager->refresh($jobRun);
     }
@@ -148,7 +148,7 @@ final readonly class JobRunRepository implements JobRunRepositoryInterface
 
         $jobRun = $this->openDxpEntityManager->getRepository(JobRun::class)->findOneBy($params);
         if (!$jobRun) {
-            throw new NotFoundException("JobRun with id $id not found.");
+            throw new NotFoundException(sprintf('JobRun with id %d not found.', $id));
         }
 
         if ($forceReload) {

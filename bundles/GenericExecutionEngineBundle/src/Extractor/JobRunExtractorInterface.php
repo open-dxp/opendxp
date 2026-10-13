@@ -21,6 +21,11 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecut
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobStepInterface;
 use OpenDxp\Model\Element\ElementInterface;
 
+/**
+ * Adds the method checkStepCondition() in 2.0.
+ *
+ * @method bool checkStepCondition(JobRun $jobRun, JobStepInterface $jobStep)
+ */
 interface JobRunExtractorInterface
 {
     public const string ASSET_TYPE = 'asset';

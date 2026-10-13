@@ -170,7 +170,7 @@ abstract class AbstractAutomationActionHandler
         }
         $envVariableKey = $matches[1][0];
         if (!array_key_exists($envVariableKey, $variables)) {
-            throw new NotFoundException("Missing environment variable $envVariableKey");
+            throw new NotFoundException(sprintf('Missing environment variable %s', $envVariableKey));
         }
 
         return $variables[$envVariableKey];
@@ -182,7 +182,7 @@ abstract class AbstractAutomationActionHandler
     ): mixed {
         $config = $this->getCurrentJobStepConfig($message);
         if (!array_key_exists($key, $config)) {
-            throw new NotFoundException("Missing configuration $key");
+            throw new NotFoundException(sprintf('Missing configuration %s', $key));
         }
 
         $value = $config[$key];

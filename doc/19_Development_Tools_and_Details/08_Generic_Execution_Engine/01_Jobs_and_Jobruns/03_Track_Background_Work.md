@@ -161,13 +161,10 @@ final readonly class ImportProductHandler
 - A message with `null` belongs to no job run. Its handler gets `null` and runs as without the engine.
 - A handler that reports its own progress with `setTotal()` or `advance()` replaces the count of the messages.
 
-:::info
-
-Your bus may use `doctrine_transaction`. Put the `JobTrackingMiddleware` before it. A handler in the transaction
-dispatches the messages of the job run with `DispatchAfterCurrentBusStamp`. Messenger then sends them after the commit
-and not at all after a rollback. See "Transactional Messages" in the Symfony documentation.
-
-:::
+> [!NOTE]
+> Your bus may use `doctrine_transaction`. Put the `JobTrackingMiddleware` before it. A handler in the transaction
+> dispatches the messages of the job run with `DispatchAfterCurrentBusStamp`. Messenger then sends them after the
+> commit and not at all after a rollback. See "Transactional Messages" in the Symfony documentation.
 
 ## Set your own rules
 
