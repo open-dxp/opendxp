@@ -15,6 +15,8 @@ use OpenDxp\Tool\Storage;
  */
 final readonly class JobRunArtifactStorage
 {
+    private const string DIRECTORY = 'job-run';
+
     private FilesystemOperator $storage;
 
     public function __construct(Storage $storage)
@@ -50,9 +52,29 @@ final readonly class JobRunArtifactStorage
         $this->storage->deleteDirectory($this->getDirectory($jobRunId));
     }
 
+    public function deleteAll(): void
+    {
+        $this->storage->deleteDirectory(self::DIRECTORY);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getJobRunIds(): array
+    {
+        $jobRunIds = [];
+        foreach ($this->storage->listContents(self::DIRECTORY) as $item) {
+            if ($item->isDir()) {
+                $jobRunIds[] = (int) basename($item->path());
+            }
+        }
+
+        return $jobRunIds;
+    }
+
     private function getDirectory(int $jobRunId): string
     {
-        return sprintf('job-run/%d', $jobRunId);
+        return sprintf('%s/%d', self::DIRECTORY, $jobRunId);
     }
 
     private function getPath(int $jobRunId, string $filename): string

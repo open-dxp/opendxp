@@ -7,6 +7,7 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Maintenance;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgent;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepository;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Storage\JobRunArtifactStorage;
 use OpenDxp\Maintenance\TaskInterface;
 use RuntimeException;
 use Symfony\Component\Clock\Clock;
@@ -22,6 +23,7 @@ final readonly class JobRunCleanupTask implements TaskInterface
         private JobExecutionAgent $jobExecutionAgent,
         private JobRunRepository $jobRunRepository,
         private ExecutionContextInterface $executionContext,
+        private JobRunArtifactStorage $jobRunArtifactStorage,
         private ?int $deleteJobRunsOlderThan = null,
         private ?int $failInactiveJobRunsAfter = null,
     ) {
@@ -53,6 +55,13 @@ final readonly class JobRunCleanupTask implements TaskInterface
             $endedBefore = $now - $this->deleteJobRunsOlderThan;
             foreach ($this->jobRunRepository->getIdsEndedBefore($endedBefore) as $jobRunId) {
                 $this->jobExecutionAgent->deleteJobRun($jobRunId);
+            }
+        }
+
+        // Code can still write the artifacts of a job run that a user deleted in the meantime.
+        foreach ($this->jobRunArtifactStorage->getJobRunIds() as $jobRunId) {
+            if ($this->jobRunRepository->findState($jobRunId) === null) {
+                $this->jobRunArtifactStorage->delete($jobRunId);
             }
         }
     }

@@ -80,6 +80,15 @@ it('deletes an ended job run after the time of the configuration', function () {
     expect($this->repository->findState($jobRunId))->toBeNull();
 });
 
+it('deletes the artifacts of a job run that no longer exists', function () {
+    $artifactStorage = Container::get(JobRunArtifactStorage::class);
+    $artifactStorage->save(999999, new JobRunArtifact('orphan.csv', createArtifactStream('a;b')));
+
+    Container::get(JobRunCleanupTask::class)->execute();
+
+    expect($artifactStorage->has(999999, 'orphan.csv'))->toBeFalse();
+});
+
 it('fails a running job run without activity after the time of the configuration', function () {
     $jobRun = Container::get(JobExecutionAgentInterface::class)
         ->startJobExecution(createJob([1], [createNoteStep()]), null);

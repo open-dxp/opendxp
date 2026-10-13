@@ -23,6 +23,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRun;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Security\GenericExecutionEnginePermission;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Storage\JobRunArtifactStorage;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Constants\TableConstants;
 use OpenDxp\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use OpenDxp\Security\PermissionAttribute;
@@ -38,6 +39,7 @@ final class Installer extends SettingsStoreAwareInstaller
 
     public function __construct(
         private readonly Connection $db,
+        private readonly JobRunArtifactStorage $jobRunArtifactStorage,
         BundleInterface $bundle,
     ) {
         parent::__construct($bundle);
@@ -89,6 +91,7 @@ final class Installer extends SettingsStoreAwareInstaller
         $this->removeUserPermission($currentSchema);
         $this->removeLogTable($currentSchema);
         $this->removeJobRunTable($currentSchema);
+        $this->jobRunArtifactStorage->deleteAll();
     }
 
     /**
