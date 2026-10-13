@@ -1,11 +1,9 @@
 # URLs Based on Redirects
-:::caution
 
-To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpSeoBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpSeoBundle`
 
 ## Introduction
 Redirects are a useful feature of OpenDXP for directing the user to the correct pages - may it be for marketing URLs, 

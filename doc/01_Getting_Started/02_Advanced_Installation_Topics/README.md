@@ -20,11 +20,8 @@ docker compose exec php vendor/bin/opendxp-install --admin-username=admin --admi
   --no-interaction
 ```
 
-:::info
-
-The `--no-interaction` flag will prevent any interactive prompts.
-
-:::
+> [!NOTE]
+> The `--no-interaction` flag will prevent any interactive prompts.
 
 To avoid having to pass sensitive data (e.g. DB password) as command line option, you can also set each parameter as env
 variable. See `./vendor/bin/opendxp-install` for details. Example:

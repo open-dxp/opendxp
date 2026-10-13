@@ -1,11 +1,9 @@
 # Robots.txt
-:::caution
 
-To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpSeoBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpSeoBundle`
 
 Robots.txt files can be generated on a per-site basis.
 

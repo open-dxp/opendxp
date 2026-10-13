@@ -1,11 +1,9 @@
 # Custom Reports
-:::caution
 
-To use this feature, please enable the `OpenDxpCustomReportsBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpCustomReportsBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpCustomReportsBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpCustomReportsBundle`
 
 Custom Reports is a report engine directly integrated into OpenDXP. With Custom Reports it is possible to create tabular
 or chart reports (or both) with further filtering and export functionality.

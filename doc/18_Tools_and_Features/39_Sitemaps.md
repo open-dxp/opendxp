@@ -1,11 +1,9 @@
 # Sitemaps
-:::caution
 
-To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpSeoBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpSeoBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpSeoBundle`
 
 OpenDXP includes the [`presta/sitemap-bundle`](https://github.com/prestaconcept/PrestaSitemapBundle) which adds a simple,
 yet powerful API to generate XML sitemaps. Have a look at the bundle documentation on details how the bundle works and how

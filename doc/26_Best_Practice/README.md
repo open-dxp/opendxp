@@ -1,10 +1,7 @@
 # Best Practice
 
-:::info
-
-Please note that due to the updating of this part of the documentation, some information is only valid for previous versions of OpenDXP.
-
-:::
+> [!NOTE]
+> Please note that due to the updating of this part of the documentation, some information is only valid for previous versions of OpenDXP.
 
 First of all, OpenDXP is more or less a standard Symfony application, so most of the [Symfony 
 best-practices](https://symfony.com/doc/current/best_practices.html) also apply for OpenDXP. 

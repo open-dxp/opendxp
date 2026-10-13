@@ -1,11 +1,9 @@
 # Glossary
-:::caution
 
-To use this feature, please enable the `OpenDxpGlossaryBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpGlossaryBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpGlossaryBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpGlossaryBundle`
 
 ## General
 
