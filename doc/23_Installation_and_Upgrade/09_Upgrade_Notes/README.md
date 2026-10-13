@@ -62,7 +62,19 @@
 - Bugfix: `JobRunErrorLogRepository::getLogsByJobRunId()` returns the logs of the given step.
 - Bugfix: The engine sends a job message without routing to its own transport. The message no longer runs in the request.
 - Deprecated: `JobExecutionAgentInterface::continueJobMessageExecution()`. The engine counts the messages of a job run itself.
-- Chore: The Generic Execution Engine adds columns to its job runs and allows an error log without a step. Run the migrations.
+
+> [!IMPORTANT]
+> Wait until no job run of the Generic Execution Engine is running before you update. The update marks running job
+> runs as failed.
+>
+> Run the migrations after the update:
+>
+> ```bash
+> bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\CoreBundle
+> bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\GenericExecutionEngineBundle
+> ```
+>
+> The second command changes nothing while the Generic Execution Engine is not installed.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)
