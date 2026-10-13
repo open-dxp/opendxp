@@ -1,0 +1,51 @@
+imports:
+    - { resource: test.yaml }
+
+services:
+    OpenDxp\Tests\Application\GenericExecutionEngine\:
+        resource: '../GenericExecutionEngine/*Handler.php'
+        autowire: true
+        tags:
+            - { name: messenger.message_handler, bus: generic.execution.engine.bus }
+
+    OpenDxp\Tests\Application\GenericExecutionEngine\BranchHandler:
+        autowire: true
+        tags:
+            - { name: messenger.message_handler, bus: job_run_test.bus }
+
+    OpenDxp\Tests\Application\GenericExecutionEngine\ProductImport:
+        autowire: true
+        public: true
+
+    OpenDxp\Tests\Application\GenericExecutionEngine\Notes:
+        public: true
+
+framework:
+    messenger:
+        buses:
+            # A bus of a project, without the JobTrackingMiddleware.
+            job_run_test.bus: ~
+        transports:
+            # A test works through the messages itself, so they stay in memory instead of a table.
+            opendxp_generic_execution_engine:
+                dsn: 'in-memory://'
+            sync: 'sync://'
+            job_run_retry:
+                dsn: 'in-memory://'
+                retry_strategy:
+                    max_retries: 1
+                    delay: 0
+        routing:
+            OpenDxp\Tests\Application\GenericExecutionEngine\BranchMessage: opendxp_generic_execution_engine
+            OpenDxp\Tests\Application\GenericExecutionEngine\RetryOnceMessage: job_run_retry
+
+opendxp_generic_execution_engine:
+    delete_job_runs_older_than: 604800
+    fail_inactive_job_runs_after: 3600
+    execution_context:
+        stop_on_first_error:
+            translations_domain: admin
+            error_handling: stop_on_first_error
+        disposable:
+            translations_domain: admin
+            disposable: true

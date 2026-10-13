@@ -50,6 +50,7 @@ final class Installer extends SettingsStoreAwareInstaller
     public function install(): void
     {
         $this->installBundle();
+        $this->markMigrationsAsExecuted();
         parent::install();
     }
 
@@ -60,6 +61,7 @@ final class Installer extends SettingsStoreAwareInstaller
     public function uninstall(): void
     {
         $this->uninstallBundle();
+        $this->markMigrationsAsNotExecuted();
         parent::uninstall();
     }
 
@@ -137,6 +139,26 @@ final class Installer extends SettingsStoreAwareInstaller
                 'notnull' => true,
                 'unsigned' => true,
             ]);
+            $jobRunTable->addColumn('jobName', 'string', ['notnull' => false, 'length' => 255]);
+            $jobRunTable->addColumn('pendingOperations', 'integer', ['notnull' => true, 'default' => 0]);
+            $jobRunTable->addColumn('dispatchedMessages', 'integer', [
+                'notnull' => true,
+                'unsigned' => true,
+                'default' => 0,
+            ]);
+            $jobRunTable->addColumn('succeededMessages', 'integer', [
+                'notnull' => true,
+                'unsigned' => true,
+                'default' => 0,
+            ]);
+            $jobRunTable->addColumn('failedMessages', 'integer', [
+                'notnull' => true,
+                'unsigned' => true,
+                'default' => 0,
+            ]);
+            $jobRunTable->addColumn('total', 'integer', ['notnull' => false, 'unsigned' => true]);
+            $jobRunTable->addColumn('progress', 'integer', ['notnull' => true, 'unsigned' => true, 'default' => 0]);
+            $jobRunTable->addColumn('result', 'json', ['notnull' => false]);
 
             $jobRunTable->addForeignKeyConstraint(
                 'users',
@@ -166,7 +188,7 @@ final class Installer extends SettingsStoreAwareInstaller
             'unsigned' => true,
         ]);
         $logTable->addColumn('jobRunId', 'integer', ['notnull' => true, 'unsigned' => true]);
-        $logTable->addColumn('stepNumber', 'integer', ['notnull' => true, 'unsigned' => true]);
+        $logTable->addColumn('stepNumber', 'integer', ['notnull' => false, 'unsigned' => true]);
         $logTable->addColumn('elementId', 'integer', ['notnull' => false, 'unsigned' => true]);
         $logTable->addColumn('errorMessage', 'text', ['notnull' => false, 'length' => 65535]);
 

@@ -18,6 +18,7 @@ use OpenDxp\Test\Expectation\Fields;
 use OpenDxp\Test\Expectation\Redirects;
 use OpenDxp\TestFoundation\TestCase;
 use OpenDxp\Tests\TestCase\CacheTestCase;
+use OpenDxp\Tests\TestCase\GenericExecutionEngineTestCase;
 use OpenDxp\Tests\TestCase\HttpCacheTestCase;
 use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
@@ -57,6 +58,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/WebsiteSetting',
 );
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
+pest()->extend(GenericExecutionEngineTestCase::class)->in('Feature/GenericExecutionEngine');
 pest()->extend(HttpCacheTestCase::class)->in('Feature/HttpCache');
 pest()->extend(InstallerTestCase::class)->in('Feature/Installer');
 pest()->extend(SchemaTestCase::class)->in('Feature/Schema');

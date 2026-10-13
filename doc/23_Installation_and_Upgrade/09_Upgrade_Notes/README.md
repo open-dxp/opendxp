@@ -49,6 +49,20 @@
 - Bugfix: A messenger worker sends the HTTP cache invalidations after each message, so a page that a scheduled task publishes reaches the proxy right away.
 - Bugfix: A Twig placeholder in a link of the WYSIWYG editor keeps its spaces, for example `mailto:{{ email }}`. A link that already holds `{{%20email%20}}` is repaired the next time its editor is saved.
 - Chore: Remove the Studio flag of notifications. `OpenDxp\Model\Notification::isStudio()` and `setIsStudio()` are gone.
+- Feature: The Generic Execution Engine tracks the background work of a project as job runs. See [Track Background Work](../../19_Development_Tools_and_Details/08_Generic_Execution_Engine/01_Jobs_and_Jobruns/03_Track_Background_Work.md).
+- Feature: A job run hands over a result with files. An execution context with `disposable: true` deletes its job runs once their result is picked up. See [Configuration](../../19_Development_Tools_and_Details/08_Generic_Execution_Engine/02_Configuration/02_Configuration.md).
+- Feature: The maintenance deletes ended job runs after `delete_job_runs_older_than` and fails silent job runs after `fail_inactive_job_runs_after`. Both are off by default.
+- Improvement: `stop_on_first_error` fails only the job run with the error. It no longer stops every Messenger worker.
+- Feature: The admin lists job runs under "Extras" > "Background Jobs". Users with the permission see the own job runs, cancel them and download their files.
+- Improvement: A step of a job also waits for the messages of its handlers, when they implement `JobRunMessageInterface`.
+- Bugfix: Parallel workers no longer lose the progress of a job step.
+- Bugfix: A message that its step condition skips counts once.
+- Bugfix: `JobExecutionAgentInterface::rerunJobRun()` starts the job in the execution context of the old job run.
+- Bugfix: A job run without owner no longer breaks `JobRunStateChangedEvent`.
+- Bugfix: `JobRunErrorLogRepository::getLogsByJobRunId()` returns the logs of the given step.
+- Bugfix: The engine sends a job message without routing to its own transport. The message no longer runs in the request.
+- Deprecated: `JobExecutionAgentInterface::continueJobMessageExecution()`. The engine counts the messages of a job run itself.
+- Chore: The Generic Execution Engine adds columns to its job runs and allows an error log without a step. Run the migrations.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

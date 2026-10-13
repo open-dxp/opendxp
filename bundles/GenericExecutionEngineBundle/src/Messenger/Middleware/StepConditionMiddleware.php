@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware;
 
-use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgentInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Extractor\JobRunExtractorInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecutionEngineMessageInterface;
 use Psr\Log\LoggerInterface;
@@ -30,7 +29,6 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 final readonly class StepConditionMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private JobExecutionAgentInterface $jobExecutionAgent,
         private JobRunExtractorInterface $jobRunExtractor,
         private LoggerInterface $genericExecutionEngineLogger,
     ) {
@@ -47,8 +45,6 @@ final readonly class StepConditionMiddleware implements MiddlewareInterface
             $this->logToJobRun(
                 $message,
             );
-
-            $this->jobExecutionAgent->continueJobMessageExecution($message);
 
             return $envelope;
         }

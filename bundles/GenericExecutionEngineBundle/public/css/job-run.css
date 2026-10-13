@@ -1,0 +1,146 @@
+.opendxp_job_run_state {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    line-height: 16px;
+}
+
+.opendxp_job_run_state_running {
+    background-color: var(--color-opendxp-blue-c);
+    color: var(--color-opendxp-blue-a);
+}
+
+.opendxp_job_run_state_finished {
+    background-color: var(--color-opendxp-green-c);
+    color: var(--color-opendxp-green-a);
+}
+
+.opendxp_job_run_state_finished_with_errors {
+    background-color: var(--color-opendxp-neutral-i);
+    color: var(--color-opendxp-orange-a);
+}
+
+.opendxp_job_run_state_failed {
+    background-color: var(--color-opendxp-red-c);
+    color: var(--color-opendxp-red-a);
+}
+
+.opendxp_job_run_state_cancelled {
+    background-color: var(--color-opendxp-neutral-h);
+    color: var(--color-opendxp-neutral-e);
+}
+
+.opendxp_job_run_progress_count {
+    background: transparent;
+    border-color: transparent;
+}
+
+#opendxp_job_runs {
+    cursor: pointer;
+    position: absolute;
+    width: 60px;
+    height: 48px;
+    bottom: 144px;
+}
+
+#opendxp_job_runs:hover {
+    background-color: var(--color-opendxp-neutral-b);
+}
+
+.opendxp_job_runs_icon {
+    position: absolute;
+    width: 60px;
+    height: 48px;
+    background-color: var(--color-opendxp-white);
+    mask: url(/bundles/opendxpadmin/img/flat-white-icons/serial_tasks.svg) no-repeat center / 24px 24px;
+    -webkit-mask: url(/bundles/opendxpadmin/img/flat-white-icons/serial_tasks.svg) no-repeat center / 24px 24px;
+}
+
+#opendxp_job_runs_count {
+    position: absolute;
+    top: 6px;
+    right: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    min-height: 18px;
+    padding: 4px 5px;
+    border-radius: 100px;
+    background-color: var(--color-opendxp-primary-a);
+    color: var(--color-opendxp-neutral-a);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* The job runs sit above the notifications, so the elements above both move up by one row. */
+.opendxp_job_runs_above_notification #opendxp_job_runs {
+    bottom: 192px;
+}
+
+.opendxp_job_runs_above_notification #opendxp_loading.loaded {
+    bottom: 283px;
+}
+
+.opendxp_job_runs_above_notification #opendxp_status {
+    bottom: 298px;
+}
+
+.x-body.opendxp_job_runs_above_notification .sf-toolbar-closed .sf-toolbar-toggle-button {
+    bottom: 243px;
+}
+
+.opendxp_job_runs_menu .opendxp_job_runs_row.x-menu-item-cmp {
+    margin: 0;
+}
+
+.opendxp_job_runs_row {
+    padding: 10px 8px 10px 14px;
+    border-bottom: 1px solid var(--color-opendxp-neutral-b);
+}
+
+.opendxp_job_runs_menu .opendxp_job_runs_row_action {
+    background: transparent;
+    border-color: transparent;
+}
+
+.opendxp_job_runs_menu .opendxp_job_runs_row_action:hover {
+    background-color: var(--color-opendxp-neutral-b);
+}
+
+.opendxp_job_runs_row_title {
+    color: var(--color-opendxp-white);
+    font-weight: 600;
+}
+
+.opendxp_job_runs_row_text {
+    color: var(--color-opendxp-neutral-f);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.opendxp_job_runs_row_failed .opendxp_job_runs_row_text,
+.opendxp_job_runs_row_finished_with_errors .opendxp_job_runs_row_text {
+    color: var(--color-opendxp-red-b);
+}
+
+.opendxp_job_runs_row_progress {
+    height: 4px;
+    margin: 6px 0 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background-color: var(--color-opendxp-neutral-b);
+}
+
+.opendxp_job_runs_row_progress > div {
+    height: 100%;
+    background-color: var(--color-opendxp-primary-a);
+}
+
+.opendxp_job_runs_row_artifact,
+.opendxp_job_runs_row_artifact:visited {
+    display: block;
+    color: var(--color-opendxp-primary-a);
+    font-size: 12px;
+}

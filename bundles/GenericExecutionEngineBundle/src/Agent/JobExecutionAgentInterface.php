@@ -21,6 +21,11 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecut
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job;
 use Throwable;
 
+/**
+ * Adds the method deleteJobRun() in 2.0.
+ *
+ * @method void deleteJobRun(int $jobRunId) Deletes an ended job run with its error logs and its artifacts
+ */
 interface JobExecutionAgentInterface
 {
     /**

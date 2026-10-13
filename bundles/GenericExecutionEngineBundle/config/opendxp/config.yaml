@@ -11,6 +11,7 @@ framework:
         buses:
           generic.execution.engine.bus:
             middleware:
+              - 'OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware\JobTrackingMiddleware'
               - 'OpenDxp\Messenger\Middleware\CollectGarbageMiddleware'
               - 'OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware\StepConditionMiddleware'
         enabled: true

@@ -61,7 +61,7 @@ final readonly class JobRunErrorLogRepository implements JobRunErrorLogRepositor
     ): array {
         $criteria = ['jobRunId' => $jobRunId];
         if ($step !== null && $step >= 0) {
-            $criteria['step'] = $step;
+            $criteria['stepNumber'] = $step;
         }
 
         return $this->getLogRepository()->findBy(
