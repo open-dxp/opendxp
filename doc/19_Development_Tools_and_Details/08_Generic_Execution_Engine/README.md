@@ -1,12 +1,9 @@
 # Generic Execution Engine
-:::caution
-
-To use this feature, please update your `composer.json` by requiring `phpdocumentor/reflection-docblock` and `symfony/property-info` like in the `suggest` section. Enable the `OpenDxpGenericExecutionEngineBundle` in your `bundles.php` file and install it accordingly with the following command:
-
-
-`bin/console opendxp:bundle:install OpenDxpGenericExecutionEngineBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please update your `composer.json` by requiring `phpdocumentor/reflection-docblock` and `symfony/property-info` like in the `suggest` section. Enable the `OpenDxpGenericExecutionEngineBundle` in your `bundles.php` file and install it accordingly with the following command:
+>
+>
+> `bin/console opendxp:bundle:install OpenDxpGenericExecutionEngineBundle`
 
 The Generic Execution Engine shows background work as job runs in the admin. A job run has a state, a progress,
 errors and a result. Work becomes a job run in two ways:

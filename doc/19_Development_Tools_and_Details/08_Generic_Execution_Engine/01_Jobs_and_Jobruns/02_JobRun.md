@@ -11,9 +11,8 @@ job run object, but translates the message to english and adds it to the job run
 You can pass the `message` to the method, which then again can be translated using OpenDXP's `Translations` menu by selecting `your custom` domain.
 In addition, it is also possible to add a translation directly in the corresponding  `your-domain.<language>.yaml` file.
 
-:::info
-By default, the admin domain is used for the translation. If you want to use a different domain, you can set it in the `opendxp_generic_execution_engine` configuration.
-:::
+> [!NOTE]
+> By default, the admin domain is used for the translation. If you want to use a different domain, you can set it in the `opendxp_generic_execution_engine` configuration.
 
 As example see:
 ```php 

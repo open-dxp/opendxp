@@ -32,16 +32,15 @@ To execute a job use the `startJobExecution` method which accepts 3 arguments:
 $jobExecutionAgent->startJobExecution($job, null, 'my-custom-context');
 ```
 
-:::caution
-Be aware that the execution engine does not retry failed messages.
-
-```yaml
-opendxp_generic_execution_engine:
-    dsn: 'doctrine://default?queue_name=opendxp_generic_execution_engine'
-    retry_strategy:
-        max_retries: 0 # no retries to prevent data corruption
-```
-:::
+> [!CAUTION]
+> Be aware that the execution engine does not retry failed messages.
+>
+> ```yaml
+> opendxp_generic_execution_engine:
+>     dsn: 'doctrine://default?queue_name=opendxp_generic_execution_engine'
+>     retry_strategy:
+>         max_retries: 0 # no retries to prevent data corruption
+> ```
 
 After starting the job execution, the job run is created and the job steps are executed based on the configuration.
 For further information on how to handle job runs (cancel, stop, ...), see [Job Runs](./02_JobRun.md).
