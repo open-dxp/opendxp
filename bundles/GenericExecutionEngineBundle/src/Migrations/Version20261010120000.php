@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Migrations;
 
+use DateTimeInterface;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Constants\TableConstants;
 
 final class Version20261010120000 extends AbstractMigration
@@ -41,5 +43,19 @@ final class Version20261010120000 extends AbstractMigration
                 WHERE serializedJob IS NOT NULL AND JSON_VALID(serializedJob)",
             TableConstants::JOB_RUN_TABLE,
         ));
+
+        // A job run of 1.x counted none of its messages, so it would never end.
+        $this->addSql(
+            sprintf(
+                'UPDATE %s SET state = :failed, log = CONCAT_WS(:separator, log, :line) WHERE state = :running',
+                TableConstants::JOB_RUN_TABLE,
+            ),
+            [
+                'failed' => JobRunStates::FAILED->value,
+                'running' => JobRunStates::RUNNING->value,
+                'separator' => "\n",
+                'line' => date(DateTimeInterface::ATOM) . ': Stopped by the update to 1.5.',
+            ],
+        );
     }
 }
