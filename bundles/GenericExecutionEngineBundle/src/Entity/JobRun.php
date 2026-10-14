@@ -26,6 +26,7 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunResult;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\ValueObjects\LogLine;
+use Symfony\Component\Clock\Clock;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -121,8 +122,8 @@ class JobRun
         #[ORM\Column(nullable: true, options: ['unsigned' => true])]
         private ?int $ownerId = null
     ) {
-        $this->creationDate = time();
-        $this->modificationDate = time();
+        $this->creationDate = Clock::get()->now()->getTimestamp();
+        $this->modificationDate = $this->creationDate;
     }
 
     public function getId(): int
@@ -258,7 +259,7 @@ class JobRun
     #[ORM\PreUpdate]
     public function updateModificationDate(): void
     {
-        $this->modificationDate = time();
+        $this->modificationDate = Clock::get()->now()->getTimestamp();
     }
 
     public function getExecutionContext(): string
