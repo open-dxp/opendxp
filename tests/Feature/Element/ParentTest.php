@@ -24,11 +24,14 @@ it('refuses to be saved without a parent', function (string $factory, string $ty
         ->create();
     $unsaved->setParentId($parentId);
 
-    expect(fn () => $unsaved->save())->toThrow(Exception::class, sprintf(
-        'New %s "%s" cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
-        $type,
-        $unsaved->getKey(),
-    ));
+    expect(fn () => $unsaved->save())->toThrow(
+        Exception::class,
+        sprintf(
+            'New %s "%s" cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
+            $type,
+            $unsaved->getKey(),
+        ),
+    );
 })
     ->with('element types')
     ->with([
@@ -40,12 +43,15 @@ it('refuses to be its own parent', function (string $factory, string $type) {
     $saved = $factory::createOne();
     $saved->setParentId($saved->getId());
 
-    expect(fn () => $saved->save())->toThrow(Exception::class, sprintf(
-        '%s %s (ID %d) cannot be saved. It cannot be its own parent.',
-        ucfirst($type),
-        $saved->getRealFullPath(),
-        $saved->getId(),
-    ));
+    expect(fn () => $saved->save())->toThrow(
+        Exception::class,
+        sprintf(
+            '%s %s (ID %d) cannot be saved. It cannot be its own parent.',
+            ucfirst($type),
+            $saved->getRealFullPath(),
+            $saved->getId(),
+        ),
+    );
 })->with('element types');
 
 it('refuses a parent that does not exist', function (string $factory, string $type) {
@@ -54,9 +60,12 @@ it('refuses a parent that does not exist', function (string $factory, string $ty
         ->create();
     $unsaved->setParentId(999999);
 
-    expect(fn () => $unsaved->save())->toThrow(Exception::class, sprintf(
-        'New %s "%s" cannot be saved. Its parent 999999 does not exist.',
-        $type,
-        $unsaved->getKey(),
-    ));
+    expect(fn () => $unsaved->save())->toThrow(
+        Exception::class,
+        sprintf(
+            'New %s "%s" cannot be saved. Its parent 999999 does not exist.',
+            $type,
+            $unsaved->getKey(),
+        ),
+    );
 })->with('element types');

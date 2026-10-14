@@ -15,11 +15,14 @@ it('refuses a key that is not valid', function (string $factory, string $type, s
         ->create();
     $unsaved->setKey('a/b');
 
-    expect(fn () => $unsaved->save())->toThrow(Exception::class, sprintf(
-        'New %s "a/b" cannot be saved. The %s "a/b" is invalid.',
-        $type,
-        $name,
-    ));
+    expect(fn () => $unsaved->save())->toThrow(
+        Exception::class,
+        sprintf(
+            'New %s "a/b" cannot be saved. The %s "a/b" is invalid.',
+            $type,
+            $name,
+        ),
+    );
 })->with([
     'an asset' => [AssetImageFactory::class, 'asset', 'filename'],
     'a document' => [DocumentPageFactory::class, 'document', 'key'],
@@ -45,8 +48,11 @@ it('refuses a reserved key in the root folder', function () {
     $document = DocumentPageFactory::createOne();
     $document->setKey('admin');
 
-    expect(fn () => $document->save())->toThrow(Exception::class, sprintf(
-        'Document /admin (ID %d) cannot be saved. The key "admin" is reserved in the root folder.',
-        $document->getId(),
-    ));
+    expect(fn () => $document->save())->toThrow(
+        Exception::class,
+        sprintf(
+            'Document /admin (ID %d) cannot be saved. The key "admin" is reserved in the root folder.',
+            $document->getId(),
+        ),
+    );
 });

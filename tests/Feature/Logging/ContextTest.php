@@ -18,7 +18,10 @@ use Symfony\Component\Console\Output\NullOutput;
 
 function findLastRecordWith(TestHandler $handler, string $key): ?LogRecord
 {
-    $records = array_filter($handler->getRecords(), fn (LogRecord $record) => isset($record->extra[$key]));
+    $records = array_filter(
+        $handler->getRecords(),
+        fn (LogRecord $record) => isset($record->extra[$key]),
+    );
 
     return $records === [] ? null : end($records);
 }
@@ -44,7 +47,11 @@ it('names the running console command', function () {
     $handler = new TestHandler();
     $logger = Container::get('logger');
     $logger->pushHandler($handler);
-    $event = new ConsoleCommandEvent(new Command('opendxp:thumbnails:image'), new ArrayInput([]), new NullOutput());
+    $event = new ConsoleCommandEvent(
+        new Command('opendxp:thumbnails:image'),
+        new ArrayInput([]),
+        new NullOutput(),
+    );
     Container::get('event_dispatcher')->dispatch($event, ConsoleEvents::COMMAND);
 
     $logger->info('Thumbnails generated.');
