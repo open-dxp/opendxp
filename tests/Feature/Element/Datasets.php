@@ -36,3 +36,9 @@ dataset('elements with folders', [
     'a document' => [DocumentPageFactory::class, DocumentFolderFactory::class],
     'an object' => [UnittestFactory::class, DataObjectFolderFactory::class],
 ]);
+
+dataset('element types', [
+    'an asset' => [AssetImageFactory::class, 'asset'],
+    'a document' => [DocumentPageFactory::class, 'document'],
+    'an object' => [UnittestFactory::class, 'object'],
+]);

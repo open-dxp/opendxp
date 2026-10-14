@@ -44,6 +44,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/Glossary',
     'Feature/Inheritance',
     'Feature/LazyLoading',
+    'Feature/Logging',
     'Feature/Mail',
     'Feature/Messenger',
     'Feature/Notification',

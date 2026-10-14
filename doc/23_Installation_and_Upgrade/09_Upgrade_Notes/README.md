@@ -62,6 +62,8 @@
 - Bugfix: `JobRunErrorLogRepository::getLogsByJobRunId()` returns the logs of the given step.
 - Bugfix: The engine sends a job message without routing to its own transport. The message no longer runs in the request.
 - Deprecated: `JobExecutionAgentInterface::continueJobMessageExecution()`. The engine counts the messages of a job run itself.
+- Improvement: Every log entry names the user, the route and the console command. See [Logging](../../19_Development_Tools_and_Details/07_Logging.md#context-of-a-log-entry) [#232](https://github.com/open-dxp/opendxp/issues/232)
+- Improvement: When an element cannot be saved, the error says which element it is and why, for example `Object /products/shoe (ID 123) cannot be saved. Its parent 4711 does not exist.` See [Error Messages](../../19_Development_Tools_and_Details/12_Error_Messages.md) [#232](https://github.com/open-dxp/opendxp/issues/232)
 
 > [!IMPORTANT]
 > Wait until no job run of the Generic Execution Engine is running before you update. The update marks running job

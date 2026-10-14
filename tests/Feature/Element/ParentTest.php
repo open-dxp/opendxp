@@ -18,44 +18,45 @@ namespace OpenDxp\Tests\Feature\Element;
 
 use Exception;
 
-it('refuses to be saved without a parent', function (string $element, string $factory, ?int $parentId) {
+it('refuses to be saved without a parent', function (string $factory, string $type, ?int $parentId) {
     $unsaved = $factory::new()
         ->unsaved()
         ->create();
     $unsaved->setParentId($parentId);
 
-    $unsaved->save();
+    expect(fn () => $unsaved->save())->toThrow(Exception::class, sprintf(
+        'New %s "%s" cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
+        $type,
+        $unsaved->getKey(),
+    ));
 })
-    ->with('elements')
+    ->with('element types')
     ->with([
         'a parent id of zero' => [0],
         'no parent id' => [null],
-    ])
-    ->throws(
-        Exception::class,
-        'ParentID is mandatory and can´t be null. If you want to add the element as a child to the tree´s root node, '
-        . 'consider setting ParentID to 1.',
-    );
+    ]);
 
-it('refuses to be its own parent', function (string $element, string $factory) {
+it('refuses to be its own parent', function (string $factory, string $type) {
     $saved = $factory::createOne();
     $saved->setParentId($saved->getId());
 
-    $saved->save();
-})
-    ->with('elements')
-    ->throws(
-        Exception::class,
-        "ParentID and ID are identical, an element can't be the parent of itself in the tree.",
-    );
+    expect(fn () => $saved->save())->toThrow(Exception::class, sprintf(
+        '%s %s (ID %d) cannot be saved. It cannot be its own parent.',
+        ucfirst($type),
+        $saved->getRealFullPath(),
+        $saved->getId(),
+    ));
+})->with('element types');
 
-it('refuses a parent that does not exist', function (string $element, string $factory) {
+it('refuses a parent that does not exist', function (string $factory, string $type) {
     $unsaved = $factory::new()
         ->unsaved()
         ->create();
     $unsaved->setParentId(999999);
 
-    $unsaved->save();
-})
-    ->with('elements')
-    ->throws(Exception::class, 'ParentID not found.');
+    expect(fn () => $unsaved->save())->toThrow(Exception::class, sprintf(
+        'New %s "%s" cannot be saved. Its parent 999999 does not exist.',
+        $type,
+        $unsaved->getKey(),
+    ));
+})->with('element types');

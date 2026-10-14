@@ -40,4 +40,7 @@ it('refuses an element with a path of more than 765 characters', function () {
     TestObjectFactory::new()
         ->withParent($this->parent)
         ->create(['key' => str_repeat('c', 253)]);
-})->throws(Exception::class, "Full path is limited to 765 characters, reduce the length of your parent's path");
+})->throws(Exception::class, sprintf(
+    'New object "%s" cannot be saved. The full path has 766 characters. The limit is 765.',
+    str_repeat('c', 253),
+));

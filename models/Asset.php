@@ -635,24 +635,34 @@ class Asset extends Element\AbstractElement
         // set path
         if ($this->getId() != 1) { // not for the root node
             if (!Element\Service::isValidKey($this->getKey(), 'asset')) {
-                throw new Exception("invalid filename '" . $this->getKey() . "' for asset with id [ " . $this->getId() . ' ]');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. The filename "%s" is invalid.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getKey()
+                ));
             }
 
             if (!$this->getParentId()) {
-                throw new Exception('ParentID is mandatory and can´t be null. If you want to add the element as a child to the tree´s root node, consider setting ParentID to 1.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             if ($this->getParentId() == $this->getId()) {
-                throw new Exception("ParentID and ID are identical, an element can't be the parent of itself in the tree.");
-            }
-
-            if ($this->getFilename() === '..' || $this->getFilename() === '.') {
-                throw new Exception('Cannot create asset called ".." or "."');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It cannot be its own parent.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             $parent = Asset::getById($this->getParentId());
             if (!$parent) {
-                throw new Exception('ParentID not found.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. Its parent %d does not exist.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getParentId()
+                ));
             }
 
             // use the parent's path from the database here (getCurrentFullPath),
@@ -674,13 +684,22 @@ class Asset extends Element\AbstractElement
         }
 
         if (mb_strlen($this->getFilename()) > 255) {
-            throw new Exception('Filenames longer than 255 characters are not allowed');
+            throw new Exception(sprintf(
+                '%s cannot be saved. The filename has %d characters. The limit is 255.',
+                Element\Service::getMessageSubject($this),
+                mb_strlen($this->getFilename())
+            ));
         }
 
         if (Asset\Service::pathExists($this->getRealFullPath())) {
             $duplicate = Asset::getByPath($this->getRealFullPath());
             if ($duplicate instanceof Asset && $duplicate->getId() !== $this->getId()) {
-                $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ ' . $this->getRealFullPath() . ' ] - cannot save asset');
+                $duplicateFullPathException = new DuplicateFullPathException(sprintf(
+                    '%s cannot be saved. The path %s is already taken by asset %d.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getRealFullPath(),
+                    $duplicate->getId()
+                ));
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
 
