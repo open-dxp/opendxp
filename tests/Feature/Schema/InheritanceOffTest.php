@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 function forbidInheritance(): void
@@ -53,10 +54,10 @@ it('stops inheriting a localized text once the class forbids it', function () {
     forbidInheritance();
 
     // The value is only dropped once the objects are written again.
-    reloaded($parent)->save();
-    reloaded($child)->save();
+    Elements::refresh($parent)->save();
+    Elements::refresh($child)->save();
 
-    expect(reloaded($child)->getInput('en'))->toBeNull();
+    expect(Elements::refresh($child)->getInput('en'))->toBeNull();
 });
 
 it('keeps what an object holds of its own once the class forbids inheritance', function () {
@@ -73,10 +74,10 @@ it('keeps what an object holds of its own once the class forbids inheritance', f
     ];
     forbidInheritance();
 
-    reloaded($parent)->save();
-    reloaded($child)->save();
+    Elements::refresh($parent)->save();
+    Elements::refresh($child)->save();
 
-    $brick = reloaded($child)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($child)->getMybricks()->getUnittestBrick();
     expect($brick->getBrickinput())
         ->toBeNull()
         ->and($brick->getBrickinput2())

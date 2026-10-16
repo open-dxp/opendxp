@@ -24,6 +24,7 @@ use OpenDxp\Model\Version\Adapter\DelegateVersionStorageAdapter;
 use OpenDxp\Model\Version\Adapter\FileSystemVersionStorageAdapter;
 use OpenDxp\Model\Version\Adapter\VersionStorageAdapterInterface;
 use OpenDxp\TestFoundation\Container;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use OpenDxp\Tests\Value\StoredVersion;
 use RuntimeException;
@@ -111,7 +112,7 @@ it('keeps a related object out of the version of the object that points at it', 
 
     expect(newestVersionContentOf($source))
         ->not->toContain('the related object')
-        ->and(reloaded($source)->getMultihref())
+        ->and(Elements::refresh($source)->getMultihref())
         ->toHaveCount(1);
 });
 

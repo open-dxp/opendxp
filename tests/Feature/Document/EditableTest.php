@@ -19,6 +19,7 @@ namespace OpenDxp\Tests\Feature\Document;
 use Carbon\Carbon;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Model\Document\Editable;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\AssetVideoFactory;
@@ -31,7 +32,7 @@ function savedAndLoaded(Editable $editable): Editable
         ->withEditables(['field' => $editable])
         ->create();
 
-    return reloaded($page)->getEditable('field');
+    return Elements::refresh($page)->getEditable('field');
 }
 
 it('keeps the value of an editable', function (Editable $editable) {
@@ -223,7 +224,7 @@ it('keeps the editables of every index of a block', function () {
         ])
         ->create();
 
-    [$first, $second] = reloaded($page)->getEditable('field')->getElements();
+    [$first, $second] = Elements::refresh($page)->getEditable('field')->getElements();
 
     expect($first->getEditable('input')->getValue())
         ->toBe('first text')

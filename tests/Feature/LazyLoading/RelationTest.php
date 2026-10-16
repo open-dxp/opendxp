@@ -25,6 +25,7 @@ use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\LazyLoading;
 use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingLocalizedTest;
 use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingTest;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Value\LazyRelation;
@@ -130,7 +131,7 @@ beforeEach(function () {
 it('keeps a relation out of the serialized object', function (LazyRelation $relation, Closure $holderOf) {
     $field = $relation->onTheObject;
     $object = LazyLoadingFactory::createOne([$field => $relation->value($field, $this->targets)]);
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $serialized = serialize($holder);
 
@@ -142,7 +143,7 @@ it('keeps a relation out of the serialized object', function (LazyRelation $rela
 it('loads a relation when it is asked for', function (LazyRelation $relation, Closure $holderOf) {
     $field = $relation->onTheObject;
     $object = LazyLoadingFactory::createOne([$field => $relation->value($field, $this->targets)]);
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $loaded = $holder->get($field);
 
@@ -155,7 +156,7 @@ it('keeps the lazy loading internals out of an object serialized after loading',
 ) {
     $field = $relation->onTheObject;
     $object = LazyLoadingFactory::createOne([$field => $relation->value($field, $this->targets)]);
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
     $holder->get($field);
 
     $serialized = serialize($holder);
@@ -166,7 +167,7 @@ it('keeps the lazy loading internals out of an object serialized after loading',
 it('loads a relation of an object read from the cache', function (LazyRelation $relation, Closure $holderOf) {
     $field = $relation->onTheObject;
     $object = LazyLoadingFactory::createOne([$field => $relation->value($field, $this->targets)]);
-    $cached = cachedCopyOf(reloaded($holderOf($object)));
+    $cached = cachedCopyOf(Elements::refresh($holderOf($object)));
 
     $loaded = $cached->get($field);
 
@@ -178,7 +179,7 @@ it('keeps a localized relation out of the serialized object', function (LazyRela
     $object = LazyLoadingFactory::new()
         ->withLocalizedValues($field, ['en' => $relation->value($field, $this->targets)])
         ->create();
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $serialized = serialize($holder);
 
@@ -190,7 +191,7 @@ it('loads a localized relation when it is asked for', function (LazyRelation $re
     $object = LazyLoadingFactory::new()
         ->withLocalizedValues($field, ['en' => $relation->value($field, $this->targets)])
         ->create();
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $loaded = $holder->get($field, 'en');
 
@@ -205,7 +206,7 @@ it('loads a localized relation of an object read from the cache', function (
     $object = LazyLoadingFactory::new()
         ->withLocalizedValues($field, ['en' => $relation->value($field, $this->targets)])
         ->create();
-    $cached = cachedCopyOf(reloaded($holderOf($object)));
+    $cached = cachedCopyOf(Elements::refresh($holderOf($object)));
 
     $loaded = $cached->get($field, 'en');
 
@@ -221,7 +222,7 @@ it('loads a relation of a block when the block is asked for', function (
     $field = $fieldOf($relation);
     $element = new BlockElement($field, $relation->blockType, $relation->value($field, $this->targets));
     $object = LazyLoadingFactory::createOne([$block => [[$field => $element]]]);
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $loaded = $holder->get($block)[0][$field]->getData();
 
@@ -237,7 +238,7 @@ it('loads a relation of a block of an object read from the cache', function (
     $field = $fieldOf($relation);
     $element = new BlockElement($field, $relation->blockType, $relation->value($field, $this->targets));
     $object = LazyLoadingFactory::createOne([$block => [[$field => $element]]]);
-    $cached = cachedCopyOf(reloaded($holderOf($object)));
+    $cached = cachedCopyOf(Elements::refresh($holderOf($object)));
 
     $loaded = $cached->get($block)[0][$field]->getData();
 
@@ -254,7 +255,7 @@ it('keeps a relation of a field collection out of the serialized object', functi
         )
         ->create();
 
-    $serialized = serialize(reloaded($object));
+    $serialized = serialize(Elements::refresh($object));
 
     expect($serialized)->not->toContain(RelationTestFactory::MARKER);
 })->with('lazy relations');
@@ -268,7 +269,7 @@ it('loads a relation of a field collection when the item is asked for', function
             $item,
         )
         ->create();
-    $written = reloaded($object);
+    $written = Elements::refresh($object);
 
     $loaded = $written->getFieldcollection()->get(0)->get($relation->onTheObject);
 
@@ -284,7 +285,7 @@ it('loads a relation of a field collection of an object read from the cache', fu
             $item,
         )
         ->create();
-    $cached = cachedCopyOf(reloaded($object));
+    $cached = cachedCopyOf(Elements::refresh($object));
 
     $loaded = $cached->getFieldcollection()->get(0)->get($relation->onTheObject);
 
@@ -300,7 +301,7 @@ it('loads a relation of a brick when the brick is asked for', function (LazyRela
             [$field => $relation->value($field, $this->targets)],
         )
         ->create();
-    $holder = reloaded($holderOf($object));
+    $holder = Elements::refresh($holderOf($object));
 
     $loaded = $holder->getBricks()->getLazyLoadingTest()->get($field);
 
@@ -319,7 +320,7 @@ it('loads a relation of a brick of an object read from the cache', function (
             [$field => $relation->value($field, $this->targets)],
         )
         ->create();
-    $cached = cachedCopyOf(reloaded($holderOf($object)));
+    $cached = cachedCopyOf(Elements::refresh($holderOf($object)));
 
     $loaded = $cached->getBricks()->getLazyLoadingTest()->get($field);
 
@@ -330,7 +331,7 @@ it('writes the targets of a relation in an eagerly loaded block into the seriali
     $element = new BlockElement('blockrelations', 'manyToManyRelation', $this->targets);
     $object = LazyLoadingFactory::createOne(['testblock' => [['blockrelations' => $element]]]);
 
-    $serialized = serialize(reloaded($object));
+    $serialized = serialize(Elements::refresh($object));
 
     expect($serialized)->toContain(RelationTestFactory::MARKER);
 });
@@ -346,12 +347,12 @@ it('changes a localized relation of a brick in one language only', function () {
             ],
         )
         ->create();
-    $written = reloaded($object);
+    $written = Elements::refresh($object);
 
     $written->getBricks()->getLazyLoadingLocalizedTest()->setLrelations(array_slice($this->targets, 1), 'de');
     $written->save();
 
-    $brick = reloaded($object)->getBricks()->getLazyLoadingLocalizedTest();
+    $brick = Elements::refresh($object)->getBricks()->getLazyLoadingLocalizedTest();
     expect($brick->getLrelations('de'))
         ->toHaveCount(TARGET_COUNT - 1)
         ->and($brick->getLrelations('en'))
@@ -370,12 +371,12 @@ it('keeps a localized relation of a field collection when a plain field of the i
             $item,
         )
         ->create();
-    $written = reloaded($object);
+    $written = Elements::refresh($object);
 
     $written->getFieldcollection()->get(0)->setNormalInput('a plain text');
     $written->save();
 
-    $loaded = reloaded($object)->getFieldcollection()->get(0)->get($field, 'en');
+    $loaded = Elements::refresh($object)->getFieldcollection()->get(0)->get($field, 'en');
     expect($relation->counted($loaded))->toBe($relation->expected);
 })->with('lazy relations');
 
@@ -390,11 +391,11 @@ it('keeps a localized relation of a brick when another field of the brick is sav
             ['en' => [$field => $relation->value($field, $this->targets)]],
         )
         ->create();
-    $written = reloaded($object);
+    $written = Elements::refresh($object);
 
     $written->getBricks()->getLazyLoadingLocalizedTest()->setLinput('a plain text', 'en');
     $written->save();
 
-    $loaded = reloaded($object)->getBricks()->getLazyLoadingLocalizedTest()->get($field, 'en');
+    $loaded = Elements::refresh($object)->getBricks()->getLazyLoadingLocalizedTest()->get($field, 'en');
     expect($relation->counted($loaded))->toBe($relation->expected);
 })->with('lazy relations');

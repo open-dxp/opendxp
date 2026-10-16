@@ -20,6 +20,7 @@ use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Hardlink;
 use OpenDxp\Model\Document\Link;
 use OpenDxp\Model\Document\Page;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentHardlinkFactory;
 use OpenDxp\Test\Factory\DocumentLinkFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
@@ -29,7 +30,7 @@ use OpenDxp\TestFoundation\Controller\DefaultController;
 it('writes a document', function () {
     $page = DocumentPageFactory::createOne();
 
-    expect(reloaded($page))->toBeInstanceOf(Page::class);
+    expect(Elements::refresh($page))->toBeInstanceOf(Page::class);
 });
 
 it('takes the key a test names', function () {
@@ -109,7 +110,7 @@ it('uses the controller a test names', function () {
 it('writes a snippet', function () {
     $snippet = DocumentSnippetFactory::createOne();
 
-    expect(reloaded($snippet))->toBeInstanceOf(Document\Snippet::class);
+    expect(Elements::refresh($snippet))->toBeInstanceOf(Document\Snippet::class);
 });
 
 it('points a link at another document', function () {

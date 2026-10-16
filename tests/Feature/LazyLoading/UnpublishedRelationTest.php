@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\LazyLoading;
 
 use OpenDxp\Model\DataObject\Concrete;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
@@ -30,13 +31,13 @@ beforeEach(function () {
 afterEach(fn () => Concrete::setHideUnpublished(true));
 
 it('returns no relation to an unpublished target while unpublished objects are hidden', function () {
-    $loaded = reloaded($this->object);
+    $loaded = Elements::refresh($this->object);
 
     expect($loaded->getRelations())->toBeEmpty();
 });
 
 it('returns the relation to an unpublished target once unpublished objects are shown', function () {
-    $loaded = reloaded($this->object);
+    $loaded = Elements::refresh($this->object);
 
     Concrete::setHideUnpublished(false);
 
@@ -49,5 +50,5 @@ it('drops the relation to an unpublished target once the field is emptied', func
     $this->object->setRelations([]);
     $this->object->save();
 
-    expect(reloaded($this->object)->getRelations())->toBeEmpty();
+    expect(Elements::refresh($this->object)->getRelations())->toBeEmpty();
 });

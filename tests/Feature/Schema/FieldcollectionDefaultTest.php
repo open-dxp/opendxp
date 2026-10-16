@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 function setLocalizedInputDefault(string $value): void
@@ -59,12 +60,12 @@ it('applies a later default only to new items', function () {
         ->create();
     $this->written[] = $object;
     setLocalizedInputDefault('1234');
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
     $loaded->getFieldcollection()->add(new Unittestfieldcollection());
 
     $loaded->save();
 
-    $items = reloaded($object)->getFieldcollection();
+    $items = Elements::refresh($object)->getFieldcollection();
     expect($items->get(0)->getLinput('en'))
         ->toBeNull()
         ->and($items->get(1)->getLinput('en'))
@@ -86,6 +87,6 @@ it('applies a default to every item of an object saved afterwards', function () 
 
     $object->save();
 
-    $items = reloaded($object)->getFieldcollection();
+    $items = Elements::refresh($object)->getFieldcollection();
     expect($items->get(0)->getLinput('en'))->toBe('1234');
 });

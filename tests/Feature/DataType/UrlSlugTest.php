@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use Exception;
 use OpenDxp\Model\DataObject\Data\UrlSlug;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Tests\Factory\SluggableFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -35,7 +36,7 @@ it('keeps the slug of every site', function () {
 
     $object->setUrlSlug($definition->getDataFromEditmode($sent, $object));
     $object->save();
-    $slugs = slugsBySite(reloaded($object)->getUrlSlug());
+    $slugs = slugsBySite(Elements::refresh($object)->getUrlSlug());
 
     expect($slugs)->toBe([
         0 => '/fallback',
@@ -70,10 +71,10 @@ it('fills the slug of every language with the prefix of the language', function 
 it('fills an empty slug when an object is saved again without touching the slug', function () {
     $object = SluggableFactory::createOne();
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
     $loaded->setName('Green Bike');
     $loaded->save();
-    $slugs = slugsBySite(reloaded($object)->getSlug());
+    $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
     expect($slugs)->toBe([0 => '/things/green-bike']);
 });
@@ -81,10 +82,10 @@ it('fills an empty slug when an object is saved again without touching the slug'
 it('fills an empty localized slug when an object is saved again without touching the slug', function () {
     $object = SluggableFactory::createOne();
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
     $loaded->setLname('Grünes Rad', 'de');
     $loaded->save();
-    $slugs = slugsBySite(reloaded($object)->getLslug('de'));
+    $slugs = slugsBySite(Elements::refresh($object)->getLslug('de'));
 
     expect($slugs)->toBe([0 => '/de/things/gr-nes-rad']);
 });
@@ -97,7 +98,7 @@ it('keeps a slug that is not empty', function () {
 
     $object->setName('Red Bike');
     $object->save();
-    $slugs = slugsBySite(reloaded($object)->getSlug());
+    $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
     expect($slugs)->toBe([0 => '/my/own/path']);
 });
@@ -108,7 +109,7 @@ it('fills the slug again after an editor empties it', function () {
     $object->setName('Red Bike');
     $object->setSlug([new UrlSlug('', 0)]);
     $object->save();
-    $slugs = slugsBySite(reloaded($object)->getSlug());
+    $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
     expect($slugs)->toBe([0 => '/things/red-bike']);
 });
@@ -154,7 +155,7 @@ it('keeps its own slug when an object is saved again', function () {
 
     $object->setName('Red Bike');
     $object->save();
-    $slugs = slugsBySite(reloaded($object)->getSlug());
+    $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
     expect($slugs)->toBe([0 => '/things/green-bike']);
 });

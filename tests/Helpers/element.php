@@ -14,27 +14,7 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\Element\ElementInterface;
-
-/**
- * Loads the element again the way the next request would, past every cache of this process.
- *
- * @template T of ElementInterface
- *
- * @param T $element
- *
- * @return T
- */
-function reloaded(ElementInterface $element): ElementInterface
-{
-    RuntimeCache::clear();
-
-    return $element::getById(
-        $element->getId(),
-        ['force' => true],
-    );
-}
 
 /**
  * @param array<ElementInterface> $elements

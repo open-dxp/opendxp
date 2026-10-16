@@ -23,6 +23,7 @@ use OpenDxp\Model\DataObject\Data\Hotspotimage;
 use OpenDxp\Model\DataObject\Data\Link;
 use OpenDxp\Model\DataObject\UnittestBlock;
 use OpenDxp\Model\Document;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestBlockFactory;
@@ -35,7 +36,7 @@ function savedAgainFromTheCache(UnittestBlock $object): UnittestBlock
 {
     cachedCopyOf($object)->save();
 
-    return reloaded($object);
+    return Elements::refresh($object);
 }
 
 /**
@@ -131,7 +132,7 @@ it('reads the current relation of a block through another object', function () {
         ->getLtestblock('de')[0]['lblockadvancedRelations']
         ->setData([new ElementMetadata('lblockadvancedRelations', [], $second)]);
     $source->save();
-    $current = reloaded($pointing)->getHref()->getLtestblock('de')[0]['lblockadvancedRelations']->getData();
+    $current = Elements::refresh($pointing)->getHref()->getLtestblock('de')[0]['lblockadvancedRelations']->getData();
 
     expect($current[0]->getElement())->getId()->toBe($second->getId());
 });
