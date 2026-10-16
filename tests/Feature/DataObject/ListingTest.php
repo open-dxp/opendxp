@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataObject;
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -220,4 +221,21 @@ it('counts again once its limit changes', function () {
     $listing->setLimit(1);
 
     expect($listing->getCount())->toBe(1);
+});
+
+it('counts the objects a HAVING condition on a selected alias matches', function () {
+    $listing = new Unittest\Listing();
+    $listing->onCreateQueryBuilder(static function (QueryBuilder $queryBuilder): void {
+        $queryBuilder->addSelect('input AS alias_input');
+        $queryBuilder->having("alias_input LIKE 'content1%'");
+    });
+
+    expect($listing->getTotalCount())->toBe(2);
+});
+
+it('counts the objects a condition with the word HAVING in a value matches', function () {
+    $listing = new Unittest\Listing();
+    $listing->setCondition("input LIKE '% HAVING %' OR input = 'content10'");
+
+    expect($listing->getTotalCount())->toBe(1);
 });

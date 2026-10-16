@@ -31,6 +31,8 @@ use OpenDxp\Localization\LocaleServiceInterface;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\FieldGridColumn;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\GridColumnsInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\IdRewriterInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\LayoutDefinitionEnrichmentInterface;
 use OpenDxp\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOptionsProviderInterface;
@@ -270,6 +272,30 @@ class Service extends Model\Element\Service
     public static function isHelperGridColumnConfig(string $field): bool
     {
         return str_starts_with($field, '#');
+    }
+
+    public static function findGridColumn(ClassDefinition $class, string $key): ?FieldGridColumn
+    {
+        $keyParts = explode('~', $key);
+
+        if (count($keyParts) !== 4 || $keyParts[0] !== '') {
+            return null;
+        }
+
+        [, $fieldType, $fieldName, $gridColumn] = $keyParts;
+        $field = $class->getFieldDefinition($fieldName);
+
+        if (
+            !$field instanceof GridColumnsInterface
+            || $field->getFieldType() !== $fieldType
+            || !$field->hasGridColumn($gridColumn)
+        ) {
+            return null;
+        }
+
+        $definition = $field->getGridColumnDefinition($gridColumn);
+
+        return $definition ? new FieldGridColumn($field, $gridColumn, $definition) : null;
     }
 
     /**
@@ -1417,7 +1443,12 @@ class Service extends Model\Element\Service
             if (static::isHelperGridColumnConfig($key)) {
                 $validLanguages = static::expandGridColumnForExport($helperDefinitions, $key, $operatorContext);
                 if ($validLanguages) {
-                    $mappedFieldnameBase = self::mapFieldname($field, $helperDefinitions, $header);
+                    $mappedFieldnameBase = self::getMappedFieldname(
+                        $object->getClass(),
+                        $field,
+                        $helperDefinitions,
+                        $header,
+                    );
 
                     foreach ($validLanguages as $validLanguage) {
                         $localeService->setLocale($validLanguage);
@@ -1452,7 +1483,12 @@ class Service extends Model\Element\Service
                 $operatorContext,
             );
             if ($returnMappedFieldNames && !isset($mappedFieldnames[$key])) {
-                $mappedFieldnames[$key] = self::mapFieldname($field, $helperDefinitions, $header);
+                $mappedFieldnames[$key] = self::getMappedFieldname(
+                    $object->getClass(),
+                    $field,
+                    $helperDefinitions,
+                    $header,
+                );
 
                 // ensure unique field names, if the same title/label is used more than once, add suffix `_x`
                 $i = 1;
@@ -1482,6 +1518,21 @@ class Service extends Model\Element\Service
         return $event->getArgument('objectData');
     }
 
+    private static function getMappedFieldname(
+        ClassDefinition $class,
+        array $field,
+        array $helperDefinitions,
+        string $header,
+    ): string {
+        $gridColumn = self::findGridColumn($class, $field['key']);
+
+        if ($header === 'name' && $gridColumn) {
+            return $gridColumn->getName();
+        }
+
+        return self::mapFieldname($field, $helperDefinitions, $header);
+    }
+
     protected static function mapFieldname(array $field, array $helperDefinitions, string $header): string
     {
         if ($header === 'no_header') {
@@ -1497,21 +1548,6 @@ class Service extends Model\Element\Service
                 }
 
                 return $title;
-            }
-        } elseif (str_starts_with($key, '~')) {
-            $fieldParts = explode('~', $key);
-            $type = $fieldParts[1];
-
-            if ($type === 'classificationstore') {
-                $fieldname = $fieldParts[2];
-                $groupKeyId = explode('-', $fieldParts[3]);
-                $groupId = (int) $groupKeyId[0];
-                $keyId = (int) $groupKeyId[1];
-
-                $groupConfig = DataObject\Classificationstore\GroupConfig::getById($groupId);
-                $keyConfig = DataObject\Classificationstore\KeyConfig::getById($keyId);
-
-                $key = $fieldname . '~' . $groupConfig->getName() . '~' . $keyConfig->getName();
             }
         }
 
@@ -1574,40 +1610,10 @@ class Service extends Model\Element\Service
                 return (string) $cellValue;
             }
         } elseif (str_starts_with($field, '~')) {
-            $type = $fieldParts[1];
-
-            if ($type === 'classificationstore') {
-                $fieldname = $fieldParts[2];
-                $groupKeyId = explode('-', $fieldParts[3]);
-                $groupId = (int) $groupKeyId[0];
-                $keyId = (int) $groupKeyId[1];
-                $getter = 'get' . ucfirst($fieldname);
-                if (method_exists($object, $getter)) {
-                    $keyConfig = DataObject\Classificationstore\KeyConfig::getById($keyId);
-                    $type = $keyConfig->getType();
-                    $definition = json_decode($keyConfig->getDefinition(), true);
-                    $fieldDefinition = \OpenDxp\Model\DataObject\Classificationstore\Service::getFieldDefinitionFromJson($definition, $type);
-
-                    /** @var DataObject\ClassDefinition\Data\Classificationstore $csFieldDefinition */
-                    $csFieldDefinition = $object->getClass()->getFieldDefinition($fieldname);
-                    $csLanguage = $requestedLanguage;
-                    if (!$csFieldDefinition->isLocalized()) {
-                        $csLanguage = 'default';
-                    }
-
-                    return $fieldDefinition->getForCsvExport(
-                        $object,
-                        ['context' => [
-                            'containerType' => 'classificationstore',
-                            'fieldname' => $fieldname,
-                            'groupId' => $groupId,
-                            'keyId' => $keyId,
-                            'language' => $csLanguage,
-                        ]]
-                    );
-                }
-            }
-            //key value store - ignore for now
+            return self::findGridColumn($object->getClass(), $field)?->getForCsvExport(
+                $object,
+                ['language' => $requestedLanguage],
+            ) ?? '';
         } elseif (count($fieldParts) > 1) {
             // brick
             $brickType = $fieldParts[0];
@@ -1680,7 +1686,7 @@ class Service extends Model\Element\Service
     }
 
     /**
-     * @deprecated Since 1.0, please use \OpenDxp\Bundle\AdminBundle\Service\DataObject::getInheritedData() instead
+     * @deprecated since OpenDXP 1.0 and will be removed in 2.0.
      */
     protected static function getInheritedData(Concrete $object, string $key, string $requestedLanguage): array
     {

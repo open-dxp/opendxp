@@ -408,9 +408,32 @@ class QuantityValue extends AbstractQuantityValue
             $key = $params['brickPrefix'].$key;
         }
         if (str_starts_with($name, 'cskey_')) {
-            return $key .'.'. $db->quoteIdentifier('value') . ' ' . $operator . ' ' . $value[0][0].' ';
+            [$number, $unit] = (is_array($value[0] ?? null) ? $value[0] : []) + [null, null];
+
+            if (!is_numeric($number) || !in_array($operator, Numeric::$validFilterOperators, true)) {
+                return '1 = 0';
+            }
+
+            $condition = sprintf(
+                '%s.%s %s %s',
+                $key,
+                $db->quoteIdentifier('value'),
+                $operator,
+                trim((string) $number),
+            );
+
+            if ($unit !== null && $unit !== '') {
+                $condition .= sprintf(
+                    ' AND %s.%s = %s',
+                    $key,
+                    $db->quoteIdentifier('value2'),
+                    $db->quote((string) $unit),
+                );
+            }
+
+            return $condition . ' ';
         }
 
-        return $key . ' ' . $operator . ' ' . (is_string($value) ? $db->quote($value) : $value) . ' ';
+        return sprintf('%s %s %s ', $key, $operator, is_string($value) ? $db->quote($value) : $value);
     }
 }

@@ -128,7 +128,12 @@ trait QueryBuilderHelperTrait
 
     protected function getTotalCountFromQueryBuilder(QueryBuilder $queryBuilder, string $identifierColumn): int
     {
-        $queryBuilder->select($identifierColumn);
+        if (str_contains($queryBuilder->getSQL(), ' HAVING ')) {
+            $queryBuilder->addSelect($identifierColumn);
+        } else {
+            $queryBuilder->select($identifierColumn);
+        }
+
         $queryBuilder->resetOrderBy();
         $queryBuilder->setMaxResults(null);
         $queryBuilder->setFirstResult(0);

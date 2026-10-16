@@ -16,7 +16,9 @@ declare(strict_types=1);
 
 namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use Exception;
+use OpenDxp\Db;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
@@ -28,7 +30,16 @@ use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool;
 use Override;
 
-class Classificationstore extends Data implements CustomResourcePersistingInterface, TypeDeclarationSupportInterface, NormalizerInterface, PreGetDataInterface, LayoutDefinitionEnrichmentInterface, VarExporterInterface, ClassSavedInterface, EqualComparisonInterface
+class Classificationstore extends Data implements
+    CustomResourcePersistingInterface,
+    TypeDeclarationSupportInterface,
+    NormalizerInterface,
+    PreGetDataInterface,
+    LayoutDefinitionEnrichmentInterface,
+    VarExporterInterface,
+    ClassSavedInterface,
+    EqualComparisonInterface,
+    GridColumnsInterface
 {
     use DataObject\Traits\DataHeightTrait;
     use DataObject\Traits\DataWidthTrait;
@@ -1140,5 +1151,171 @@ class Classificationstore extends Data implements CustomResourcePersistingInterf
 
         // Compare items
         return serialize($oldValue->getItems()) === serialize($newValue->getItems());
+    }
+
+    public function hasGridColumn(string $gridColumn): bool
+    {
+        return $this->findGridColumnKeyConfig($gridColumn) instanceof DataObject\Classificationstore\KeyConfig;
+    }
+
+    public function getGridColumnDefinition(string $gridColumn): ?Data
+    {
+        $keyConfig = $this->findGridColumnKeyConfig($gridColumn);
+
+        if (!$keyConfig) {
+            return null;
+        }
+
+        $definition = clone DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig);
+        $definition->setTitle('#' . $definition->getTitle());
+
+        return $definition;
+    }
+
+    public function getGridColumnName(string $gridColumn): string
+    {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+        $groupConfig = DataObject\Classificationstore\GroupConfig::getById($groupId);
+        $keyConfig = DataObject\Classificationstore\KeyConfig::getById($keyId);
+
+        return $groupConfig?->getName() . '~' . $keyConfig?->getName();
+    }
+
+    public function getGridColumnValue(string $gridColumn, Concrete $object, array $params = []): mixed
+    {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+
+        return $this->getClassificationstore($object)->getLocalizedKeyValue(
+            $groupId,
+            $keyId,
+            $this->getGridColumnLanguage($params),
+            true,
+            true,
+        );
+    }
+
+    public function setGridColumnValue(string $gridColumn, Concrete $object, mixed $value, array $params = []): void
+    {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+        $classificationstore = $this->getClassificationstore($object);
+
+        $activeGroups = $classificationstore->getActiveGroups() ?: [];
+        $activeGroups[$groupId] = true;
+        $classificationstore->setActiveGroups($activeGroups);
+        $classificationstore->setLocalizedKeyValue($groupId, $keyId, $value, $this->getGridColumnLanguage($params));
+
+        $object->markFieldDirty($this->getName());
+    }
+
+    public function getGridColumnForCsvExport(string $gridColumn, Concrete $object, array $params = []): string
+    {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+        $keyConfig = $this->findGridColumnKeyConfig($gridColumn);
+
+        if (!$keyConfig) {
+            return '';
+        }
+
+        return DataObject\Classificationstore\Service::getFieldDefinitionFromKeyConfig($keyConfig)->getForCsvExport(
+            $object,
+            [
+                'context' => [
+                    'containerType' => 'classificationstore',
+                    'fieldname' => $this->getName(),
+                    'groupId' => $groupId,
+                    'keyId' => $keyId,
+                    'language' => $this->getGridColumnLanguage($params),
+                ],
+            ],
+        );
+    }
+
+    public function addGridColumnToQuery(
+        QueryBuilder $queryBuilder,
+        DataObject\ClassDefinition $class,
+        string $objectTable,
+        string $gridColumn,
+        string $alias,
+        array $params = [],
+    ): void {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+        $db = Db::get();
+        $data = $this->getGridColumnDataAlias($alias);
+
+        $queryBuilder->addSelect($data . '.value AS ' . $alias);
+        $queryBuilder->addSelect($data . '.value AS ' . $data);
+
+        if ($this->getGridColumnDefinition($gridColumn) instanceof QuantityValue) {
+            $queryBuilder->addSelect($data . '.value2');
+        }
+
+        $queryBuilder->leftJoin(
+            $objectTable,
+            'object_classificationstore_data_' . $class->getId(),
+            $data,
+            sprintf(
+                '%1$s.id = %2$s.id AND %1$s.fieldname = %3$s AND %1$s.groupId = %4$d AND %1$s.keyId = %5$d'
+                . ' AND %1$s.language = %6$s',
+                $data,
+                $objectTable,
+                $db->quote($this->getName()),
+                $groupId,
+                $keyId,
+                $db->quote($this->getGridColumnLanguage($params)),
+            ),
+        );
+    }
+
+    public function getGridColumnFilterCondition(
+        string $gridColumn,
+        mixed $value,
+        string $operator,
+        string $alias,
+    ): string {
+        return $this->getGridColumnDefinition($gridColumn)?->getFilterConditionExt(
+            $value,
+            $operator,
+            ['name' => $this->getGridColumnDataAlias($alias)],
+        ) ?? '';
+    }
+
+    private function getGridColumnDataAlias(string $alias): string
+    {
+        return 'cskey_' . $alias;
+    }
+
+    /**
+     * @return array{int, int}
+     */
+    private function getGridColumnIds(string $gridColumn): array
+    {
+        [$groupId, $keyId] = explode('-', $gridColumn, 2) + ['', ''];
+
+        if (!ctype_digit($groupId) || !ctype_digit($keyId)) {
+            return [0, 0];
+        }
+
+        return [(int) $groupId, (int) $keyId];
+    }
+
+    private function findGridColumnKeyConfig(string $gridColumn): ?DataObject\Classificationstore\KeyConfig
+    {
+        [$groupId, $keyId] = $this->getGridColumnIds($gridColumn);
+
+        if ($groupId === 0 || $keyId === 0) {
+            return null;
+        }
+
+        return DataObject\Classificationstore\KeyConfig::getById($keyId);
+    }
+
+    private function getGridColumnLanguage(array $params): string
+    {
+        return $this->isLocalized() ? ($params['language'] ?? 'default') : 'default';
+    }
+
+    private function getClassificationstore(Concrete $object): DataObject\Classificationstore
+    {
+        return $object->{'get' . ucfirst($this->getName())}();
     }
 }
