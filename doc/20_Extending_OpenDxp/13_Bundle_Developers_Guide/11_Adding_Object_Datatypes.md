@@ -53,44 +53,138 @@ opendxp:
 
 ## Grid Columns
 
-A data type can split its value into several columns of the object grid. The classification store has a column for
-each key. The store values of the ecommerce bundle have a column for each store and value.
+A field usually fills exactly one column of the object grid. That is a poor fit for a field that holds several
+values at once. A product dimension holds a width, a height and a depth. A classification store holds hundreds of keys.
+The store values of the ecommerce bundle hold a price and a tax rule for every store.
 
-The key of such a column has the form `~<field type>~<field name>~<grid column>`. The data type alone decides what
-the last part means. The classification store uses `<group id>-<key id>`, for example `1-2`.
+With `GridColumnsInterface` such a field offers each of its values as a column of its own. An editor drops the field
+into the grid configuration, picks the value in a small dialog and gets a full column for it. The column behaves like
+any ordinary field in the grid:
 
-The PHP class implements `OpenDxp\Model\DataObject\ClassDefinition\Data\GridColumnsInterface`. Each grid column has
-a data definition of its own, for example a `Numeric` or a `Select`. The grid shows, edits, filters and exports the
-column through this definition, in the same way as an ordinary field.
+- The cell shows the value and marks it when the object inherits it from a parent.
+- The cell editor and the batch edit change exactly this value and leave the rest of the field alone.
+- The filter, the sorting and the CSV export work on it.
 
-| Method                           | Purpose                                                                |
-|:---------------------------------|:-----------------------------------------------------------------------|
-| `hasGridColumn()`                | Keeps a saved grid column only while the field still knows it.         |
-| `getGridColumnDefinition()`      | Returns the definition of the column. Its title is the column label.   |
-| `getGridColumnName()`            | Returns the name of the column in the header of a CSV export.          |
-| `getGridColumnValue()`           | Returns the value of an object in the format of the definition.        |
-| `setGridColumnValue()`           | Sets the value of an object in the format of the definition.           |
-| `getGridColumnForCsvExport()`    | Returns the text of the column in a CSV export.                        |
-| `addGridColumnToQuery()`         | Selects the value of the column under an alias.                        |
-| `getGridColumnFilterCondition()` | Returns the condition of a filter on this alias.                       |
+The data type does not build any of this itself. It describes each column with an existing data definition, for
+example a `Numeric`, a `Select` or a `QuantityValue`. The grid then uses the renderer, the editor, the filter and the
+conversions of that definition. The classification store works in exactly this way, so every key type it supports is
+available as a column.
 
-The grid sorts by the alias. A filter condition becomes part of the `HAVING` clause.
+### The Key of a Column
 
-An object without a value of its own shows the value of its first parent with a value. The grid marks the cell as
-inherited.
+The grid saves a column under a key of the form `~<field type>~<field name>~<grid column>`. Only the last part belongs
+to the data type, and the data type alone decides what it means. The classification store uses
+`<group id>-<key id>`, so `~classificationstore~specs~3-12` is key 12 in group 3 of the field `specs`. The store
+values use `<store id>-<type>`, so `~ecommerceStoreValues~storeValues~1-price` is the price in store 1.
 
-The JavaScript tag of the field offers a dialog. The grid configuration opens it when the field is dropped into the
-selected columns:
+`Service::findGridColumn()` reads such a key and returns a `FieldGridColumn`. It checks the field type, the field name
+and the column, and it returns `null` for any key the field does not know. The grid works only with this object and
+never takes a key apart itself.
+
+### Implement the Interface
+
+The following data type stores the dimensions of a product in the query columns `<name>__width`, `<name>__height`
+and `<name>__depth`. It offers each dimension as a numeric column:
+
+```php
+use Doctrine\DBAL\Query\QueryBuilder;
+use OpenDxp\Model\DataObject\ClassDefinition;
+use OpenDxp\Model\DataObject\ClassDefinition\Data;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\GridColumnsInterface;
+use OpenDxp\Model\DataObject\Concrete;
+
+final class Dimensions extends Data implements GridColumnsInterface
+{
+    private const array GRID_COLUMNS = ['width', 'height', 'depth'];
+
+    public function hasGridColumn(string $gridColumn): bool
+    {
+        return in_array($gridColumn, self::GRID_COLUMNS, true);
+    }
+
+    public function getGridColumnDefinition(string $gridColumn): ?Data
+    {
+        $definition = new Data\Numeric();
+        $definition->setName($this->getName());
+        $definition->setTitle(sprintf('%s: %s', $this->getTitle(), ucfirst($gridColumn)));
+
+        return $definition;
+    }
+
+    public function getGridColumnName(string $gridColumn): string
+    {
+        return $gridColumn;
+    }
+
+    public function getGridColumnValue(string $gridColumn, Concrete $object, array $params = []): mixed
+    {
+        return $object->get($this->getName())?->{'get' . ucfirst($gridColumn)}();
+    }
+
+    public function setGridColumnValue(string $gridColumn, Concrete $object, mixed $value, array $params = []): void
+    {
+        $dimensions = $object->get($this->getName()) ?? new DimensionsValue();
+        $dimensions->{'set' . ucfirst($gridColumn)}($value);
+
+        $object->setValue($this->getName(), $dimensions);
+    }
+
+    public function getGridColumnForCsvExport(string $gridColumn, Concrete $object, array $params = []): string
+    {
+        return (string) $this->getGridColumnValue($gridColumn, $object, $params);
+    }
+
+    public function addGridColumnToQuery(
+        QueryBuilder $queryBuilder,
+        ClassDefinition $class,
+        string $objectTable,
+        string $gridColumn,
+        string $alias,
+        array $params = [],
+    ): void {
+        $queryBuilder->addSelect(sprintf('%s.%s__%s AS %s', $objectTable, $this->getName(), $gridColumn, $alias));
+    }
+
+    public function getGridColumnFilterCondition(
+        string $gridColumn,
+        mixed $value,
+        string $operator,
+        string $alias,
+    ): string {
+        return $this->getGridColumnDefinition($gridColumn)->getFilterConditionExt(
+            $value,
+            $operator,
+            ['name' => $alias],
+        );
+    }
+}
+```
+
+Values pass between the grid and the field in the format of the column definition. For a `Numeric` that is a number.
+For a `Select` it is the value of the option. `getGridColumnValue()` reads the value through the getter of the object.
+The grid reads it once with inherited values and once without them. That is how it finds the parent behind an
+inherited value and marks the cell.
+
+`addGridColumnToQuery()` selects the value under the alias that the grid hands over. The grid sorts by this alias,
+and every filter condition ends up in the `HAVING` clause of the listing. A field with its values in another table
+joins that table here. The classification store and the store values both do that.
+
+### Choose the Column in a Dialog
+
+The JavaScript tag of the field returns a dialog. The grid configuration opens it as soon as an editor drops the field
+into the selected columns:
 
 ```js
 createGridColumnConfigDialog: function () {
-    return new app.myDataType.columnConfigDialog();
+    return new app.dimensions.columnConfigDialog();
 },
 ```
 
-The dialog has the method `getConfigDialog(ownerTree, node, selectionPanel)`. It sets `key`, `text`, `layout` and
-`dataType` of the dropped node, or removes the node. The layout is the column definition, and `dataType` is its field
-type.
+The dialog receives the dropped node and a callback with `getConfigDialog(ownerTree, node, selectionPanel, callback)`.
+It sets `key`, `text`, `layout` and `dataType` of the node, and then it calls the callback. The callback refreshes the
+preview of the grid configuration. The layout is the column definition, and `dataType` is its field type. An editor
+can drop the field as often as needed and gets another column every time.
 
 > [!NOTE]
-> A filter on such a column only finds values the object has of its own. An inherited value has no row of the object.
+> A filter on such a column finds only values the object holds itself. An inherited value has no row of the object,
+> so the database cannot match it.
