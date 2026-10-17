@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Inheritance;
 
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 beforeEach(function () {
@@ -33,7 +34,7 @@ beforeEach(function () {
 });
 
 it('gives the child the value of its parent for a key it holds no value for', function () {
-    $store = reloaded($this->child)->getTeststore();
+    $store = Elements::refresh($this->child)->getTeststore();
 
     $value = $store->getLocalizedKeyValue(
         $this->group->getId(),
@@ -44,7 +45,7 @@ it('gives the child the value of its parent for a key it holds no value for', fu
 });
 
 it('keeps the value of the child for a key it holds its own value for', function () {
-    $store = reloaded($this->child)->getTeststore();
+    $store = Elements::refresh($this->child)->getTeststore();
 
     $value = $store->getLocalizedKeyValue(
         $this->group->getId(),

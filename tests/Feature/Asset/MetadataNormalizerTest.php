@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Asset;
 
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
@@ -30,7 +31,7 @@ beforeEach(function () {
 it('keeps a stored metadata value through a round trip of the normalizer', function (string $type, mixed $value) {
     $this->asset->addMetadata('metadata', $type, $value);
     $this->asset->save();
-    $stored = reloaded($this->asset)->getMetadata('metadata');
+    $stored = Elements::refresh($this->asset)->getMetadata('metadata');
     $normalizer = $this->loader->build($type);
 
     $normalized = $normalizer->normalize($stored);
@@ -52,7 +53,7 @@ it('keeps a stored metadata element through a round trip of the normalizer', fun
 ) {
     $this->asset->addMetadata('metadata', $type, $element);
     $this->asset->save();
-    $stored = reloaded($this->asset)->getMetadata('metadata');
+    $stored = Elements::refresh($this->asset)->getMetadata('metadata');
     $normalizer = $this->loader->build($type);
 
     $normalized = $normalizer->normalize($stored);

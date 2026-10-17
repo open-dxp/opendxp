@@ -19,6 +19,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Data\Link;
 use OpenDxp\Model\Element\ValidationException;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Tests\Factory\UnittestLinkFactory;
 use TypeError;
@@ -40,7 +41,7 @@ it('keeps the url of a link, localized or not', function () {
         'testlink' => $link,
         'ltestlink' => $link,
     ]);
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
 
     expect($loaded->getTestlink()->getDirect())
         ->toBe('https://www.opendxp.io/')

@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\Asset\Image;
 use OpenDxp\Model\DataObject\Folder;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetFolderFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
@@ -25,7 +26,7 @@ use OpenDxp\Test\Factory\DataObjectFolderFactory;
 it('writes an image asset with a file behind it', function () {
     $image = AssetImageFactory::createOne();
 
-    expect(reloaded($image))
+    expect(Elements::refresh($image))
         ->toBeInstanceOf(Image::class)
         ->getFileSize()
         ->toBeGreaterThan(0);
@@ -44,7 +45,7 @@ it('puts an asset into a folder', function () {
 it('writes an object folder', function () {
     $folder = DataObjectFolderFactory::createOne(['key' => 'products']);
 
-    expect(reloaded($folder))
+    expect(Elements::refresh($folder))
         ->toBeInstanceOf(Folder::class)
         ->getFullPath()
         ->toBe('/products');

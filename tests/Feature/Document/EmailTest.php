@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Document;
 
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentEmailFactory;
 
 it('keeps its subject and every address', function () {
@@ -28,7 +29,7 @@ it('keeps its subject and every address', function () {
         'replyTo' => 'jane-reply-to@doe.com',
     ]);
 
-    $reloaded = reloaded($email);
+    $reloaded = Elements::refresh($email);
 
     expect($reloaded->getSubject())
         ->toBe('a subject')

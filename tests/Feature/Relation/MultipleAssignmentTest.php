@@ -19,6 +19,7 @@ namespace OpenDxp\Tests\Feature\Relation;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Model\Element\ValidationException;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
@@ -58,7 +59,7 @@ it('keeps the same target twice on a field that allows it', function (string $me
     $relations = eachTargetTwice($metadata, $field);
     $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
 
     expect(notesOf($loaded->get($field)))->toBe(notesOf($relations));
 })->with('fields that allow a target twice');
@@ -67,7 +68,7 @@ it('keeps the same target twice in a serialized object', function (string $metad
     $relations = eachTargetTwice($metadata, $field);
     $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
 
-    $copy = unserialize(serialize(reloaded($object)));
+    $copy = unserialize(serialize(Elements::refresh($object)));
 
     expect(notesOf($copy->get($field)))->toBe(notesOf($relations));
 })->with('fields that allow a target twice');

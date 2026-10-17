@@ -19,6 +19,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Carbon\Carbon;
 use Closure;
 use OpenDxp\Model\DataObject\Data;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\TestObjectFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -36,7 +37,7 @@ it('keeps a localized field apart per language', function (string $field, Closur
         )
         ->create();
 
-    expect(reloaded($object))
+    expect(Elements::refresh($object))
         ->toCarryLocalizedField($field, $germanValue, 'de')
         ->toCarryLocalizedField($field, $englishValue, 'en');
 })->with([
@@ -176,7 +177,7 @@ it('tells two texts apart that only look like the same number', function () {
         ->create();
     $definition = $object->getClass()->getFieldDefinition('localizedfields')->getFieldDefinition('linput');
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
     $englishIsEqual = $definition->isEqual($loaded->getLinput('en'), '000001');
     $germanIsEqual = $definition->isEqual($loaded->getLinput('de'), '0.100000');
 

@@ -20,6 +20,7 @@ use OpenDxp\Db;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\InputQuantityValue;
 use OpenDxp\Model\Element\ValidationException;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\QuantityValueUnitFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -104,7 +105,7 @@ it('strips a script from formatted text before it is stored', function () {
         'wysiwyg' => '!@#$%^abc\'"<script>console.log("ops");</script> 测试&lt; edf &gt; "',
     ]);
 
-    $loaded = html_entity_decode(reloaded($object)->getWysiwyg());
+    $loaded = html_entity_decode(Elements::refresh($object)->getWysiwyg());
     $queried = html_entity_decode(queryTableValue($object, 'wysiwyg'));
 
     expect($loaded)

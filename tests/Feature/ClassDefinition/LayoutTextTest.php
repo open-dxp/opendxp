@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\ClassDefinition;
 
 use OpenDxp\Model\DataObject\ClassDefinition\Layout\Text;
 use OpenDxp\Model\DataObject\Concrete;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 function renderedLayoutText(string $html, Concrete $object): string
@@ -48,7 +49,7 @@ it('refuses to delete the object', function () {
 
     expect($html)
         ->toContain('Failed rendering the template')
-        ->and(reloaded($this->object))
+        ->and(Elements::refresh($this->object))
         ->not->toBeNull();
 });
 

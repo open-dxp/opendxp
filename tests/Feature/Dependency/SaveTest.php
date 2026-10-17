@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Dependency;
 
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -26,7 +27,7 @@ use OpenDxp\Tests\Factory\UnittestFactory;
  */
 function requiredIdsOf(ElementInterface $element): array
 {
-    return dependencyIds(reloaded($element)->getDependencies()->getRequires());
+    return dependencyIds(Elements::refresh($element)->getDependencies()->getRequires());
 }
 
 /**
@@ -34,7 +35,7 @@ function requiredIdsOf(ElementInterface $element): array
  */
 function requiringIdsOf(ElementInterface $element): array
 {
-    return dependencyIds(reloaded($element)->getDependencies()->getRequiredBy());
+    return dependencyIds(Elements::refresh($element)->getDependencies()->getRequiredBy());
 }
 
 it('records a dependency for every related element', function () {

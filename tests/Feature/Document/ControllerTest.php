@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Document;
 
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Application\Controller\TagCollectionController;
 
@@ -26,5 +27,5 @@ it('stores the controller a page is given later', function () {
 
     $page->save();
 
-    expect(reloaded($page)->getController())->toBe($controller);
+    expect(Elements::refresh($page)->getController())->toBe($controller);
 });

@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 it('keeps the metadata a relation carries', function () {
@@ -34,14 +35,14 @@ it('keeps the metadata a relation carries', function () {
 
     $object = UnittestFactory::createOne(['objectswithmetadata' => $assigned]);
 
-    expect(reloaded($object))->toCarryField('objectswithmetadata', $assigned);
+    expect(Elements::refresh($object))->toCarryField('objectswithmetadata', $assigned);
 });
 
 it('lists the objects that point at it', function () {
     $target = UnittestFactory::createOne();
 
     $object = UnittestFactory::createOne(['objects' => [$target]]);
-    $pointing = reloaded($target)->getNonowner();
+    $pointing = Elements::refresh($target)->getNonowner();
 
     expect($pointing)
         ->toHaveCount(1)

@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 function countedWithLocale(string $locale, string $condition): int
@@ -69,10 +70,10 @@ it('keeps a language of a field collection item when another one is written late
         )
         ->create();
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
     $loaded->getFieldcollection()->get(0)->setLinput('textDE', 'de');
     $loaded->save();
-    $written = reloaded($object)->getFieldcollection()->get(0);
+    $written = Elements::refresh($object)->getFieldcollection()->get(0);
 
     expect($written->getLinput('en'))
         ->toBe('textEN')
@@ -96,7 +97,7 @@ it('returns the value of the fallback language only for an empty field', functio
         )
         ->create();
 
-    $value = reloaded($object)->get($field, 'de');
+    $value = Elements::refresh($object)->get($field, 'de');
 
     expect($value)->toEqual($expected);
 })->with([

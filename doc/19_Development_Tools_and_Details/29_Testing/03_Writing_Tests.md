@@ -111,6 +111,21 @@ expect(fn () => $this->handler->save($key, 'test'))
     ->toThrow(InvalidArgumentException::class, 'contains reserved characters');
 ```
 
+### Refresh an element
+
+`OpenDxp\Test\Elements::refresh()` loads an element the way the next request would. It clears the runtime cache of
+the process first. An element that the refreshed element loads in turn, like its parent or a related object, comes
+from the database as well:
+
+```php
+use OpenDxp\Test\Elements;
+
+$product->setName('Sneaker');
+$product->save();
+
+expect(Elements::refresh($product)->getName())->toBe('Sneaker');
+```
+
 ### The expectations of OpenDXP
 
 OpenDXP brings expectations for checks that Pest cannot make on its own. You registered them in
@@ -121,13 +136,13 @@ own idea of equality, so the expectation asks the field definition instead of co
 directly:
 
 ```php
-expect(reloaded($object))->toCarryField('consent', new Consent(true));
+expect(Elements::refresh($object))->toCarryField('consent', new Consent(true));
 ```
 
 `toCarryLocalizedField()` does the same for one language of a localized field:
 
 ```php
-expect(reloaded($object))
+expect(Elements::refresh($object))
     ->toCarryLocalizedField('linput', $germanValue, 'de')
     ->toCarryLocalizedField('linput', $englishValue, 'en');
 ```
@@ -242,18 +257,16 @@ goes into the test file, below the `use` lines. Once a second file needs it, it 
 `tests/Helpers/`, into a file named after its subject in lowercase. A file name in PascalCase
 would promise a class. There is never a second helper for the same thing.
 
-The suite of OpenDXP has a helper that loads an element the way the next request would:
+The suite of OpenDXP has a helper that turns a list of elements into their ids:
 
 ```php
 // tests/Helpers/element.php
 
-function reloaded(ElementInterface $element): ElementInterface
+function elementIds(array $elements): array
 {
-    RuntimeCache::clear();
-
-    return $element::getById(
-        $element->getId(),
-        ['force' => true],
+    return array_map(
+        static fn (ElementInterface $element): int => $element->getId(),
+        array_values($elements),
     );
 }
 ```
