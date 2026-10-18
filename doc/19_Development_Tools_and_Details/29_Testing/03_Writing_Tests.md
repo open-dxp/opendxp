@@ -1,8 +1,8 @@
 # Writing Tests
 
 On this page you write one test and let it grow. It starts as a single check on the children of a
-page and ends as one test that covers documents and data objects alike. On the way you learn where
-each piece of test code belongs and how a test keeps out of the way of the next one.
+page and ends as one test that covers documents and data objects alike. Along the way you learn
+where each piece of test code belongs. You also learn how tests stay independent of each other.
 
 The page assumes a package that is set up as [Testing](./README.md) describes. The examples use
 the factories of OpenDXP. [Factories and Stories](./05_Factories_and_Stories.md) explains them in
@@ -128,12 +128,12 @@ expect(Elements::refresh($product)->getName())->toBe('Sneaker');
 
 ### The expectations of OpenDXP
 
-OpenDXP brings expectations for checks that Pest cannot make on its own. You registered them in
-`tests/Pest.php` when you set up your package.
+OpenDXP brings expectations for checks that Pest cannot make on its own.
+[Test API](./07_Test_API.md#registration) shows how you register them.
 
-`toCarryField()` checks that a data object carries the value it was given. Every field type has its
-own idea of equality, so the expectation asks the field definition instead of comparing the values
-directly:
+`toCarryField()` checks that a data object carries the value it was given. Each field type compares
+values in its own way. The expectation therefore asks the field definition and does not compare the
+values directly:
 
 ```php
 expect(Elements::refresh($object))->toCarryField('consent', new Consent(true));
@@ -163,8 +163,8 @@ expect($response)
 ## Cover data objects with the same test
 
 Data objects have children too, and an unpublished object is left out in the same way as an
-unpublished document. You could copy the test and swap the factory. Two tests for the same
-behaviour drift apart over time, so write one test with a dataset instead:
+unpublished document. You could copy the test and swap the factory. But two tests for the same
+behaviour drift apart over time. Write one test with a dataset instead:
 
 ```php
 use OpenDxp\Test\Factory\DocumentPageFactory;
@@ -201,9 +201,8 @@ A dataset changes the data of a test, never its course. If the test needs an `if
 method name that depends on the dataset, the cases are different behaviours. They get tests of
 their own.
 
-A dataset that hands over an object hands it over as a closure. Pest calls the closure after
-`beforeEach`, so the closure can use what `beforeEach` put on `$this`, and the parameter of the
-test keeps its type:
+A dataset passes an object as a closure. Pest calls the closure after `beforeEach`. The closure can
+therefore use what `beforeEach` put on `$this`, and the parameter of the test keeps its type:
 
 ```php
 dataset('descendants', [
@@ -216,7 +215,7 @@ it('gives a brick value of the parent to every descendant', function (Inheritanc
 })->with('descendants');
 ```
 
-The scope of a dataset follows its use. A named dataset is only visible in its scope.
+Define a dataset where it is used. A named dataset is only visible in that scope.
 
 | Used by                    | Where it goes                       |
 |----------------------------|-------------------------------------|
@@ -227,8 +226,8 @@ The scope of a dataset follows its use. A named dataset is only visible in its s
 
 ## Share the setup
 
-Once several tests in the file need the same parent, move it into `beforeEach`. State that
-`beforeEach` prepares for the tests of a file goes on `$this`:
+Once several tests in the file need the same parent, move it into `beforeEach`. `beforeEach` puts
+the state it prepares on `$this`:
 
 ```php
 beforeEach(function () {
@@ -275,8 +274,8 @@ A helper does real work. It never wraps a single getter, and it holds no expecta
 repeats is an expectation of your own. It goes into `tests/Expectations/`, its name follows the
 pattern of Pest (`toBe...`, `toHave...`, `toCarry...`), and it ends with `return $this`.
 
-Nothing returns an array whose keys describe a shape. That shape is a class. Put it under
-`tests/Value/` as a `final readonly` class:
+A function never returns an array whose keys describe a shape. Such a shape becomes a class. Put it
+under `tests/Value/` as a `final readonly` class:
 
 ```php
 final readonly class SearchAnswer
@@ -294,15 +293,15 @@ final readonly class SearchAnswer
 
 This table sums up where test code goes:
 
-| What | Where |
-|---|---|
-| State that `beforeEach` shares with the tests of a file | `$this` |
-| Behaviour that the tests of several directories share | A method of their test case, reached through `$this` |
-| A helper without state for one test file | A function in that file, below the `use` lines |
-| A helper without state for several test files | A function in `tests/Helpers/<subject>.php` |
-| Something that builds a model and saves it | A factory |
-| A check that repeats | An expectation in `tests/Expectations/` |
-| Something other packages need for their tests too | A class with one task in the package itself, like `OpenDxp\Test` |
+| What                                                    | Where                                                            |
+|---------------------------------------------------------|------------------------------------------------------------------|
+| State that `beforeEach` shares with the tests of a file | `$this`                                                          |
+| Behaviour that the tests of several directories share   | A method of their test case, reached through `$this`             |
+| A helper without state for one test file                | A function in that file, below the `use` lines                   |
+| A helper without state for several test files           | A function in `tests/Helpers/<subject>.php`                      |
+| Something that builds a model and saves it              | A factory                                                        |
+| A check that repeats                                    | An expectation in `tests/Expectations/`                          |
+| Something other packages need for their tests too       | A class with one task in the package itself, like `OpenDxp\Test` |
 
 ## The layout of a suite
 
@@ -313,8 +312,7 @@ tests/
     Pest.php        assigns the test cases and registers the expectations
     Feature/        tests that boot the application, one directory per subject
     Unit/           tests that boot nothing
-    Application/    the application of a bundle: kernel, configuration, templates, controllers,
-                    services
+    Application/    the application of a bundle: kernel, configuration, templates, controllers, services
     Factory/        factories for the models of this package
     Story/          fixed worlds with fixed values
     TestCase/       the test cases of this suite, not final
@@ -325,8 +323,7 @@ tests/
     Fixtures/       data files and definitions
 ```
 
-A project has no `Application/` directory. Its test kernel lives in `tests/TestKernel.php`. Leave
-out every directory you do not need. An empty directory says nothing.
+Leave out the directories you do not need.
 
 Pest loads `tests/Pest.php`, everything under `tests/Helpers/` and `tests/Expectations/`, every
 file named `Datasets.php` and everything under a directory `Datasets/` on its own. You never
@@ -363,12 +360,9 @@ Every file of a suite should look as if one person wrote it. These habits get yo
 
 ## Keep tests apart
 
-Every test runs in a database transaction that is rolled back when the test ends. Whatever a test
-writes through the database is gone for the next test.
-
-The test case of the foundation also resets what OpenDXP keeps in statics: the runtime cache, the
-system configuration, the admin mode, the current site and the current static route. A test can
-therefore override a system setting without cleaning up:
+Every test runs in a transaction that is rolled back. The test case also resets the static state of
+OpenDXP, as [Static state](https://github.com/open-dxp/test-foundation#static-state) describes. A
+test can therefore change a system setting and does not need to clean up:
 
 ```php
 use OpenDxp\Test\Factory\AssetImageFactory;
@@ -390,7 +384,7 @@ it('applies a system setting a test overrides', function () {
 });
 ```
 
-Any other static or global state a test changes, it restores in `afterEach()` or `->after()`:
+A test restores any other static or global state it changes, in `afterEach()` or `->after()`:
 
 ```php
 it('writes no version while versioning is off', function () {
@@ -405,62 +399,21 @@ it('writes no version while versioning is off', function () {
 
 ### Tests that cannot be rolled back
 
-Some tests cannot run inside a transaction. A change to the schema commits the transaction, and
-InnoDB writes a full text index only on commit. Such tests get a test case of their own that skips
-the rollback:
-
-```php
-use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
-use OpenDxp\TestFoundation\TestCase;
-
-// DDL commits the transaction, so a test that changes the schema cannot be rolled back.
-#[SkipDatabaseRollback]
-abstract class SchemaTestCase extends TestCase
-{
-}
-```
-
-> [!IMPORTANT]
-> Without the rollback, nothing cleans up for you. A test under such a test case removes what it
-> wrote, in `afterEach()` or in the `tearDown()` of its test case. Anything it leaves behind is
-> still there for the next run.
+A test that changes the schema or needs a full text index runs without the rollback, as
+[Tests without rollback](https://github.com/open-dxp/test-foundation#tests-without-rollback) describes.
 
 ### Tests that need another configuration
 
-Keep the configuration of the test application free of what only some tests need. A test that needs
-another configuration runs under a test case that extends `EnvironmentTestCase`. It names a Symfony
-environment of its own:
-
-```php
-use OpenDxp\TestFoundation\EnvironmentTestCase;
-
-abstract class HttpCacheTestCase extends EnvironmentTestCase
-{
-    protected static function environment(): string
-    {
-        return 'http_cache';
-    }
-}
-```
-
-The test kernel loads the file `config/<environment>.yaml` from its own directory. For a bundle
-that is `tests/Application/config/http_cache.yaml`. The configuration of the default environment
-`test` lives in `test.yaml` beside it. The new file imports `test.yaml`, so the environment adds to
-the test configuration instead of replacing it:
-
-```yaml
-imports:
-    - { resource: test.yaml }
-
-opendxp:
-    http_cache:
-        enabled: true
-```
+The configuration of the test application holds only what all tests need. A test that needs a
+different configuration runs in its own environment.
+[Another configuration](https://github.com/open-dxp/test-foundation#another-configuration) shows how.
 
 ### Tests that need a service
 
-A test against an external service, such as Redis, skips itself when the variable that names the
-service is missing:
+A test against an external service, such as Redis, reads the address of the service from an
+environment variable. If the variable is missing, the test skips itself.
+[External services](https://github.com/open-dxp/test-foundation#external-services) lists the
+variables:
 
 ```php
 function redisDsn(): string
