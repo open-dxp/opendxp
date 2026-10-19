@@ -18,8 +18,8 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\DataObject\Consent\Service;
 use OpenDxp\Model\DataObject\Data\Consent;
-use OpenDxp\TestFoundation\Container;
 use OpenDxp\Test\Elements;
+use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 beforeEach(function () {

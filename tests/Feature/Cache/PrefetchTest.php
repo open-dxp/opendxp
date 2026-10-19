@@ -23,8 +23,8 @@ use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Event\DataObjectEvents;
 use OpenDxp\Event\Model\DataObjectEvent;
 use OpenDxp\Model\DataObject;
-use OpenDxp\TestFoundation\Container;
 use OpenDxp\Test\Elements;
+use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use ReflectionProperty;
 
