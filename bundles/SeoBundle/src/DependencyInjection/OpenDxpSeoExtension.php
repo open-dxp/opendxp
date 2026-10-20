@@ -48,9 +48,16 @@ final class OpenDxpSeoExtension extends ConfigurableExtension implements Prepend
         $loader->load('event_listeners.yaml');
         $loader->load('redirect_services.yaml');
         $loader->load('sitemap_services.yaml');
+        $loader->load('site_declaration_services.yaml');
+
         $this->configureSitemaps($container, $config['sitemaps']);
+
         $container->setParameter('opendxp_seo.sitemaps', $config['sitemaps']);
         $container->setParameter('opendxp_seo.redirects', $config['redirects']);
+        $container->setParameter(
+            'opendxp_seo.site_declarations',
+            array_keys(array_filter($config['site_declarations'], fn (array $declaration) => $declaration['enabled'])),
+        );
     }
 
     private function configureSitemaps(ContainerBuilder $container, array $config): void

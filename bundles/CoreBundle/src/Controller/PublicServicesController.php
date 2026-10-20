@@ -18,10 +18,8 @@ namespace OpenDxp\Bundle\CoreBundle\Controller;
 
 use Exception;
 use League\Flysystem\FilesystemException;
-use OpenDxp\Bundle\SeoBundle\Config;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
-use OpenDxp\Model\Site;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -68,43 +66,6 @@ class PublicServicesController extends AbstractController
         }
 
         return new RedirectResponse('/bundles/opendxpadmin/img/filetype-not-supported.svg');
-    }
-
-    public function robotsTxtAction(Request $request): Response
-    {
-        // check for site
-        $domain = \OpenDxp\Tool::getHostname();
-        $site = Site::getByDomain($domain);
-
-        $config = [];
-
-        if (class_exists(Config::class)) {
-            $config = Config::getRobotsConfig();
-        }
-
-        $siteId = 0;
-        if ($site instanceof Site) {
-            $siteId = $site->getId();
-        }
-
-        // send correct headers
-        header('Content-Type: text/plain; charset=utf8');
-        while (@ob_end_flush()) ;
-
-        // check for configured robots.txt in opendxp
-        $content = '';
-        if (array_key_exists($siteId, $config)) {
-            $content = $config[$siteId];
-        }
-
-        if (empty($content)) {
-            // default behavior, allow robots to index everything
-            $content = "User-agent: *\nDisallow:";
-        }
-
-        return new Response($content, Response::HTTP_OK, [
-            'Content-Type' => 'text/plain',
-        ]);
     }
 
     public function commonFilesAction(Request $request): Response

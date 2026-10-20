@@ -1,0 +1,19 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRegistry:
+        arguments:
+            $declarations: !tagged_iterator opendxp_seo.site_declaration
+            $enabledNames: '%opendxp_seo.site_declarations%'
+
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRepository: ~
+
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRouteLoader: ~
+
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\Declaration\RobotsTxtDeclaration: ~
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\Declaration\SecurityTxtDeclaration: ~
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\Declaration\AdsTxtDeclaration: ~
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\Declaration\AppAdsTxtDeclaration: ~
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\Declaration\LlmsTxtDeclaration: ~

@@ -17,8 +17,13 @@ namespace OpenDxp\Bundle\SeoBundle\Security;
 
 enum SeoPermission: string
 {
+    /**
+     * @deprecated since 1.5 and will be removed in 2.0, use SiteDeclarations instead
+     */
     case RobotsTxt          = 'opendxp:security:permission:robots.txt';
+
     case SeoDocumentEditor  = 'opendxp:security:permission:seo_document_editor';
     case HttpErrors         = 'opendxp:security:permission:http_errors';
     case ProtectedRedirects = 'opendxp:security:permission:redirects_protected';
+    case SiteDeclarations   = 'opendxp:security:permission:site_declarations';
 }

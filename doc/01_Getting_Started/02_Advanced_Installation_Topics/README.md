@@ -55,7 +55,7 @@ By default, here's what's included in the Recommended Bundles list:
 - [OpenDxpApplicationLoggerBundle](../../18_Tools_and_Features/17_Application_Logger.md)
 - [OpenDxpCustomReportsBundle](../../18_Tools_and_Features/29_Custom_Reports.md)
 - [OpenDxpGlossaryBundle](../../18_Tools_and_Features/21_Glossary.md)
-- OpenDxpSeoBundle (for SEO-related topics: [Robots.txt](../../18_Tools_and_Features/38_Robots.txt.md), [Sitemaps](../../18_Tools_and_Features/39_Sitemaps.md) and [Redirects](../../02_MVC/04_Routing_and_URLs/04_Redirects.md))
+- OpenDxpSeoBundle (for SEO-related topics: [Site Declarations](../../18_Tools_and_Features/38_Site_Declarations.md), [Sitemaps](../../18_Tools_and_Features/39_Sitemaps.md) and [Redirects](../../02_MVC/04_Routing_and_URLs/04_Redirects.md))
 - OpenDxpSimpleBackendSearchBundle (for default search functionality in Backend UI interface)
 - [OpenDxpStaticRoutesBundle](../../02_MVC/04_Routing_and_URLs/02_Custom_Routes.md)
 - [OpenDxpUuidBundle](../../19_Development_Tools_and_Details/19_UUID_Support.md)

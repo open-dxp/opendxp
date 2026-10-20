@@ -23,6 +23,7 @@ use OpenDxp\Tests\TestCase\HttpCacheTestCase;
 use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
 use OpenDxp\Tests\TestCase\SearchTestCase;
+use OpenDxp\Tests\TestCase\SiteDeclarationTestCase;
 
 Fields::register();
 Redirects::register();
@@ -64,3 +65,4 @@ pest()->extend(HttpCacheTestCase::class)->in('Feature/HttpCache');
 pest()->extend(InstallerTestCase::class)->in('Feature/Installer');
 pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
 pest()->extend(SearchTestCase::class)->in('Feature/Search');
+pest()->extend(SiteDeclarationTestCase::class)->in('Feature/SiteDeclaration');

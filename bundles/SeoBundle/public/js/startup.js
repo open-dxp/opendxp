@@ -40,12 +40,12 @@ opendxp.bundle.seo.startup = Class.create({
                 });
             }
 
-            if (user.isAllowed("robots.txt") && perspectiveCfg.inToolbar("marketing.seo.robots")) {
+            if (this.canEditSiteDeclarations(user) && perspectiveCfg.inToolbar('marketing.seo.robots')) {
                 seoMenu.push({
-                    text: t("robots.txt"),
+                    text: t('site_declarations'),
                     iconCls: "opendxp_nav_icon_robots",
                     itemId: 'opendxp_menu_marketing_seo_robots_txt',
-                    handler: this.showRobotsTxt
+                    handler: this.showSiteDeclarations
                 });
             }
 
@@ -96,12 +96,17 @@ opendxp.bundle.seo.startup = Class.create({
         }
     },
 
-    showRobotsTxt: function () {
+    canEditSiteDeclarations: function (user) {
+        return opendxp.settings.site_declarations.length > 0
+            && (user.isAllowed('site_declarations') || user.isAllowed('robots.txt'));
+    },
+
+    showSiteDeclarations: function () {
         try {
-            opendxp.globalmanager.get("bundle_seo_robotstxt").activate();
+            opendxp.globalmanager.get('bundle_seo_site_declarations').activate();
         }
         catch (e) {
-            opendxp.globalmanager.add("bundle_seo_robotstxt", new opendxp.bundle.seo.robotstxt());
+            opendxp.globalmanager.add('bundle_seo_site_declarations', new opendxp.bundle.seo.siteDeclarations());
         }
     },
 
@@ -123,9 +128,9 @@ opendxp.bundle.seo.startup = Class.create({
             }
         }
 
-        if (user.isAllowed("robots.txt")) {
+        if (this.canEditSiteDeclarations(user)) {
             opendxp.helpers.keyBindingMapping.robots = function() {
-                opendxpBundleSeo.showRobotsTxt();
+                opendxpBundleSeo.showSiteDeclarations();
             }
         }
 

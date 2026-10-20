@@ -1,6 +1,11 @@
 # Upgrade Notes
 
 ## OpenDXP 1.5.0
+- Feature: Site declarations serve robots.txt, security.txt, ads.txt, app-ads.txt and llms.txt per site. Only robots.txt is enabled after the update. See [Site Declarations](../../18_Tools_and_Features/38_Site_Declarations.md) [#84](https://github.com/open-dxp/opendxp/issues/84)
+- Chore: robots.txt needs the SeoBundle. A project without it answers `/robots.txt` with 404.
+- Chore: Remove the internal `PublicServicesController::robotsTxtAction()`, `OpenDxp\Bundle\SeoBundle\Config` and the admin routes `opendxp_bundle_seo_settings_robotstxtget` and `opendxp_bundle_seo_settings_robotstxtput`.
+- Chore: Run `bin/console opendxp:cache:clear --tags=output,output_lifetime` after the update. It removes old entries of `/robots.txt` from the full page cache.
+- Deprecated: the permission `robots.txt`. It stays until 2.0 because of BC reasons. Use `site_declarations` instead. A migration grants it to every user and role with `robots.txt`.
 - Feature: The redirects, the custom reports and the application log use the unified grid export of the admin bundle.
 - Chore: Remove the old export routes of the redirects and the custom reports.
 - Chore: Remove `OpenDxp\Bundle\SeoBundle\Redirect\Csv::createExportWriter()`.
