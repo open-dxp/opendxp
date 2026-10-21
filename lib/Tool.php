@@ -20,6 +20,7 @@ use Exception;
 use GuzzleHttp\RequestOptions;
 use Locale;
 use OpenDxp;
+use OpenDxp\Http\Request\Host\GeneralHostProviderInterface;
 use OpenDxp\Http\Request\Host\GeneralHostResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Localization\LocaleServiceInterface;
@@ -347,7 +348,7 @@ final class Tool
             /** @var GeneralHostResolver $generalHostResolver */
             $generalHostResolver = OpenDxp::getContainer()->get(GeneralHostResolver::class);
 
-            return $generalHostResolver->resolve(['source' => $request]);
+            return $generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
         }
 
         return $request->getHost();
@@ -393,7 +394,7 @@ final class Tool
         if (!$hostname || $hostname === 'localhost') {
             /** @var GeneralHostResolver $generalHostResolver */
             $generalHostResolver = OpenDxp::getContainer()->get(GeneralHostResolver::class);
-            $hostname = $generalHostResolver->resolve(['source' => $request]);
+            $hostname = $generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
 
             if (!$hostname) {
                 Logger::warn('Couldn\'t determine HTTP Host. No Domain set in "Settings" -> "System" -> "Website" -> "Domain"');

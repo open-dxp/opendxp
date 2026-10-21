@@ -21,6 +21,7 @@ use LogicException;
 use OpenDxp;
 use OpenDxp\Bundle\CoreBundle\EventListener\HttpCache\HttpCacheScopeListener;
 use OpenDxp\Bundle\CoreBundle\EventListener\TranslationDebugListener;
+use OpenDxp\Bundle\CoreBundle\EventListener\TrustedHostListener;
 use OpenDxp\Bundle\CoreBundle\HttpCache\Strategy\OpenDxpElementCacheStrategy;
 use OpenDxp\Bundle\CoreBundle\HttpCache\Strategy\TranslationCacheStrategy;
 use OpenDxp\Bundle\CoreBundle\HttpCache\Strategy\WebsiteSettingCacheStrategy;
@@ -194,6 +195,7 @@ final class OpenDxpCoreExtension extends ConfigurableExtension implements Prepen
         $this->configureRouting($container, $config['routing']);
         $this->configureTranslations($container, $config['translations']);
         $this->configurePasswordHashers($container, $config);
+        $this->configureTrustedHosts($container, $config['security']);
 
         $container->setParameter('opendxp.workflow', $config['workflows']);
 
@@ -323,6 +325,17 @@ final class OpenDxpCoreExtension extends ConfigurableExtension implements Prepen
 
         foreach ($config as $context => $contextConfig) {
             $guesser->addMethodCall('addContextRoutes', [$context, $contextConfig['routes']]);
+        }
+    }
+
+    private function configureTrustedHosts(ContainerBuilder $container, array $config): void
+    {
+        $container->setParameter('opendxp.security.trusted_hosts', $config['trusted_hosts']);
+
+        if ($config['enforce_trusted_hosts']) {
+            $container
+                ->autowire(TrustedHostListener::class)
+                ->setAutoconfigured(true);
         }
     }
 

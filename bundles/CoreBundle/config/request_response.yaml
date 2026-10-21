@@ -30,6 +30,11 @@ services:
         arguments:
             $providers: !tagged_iterator opendxp.general_host_provider
 
+    OpenDxp\Http\Request\Host\TrustedHosts:
+        arguments:
+            $configuredHosts: '%opendxp.security.trusted_hosts%'
+            $patternProviders: !tagged_iterator opendxp.trusted_host_pattern_provider
+
     #
     # REQUEST RESOLVERS
     #
