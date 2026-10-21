@@ -17,10 +17,10 @@ jobs:
                   MESSAGE: |
                       ### Review Checklist
                       - [ ] Target branch (`1.0` for bug fixes, others `1.x`)
-                      - [ ] Tests (if it's testable code, there should be a test for it - [get help](docs/Development_Documentation/Development_Tools_and_Details/Testing/Core_Tests.html))
+                      - [ ] Tests (if it's testable code, there should be a test for it - [get help](https://github.com/open-dxp/opendxp/tree/1.x/doc/19_Development_Tools_and_Details/29_Testing))
                       - [ ] Docs (every functionality needs to be documented, [see here](https://github.com/open-dxp/opendxp/tree/1.x/doc)) 
-                      - [ ] [Migration](docs/Development_Documentation/Development_Tools_and_Details/Migrations.html) incl. `install.sql` (e.g. if the database schema changes, ...) 
-                      - [ ] Upgrade notes (deprecations, important information, migration hints, ...) 
+                      - [ ] [Migration](https://github.com/open-dxp/opendxp/blob/1.x/doc/19_Development_Tools_and_Details/37_Migrations.md) incl. `install.sql` (e.g. if the database schema changes, ...) 
+                      - [ ] Entry in `CHANGELOG.md`, or the label `no changelog` 
                       - [ ] Label
                       - [ ] Milestone
               with:

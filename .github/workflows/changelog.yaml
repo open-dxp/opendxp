@@ -1,0 +1,13 @@
+name: Changelog
+
+on:
+    pull_request:
+        types: [ opened, synchronize, reopened, labeled, unlabeled ]
+
+permissions:
+    contents: read
+    pull-requests: read
+
+jobs:
+    changelog:
+        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-changelog.yaml@main
