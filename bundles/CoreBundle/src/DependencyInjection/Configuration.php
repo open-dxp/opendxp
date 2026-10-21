@@ -1103,7 +1103,7 @@ final class Configuration implements ConfigurationInterface
                             ->info('Trusts hosts beyond the general and the site domains, like *.example.com.')
                             ->scalarPrototype()->end()
                         ->end()
-                        ->booleanNode('reject_untrusted_hosts')
+                        ->booleanNode('enforce_trusted_hosts')
                             ->info('Answers every request to a host that is not trusted with 400.')
                             ->defaultFalse()
                         ->end()

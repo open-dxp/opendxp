@@ -153,21 +153,21 @@ opendxp:
         trusted_hosts: '%env(csv:OPENDXP_TRUSTED_HOSTS)%'
 ```
 
-### Reject untrusted hosts
+### Enforce trusted hosts
 
 Turn the check on to answer every request to an unknown host with 400:
 
 ```yaml
 opendxp:
     security:
-        reject_untrusted_hosts: true
+        enforce_trusted_hosts: true
 ```
 
 OpenDXP passes the trusted hosts to `Request::setTrustedHosts()` of Symfony.
 
 > [!NOTE]
 > A project that sets `framework.trusted_hosts` or the environment variable `TRUSTED_HOSTS` checks the hosts with
-> these patterns. `reject_untrusted_hosts` then has no effect.
+> these patterns. `enforce_trusted_hosts` then has no effect.
 
 > [!CAUTION]
 > A health check that calls the server by its IP address needs the IP address in `opendxp.security.trusted_hosts`.

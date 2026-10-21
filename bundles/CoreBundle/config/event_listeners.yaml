@@ -20,8 +20,6 @@ services:
 
     OpenDxp\Bundle\CoreBundle\EventListener\OpenDxpHeaderListener: ~
 
-    OpenDxp\Bundle\CoreBundle\EventListener\TrustedHostListener: ~
-
     #
     # Translations / Locale
 
