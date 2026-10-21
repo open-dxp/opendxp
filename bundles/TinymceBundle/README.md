@@ -75,7 +75,7 @@ Now the user can use only the limited toolbar.
 You can add a Global Configuration for all WYSIWYG Editors for all documents by setting `opendxp.document.editables.wysiwyg.defaultEditorConfig`.
 You can add a Global Configuration for all WYSIWYG Editors for all data objects by setting `opendxp.object.tags.wysiwyg.defaultEditorConfig`.
 
-For this purpose, you can create a [OpenDXP Bundle](doc/Development_Documentation/Extending_OpenDxp/Bundle_Developers_Guide/index.html) and add the
+For this purpose, you can create a [OpenDXP Bundle](../../doc/20_Extending_OpenDxp/13_Bundle_Developers_Guide/README.md) and add the
 configuration in a file in the `Resources/public` directory of your bundle (e.g. `public/js/editmode.js`).
 
 ```
@@ -139,7 +139,7 @@ class AppAdminBundle extends AbstractOpenDxpBundle
 You can also add the file which should be loaded in editmode through an event listener to avoid having to implement a
 `OpenDxpBundle` just for the sake of adding a file. Given you already have an `App` bundle and put the JS config from above
 to `public/js/editmode.js` you can create an event listener to add the path to the list of loaded
-files in editmode (please see [Events](docs/Development_Documentation/Extending_OpenDxp/Event_API_and_Event_Manager.html) for details on how
+files in editmode (please see [Events](../../doc/20_Extending_OpenDxp/11_Event_API_and_Event_Manager.md) for details on how
 to implement and register event listeners):
 
 ```php

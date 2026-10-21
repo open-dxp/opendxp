@@ -6,7 +6,7 @@ Since we're building on top of Symfony and in an app, OpenDXP and Symfony code g
 For further information on how you can ensure that your application won't break when upgrading to a newer version of the same major release branch, please have a look at
 https://symfony.com/doc/current/contributing/code/bc.html
 
-- Carefully read our [Upgrade Notes](../09_Upgrade_Notes/README.md) before any update. 
+- Carefully read the [changelog](https://github.com/open-dxp/opendxp/blob/1.x/CHANGELOG.md) before any update. 
 - Check your version constraint for `open-dxp/opendxp` in your `composer.json` and adapt it if necessary to match with the desired target version.
 - Run `COMPOSER_MEMORY_LIMIT=-1 composer update`
 - Clear the data cache `bin/console opendxp:cache:clear`

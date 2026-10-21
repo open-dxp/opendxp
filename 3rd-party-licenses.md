@@ -6,7 +6,7 @@ However, OpenDXP includes several third-party Open-Source libraries,
 which are licensed under their own respective Open-Source licenses.
 
 The specific verions of a library are documented in
-[OPENDXP_MODIFICATIONS.md](bundles/AdminBundle/public/js/lib/OPENDXP_MODIFICATIONS.md).
+[OPENDXP_MODIFICATIONS.md](https://github.com/open-dxp/admin-bundle/blob/1.x/public/js/lib/OPENDXP_MODIFICATIONS.md).
 
 ## Libraries directly included in OpenDXP
 
