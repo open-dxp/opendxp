@@ -105,13 +105,8 @@ is available – you have two options:
 Set `opendxp.general.domain` in a per-environment config file or `.env`. Straightforward for setups
 where one environment always maps to one main domain.
 
-**Option B – Backoffice-driven (via site custom settings)**
-Mark one site as the "general" site through its custom settings in the backoffice. The admin-bundle
-provides a `GeneralHostProviderInterface` implementation that reads this setting from the database and
-returns the corresponding domain. No YAML configuration needed for the domain itself.
-
-Refer to the admin-bundle documentation for setup instructions:
-`open-dxp/admin-bundle` → `docs/20_Documents/01_Site_Custom_Settings.md`
+**Option B – Backoffice-driven (via a provider)**
+A bundle can register a `GeneralHostProviderInterface` implementation that reads the general domain from the database.
 
 
 ## CLI Context
@@ -123,3 +118,77 @@ used – the same fallback that existed before.
 Commands that are sensitive to the host context (e.g. generating absolute URLs for a specific site)
 should accept a `--site` option and pass the resolved site's domain explicitly rather than relying on
 the general host resolver.
+
+
+## Trusted Hosts
+
+OpenDXP knows the hosts that belong to the installation:
+
+- the general domain
+- the main domain and the additional domains of every site
+- the hosts in `opendxp.security.trusted_hosts`
+- the hosts that a service tagged `opendxp.trusted_host_pattern_provider` adds
+
+The admin bundle uses this list for the links in login mails. A link uses the host of the request only if the host is trusted.
+
+Most installations need no configuration. Add a host only if it is neither the general domain nor a domain of a site,
+like an admin that runs on a domain of its own:
+
+```yaml
+opendxp:
+    security:
+        trusted_hosts:
+            - 'admin.example.com'
+            - '*.example.com'
+```
+
+`*.example.com` trusts every subdomain of `example.com`. Use it only if you control every subdomain. 
+A forgotten DNS entry that points to a service you no longer use lets someone else take over that subdomain.
+
+The list can come from an environment variable:
+
+```yaml
+opendxp:
+    security:
+        trusted_hosts: '%env(csv:OPENDXP_TRUSTED_HOSTS)%'
+```
+
+### Reject untrusted hosts
+
+Turn the check on to answer every request to an unknown host with 400:
+
+```yaml
+opendxp:
+    security:
+        reject_untrusted_hosts: true
+```
+
+OpenDXP passes the trusted hosts to `Request::setTrustedHosts()` of Symfony.
+
+> [!NOTE]
+> A project that sets `framework.trusted_hosts` or the environment variable `TRUSTED_HOSTS` checks the hosts with
+> these patterns. `reject_untrusted_hosts` then has no effect.
+
+> [!CAUTION]
+> A health check that calls the server by its IP address needs the IP address in `opendxp.security.trusted_hosts`.
+
+### Add trusted hosts in a bundle
+
+A bundle adds hosts with a service that implements `TrustedHostPatternProviderInterface` and carries the tag
+`opendxp.trusted_host_pattern_provider`. It gets the patterns of the known hosts and returns more patterns:
+
+```php
+use OpenDxp\Http\Request\Host\TrustedHostPatternProviderInterface;
+
+final class BackofficeHostPatternProvider implements TrustedHostPatternProviderInterface
+{
+    public function getPatterns(array $knownHostPatterns): array
+    {
+        // ^shop\.com$ becomes ^backoffice\.shop\.com$
+        return array_map(
+            static fn (string $pattern): string => '^backoffice\\.' . substr($pattern, 1),
+            $knownHostPatterns,
+        );
+    }
+}
+```

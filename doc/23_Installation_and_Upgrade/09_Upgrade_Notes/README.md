@@ -2,6 +2,7 @@
 
 ## OpenDXP 1.5.0
 - Feature: `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
+- Feature: `TrustedHosts` knows the general domain, the site domains and `opendxp.security.trusted_hosts`. `opendxp.security.reject_untrusted_hosts: true` answers every request to another host with 400. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md#trusted-hosts)
 - Feature: Site declarations serve robots.txt, security.txt, ads.txt, app-ads.txt and llms.txt per site. Only robots.txt is enabled after the update. See [Site Declarations](../../18_Tools_and_Features/38_Site_Declarations.md) [#84](https://github.com/open-dxp/opendxp/issues/84)
 - Chore: robots.txt needs the SeoBundle. A project without it answers `/robots.txt` with 404.
 - Chore: Remove the internal `PublicServicesController::robotsTxtAction()`, `OpenDxp\Bundle\SeoBundle\Config` and the admin routes `opendxp_bundle_seo_settings_robotstxtget` and `opendxp_bundle_seo_settings_robotstxtput`.

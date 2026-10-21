@@ -253,7 +253,9 @@ final class RedirectHandler
                 }
             } else {
                 $site = Site::getByDomain($request->getHost());
-                $redirectDomain = $site instanceof Site ? $request->getHost() : $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
+                $redirectDomain = $site instanceof Site
+                    ? $request->getHost()
+                    : $this->generalHostResolver->resolve([GeneralHostProviderInterface::CONTEXT_SOURCE => $request]);
 
                 if ($redirectDomain) {
                     // prepend the host and scheme to avoid infinite loops when using "domain" redirects
