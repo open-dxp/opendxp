@@ -48,3 +48,4 @@ The Core Framework documentation is divided into three sections that aim to guid
 * [Deployment](./21_Deployment/README.md) 
 * [Administration](./22_Administration_of_OpenDxp/README.md) 
 * [Installation & Upgrade](./23_Installation_and_Upgrade/README.md)
+* [Contributing](./27_Contributing/README.md)
