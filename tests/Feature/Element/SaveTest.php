@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Element;
 
+use OpenDxp\Test\Elements;
+
 it('keeps the note a version was saved with', function (string $element, string $factory) {
     $saved = $factory::createOne();
 
@@ -30,16 +32,16 @@ it('stores the user a save names', function (string $element, string $factory) {
 
     $saved->save();
 
-    expect(reloaded($saved)->getUserModification())->toBe(101);
+    expect(Elements::refresh($saved)->getUserModification())->toBe(101);
 })->with('elements');
 
 it('attributes a save without a user to the system user', function (string $element, string $factory) {
     $saved = $factory::createOne(['userModification' => 101]);
-    $loaded = reloaded($saved);
+    $loaded = Elements::refresh($saved);
 
     $loaded->save();
 
-    expect(reloaded($loaded)->getUserModification())->toBe(0);
+    expect(Elements::refresh($loaded)->getUserModification())->toBe(0);
 })->with('elements');
 
 it('stores the modification date a save names', function (string $element, string $factory) {
@@ -49,15 +51,15 @@ it('stores the modification date a save names', function (string $element, strin
 
     $saved->save();
 
-    expect(reloaded($saved)->getModificationDate())->toBe($anHourAgo);
+    expect(Elements::refresh($saved)->getModificationDate())->toBe($anHourAgo);
 })->with('elements');
 
 it('stamps a save without a modification date with the current time', function (string $element, string $factory) {
     $saved = $factory::createOne(['modificationDate' => time() - 3600]);
-    $loaded = reloaded($saved);
+    $loaded = Elements::refresh($saved);
     $before = time();
 
     $loaded->save();
 
-    expect(reloaded($loaded)->getModificationDate())->toBeGreaterThanOrEqual($before);
+    expect(Elements::refresh($loaded)->getModificationDate())->toBeGreaterThanOrEqual($before);
 })->with('elements');

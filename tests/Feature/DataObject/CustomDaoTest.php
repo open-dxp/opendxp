@@ -18,13 +18,14 @@ namespace OpenDxp\Tests\Feature\DataObject;
 
 use OpenDxp\Model\AbstractModel;
 use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use ReflectionClass;
 
 beforeEach(function () {
     // Dao detection walks up the namespace of a model class. Once the fixture exists, it would become the dao of
     // every class under Unittest, such as its bricks. Loading an object resolves their daos before that.
-    reloaded(UnittestFactory::createOne());
+    Elements::refresh(UnittestFactory::createOne());
 
     $this->resolvedDaos = (new ReflectionClass(AbstractModel::class))->getStaticPropertyValue('daoClassCache');
 
@@ -42,7 +43,7 @@ afterEach(function () {
 it('loads an object through the dao a project writes for its class', function () {
     $object = UnittestFactory::createOne(['input' => 'loaded by the project dao']);
 
-    $loaded = reloaded($object);
+    $loaded = Elements::refresh($object);
 
     expect($loaded->getInput())
         ->toBe('loaded by the project dao')

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Model\Asset;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetFolderFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
@@ -34,7 +35,7 @@ it('stores every property it is given', function (string $factory) {
         ->withProperty('second', 'input', 'two')
         ->create();
 
-    expect(reloaded($holder))
+    expect(Elements::refresh($holder))
         ->getProperty('first')
         ->toBe('one')
         ->getProperty('second')
@@ -49,7 +50,7 @@ it('replaces a property that is set again', function (string $factory) {
 
     $holder->save();
 
-    expect(reloaded($holder)->getProperty('first'))->toBe('two');
+    expect(Elements::refresh($holder)->getProperty('first'))->toBe('two');
 })->with('property holders');
 
 it('empties a property that is set to null and keeps the others', function (string $factory) {
@@ -61,7 +62,7 @@ it('empties a property that is set to null and keeps the others', function (stri
 
     $holder->save();
 
-    expect(reloaded($holder))
+    expect(Elements::refresh($holder))
         ->getProperty('first')
         ->toBeNull()
         ->getProperty('second')
@@ -77,7 +78,7 @@ it('passes an inheritable property down to a child', function (string $factory) 
         ->withParent($parent)
         ->create();
 
-    expect(reloaded($child)->getProperty('inherited'))->toBe('one');
+    expect(Elements::refresh($child)->getProperty('inherited'))->toBe('one');
 })->with('property holders');
 
 it('returns an element property as the element it points at', function (string $factory) {
@@ -87,7 +88,7 @@ it('returns an element property as the element it points at', function (string $
         ->withProperty('image', 'asset', $image)
         ->create();
 
-    expect(reloaded($holder)->getProperty('image'))
+    expect(Elements::refresh($holder)->getProperty('image'))
         ->toBeInstanceOf(Asset::class)
         ->getId()
         ->toBe($image->getId());

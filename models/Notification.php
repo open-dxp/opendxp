@@ -95,12 +95,6 @@ class Notification extends AbstractModel
     protected bool $read = false;
 
     /**
-     * @internal
-     * TODO: Remove with end of Classic-UI
-     */
-    protected bool $isStudio = false;
-
-    /**
      * @throws Exception
      */
     public static function getById(int $id): ?Notification
@@ -294,24 +288,6 @@ class Notification extends AbstractModel
     public function setPayload(?string $payload): static
     {
         $this->payload = $payload;
-
-        return $this;
-    }
-
-    /**
-     * TODO: Remove with end of Classic-UI
-     */
-    public function isStudio(): bool
-    {
-        return $this->isStudio;
-    }
-
-    /**
-     * TODO: Remove with end of Classic-UI
-     */
-    public function setIsStudio(bool $isStudio): static
-    {
-        $this->isStudio = $isStudio;
 
         return $this;
     }

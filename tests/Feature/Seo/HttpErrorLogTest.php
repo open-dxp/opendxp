@@ -18,7 +18,7 @@ namespace OpenDxp\Tests\Feature\Seo;
 
 use OpenDxp;
 use OpenDxp\Bundle\SeoBundle\EventListener\ResponseExceptionListener;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectCache;
 use OpenDxp\Db;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Test\Factory\RedirectFactory;
@@ -29,7 +29,9 @@ use OpenDxp\TestFoundation\Container;
 use Psr\Log\NullLogger;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Throwable;
@@ -37,11 +39,11 @@ use Throwable;
 /**
  * Logs the error as a request outside of debug mode does. The test application runs in debug mode, which logs nothing.
  */
-function logHttpError(string $uri, Throwable $exception): void
+function logHttpError(string $uri, Throwable $exception, Response $response = new Response()): void
 {
     $listener = new ResponseExceptionListener(
         Db::get(),
-        Container::get(RedirectTableProvider::class),
+        Container::get(RedirectCache::class),
         new NullLogger(),
         debug: false,
     );
@@ -59,7 +61,11 @@ function logHttpError(string $uri, Throwable $exception): void
         HttpKernelInterface::MAIN_REQUEST,
         $exception,
     ));
-    $listener->onKernelTerminate();
+    $listener->onKernelTerminate(new TerminateEvent(
+        OpenDxp::getKernel(),
+        $request,
+        $response,
+    ));
 }
 
 function timesLogged(string $uri): int
@@ -117,13 +123,24 @@ it('logs nothing in debug mode', function () {
     expect(timesLogged($uri))->toBe(0);
 });
 
+it('logs nothing while the SEO bundle is not installed', function () {
+    $uri = 'http://localhost/uninstalled';
+    cacheRedirectsAsNotInstalled();
+
+    logHttpError($uri, new NotFoundHttpException());
+
+    expect(timesLogged($uri))->toBe(0);
+});
+
 it('does not log a URL that a redirect answers', function () {
+    $uri = 'http://localhost/redirected-away';
     RedirectFactory::createOne(['source' => '/redirected-away']);
     resetServices();
+    $response = answerTo($uri);
 
-    answerTo('http://localhost/redirected-away');
+    logHttpError($uri, new NotFoundHttpException(), $response);
 
-    expect(timesLogged('http://localhost/redirected-away'))->toBe(0);
+    expect(timesLogged($uri))->toBe(0);
 });
 
 it('offers the path and the site of a logged URL', function () {

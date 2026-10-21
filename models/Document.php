@@ -408,20 +408,34 @@ class Document extends Element\AbstractElement
         if ($this->getId() != 1) { // not for the root node
             // check for a valid key, home has no key, so omit the check
             if (!Element\Service::isValidKey($this->getKey(), 'document')) {
-                throw new Exception('invalid key for document with id [ ' . $this->getId() . ' ] key is: [' . $this->getKey() . ']');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. The key "%s" is invalid.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getKey()
+                ));
             }
 
             if (!$this->getParentId()) {
-                throw new Exception('ParentID is mandatory and can´t be null. If you want to add the element as a child to the tree´s root node, consider setting ParentID to 1.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             if ($this->getParentId() == $this->getId()) {
-                throw new Exception("ParentID and ID are identical, an element can't be the parent of itself in the tree.");
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It cannot be its own parent.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             $parent = Document::getById($this->getParentId());
             if (!$parent) {
-                throw new Exception('ParentID not found.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. Its parent %d does not exist.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getParentId()
+                ));
             }
 
             // use the parent's path from the database here (getCurrentFullPath), to ensure the path really exists and does not rely on the path
@@ -429,7 +443,10 @@ class Document extends Element\AbstractElement
             $this->setPath(str_replace('//', '/', $parent->getCurrentFullPath() . '/'));
 
             if (strlen($this->getKey()) < 1) {
-                throw new Exception('Document requires key, generated key automatically');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. Its key is empty.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
         } elseif ($this->getId() == 1) {
             // some data in root node should always be the same
@@ -442,7 +459,12 @@ class Document extends Element\AbstractElement
         if (Document\Service::pathExists($this->getRealFullPath())) {
             $duplicate = Document::getByPath($this->getRealFullPath());
             if ($duplicate instanceof Document && $duplicate->getId() !== $this->getId()) {
-                $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ ' . $this->getRealFullPath() . ' ] - cannot save document');
+                $duplicateFullPathException = new DuplicateFullPathException(sprintf(
+                    '%s cannot be saved. The path %s is already taken by document %d.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getRealFullPath(),
+                    $duplicate->getId()
+                ));
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
 
@@ -464,7 +486,11 @@ class Document extends Element\AbstractElement
     {
         $disallowedKeysInFirstLevel = ['install', 'admin', 'plugin'];
         if ($this->getParentId() == 1 && in_array($this->getKey(), $disallowedKeysInFirstLevel)) {
-            throw new Exception('Key: ' . $this->getKey() . ' is not allowed in first level (root-level)');
+            throw new Exception(sprintf(
+                '%s cannot be saved. The key "%s" is reserved in the root folder.',
+                Element\Service::getMessageSubject($this),
+                $this->getKey()
+            ));
         }
 
         // set index if null

@@ -20,6 +20,11 @@ services:
             $bundle: "@=service('kernel').getBundle('OpenDxpGenericExecutionEngineBundle')"
 
 
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Controller\:
+        resource: '../src/Controller'
+        public: true
+        tags: ['controller.service_arguments']
+
     #
     # Job Execution Engine
 
@@ -28,9 +33,26 @@ services:
         arguments:
             $environment: '%kernel.environment%'
             $executionEngineBus: '@generic.execution.engine.bus'
+            $sendersLocator: '@messenger.senders_locator'
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgent:
+        alias: OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgentInterface
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobTrackingAgentInterface:
+        class: OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobTrackingAgent
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobTrackingAgent:
+        alias: OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobTrackingAgentInterface
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\PendingOperations: ~
 
     OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepositoryInterface:
         class: OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepository
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepository:
+        alias: OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepositoryInterface
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Storage\JobRunArtifactStorage: ~
 
     OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunErrorLogRepositoryInterface:
         class: OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunErrorLogRepository
@@ -64,6 +86,16 @@ services:
     OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface:
         class: OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContext
 
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContext:
+        alias: OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface
+
+    #
+    # Maintenance
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Maintenance\JobRunCleanupTask:
+        tags:
+            - { name: opendxp.maintenance.task, type: jobruncleanup }
+
 
     #
     # Middleware
@@ -74,5 +106,9 @@ services:
             - { name: "messenger.middleware" }
 
     OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware\StepConditionMiddleware:
+        tags:
+            - { name: "messenger.middleware" }
+
+    OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware\JobTrackingMiddleware:
         tags:
             - { name: "messenger.middleware" }

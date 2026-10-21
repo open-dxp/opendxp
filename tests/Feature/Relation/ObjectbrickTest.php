@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -32,7 +33,7 @@ beforeEach(function () {
 });
 
 it('keeps the relations of a brick', function () {
-    $relations = reloaded($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
+    $relations = Elements::refresh($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
 
     expect($relations)
         ->toHaveCount(2)
@@ -46,7 +47,7 @@ it('keeps the remaining relation of a brick', function () {
     $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([$this->targets[1]]);
     $this->object->save();
 
-    $relations = reloaded($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
+    $relations = Elements::refresh($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
     expect($relations)
         ->toHaveCount(1)
         ->and($relations[0]->getId())
@@ -57,6 +58,6 @@ it('keeps no relation in a brick that was emptied', function () {
     $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([]);
     $this->object->save();
 
-    $brick = reloaded($this->object)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($this->object)->getMybricks()->getUnittestBrick();
     expect($brick)->getBrickLazyRelation()->toBe([]);
 });

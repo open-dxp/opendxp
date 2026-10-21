@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\DataObject\Consent\Service;
 use OpenDxp\Model\DataObject\Data\Consent;
+use OpenDxp\Test\Elements;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -29,7 +30,7 @@ beforeEach(function () {
 it('keeps a given consent with its note', function () {
     $this->service->giveConsent($this->object, 'consent', 'some consent content');
 
-    $loaded = reloaded($this->object);
+    $loaded = Elements::refresh($this->object);
 
     expect($loaded)
         ->toCarryField('consent', new Consent(true))
@@ -42,5 +43,5 @@ it('holds no consent once it is revoked', function () {
 
     $this->service->revokeConsent($this->object, 'consent');
 
-    expect(reloaded($this->object)->getConsent()->getConsent())->toBeFalse();
+    expect(Elements::refresh($this->object)->getConsent()->getConsent())->toBeFalse();
 });

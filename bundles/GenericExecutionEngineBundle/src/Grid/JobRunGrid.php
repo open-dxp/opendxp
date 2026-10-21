@@ -44,10 +44,11 @@ final readonly class JobRunGrid implements JobRunGridInterface
         );
 
         $domain = $this->executionContext->getTranslationDomain($jobRun->getExecutionContext());
+        $result = $jobRun->getResult();
 
         return [
             'id' => $jobRun->getId(),
-            'job_name' => $this->translator->trans($jobRun->getJob()?->getName(), [], $domain),
+            'job_name' => $this->translator->trans((string) $jobRun->getJobName(), [], $domain),
             'started_at' => $jobRun->getCreationDate(),
             'last_update_at' => $jobRun->getModificationDate(),
             'owner' => $jobRun->getOwnerId() ? User::getById($jobRun->getOwnerId())?->getName() : null,
@@ -55,6 +56,12 @@ final readonly class JobRunGrid implements JobRunGridInterface
             'current_step' => $jobRun->getCurrentStep(),
             'current_message' => $currentMessage->getMessage(),
             'canCancel' => $jobRun->getState() === JobRunStates::RUNNING,
+            'total' => $this->getTotal($jobRun),
+            'progress' => $this->getProgress($jobRun),
+            'result' => $result === null ? null : [
+                'message' => $this->translator->trans($result->message, $result->parameters, $domain),
+                'artifacts' => $result->artifacts,
+            ],
             'log' => array_map(
                 static fn (LogLine $line) =>
                 [
@@ -64,5 +71,28 @@ final readonly class JobRunGrid implements JobRunGridInterface
                 $jobRun->getLogs()
             ),
         ];
+    }
+
+    private function getTotal(JobRun $jobRun): ?int
+    {
+        if ($this->isProgressReported($jobRun)) {
+            return $jobRun->getTotal();
+        }
+
+        return $jobRun->getDispatchedMessages() > 0 ? $jobRun->getDispatchedMessages() : null;
+    }
+
+    private function getProgress(JobRun $jobRun): int
+    {
+        if ($this->isProgressReported($jobRun)) {
+            return $jobRun->getProgress();
+        }
+
+        return $jobRun->getSucceededMessages() + $jobRun->getFailedMessages();
+    }
+
+    private function isProgressReported(JobRun $jobRun): bool
+    {
+        return $jobRun->getTotal() !== null || $jobRun->getProgress() > 0;
     }
 }

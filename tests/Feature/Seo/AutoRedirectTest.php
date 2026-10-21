@@ -57,7 +57,7 @@ function autoRedirectTargets(string $source): array
     $redirects = new Redirect\Listing();
     $redirects->setCondition('source = ? AND type = ?', [
         $source,
-        Redirect::TYPE_AUTO_CREATE,
+        'auto_create',
     ]);
 
     return array_map(

@@ -20,6 +20,7 @@ use OpenDxp\Db;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Inheritance;
 use OpenDxp\Model\DataObject\Service;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 /**
@@ -64,13 +65,13 @@ beforeEach(function () {
 });
 
 it('gives the child the text of its parent in a language it holds no text for', function () {
-    $loaded = reloaded($this->child);
+    $loaded = Elements::refresh($this->child);
 
     expect($loaded)->getInput('en')->toBe('text of the parent in english');
 });
 
 it('keeps the text of the child in a language it holds its own text for', function () {
-    $loaded = reloaded($this->child);
+    $loaded = Elements::refresh($this->child);
 
     expect($loaded)->getInput('de')->toBe('text of the child');
 });
@@ -79,7 +80,7 @@ it('gives the child the text of its parent once it empties its own', function ()
     $this->child->setInput(null, 'de');
     $this->child->save();
 
-    expect(reloaded($this->child))->getInput('de')->toBe('text of the parent');
+    expect(Elements::refresh($this->child))->getInput('de')->toBe('text of the parent');
 });
 
 it('lists the parent and the child by a localized text the child inherits', function () {
@@ -104,7 +105,7 @@ it('lists the child by the localized text of its parent once it empties its own'
 it('gives the child no localized text while inherited values are turned off', function () {
     $text = Service::useInheritedValues(
         false,
-        fn () => reloaded($this->child)->getInput('en'),
+        fn () => Elements::refresh($this->child)->getInput('en'),
     );
 
     expect($text)->toBeNull();
@@ -114,7 +115,7 @@ it('takes the localized text of the parent away from a child moved to the root',
     $this->child->setParentId(1);
     $this->child->save();
 
-    expect(reloaded($this->child))->getInput('en')->toBeNull();
+    expect(Elements::refresh($this->child))->getInput('en')->toBeNull();
 });
 
 it('gives a moved object the localized text of its new parent', function () {
@@ -123,14 +124,14 @@ it('gives a moved object the localized text of its new parent', function () {
     $object->setParentId($this->parent->getId());
     $object->save();
 
-    expect(reloaded($object))->getInput('en')->toBe('text of the parent in english');
+    expect(Elements::refresh($object))->getInput('en')->toBe('text of the parent in english');
 });
 
 it('gives the child the new localized text once the parent changed it', function () {
     $this->parent->setInput('another text in english', 'en');
     $this->parent->save();
 
-    expect(reloaded($this->child))->getInput('en')->toBe('another text in english');
+    expect(Elements::refresh($this->child))->getInput('en')->toBe('another text in english');
 });
 
 it('writes a text into the query table of its own language only', function () {

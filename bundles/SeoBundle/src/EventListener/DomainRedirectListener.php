@@ -24,10 +24,8 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Answers every request to the host of a domain redirect.
- *
- * It runs before the core redirects an additional domain to the main domain of its site, and it is a listener of its
- * own, so a bundle that replaces the routing listener of the SEO bundle keeps domain redirects working.
+ * Answers the requests to the host of a domain redirect, before the core sends an additional domain to the main domain
+ * of its site. A bundle that replaces the routing listener of the SEO bundle keeps domain redirects working this way.
  *
  * @internal
  */
@@ -49,7 +47,11 @@ final class DomainRedirectListener implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        if (!$event->isMainRequest() || !$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
             return;
         }
 

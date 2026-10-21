@@ -16,37 +16,47 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration;
 
-use OpenDxp\Bundle\GenericExecutionEngineBundle\Exception\ExecutionContextNotDefinedException;
-
 /**
+ * Gives an unknown context the defaults of the configuration. A job run can outlive the configuration of its context.
+ *
  * @internal
  */
 final readonly class ExecutionContext implements ExecutionContextInterface
 {
+    private const string DEFAULT_TRANSLATION_DOMAIN = 'admin';
+
     public function __construct(private array $contexts)
     {
     }
 
+    public function hasContext(string $context): bool
+    {
+        return isset($this->contexts[$context]);
+    }
+
     public function getTranslationDomain(string $context): string
     {
-        $this->validateContext($context);
-
-        return $this->contexts[$context]['translations_domain'];
+        return $this->contexts[$context]['translations_domain'] ?? self::DEFAULT_TRANSLATION_DOMAIN;
     }
 
     public function getErrorHandlingFromContext(string $context): ?string
     {
-        $this->validateContext($context);
-
         return $this->contexts[$context]['error_handling'] ?? null;
     }
 
-    private function validateContext(string $context): void
+    public function isDisposable(string $context): bool
     {
-        if (!isset($this->contexts[$context])) {
-            throw new ExecutionContextNotDefinedException(
-                sprintf('Execution context "%s" is not defined.', $context)
-            );
-        }
+        return $this->contexts[$context]['disposable'] ?? false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getDisposableContexts(): array
+    {
+        return array_keys(array_filter(
+            $this->contexts,
+            static fn (array $context): bool => $context['disposable'] ?? false,
+        ));
     }
 }

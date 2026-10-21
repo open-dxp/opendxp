@@ -15,11 +15,8 @@ Change into the root folder of your project:
 cd /your/project
 ```
 
-:::caution
-
-Please remember: project root != document root
-
-:::
+> [!CAUTION]
+> Please remember: project root != document root
 
 ### Choose a Package to Install
 We offer 2 different installation packages: 
@@ -58,11 +55,8 @@ cd ./my-project
 
 This launches the interactive installer with a few questions. Make sure that you set the `memory_limit` to at least `512M` in your `php.ini` file.   
 
-:::info
-
- OpenDxp allows a fully automated installation process. Read more here: [Advanced Installation Topics](../02_Advanced_Installation_Topics/README.md)
-
-:::
+> [!NOTE]
+>  OpenDxp allows a fully automated installation process. Read more here: [Advanced Installation Topics](../02_Advanced_Installation_Topics/README.md)
 
 ##### Open Admin Interface
 After the installer has finished, you can open the admin interface: `https://your-host.com/admin`

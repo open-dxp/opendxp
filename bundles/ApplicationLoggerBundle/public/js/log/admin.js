@@ -169,6 +169,12 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
         this.pagingToolbar.insert(12, this.autoRefresh);
         this.pagingToolbar.insert(13, this.intervalInSeconds);
         this.pagingToolbar.insert(14, t('log_refresh_seconds'));
+        this.pagingToolbar.insert(15, '-');
+        this.pagingToolbar.insert(16, {
+            text: t('export'),
+            iconCls: 'opendxp_icon_export',
+            handler: this.startExport.bind(this)
+        });
 
         this.resultpanel = new Ext.grid.GridPanel({
             store: this.store,
@@ -423,12 +429,42 @@ opendxp.bundle.applicationlogger.log.admin = Class.create({
         this.searchParams.component = null;
         this.searchParams.message = null;
         this.searchParams.pid = null;
+
+        if (!this.config.localMode) {
+            this.searchParams.relatedobject = null;
+        }
+
         this.store.baseParams = this.searchParams;
         this.store.reload({
             params: this.searchParams
         });
     },
 
+
+    startExport: function () {
+        var filters = {
+            fromDate: null,
+            fromTime: null,
+            toDate: null,
+            toTime: null,
+            priority: null,
+            component: null,
+            message: null,
+            pid: null
+        };
+
+        if (!this.config.localMode) {
+            filters.relatedobject = null;
+        }
+
+        new opendxp.element.gridexport.runner({
+            source: 'application-log',
+            getParameters: function () {
+                return opendxp.element.gridexport.runner.getStoreParameters(this.store);
+            }.bind(this),
+            filters: filters
+        }).start();
+    },
 
     find: function () {
 

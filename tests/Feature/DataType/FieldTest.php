@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Closure;
 use OpenDxp\Model\DataObject\Data;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetVideoFactory;
 use OpenDxp\Tests\Factory\TestObjectFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -66,7 +67,7 @@ it('keeps the value a field was saved with', function (string $field, Closure $v
 
     $object = UnittestFactory::createOne([$field => $expected]);
 
-    expect(reloaded($object))->toCarryField($field, $expected);
+    expect(Elements::refresh($object))->toCarryField($field, $expected);
 })->with([
     'a line of text' => [
         'input',
@@ -286,7 +287,7 @@ it('keeps the value a field was saved with', function (string $field, Closure $v
 it('stores a password as a hash and not as the password', function () {
     $object = UnittestFactory::createOne(['password' => 'sEcret$%!1']);
 
-    $stored = reloaded($object)->getPassword();
+    $stored = Elements::refresh($object)->getPassword();
 
     expect($stored)
         ->not->toBe('sEcret$%!1')
@@ -302,7 +303,7 @@ it('drops the empty place of a gallery and keeps the images around it', function
     ]);
 
     $object = UnittestFactory::createOne(['imageGallery' => $gallery]);
-    $items = reloaded($object)->getImageGallery()->getItems();
+    $items = Elements::refresh($object)->getImageGallery()->getItems();
 
     expect($items)
         ->toHaveCount(2)
@@ -318,7 +319,7 @@ it('keeps a video with its poster, title and description', function () {
     $asset = AssetVideoFactory::createOne();
 
     $object = UnittestFactory::createOne(['video' => video($asset)]);
-    $video = reloaded($object)->getVideo();
+    $video = Elements::refresh($object)->getVideo();
 
     expect($video)
         ->getData()

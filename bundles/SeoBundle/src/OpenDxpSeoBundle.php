@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace OpenDxp\Bundle\SeoBundle;
 
 use OpenDxp\Bundle\SeoBundle\DependencyInjection\OpenDxpSeoExtension;
+use OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationInterface;
+use OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRegistry;
 use OpenDxp\Extension\Bundle\AbstractOpenDxpBundle;
 use OpenDxp\Extension\Bundle\OpenDxpBundleAdminClassicInterface;
 use OpenDxp\Extension\Bundle\Traits\BundleAdminClassicTrait;
@@ -25,12 +27,21 @@ use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use Override;
 use Presta\SitemapBundle\PrestaSitemapBundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 class OpenDxpSeoBundle extends AbstractOpenDxpBundle implements DependentBundleInterface, OpenDxpBundleAdminClassicInterface
 {
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
+
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        $container
+            ->registerForAutoconfiguration(SiteDeclarationInterface::class)
+            ->addTag(SiteDeclarationRegistry::TAG);
+    }
 
     #[Override]
     public function getContainerExtension(): ?ExtensionInterface
@@ -55,7 +66,8 @@ class OpenDxpSeoBundle extends AbstractOpenDxpBundle implements DependentBundleI
             '/bundles/opendxpseo/js/startup.js',
             '/bundles/opendxpseo/js/redirectEditor.js',
             '/bundles/opendxpseo/js/httpErrorLog.js',
-            '/bundles/opendxpseo/js/robotstxt.js',
+            '/bundles/opendxpseo/js/siteDeclarations.js',
+            '/bundles/opendxpseo/js/siteDeclaration.js',
             '/bundles/opendxpseo/js/seopanel.js',
             '/bundles/opendxpseo/js/redirects.js',
         ];

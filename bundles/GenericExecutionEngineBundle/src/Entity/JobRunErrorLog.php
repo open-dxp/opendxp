@@ -37,8 +37,8 @@ class JobRunErrorLog
     public function __construct(
         #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
         private int $jobRunId,
-        #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
-        private int $stepNumber,
+        #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
+        private ?int $stepNumber,
         #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
         private ?int $elementId = null,
         #[ORM\Column(type: 'text', length: 65535, nullable: true)]

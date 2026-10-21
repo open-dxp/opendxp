@@ -13,6 +13,10 @@ services:
         public: true
         tags: ['controller.service_arguments']
 
+    OpenDxp\Bundle\ApplicationLoggerBundle\Grid\ApplicationLogQueryFactory: ~
+
+    OpenDxp\Bundle\ApplicationLoggerBundle\GridExport\ApplicationLogGridExportSource: ~
+
     #
     # APPLICATION LOGGER
     #

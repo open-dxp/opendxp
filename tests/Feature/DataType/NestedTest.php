@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\TestObjectFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -33,7 +34,7 @@ it('loads the relations of a brick on a cold load', function () {
         )
         ->create();
 
-    $brick = reloaded($object)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($object)->getMybricks()->getUnittestBrick();
 
     expect($brick)
         ->getBrickInput()
@@ -55,7 +56,7 @@ it('loads the relations of a field collection item on a cold load', function () 
         )
         ->create();
 
-    $items = reloaded($object)->getMyfieldcollection()->getItems();
+    $items = Elements::refresh($object)->getMyfieldcollection()->getItems();
 
     expect($items)
         ->toHaveCount(1)

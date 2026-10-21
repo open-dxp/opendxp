@@ -6,14 +6,19 @@ services:
     # redirect handler used to handle redirects before/after routing
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler: ~
 
-    OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider: ~
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectCache:
+        public: true
 
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectHitCounter: ~
 
     OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator: ~
+
+    OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory: ~
 
     #
     # REDIRECTS Export
     #
 
     OpenDxp\Bundle\SeoBundle\Redirect\Csv: ~
+
+    OpenDxp\Bundle\SeoBundle\GridExport\RedirectGridExportSource: ~

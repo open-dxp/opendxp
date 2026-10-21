@@ -2,23 +2,35 @@
 
 ## OpenDXP 1.5.0
 - Feature: `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](../../02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
+- Feature: Site declarations serve robots.txt, security.txt, ads.txt, app-ads.txt and llms.txt per site. Only robots.txt is enabled after the update. See [Site Declarations](../../18_Tools_and_Features/38_Site_Declarations.md) [#84](https://github.com/open-dxp/opendxp/issues/84)
+- Chore: robots.txt needs the SeoBundle. A project without it answers `/robots.txt` with 404.
+- Chore: Remove the internal `PublicServicesController::robotsTxtAction()`, `OpenDxp\Bundle\SeoBundle\Config` and the admin routes `opendxp_bundle_seo_settings_robotstxtget` and `opendxp_bundle_seo_settings_robotstxtput`.
+- Chore: Run `bin/console opendxp:cache:clear --tags=output,output_lifetime` after the update. It removes old entries of `/robots.txt` from the full page cache.
+- Deprecated: the permission `robots.txt`. It stays until 2.0 because of BC reasons. Use `site_declarations` instead. A migration grants it to every user and role with `robots.txt`.
+- Feature: The redirects, the custom reports and the application log use the unified grid export of the admin bundle.
+- Chore: Remove the old export routes of the redirects and the custom reports.
+- Chore: Remove `OpenDxp\Bundle\SeoBundle\Redirect\Csv::createExportWriter()`.
+- Chore: Require `open-dxp/admin-bundle` ^1.5
+- Feature: The test API adds `CustomReportFactory`.
+- Feature: The test API adds `EmailLogFactory` and `AssetImageFactory::withMetadata()`.
 - Chore: Remove `chrome-php/chrome` and `behat/gherkin` from `require-dev`.
 - Chore: Replace Codeception with Pest and `open-dxp/test-foundation`. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
 - Deprecated: every class under `OpenDxp\Tests\Support`. They stay until 2.0 because of BC reasons. Use `open-dxp/test-foundation` and the factories in `OpenDxp\Test\Factory` instead.
 - Deprecated: `OpenDxp\Test\KernelTestCase` and `OpenDxp\Test\WebTestCase`. They stay until 2.0 because of BC reasons. Use `OpenDxp\TestFoundation\TestCase` instead of `KernelTestCase` and `OpenDxp\TestFoundation\BrowserTestCase` instead of `WebTestCase`.
 - Improvement: Allow `symfony/process` 8.
 - Bugfix: Moving a page with a pretty URL no longer creates a redirect for its former path in the document tree. Visitors reach the page under its pretty URL, which stays the same [#194](https://github.com/open-dxp/opendxp/issues/194)
-- Improvement: Redirects are resolved from a compiled table in OPcache instead of the database. A request costs a single cache lookup instead of three to four queries, and saving a redirect no longer makes the next request load every redirect one by one. Run the core migrations: they add the table `redirect_hits`, allow redirect sources and targets of up to 1024 characters and key the `http_error_log` by a hash of the URI. A system without `OpenDxpSeoBundle` is left alone [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: Redirects no longer cost a database query on every request. A URL looks up its redirect only when no document or route answers it, or when a redirect with priority 99 exists [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Count how often each redirect answers a request, and when it did last. Switch it off with `opendxp_seo.redirects.count_hits: false` [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Domain redirects send every request to a host somewhere else, optionally with the path of the request. They run before the redirect to the main domain [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Redirects can be valid from a date, in addition to the expiry [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Protected redirects are visible only to users with the new permission `redirects_protected`. They win over every redirect that is not protected, and nobody without the permission can take over their source [#151](https://github.com/open-dxp/opendxp/issues/151)
-- Improvement: The redirect editor refuses invalid regular expressions, redirects to their own source, domain redirects that would stay on their domain and an expiry before the start. It warns about duplicate sources and chains. It saves only the fields an editor may set, and a field left empty keeps its default [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: The redirect editor refuses invalid regular expressions, redirects to their own source, domain redirects that would stay on their domain and an expiry before the start. It warns about duplicate sources and chains. It saves only the fields an editor may set, and a field left empty keeps its current value. The CSV import applies the same checks and skips the rows that fail them [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Improvement: `410 Gone` is one of the default redirect status codes [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: The redirect editor shows the hits of each redirect, edits all fields of a redirect in a window, narrows the grid to a view like "no hit for 90 days" and changes the redirects selected by their checkbox at once [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: Create a redirect from a URL in the HTTP error log [#151](https://github.com/open-dxp/opendxp/issues/151)
-- Feature: `OpenDxp\Test` holds the test API for projects and bundles. `OpenDxp\Test\Factory` has Foundry factories for the models of OpenDXP, with base classes for factories of your own. `OpenDxp\Test\Expectation\Fields` registers the Pest expectations `toCarryField()` and `toCarryLocalizedField()`. `OpenDxp\Test\Expectation\Redirects` registers `toRedirectTo()`, `toComeFrom()` and `toComeFromNoRedirect()`. `ClassDefinitions`, `Fieldcollections`, `ObjectBricks` and `ClassificationStores` install definitions from JSON files. `Settings::override()` changes the system configuration for one test. `OpenDxp\Test\Document\Brick` describes one instance of an areabrick, and the page, snippet and email factories place bricks with `withBricks()`. `OpenDxp\Test\Document\Areablocks::filledWith()` fills an areablock inside a brick. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
-- Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Improvement: The CSV export of redirects adds the columns `validFrom`, `passThroughPath` and `protected`. Older files still import [#151](https://github.com/open-dxp/opendxp/issues/151)
+- Feature: `OpenDxp\Test` holds the test API for projects and bundles. `OpenDxp\Test\Factory` has Foundry factories for the models of OpenDXP, with base classes for factories of your own. `OpenDxp\Test\Expectation\Fields` registers the Pest expectations `toCarryField()` and `toCarryLocalizedField()`. `OpenDxp\Test\Expectation\Redirects` registers `toRedirectTo()`, `toBeAnsweredBy()` and `toBeAnsweredWithoutRedirect()`. `ClassDefinitions`, `Fieldcollections`, `ObjectBricks` and `ClassificationStores` install definitions from JSON files. `Settings::override()` changes the system configuration for one test. `OpenDxp\Test\Document\Brick` describes one instance of an areabrick, and the page, snippet and email factories place bricks with `withBricks()`. `OpenDxp\Test\Document\Areablocks::filledWith()` fills an areablock inside a brick. See [Testing](../../19_Development_Tools_and_Details/29_Testing/README.md).
+- Improvement: The HTTP error log and the redirect hits are written after the response has been sent. Repeated errors of one URI are counted in a single row, also under concurrent requests. A URL that a redirect answers is no longer logged [#151](https://github.com/open-dxp/opendxp/issues/151)
 - Feature: A URL slug field takes a slug generator. It builds the prefix in front of the slug, formats what an editor types and fills an empty slug. Duplicate slugs can be extended with `-1`, `-2` [#159](https://github.com/open-dxp/opendxp/issues/159)
 - Bugfix: Saving a class checks the fields inside localized fields.
 - Bugfix: Moving a page or a hardlink without a backend user, for example in a command, no longer fails in the redirect listener.
@@ -42,6 +54,35 @@
 - Bugfix: Saving a classification store key writes the name of the key into its definition, so the key name follows the rule for field names too.
 - Bugfix: A messenger worker sends the HTTP cache invalidations after each message, so a page that a scheduled task publishes reaches the proxy right away.
 - Bugfix: A Twig placeholder in a link of the WYSIWYG editor keeps its spaces, for example `mailto:{{ email }}`. A link that already holds `{{%20email%20}}` is repaired the next time its editor is saved.
+- Chore: Remove the Studio flag of notifications. `OpenDxp\Model\Notification::isStudio()` and `setIsStudio()` are gone.
+- Feature: The Generic Execution Engine tracks the background work of a project as job runs. See [Track Background Work](../../19_Development_Tools_and_Details/08_Generic_Execution_Engine/01_Jobs_and_Jobruns/03_Track_Background_Work.md).
+- Feature: A job run hands over a result with files. An execution context with `disposable: true` deletes its job runs once their result is picked up. See [Configuration](../../19_Development_Tools_and_Details/08_Generic_Execution_Engine/02_Configuration/02_Configuration.md).
+- Feature: The maintenance deletes ended job runs after `delete_job_runs_older_than` and fails silent job runs after `fail_inactive_job_runs_after`. Both are off by default.
+- Improvement: `stop_on_first_error` fails only the job run with the error. It no longer stops every Messenger worker.
+- Feature: The admin lists job runs under "Extras" > "Background Jobs". Users with the permission see the own job runs, cancel them and download their files.
+- Improvement: A step of a job also waits for the messages of its handlers, when they implement `JobRunMessageInterface`.
+- Bugfix: Parallel workers no longer lose the progress of a job step.
+- Bugfix: A message that its step condition skips counts once.
+- Bugfix: `JobExecutionAgentInterface::rerunJobRun()` starts the job in the execution context of the old job run.
+- Bugfix: A job run without owner no longer breaks `JobRunStateChangedEvent`.
+- Bugfix: `JobRunErrorLogRepository::getLogsByJobRunId()` returns the logs of the given step.
+- Bugfix: The engine sends a job message without routing to its own transport. The message no longer runs in the request.
+- Deprecated: `JobExecutionAgentInterface::continueJobMessageExecution()`. The engine counts the messages of a job run itself.
+- Improvement: Every log entry names the user, the route and the console command. See [Logging](../../19_Development_Tools_and_Details/07_Logging.md#context-of-a-log-entry) [#232](https://github.com/open-dxp/opendxp/issues/232)
+- Improvement: When an element cannot be saved, the error says which element it is and why, for example `Object /products/shoe (ID 123) cannot be saved. Its parent 4711 does not exist.` See [Error Messages](../../19_Development_Tools_and_Details/12_Error_Messages.md) [#232](https://github.com/open-dxp/opendxp/issues/232)
+
+> [!IMPORTANT]
+> Wait until no job run of the Generic Execution Engine is running before you update. The update marks running job
+> runs as failed.
+>
+> Run the migrations after the update:
+>
+> ```bash
+> bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\CoreBundle
+> bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\GenericExecutionEngineBundle
+> ```
+>
+> The second command changes nothing while the Generic Execution Engine is not installed.
 
 ## OpenDXP 1.4.3
 - Bugfix: Static routes without their own `_locale` now use the language of the nearest document. Before, they used the default locale, so translations and generated links could be in the wrong language. This became visible with Symfony 7.4.17 [#197](https://github.com/open-dxp/opendxp/issues/197)

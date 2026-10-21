@@ -18,20 +18,24 @@ use OpenDxp\Test\Expectation\Fields;
 use OpenDxp\Test\Expectation\Redirects;
 use OpenDxp\TestFoundation\TestCase;
 use OpenDxp\Tests\TestCase\CacheTestCase;
+use OpenDxp\Tests\TestCase\GenericExecutionEngineTestCase;
 use OpenDxp\Tests\TestCase\HttpCacheTestCase;
 use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
 use OpenDxp\Tests\TestCase\SearchTestCase;
+use OpenDxp\Tests\TestCase\SiteDeclarationTestCase;
 
 Fields::register();
 Redirects::register();
 
 // Unit tests need no application, so they get no test case.
 pest()->extend(TestCase::class)->in(
+    'Feature/ApplicationLogger',
     'Feature/Asset',
     'Feature/ClassDefinition',
     'Feature/ClassificationStore',
     'Feature/Console',
+    'Feature/CustomReports',
     'Feature/DataObject',
     'Feature/DataType',
     'Feature/Dependency',
@@ -41,6 +45,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/Glossary',
     'Feature/Inheritance',
     'Feature/LazyLoading',
+    'Feature/Logging',
     'Feature/Mail',
     'Feature/Messenger',
     'Feature/Notification',
@@ -55,7 +60,9 @@ pest()->extend(TestCase::class)->in(
     'Feature/WebsiteSetting',
 );
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
+pest()->extend(GenericExecutionEngineTestCase::class)->in('Feature/GenericExecutionEngine');
 pest()->extend(HttpCacheTestCase::class)->in('Feature/HttpCache');
 pest()->extend(InstallerTestCase::class)->in('Feature/Installer');
 pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
 pest()->extend(SearchTestCase::class)->in('Feature/Search');
+pest()->extend(SiteDeclarationTestCase::class)->in('Feature/SiteDeclaration');

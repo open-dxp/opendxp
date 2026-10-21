@@ -128,7 +128,7 @@ opendxp.bundle.seo.redirectEditor = Class.create({
     },
 
     /**
-     * Fields that only a domain redirect uses are shown for that type alone.
+     * Shows the fields of a domain redirect for that type only.
      */
     updateDomainFields: function () {
         if (!this.form) {

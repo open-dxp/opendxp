@@ -6,6 +6,9 @@ opendxp_seo:
                 priority: 100
                 generator_id: OpenDxp\Bundle\SeoBundle\Sitemap\Document\DocumentTreeGenerator
 
+    site_declarations:
+        robots_txt: true
+
     redirects:
         status_codes:
             300: Multiple Choices

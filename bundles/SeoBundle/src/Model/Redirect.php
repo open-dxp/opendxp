@@ -21,6 +21,7 @@ use InvalidArgumentException;
 use OpenDxp;
 use OpenDxp\Bundle\SeoBundle\Event\Model\RedirectEvent;
 use OpenDxp\Bundle\SeoBundle\Event\RedirectEvents;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectCache;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Logger;
 use OpenDxp\Model\AbstractModel;
@@ -89,8 +90,8 @@ final class Redirect extends AbstractModel
     protected bool $passThroughPath = false;
 
     /**
-     * Only users with the permission redirects_protected see and change a protected redirect, and it wins over every
-     * other redirect of its stage.
+     * Only users with the permission redirects_protected see and change a protected redirect. It comes before every
+     * redirect that is not protected.
      */
     protected bool $protected = false;
 
@@ -195,17 +196,11 @@ final class Redirect extends AbstractModel
         return $this;
     }
 
-    /**
-     * enum('entire_uri','path_query','path','auto_create')
-     */
     public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * enum('entire_uri','path_query','path','auto_create')
-     */
     public function setType(string $type): void
     {
         if (!empty($type) && !in_array($type, self::TYPES)) {
@@ -271,7 +266,7 @@ final class Redirect extends AbstractModel
     {
         // this is mostly called in Redirect\Dao not here
         try {
-            \OpenDxp\Cache::clearTag('redirect');
+            OpenDxp::getContainer()->get(RedirectCache::class)->clear();
         } catch (Exception $e) {
             Logger::crit((string) $e);
         }
@@ -334,6 +329,23 @@ final class Redirect extends AbstractModel
     public function getRegex(): ?bool
     {
         return $this->regex;
+    }
+
+    /**
+     * Returns whether the source compiles as a regular expression.
+     *
+     * @internal
+     */
+    public function hasValidRegex(): bool
+    {
+        // An invalid pattern raises a warning. Here the warning is the expected answer, so no error handler may see it.
+        set_error_handler(static fn (): bool => true);
+
+        try {
+            return preg_match((string) $this->getSource(), '') !== false;
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function isRegex(): bool

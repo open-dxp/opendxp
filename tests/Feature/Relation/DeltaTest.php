@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
@@ -132,7 +133,7 @@ it('writes swapped relations in their new order', function () {
     $this->object->setMultipleManyToMany($swapped);
     $this->object->save();
 
-    expect(notesOf(reloaded($this->object)->getMultipleManyToMany()))->toBe([
+    expect(notesOf(Elements::refresh($this->object)->getMultipleManyToMany()))->toBe([
         'note 0',
         'note 2',
         'note 1',

@@ -1,0 +1,12 @@
+imports:
+    - { resource: test.yaml }
+
+services:
+    OpenDxp\Tests\Application\SiteDeclaration\AppleAppSiteAssociationDeclaration:
+        autoconfigure: true
+
+opendxp_seo:
+    site_declarations:
+        security_txt: true
+        ads_txt: true
+        apple_app_site_association: true

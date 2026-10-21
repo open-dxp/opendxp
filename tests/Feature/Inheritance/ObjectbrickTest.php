@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Inheritance;
 
 use OpenDxp\Model\DataObject\Inheritance;
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\InheritanceFactory;
 
 beforeEach(function () {
@@ -47,13 +48,13 @@ dataset('descendants', [
 ]);
 
 it('gives a brick value of the parent to every descendant', function (Inheritance $descendant) {
-    $brick = reloaded($descendant)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($descendant)->getMybricks()->getUnittestBrick();
 
     expect($brick)->getBrickinput()->toBe('text of the parent');
 })->with('descendants');
 
 it('keeps a brick value of the child next to an inherited one', function () {
-    $brick = reloaded($this->child)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($this->child)->getMybricks()->getUnittestBrick();
 
     expect($brick)->getBrickinput2()->toBe('text of the child');
 });
@@ -62,7 +63,7 @@ it('gives every descendant the new brick value once the parent changed it', func
     $this->parent->getMybricks()->getUnittestBrick()->setBrickinput('another text');
     $this->parent->save();
 
-    $brick = reloaded($descendant)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($descendant)->getMybricks()->getUnittestBrick();
 
     expect($brick)->getBrickinput()->toBe('another text');
 })->with('descendants');

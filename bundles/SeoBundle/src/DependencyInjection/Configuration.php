@@ -32,6 +32,7 @@ class Configuration implements ConfigurationInterface
 
         $this->addSitemapGenerators($rootNode);
         $this->addRedirectsConfig($rootNode);
+        $this->addSiteDeclarationsConfig($rootNode);
 
         return $treeBuilder;
     }
@@ -94,5 +95,19 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end();
+    }
+
+    private function addSiteDeclarationsConfig(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('site_declarations')
+                    ->info('Enable site declarations by name, like security_txt: true.')
+                    ->useAttributeAsKey('name')
+                    ->prototype('array')
+                        ->canBeEnabled()
+                    ->end()
+                ->end()
+            ->end();
     }
 }

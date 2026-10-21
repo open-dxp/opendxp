@@ -19,22 +19,19 @@ namespace OpenDxp\Bundle\SeoBundle\Controller;
 
 use Doctrine\DBAL\ArrayParameterType;
 use Exception;
-use OpenDxp\Bundle\AdminBundle\Helper\QueryParams;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Bundle\SeoBundle\Redirect\Csv;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectListingFactory;
 use OpenDxp\Bundle\SeoBundle\Redirect\RedirectValidator;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Db;
 use OpenDxp\Logger;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Site;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -47,13 +44,8 @@ class RedirectsController extends UserAwareController
     use JsonHelperTrait;
 
     /**
-     * The fields an editor may set. Everything else, like the owner or the dates, is kept by the model.
+     * The fields an editor may set. The model keeps everything else, like the owner or the dates.
      */
-    /**
-     * A redirect without a hit for this many seconds counts as unused.
-     */
-    private const int UNUSED_AFTER = 90 * 86400;
-
     private const array EDITABLE_FIELDS = [
         'type', 'source', 'sourceSite', 'target', 'targetSite', 'statusCode', 'priority', 'regex',
         'passThroughParameters', 'passThroughPath', 'active', 'validFrom', 'expiry', 'protected',
@@ -62,11 +54,16 @@ class RedirectsController extends UserAwareController
     /**
      * The grid sends an empty field as null. These fields keep the value of the redirect then.
      */
-    private const array FIELDS_WITHOUT_NULL = ['type', 'statusCode', 'priority', 'passThroughParameters', 'passThroughPath', 'active', 'protected'];
+    private const array FIELDS_WITHOUT_NULL = [
+        'type', 'statusCode', 'priority', 'passThroughParameters', 'passThroughPath', 'active', 'protected',
+    ];
 
     #[Route('/list', name: 'opendxp_bundle_seo_redirects_redirects', methods: ['POST'])]
-    public function redirectsAction(Request $request, RedirectHandler $redirectHandler, RedirectValidator $validator): JsonResponse
-    {
+    public function redirectsAction(
+        Request $request,
+        RedirectListingFactory $listingFactory,
+        RedirectValidator $validator,
+    ): JsonResponse {
         // check permission for both update and listing
         $this->checkPermission('redirects');
 
@@ -81,67 +78,26 @@ class RedirectsController extends UserAwareController
             };
         }
 
-        // get list of routes
-        $list = new Redirect\Listing();
+        $list = $listingFactory->create(
+            [...$request->request->all(), ...$request->query->all()],
+            $this->mayManageProtected(),
+        );
         $list->setLimit($request->request->getInt('limit', 50));
         $list->setOffset($request->request->getInt('start'));
 
-        $sortingSettings = QueryParams::extractSortingSettings([...$request->request->all(), ...$request->query->all()]);
-        if (in_array($sortingSettings['orderKey'], ['hits', 'lastHit'], true)) {
-            $list->setOrderKey(sprintf('(SELECT `%s` FROM redirect_hits WHERE redirectId = redirects.id)', $sortingSettings['orderKey']), false);
-            $list->setOrder($sortingSettings['order']);
-        } elseif ($sortingSettings['orderKey']) {
-            $list->setOrderKey($sortingSettings['orderKey']);
-            $list->setOrder($sortingSettings['order']);
-        }
-
-        $conditions = $this->mayManageProtected() ? [] : ['protected = 0'];
-        $variables = [];
-
-        $now = time();
-        $shown = match ($request->request->getString('show')) {
-            'active' => 'active = 1',
-            'inactive' => '(active = 0 OR active IS NULL)',
-            'expired' => "(expiry IS NOT NULL AND expiry < $now)",
-            'scheduled' => "validFrom > $now",
-            'protected' => 'protected = 1',
-            'unused' => sprintf('id NOT IN (SELECT redirectId FROM redirect_hits WHERE lastHit >= %d)', $now - self::UNUSED_AFTER),
-            default => null,
-        };
-        if ($shown !== null) {
-            $conditions[] = $shown;
-        }
-
-        if ($filterValue = $request->request->getString('filter')) {
-            if (is_numeric($filterValue)) {
-                $conditions[] = 'id = ?';
-                $variables[] = $filterValue;
-            } elseif (preg_match('@^https?://@', $filterValue)) {
-                $dummyRequest = Request::create($filterValue);
-                $site = Site::getByDomain($dummyRequest->getHost());
-                $dummyResponse = $redirectHandler->checkForDomainRedirect($dummyRequest)
-                    ?? $redirectHandler->checkForRedirect($dummyRequest, false, $site);
-
-                $conditions[] = 'id = ?';
-                $variables[] = (int) $dummyResponse?->headers->get(RedirectHandler::RESPONSE_HEADER_NAME_ID);
-            } else {
-                $conditions[] = '(`source` LIKE ? OR `target` LIKE ?)';
-                $variables[] = '%' . $filterValue . '%';
-                $variables[] = '%' . $filterValue . '%';
-            }
-        }
-
-        if ($conditions !== []) {
-            $list->setCondition(implode(' AND ', $conditions), $variables);
-        }
-
         $list->load();
 
-        $hits = $this->hitsOf(array_map(static fn (Redirect $redirect): int => (int) $redirect->getId(), $list->getRedirects()));
+        $hits = $this->hitsOf(array_map(
+            static fn (Redirect $redirect): int => (int) $redirect->getId(),
+            $list->getRedirects(),
+        ));
 
         $redirects = [];
         foreach ($list->getRedirects() as $redirect) {
-            $redirects[] = [...$this->redirectData($redirect), ...($hits[$redirect->getId()] ?? ['hits' => 0, 'lastHit' => null])];
+            $redirects[] = [
+                ...$this->redirectData($redirect),
+                ...($hits[$redirect->getId()] ?? ['hits' => 0, 'lastHit' => null]),
+            ];
         }
 
         return $this->jsonResponse(['data' => $redirects, 'success' => true, 'total' => $list->getTotalCount()]);
@@ -158,12 +114,15 @@ class RedirectsController extends UserAwareController
 
         $mayManageProtected = $this->mayManageProtected();
         if ($redirect->isProtected() && !$mayManageProtected) {
-            throw $this->createAccessDeniedException('Only users with the permission redirects_protected change a protected redirect.');
+            throw $this->createAccessDeniedException(
+                'Only users with the permission redirects_protected change a protected redirect.',
+            );
         }
 
         $values = array_filter(
             array_intersect_key($data, array_flip(self::EDITABLE_FIELDS)),
-            static fn (mixed $value, string $field): bool => ($value !== null && $value !== '') || !in_array($field, self::FIELDS_WITHOUT_NULL, true),
+            static fn (mixed $value, string $field): bool => ($value !== null && $value !== '')
+                || !in_array($field, self::FIELDS_WITHOUT_NULL, true),
             ARRAY_FILTER_USE_BOTH,
         );
 
@@ -181,15 +140,24 @@ class RedirectsController extends UserAwareController
 
         $redirect->setValues($values);
 
-        $validation = $validator->validate($redirect, $mayManageProtected);
-        if (!$validation->isValid()) {
+        $result = $validator->validate($redirect, $mayManageProtected);
+
+        // The serializer of the admin writes into the objects it encodes, which a readonly object refuses.
+        $errors = array_map(get_object_vars(...), $result->errors);
+        $warnings = array_map(get_object_vars(...), $result->warnings);
+
+        if (!$result->isValid()) {
             // The admin reports a failed request as a technical error, so a refused redirect is a regular answer.
-            return $this->jsonResponse(['success' => false, 'errors' => $validation->errors]);
+            return $this->jsonResponse(['success' => false, 'errors' => $errors]);
         }
 
         $redirect->save();
 
-        return $this->jsonResponse(['data' => $this->redirectData($redirect), 'success' => true, 'warnings' => $validation->warnings]);
+        return $this->jsonResponse([
+            'data' => $this->redirectData($redirect),
+            'success' => true,
+            'warnings' => $warnings,
+        ]);
     }
 
     /**
@@ -200,7 +168,9 @@ class RedirectsController extends UserAwareController
         $redirect = Redirect::getById((int) ($data['id'] ?? 0));
 
         if ($redirect?->isProtected() && !$this->mayManageProtected()) {
-            throw $this->createAccessDeniedException('Only users with the permission redirects_protected delete a protected redirect.');
+            throw $this->createAccessDeniedException(
+                'Only users with the permission redirects_protected delete a protected redirect.',
+            );
         }
 
         $redirect?->delete();
@@ -235,9 +205,16 @@ class RedirectsController extends UserAwareController
         }
 
         $hits = [];
-        $rows = Db::get()->fetchAllAssociative('SELECT redirectId, hits, lastHit FROM redirect_hits WHERE redirectId IN (?)', [$ids], [ArrayParameterType::INTEGER]);
+        $rows = Db::get()->fetchAllAssociative(
+            'SELECT redirectId, hits, lastHit FROM redirect_hits WHERE redirectId IN (?)',
+            [$ids],
+            [ArrayParameterType::INTEGER],
+        );
         foreach ($rows as $row) {
-            $hits[(int) $row['redirectId']] = ['hits' => (int) $row['hits'], 'lastHit' => $row['lastHit'] === null ? null : (int) $row['lastHit']];
+            $hits[(int) $row['redirectId']] = [
+                'hits' => (int) $row['hits'],
+                'lastHit' => $row['lastHit'] === null ? null : (int) $row['lastHit'],
+            ];
         }
 
         return $hits;
@@ -246,34 +223,6 @@ class RedirectsController extends UserAwareController
     private function mayManageProtected(): bool
     {
         return (bool) $this->getOpenDxpUser()?->isAllowed('redirects_protected');
-    }
-
-    #[Route('/csv-export', name: 'opendxp_bundle_seo_redirects_csvexport', methods: ['GET'])]
-    public function csvExportAction(Csv $csv): Response
-    {
-        $this->checkPermission('redirects');
-
-        $list = new Redirect\Listing();
-        $list->setOrderKey('id');
-        $list->setOrder('ASC');
-        if (!$this->mayManageProtected()) {
-            $list->setCondition('protected = 0');
-        }
-        $list->load();
-
-        $writer = $csv->createExportWriter($list);
-
-        $response = new Response();
-        $response->headers->set('Content-Encoding', 'none');
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
-        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
-            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            'redirects.csv'
-        ));
-
-        $response->setContent($writer->toString());
-
-        return $response;
     }
 
     #[Route('/csv-import', name: 'opendxp_bundle_seo_redirects_csvimport', methods: ['POST'])]
@@ -302,9 +251,13 @@ class RedirectsController extends UserAwareController
         $this->checkPermission('redirects');
 
         try {
-            $now = time();
+            $condition = sprintf('expiry IS NOT NULL AND expiry <= %d', time());
+            if (!$this->mayManageProtected()) {
+                $condition .= ' AND protected = 0';
+            }
+
             $expiredRedirects = new Redirect\Listing();
-            $expiredRedirects->setCondition("expiry IS NOT NULL AND expiry < $now" . ($this->mayManageProtected() ? '' : ' AND protected = 0'));
+            $expiredRedirects->setCondition($condition);
             $expiredRedirects = $expiredRedirects->load();
 
             foreach ($expiredRedirects as $expiredRedirect) {
@@ -334,6 +287,7 @@ class RedirectsController extends UserAwareController
         $response = [
             'config' => [
                 'statuscodes' => $codes,
+                'countHits' => $this->getParameter('opendxp_seo.redirects')['count_hits'],
             ],
         ];
 

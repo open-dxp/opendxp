@@ -18,13 +18,15 @@ namespace OpenDxp\Bundle\SeoBundle\EventListener;
 
 use Doctrine\DBAL\Connection;
 use OpenDxp\Bundle\CoreBundle\EventListener\Traits\OpenDxpContextAwareTrait;
-use OpenDxp\Bundle\SeoBundle\Redirect\RedirectTableProvider;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectCache;
+use OpenDxp\Bundle\SeoBundle\Redirect\RedirectHandler;
 use OpenDxp\Http\Exception\ResponseException;
 use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Contracts\Service\ResetInterface;
@@ -49,7 +51,7 @@ class ResponseExceptionListener implements EventSubscriberInterface, ResetInterf
 
     public function __construct(
         protected Connection $db,
-        private readonly RedirectTableProvider $tables,
+        private readonly RedirectCache $redirectCache,
         private readonly LoggerInterface $logger,
         #[Autowire('%kernel.debug%')]
         private readonly bool $debug,
@@ -74,13 +76,17 @@ class ResponseExceptionListener implements EventSubscriberInterface, ResetInterf
             return;
         }
 
-        // further checks are only valid for default context
-        $request = $event->getRequest();
-        if ($this->debug || !$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
+        if ($this->debug || !$event->isMainRequest()) {
             return;
         }
 
-        if (!$this->tables->get()->isInstalled()) {
+        // further checks are only valid for default context
+        $request = $event->getRequest();
+        if (!$this->matchesOpenDxpContext($request, OpenDxpContextResolver::CONTEXT_DEFAULT)) {
+            return;
+        }
+
+        if (!$this->redirectCache->get()->installed) {
             return;
         }
 
@@ -91,23 +97,28 @@ class ResponseExceptionListener implements EventSubscriberInterface, ResetInterf
         ];
     }
 
-    public function onKernelTerminate(): void
+    public function onKernelTerminate(TerminateEvent $event): void
     {
-        if ($this->error === null) {
-            return;
-        }
-
         $error = $this->error;
         $this->error = null;
 
+        // A redirect answers the request after this listener saw the error.
+        if ($error === null || $event->getResponse()->headers->has(RedirectHandler::RESPONSE_HEADER_NAME_ID)) {
+            return;
+        }
+
         try {
             $this->db->executeStatement(
-                'INSERT INTO http_error_log (uri, uriHash, code, parametersGet, date, count) VALUES (:uri, :uriHash, :code, :parametersGet, :date, 1)
+                'INSERT INTO http_error_log (uri, uriHash, code, parametersGet, date, count)
+                    VALUES (:uri, :uriHash, :code, :parametersGet, :date, 1)
                     ON DUPLICATE KEY UPDATE count = count + 1, date = VALUES(date)',
                 [...$error, 'uriHash' => sha1($error['uri'], true), 'date' => time()]
             );
         } catch (Throwable $exception) {
-            $this->logger->warning('Could not log the HTTP error of {uri}: {message}', ['uri' => $error['uri'], 'message' => $exception->getMessage()]);
+            $this->logger->warning('Could not log the HTTP error of {uri}: {message}', [
+                'uri' => $error['uri'],
+                'message' => $exception->getMessage(),
+            ]);
         }
     }
 

@@ -416,7 +416,6 @@ opendxp.bundle.search.element.selector.object = Class.create(opendxp.bundle.sear
             plugins: ['opendxp.gridfilters'],
             viewConfig: {
                 forceFit: false,
-                xtype: 'patchedgridview',
                 listeners: {
                     refresh: function (dataview) {
                         Ext.each(dataview.panel.columns, function (column) {

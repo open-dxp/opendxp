@@ -32,6 +32,10 @@ parameters:
             message: '#unknown class OpenDxp\\Bundle\\AdminBundle\\Service\\GridData\\#'
             identifier: class.notFound
             reportUnmatched: false
+        # Doctrine hydrates the total of a job run. The engine writes it with DBAL.
+        -
+            identifier: property.unusedType
+            path: bundles/GenericExecutionEngineBundle/src/Entity/JobRun.php
 
     # see https://phpstan.org/config-reference#universal-object-crates
     universalObjectCratesClasses:

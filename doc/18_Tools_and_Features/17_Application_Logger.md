@@ -1,11 +1,9 @@
 # Application logger
-:::caution
 
-To use this feature, please enable the `OpenDxpApplicationLoggerBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpApplicationLoggerBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpApplicationLoggerBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpApplicationLoggerBundle`
 
 ## General
 

@@ -669,20 +669,34 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         // set path
         if ($this->getId() != 1) { // not for the root node
             if (!Element\Service::isValidKey($this->getKey(), 'object')) {
-                throw new Exception('invalid key for object with id [ '.$this->getId().' ] key is: [' . $this->getKey() . ']');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. The key "%s" is invalid.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getKey()
+                ));
             }
 
             if (!$this->getParentId()) {
-                throw new Exception('ParentID is mandatory and can´t be null. If you want to add the element as a child to the tree´s root node, consider setting ParentID to 1.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It has no parent. Set the parent ID to 1 to place it in the root folder.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             if ($this->getParentId() == $this->getId()) {
-                throw new Exception("ParentID and ID are identical, an element can't be the parent of itself in the tree.");
+                throw new Exception(sprintf(
+                    '%s cannot be saved. It cannot be its own parent.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
 
             $parent = DataObject::getById($this->getParentId());
             if (!$parent) {
-                throw new Exception('ParentID not found.');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. Its parent %d does not exist.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getParentId()
+                ));
             }
 
             // use the parent's path from the database here (getCurrentFullPath), to ensure the path really exists and does not rely on the path
@@ -690,7 +704,10 @@ abstract class AbstractObject extends Model\Element\AbstractElement
             $this->setPath(str_replace('//', '/', $parent->getCurrentFullPath().'/'));
 
             if (strlen($this->getKey()) < 1) {
-                throw new Exception('DataObject requires key');
+                throw new Exception(sprintf(
+                    '%s cannot be saved. Its key is empty.',
+                    Element\Service::getMessageSubject($this)
+                ));
             }
         } elseif ($this->getId() == 1) {
             // some data in root node should always be the same
@@ -703,7 +720,12 @@ abstract class AbstractObject extends Model\Element\AbstractElement
         if (Service::pathExists($this->getRealFullPath())) {
             $duplicate = DataObject::getByPath($this->getRealFullPath());
             if ($duplicate instanceof self && $duplicate->getId() !== $this->getId()) {
-                $duplicateFullPathException = new DuplicateFullPathException('Duplicate full path [ '.$this->getRealFullPath().' ] - cannot save object');
+                $duplicateFullPathException = new DuplicateFullPathException(sprintf(
+                    '%s cannot be saved. The path %s is already taken by object %d.',
+                    Element\Service::getMessageSubject($this),
+                    $this->getRealFullPath(),
+                    $duplicate->getId()
+                ));
                 $duplicateFullPathException->setDuplicateElement($duplicate);
                 $duplicateFullPathException->setCauseElement($this);
 

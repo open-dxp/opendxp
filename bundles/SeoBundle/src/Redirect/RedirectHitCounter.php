@@ -85,11 +85,15 @@ final class RedirectHitCounter implements EventSubscriberInterface, ResetInterfa
         foreach ($hits as $redirectId) {
             try {
                 $this->db->executeStatement(
-                    'INSERT INTO redirect_hits (redirectId, hits, lastHit) VALUES (?, 1, ?) ON DUPLICATE KEY UPDATE hits = hits + 1, lastHit = VALUES(lastHit)',
+                    'INSERT INTO redirect_hits (redirectId, hits, lastHit) VALUES (?, 1, ?)
+                        ON DUPLICATE KEY UPDATE hits = hits + 1, lastHit = VALUES(lastHit)',
                     [$redirectId, time()]
                 );
             } catch (Throwable $exception) {
-                $this->logger->warning('Could not count the hit of redirect {redirect}: {message}', ['redirect' => $redirectId, 'message' => $exception->getMessage()]);
+                $this->logger->warning('Could not count the hit of redirect {redirect}: {message}', [
+                    'redirect' => $redirectId,
+                    'message' => $exception->getMessage(),
+                ]);
             }
         }
     }

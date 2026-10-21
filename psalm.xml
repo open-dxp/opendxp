@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<psalm xmlns="https://getpsalm.org/schema/config">
+    <projectFiles>
+        <directory name="bundles"/>
+        <directory name="lib"/>
+        <directory name="models"/>
+    </projectFiles>
+</psalm>

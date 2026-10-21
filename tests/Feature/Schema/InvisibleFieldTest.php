@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 /**
@@ -52,7 +53,7 @@ beforeEach(function () {
             $item,
         )
         ->create();
-    $this->object = reloaded($object);
+    $this->object = Elements::refresh($object);
     $this->field = $this->object->getClass()->getFieldDefinition('fieldcollection');
 });
 

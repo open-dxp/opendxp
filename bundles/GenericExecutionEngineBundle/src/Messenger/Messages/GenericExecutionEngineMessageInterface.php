@@ -22,7 +22,7 @@ use OpenDxp\Model\Element\ElementDescriptor;
 /**
  * @internal
  */
-interface GenericExecutionEngineMessageInterface
+interface GenericExecutionEngineMessageInterface extends JobRunMessageInterface
 {
     public function getJobRunId(): int;
 

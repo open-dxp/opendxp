@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Seo;
 
+use OpenDxp\Bundle\AdminBundle\Test\GridExport\GridExports;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\RedirectFactory;
@@ -88,11 +89,12 @@ function listedRedirects(User $user): array
     return filteredRedirects($user, []);
 }
 
-function exportedRedirects(User $user): string
+/**
+ * @param array<string, mixed> $parameters
+ */
+function exportedRedirects(User $user, array $parameters = []): string
 {
-    return Browser::actingAs($user)
-        ->visit('/admin/bundle/seo/redirects/csv-export')
-        ->content();
+    return GridExports::export($user, 'redirects', $parameters)->content;
 }
 
 /**
@@ -186,6 +188,28 @@ it('finds no protected redirect for an editor who tests a URL', function () {
     expect($found)->toBe([]);
 });
 
+it('finds the redirect that answers a tested URL', function (RedirectFactory $factory, string $url) {
+    $redirect = $factory->create();
+    resetServices();
+
+    $found = filteredRedirects($this->editor, ['filter' => $url]);
+
+    expect($found)->toHaveKey($redirect->getId());
+})->with([
+    'a redirect with priority 99' => [
+        fn () => RedirectFactory::new()
+            ->matching('@^/campaign$@')
+            ->withPriority(99),
+        'http://localhost/campaign',
+    ],
+    'a domain redirect' => [
+        fn () => RedirectFactory::new()
+            ->forDomain('tested.test')
+            ->with(['target' => 'https://example.test/']),
+        'http://tested.test/any/path',
+    ],
+]);
+
 it('keeps an editor from changing or deleting a protected redirect', function (string $action) {
     $protected = RedirectFactory::new()
         ->protected()
@@ -215,7 +239,7 @@ it('keeps an editor from taking over the source of a protected redirect', functi
         ]);
 
     $browser = redirectGrid($this->editor, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'source' => '/Relaunch',
         'target' => '/mine',
         'statusCode' => 301,
@@ -237,9 +261,44 @@ it('keeps an editor from taking over the source of a protected redirect', functi
         ->not->toContain('secret-target');
 });
 
+it('keeps an editor from taking over a protected source with another type', function () {
+    RedirectFactory::new()
+        ->protected()
+        ->create(['source' => '/agency']);
+
+    $browser = redirectGrid($this->editor, 'create', [
+        'type' => 'path_query',
+        'source' => '/agency',
+        'target' => '/mine',
+        'statusCode' => 301,
+        'priority' => 99,
+        'active' => true,
+    ]);
+
+    expect(gridResponse($browser))
+        ->errors
+        ->toBe([
+            [
+                'field' => 'source',
+                'message' => 'redirect_source_protected',
+            ],
+        ]);
+});
+
+it('keeps an editor from removing an expired protected redirect', function () {
+    $protected = RedirectFactory::new()
+        ->protected()
+        ->create(['expiry' => strtotime('-1 day')]);
+
+    Browser::actingAs($this->editor)
+        ->delete('/admin/bundle/seo/redirects/cleanup');
+
+    expect(Redirect::getById($protected->getId()))->not->toBeNull();
+});
+
 it('keeps an editor from protecting a redirect', function () {
     $browser = redirectGrid($this->editor, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'source' => '/editor',
         'target' => '/x',
         'statusCode' => 301,
@@ -255,7 +314,7 @@ it('keeps an editor from protecting a redirect', function () {
 
 it('lets a user who may manage protected redirects protect one', function () {
     $browser = redirectGrid($this->seoSpecialist, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'source' => '/specialist',
         'target' => '/x',
         'statusCode' => 301,
@@ -273,7 +332,7 @@ it('sets the owner and the creation date itself', function () {
     $before = time();
 
     $browser = redirectGrid($this->editor, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'source' => '/fields',
         'target' => '/x',
         'statusCode' => 301,
@@ -292,7 +351,7 @@ it('sets the owner and the creation date itself', function () {
 
 it('refuses a redirect that cannot work', function (array $values, string $field, string $message) {
     $browser = redirectGrid($this->seoSpecialist, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'statusCode' => 301,
         'priority' => 1,
         'active' => true,
@@ -325,10 +384,27 @@ it('refuses a redirect that cannot work', function (array $values, string $field
         'target',
         'redirect_loop',
     ],
+    'a redirect to itself with other accents' => [
+        [
+            'source' => '/Café',
+            'target' => '/cafe',
+        ],
+        'target',
+        'redirect_loop',
+    ],
     'a domain with a path' => [
         [
-            'type' => Redirect::TYPE_DOMAIN,
+            'type' => 'domain',
             'source' => 'example.test/path',
+            'target' => 'https://x.test/',
+        ],
+        'source',
+        'redirect_domain_source_invalid',
+    ],
+    'a domain with a port' => [
+        [
+            'type' => 'domain',
+            'source' => 'example.test:8080',
             'target' => 'https://x.test/',
         ],
         'source',
@@ -336,7 +412,7 @@ it('refuses a redirect that cannot work', function (array $values, string $field
     ],
     'a domain to a relative target' => [
         [
-            'type' => Redirect::TYPE_DOMAIN,
+            'type' => 'domain',
             'source' => 'event.test',
             'target' => '/landing',
         ],
@@ -391,7 +467,7 @@ it('fills the fields the grid leaves empty with defaults', function () {
 
     expect(createdRedirect($browser))
         ->getType()
-        ->toBe(Redirect::TYPE_PATH)
+        ->toBe('path')
         ->getStatusCode()
         ->toBe(301)
         ->getPriority()
@@ -425,7 +501,7 @@ it('saves a redirect with a duplicate source and a chain and warns about both', 
     ]);
 
     $browser = redirectGrid($this->seoSpecialist, 'create', [
-        'type' => Redirect::TYPE_PATH,
+        'type' => 'path',
         'source' => '/sale',
         'target' => '/summer',
         'statusCode' => 302,
@@ -470,6 +546,40 @@ it('exports a protected redirect for a user who may manage it', function () {
     $export = exportedRedirects($this->seoSpecialist);
 
     expect($export)->toContain($protected->getSource());
+});
+
+it('exports the redirects of the view that the grid shows', function () {
+    $active = RedirectFactory::createOne(['active' => true]);
+    $inactive = RedirectFactory::createOne(['active' => false]);
+
+    $export = exportedRedirects($this->editor, ['show' => 'active']);
+
+    expect($export)
+        ->toContain($active->getSource())
+        ->not->toContain($inactive->getSource());
+});
+
+it('exports a redirect that the import reads back', function () {
+    $redirect = RedirectFactory::createOne([
+        'source' => '/exported',
+        'target' => '/target',
+        'statusCode' => 302,
+    ]);
+    $export = exportedRedirects($this->seoSpecialist);
+    $redirect->delete();
+
+    $result = importRedirects($this->seoSpecialist, explode("\n", trim($export)));
+
+    $imported = new Redirect\Listing();
+    $imported->setCondition('source = ?', ['/exported']);
+    expect($result)
+        ->created
+        ->toBe(1)
+        ->and($imported->load()[0])
+        ->getTarget()
+        ->toBe('/target')
+        ->getStatusCode()
+        ->toBe(302);
 });
 
 it('keeps an editor from importing a protected redirect', function () {
@@ -583,9 +693,9 @@ it('shows a redirect in the views it belongs to', function (string $view, Redire
         fn () => RedirectFactory::new()
             ->protected(),
     ],
-    'one that was never hit among the unused ones' => [
+    'an old one that was never hit among the unused ones' => [
         'unused',
-        fn () => RedirectFactory::new(),
+        fn () => RedirectFactory::new()->with(['creationDate' => strtotime('-100 days')]),
     ],
 ]);
 
@@ -608,6 +718,10 @@ it('leaves a redirect out of the views it does not belong to', function (string 
     ],
     'an open one among the protected ones' => [
         'protected',
+        fn () => RedirectFactory::new(),
+    ],
+    'a new one among the unused ones' => [
+        'unused',
         fn () => RedirectFactory::new(),
     ],
 ]);

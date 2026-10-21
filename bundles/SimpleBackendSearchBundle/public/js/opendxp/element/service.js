@@ -95,7 +95,6 @@ opendxp.bundle.search.element.service = Class.create({
                 shadow: false,
                 border: false,
                 cls: 'opendxp_quicksearch_picker',
-                navigationModel: 'quicksearch.boundlist',
                 listeners: {
                     "highlightitem": function (view, node, opts) {
                         const record = quickSearchStore.getAt(node.dataset.recordindex);

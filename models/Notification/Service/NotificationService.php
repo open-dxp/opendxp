@@ -28,9 +28,6 @@ use OpenDxp\Model\User;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use UnexpectedValueException;
 
-/**
- * Please note that for Studio Bundle you have to use the service bundled there.
- */
 class NotificationService
 {
     /**
@@ -51,8 +48,6 @@ class NotificationService
         string $message,
         ?ElementInterface $element = null
     ): void {
-        $this->beginTransaction();
-
         $sender = User::getById($fromUser);
         $recipient = User::getById($userId);
 
@@ -74,9 +69,8 @@ class NotificationService
         $notification->setTitle($title);
         $notification->setMessage($message);
         $notification->setLinkedElement($element);
-        $notification->save();
 
-        $this->commit();
+        Db::getConnection()->transactional($notification->save(...));
     }
 
     /**
@@ -146,7 +140,6 @@ class NotificationService
      */
     public function findAndMarkAsRead(int $id, ?int $recipientId = null): Notification
     {
-        $this->beginTransaction();
         $notification = $this->find($id);
 
         if ($notification->getRecipient()?->getId() !== $recipientId) {
@@ -155,8 +148,7 @@ class NotificationService
 
         if ($recipientId && $recipientId === $notification->getRecipient()?->getId()) {
             $notification->setRead(true);
-            $notification->save();
-            $this->commit();
+            Db::getConnection()->transactional($notification->save(...));
         }
 
         return $notification;
@@ -173,8 +165,6 @@ class NotificationService
     public function findAll(array $filter = [], array $options = []): array
     {
         $listing = new Listing();
-
-        $filter  = [...$filter, ...['isStudio' => 0]];
 
         $conditions = [];
         $conditionVariables = [];
@@ -205,16 +195,10 @@ class NotificationService
             $limit = (int) $limit;
         }
 
-        $this->beginTransaction();
-
-        $result = [
+        return Db::getConnection()->transactional(static fn (): array => [
             'total' => $listing->count(),
             'data' => $listing->getItems($offset, $limit),
-        ];
-
-        $this->commit();
-
-        return $result;
+        ]);
     }
 
     /**
@@ -224,7 +208,7 @@ class NotificationService
     {
         $listing = new Listing();
         $listing->setCondition(
-            'recipient = ? AND `read` = 0 AND `isStudio` = 0 AND creationDate >= ?',
+            'recipient = ? AND `read` = 0 AND creationDate >= ?',
             [
                 $user,
                 date(DateFormat::DATETIME, $lastUpdate),
@@ -234,16 +218,10 @@ class NotificationService
         $listing->setOrder('DESC');
         $listing->setLimit(1);
 
-        $this->beginTransaction();
-
-        $result = [
+        return Db::getConnection()->transactional(static fn (): array => [
             'total' => $listing->count(),
             'data' => $listing->getData(),
-        ];
-
-        $this->commit();
-
-        return $result;
+        ]);
     }
 
     public function format(Notification $notification): array
@@ -284,7 +262,7 @@ class NotificationService
     public function countAllUnread(int $user): int
     {
         $listing = new Listing();
-        $listing->setCondition('recipient = ? AND `read` = 0 AND `isStudio` = 0', [$user]);
+        $listing->setCondition('recipient = ? AND `read` = 0', [$user]);
 
         return $listing->count();
     }
@@ -294,15 +272,11 @@ class NotificationService
      */
     public function delete(int $id, ?int $recipientId = null): void
     {
-        $this->beginTransaction();
-
         $notification = $this->find($id);
 
         if ($recipientId && $recipientId === $notification->getRecipient()?->getId()) {
-            $notification->delete();
+            Db::getConnection()->transactional($notification->delete(...));
         }
-
-        $this->commit();
     }
 
     /**
@@ -313,28 +287,10 @@ class NotificationService
         $listing = new Listing();
         $listing->setCondition('recipient = ?', [$user]);
 
-        $this->beginTransaction();
-
-        foreach ($listing->getData() as $notification) {
-            $notification->delete();
-        }
-
-        $this->commit();
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function beginTransaction(): void
-    {
-        Db::getConnection()->beginTransaction();
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function commit(): void
-    {
-        Db::getConnection()->commit();
+        Db::getConnection()->transactional(static function () use ($listing): void {
+            foreach ($listing->getData() as $notification) {
+                $notification->delete();
+            }
+        });
     }
 }

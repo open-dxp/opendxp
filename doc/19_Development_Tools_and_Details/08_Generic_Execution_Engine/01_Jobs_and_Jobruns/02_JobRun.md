@@ -11,9 +11,8 @@ job run object, but translates the message to english and adds it to the job run
 You can pass the `message` to the method, which then again can be translated using OpenDXP's `Translations` menu by selecting `your custom` domain.
 In addition, it is also possible to add a translation directly in the corresponding  `your-domain.<language>.yaml` file.
 
-:::info
-By default, the admin domain is used for the translation. If you want to use a different domain, you can set it in the `opendxp_generic_execution_engine` configuration.
-:::
+> [!NOTE]
+> By default, the admin domain is used for the translation. If you want to use a different domain, you can set it in the `opendxp_generic_execution_engine` configuration.
 
 As example see:
 ```php 
@@ -36,40 +35,73 @@ if($steps !== null) {
 }
 ```
 
-## Cancel Job Run
+## End of a Job Run
 
-To cancel a job run, you can use the `cancelJobRun` method of the `JobExecutionAgentInterface`. 
-This method accepts the job run id as an argument.
+A job run counts its open work:
 
-```php
-$jobExecutionAgent->cancelJobRun($jobRun->getId());
-```
+- the callback of `trackJob()`, while it runs
+- the dispatch of a step, while the engine dispatches its messages
+- every message with `JobRunMessageInterface` and the ID of the job run, until a worker handled it or gave it up for
+  good
 
-The state of the job run will be set to `cancelled` and the job run will be stopped.
-
-## Rerun Job Run
-
-To rerun a job run, you can use the `rerunJobRun` method of the `JobExecutionAgentInterface`.
-
-```php
-$jobExecutionAgent->rerunJobRun($jobRun->getId(), $ownerId);
-```
-
-The state of the job run will be set to `running` and the job run will be restarted.
-
-## Cancel single steps of a Job Run
-
-Right now it is not possible to cancel single steps of a job run. Currently, only the whole job run can be cancelled.
+The job run ends when its open work falls to zero. A job starts its next step at this point, and after its last step the
+job run ends. A message that Messenger tries again counts once.
 
 ## Job Run States
 
 The following states are available for a job run:
 
-- `running` - The job run is currently running.
-- `failed` - The job run has failed.
-- `finished` - The job run has completed successfully.
-- `cancelled` - The job run has been cancelled.
-- `finished_with_errors` - The job run has completed, but one or more errors occurred.
+- `running` - The job run has open work.
+- `finished` - The job run ended without an error.
+- `finished_with_errors` - Some messages failed, at least one succeeded.
+- `failed` - Every message failed, or the callback of `trackJob()` threw an exception.
+- `cancelled` - A user or the code cancelled the job run.
+
+With `stop_on_first_error`, the first error fails the job run. The `JobTrackingMiddleware` discards its other messages.
+
+## Cancel Job Run
+
+To cancel a job run, use the `cancelJobRun` method of the `JobExecutionAgentInterface`:
+
+```php
+$jobExecutionAgent->cancelJobRun($jobRun->getId());
+```
+
+PHP cannot stop running code from outside, so the engine cancels in three ways:
+
+- The job run gets the state `cancelled` at once.
+- The next write of the `JobProgress` throws `JobRunStoppedException`. The engine does not count it as an error. Running
+  code stops at its next report, at most a second later.
+- The `JobTrackingMiddleware` discards the waiting messages of the job run before their handler starts. The bus of
+  the engine always has it. For your own bus, see
+  [Continue in messages](03_Track_Background_Work.md#continue-in-messages).
+
+Code without a report runs to its end. The engine drops its result.
+
+## Rerun Job Run
+
+To start a job again, use the `rerunJobRun` method of the `JobExecutionAgentInterface`. It starts a new job run with
+the job of the given one:
+
+```php
+$jobExecutionAgent->rerunJobRun($jobRun->getId(), $ownerId);
+```
+
+The new job run repeats every step for every element with the input of the old one. Only the code that built the job
+knows whether this is safe, so the admin offers no rerun.
+
+## Disposable Job Runs
+
+A job run in a disposable execution context disappears once its result is picked up. See
+[Discard job runs](../02_Configuration/02_Configuration.md#discard-job-runs).
+
+## Delete Job Runs
+
+`JobExecutionAgentInterface::deleteJobRun()` deletes an ended job run with its error logs and its artifacts. It
+refuses a running job run.
+
+The maintenance deletes ended job runs after `delete_job_runs_older_than` and fails a running job run without
+activity after `fail_inactive_job_runs_after`. See [Configuration](../02_Configuration/02_Configuration.md).
 
 ## Adding additional log entries
 

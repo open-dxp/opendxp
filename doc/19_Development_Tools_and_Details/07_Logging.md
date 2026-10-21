@@ -9,7 +9,42 @@ This is definitely one of the most important logs and also the default logging l
 OpenDXP uses Symfony default monolog logging with following channels: `opendxp`, `opendxp_api`, `session`. 
 For details see [Symfonys monolog docs](https://symfony.com/doc/current/logging.html).
 
-## `php.log`
+### Context of a log entry
+
+Every log entry carries its context in the field `extra` at the end of the line:
+
+| Key        | Content                                                    |
+|------------|------------------------------------------------------------|
+| `token`    | The user of the request and the roles of the user          |
+| `requests` | The controller, the route and the parameters of the route  |
+| `command`  | The name and the arguments of the console command          |
+
+An error in the admin interface:
+
+```text
+[2026-10-14T15:17:46+02:00] request.ERROR: Uncaught PHP Exception ...DocumentNotFoundException: "Document with id
+99999999 not found" at GetDocumentDataHandler.php line 50 {"exception":"..."} {"token":{"authenticated":true,
+"roles":["ROLE_OPENDXP_ADMIN"],"user_identifier":"admin"},"requests":[{"controller":"...DocumentController::
+getDataByIdAction","route":"opendxp_admin_document_document_getdatabyid","route_params":[]}]}
+```
+
+An entry of a console command:
+
+```text
+[2026-10-14T15:18:04+02:00] app.DEBUG: Successfully released the "opendxp:thumbnails:image" lock. {...}
+{"token":null,"command":{"name":"opendxp:thumbnails:image","arguments":{"command":"opendxp:thumbnails:image"}}}
+```
+
+The IP address of a request is personal data, so OpenDXP leaves it out. A project adds it together with the URL and
+the method of the request with the `WebProcessor` of Symfony:
+
+```yaml
+services:
+    Symfony\Bridge\Monolog\Processor\WebProcessor:
+        tags: [monolog.processor]
+```
+
+## php.log
 By default OpenDXP writes PHP-Engine Log Messages to the file `php.log`.
 You can change this by add the following to your symfony config:
 ```yaml
@@ -38,13 +73,13 @@ opendxp:
 
 ##### Explanation
 
-| Value (from the example above)                                                   | Description                               |
-|----------------------------------------------------------------------------------|-------------------------------------------|
-| 2021-04-26T13:18:35+0200                                                         | Timestamp                                 |
-| 2                                                                                | User-ID                                   |
-| OpenDxp\Bundle\AdminBundle\Controller\Admin\Document\PageController::saveAction  | Module\Controller::Action                 |
-| opendxp_admin_document_page_save                                                 | Route name                                |
-| \{"task":"pub .... \}                                                                | Request Parameters (shortened & censored) |
+| Value (from the example above)                                                    | Description                               |
+|-----------------------------------------------------------------------------------|-------------------------------------------|
+| `2021-04-26T13:18:35+0200`                                                        | Timestamp                                 |
+| `2`                                                                               | User-ID                                   |
+| `OpenDxp\Bundle\AdminBundle\Controller\Admin\Document\PageController::saveAction` | Module\Controller::Action                 |
+| `opendxp_admin_document_page_save`                                                | Route name                                |
+| `\{"task":"pub .... \}`                                                           | Request Parameters (shortened & censored) |
 
 ## redirect.log
 Sometimes it's necessary to debug redirects, for example when a redirect ends in an infinite loop. 
@@ -55,12 +90,9 @@ In this log you can see every request where a redirect takes action.
 2021-04-26T14:03:20+0200 : 10.242.2.255          Custom-Redirect ID: 1, Source: /asdsad/redirectsource/asd -> /en/Events
 ```
 
-:::info
-
-Redirects are logged into a `redirect` monolog log channel at info level. By default, OpenDXP logs that channel into `var/log/redirect.log`.
-Of course, the corresponding monolog handler configuration can be adapted as needed.
-
-:::
+> [!NOTE]
+> Redirects are logged into a `redirect` monolog log channel at info level. By default, OpenDXP logs that channel into `var/log/redirect.log`.
+> Of course, the corresponding monolog handler configuration can be adapted as needed.
 
 ## Writing Your Own Log Files
 To create a custom log entry, we need to create the monolog log channels and log handlers configuration. Here is an example on how to log in a custom filename called `custom.log`

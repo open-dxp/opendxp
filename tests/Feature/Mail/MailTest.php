@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Closure;
 use Exception;
 use OpenDxp\Mail;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use Symfony\Component\Mime\Header\Headers;
@@ -225,7 +226,7 @@ it('refuses to delete an object', function () {
 
     expect($deleting)
         ->toThrow(Exception::class, 'Failed rendering the body')
-        ->and(reloaded($object))
+        ->and(Elements::refresh($object))
         ->not->toBeNull();
 });
 

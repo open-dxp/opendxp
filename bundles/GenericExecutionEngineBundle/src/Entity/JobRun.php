@@ -23,8 +23,10 @@ use Doctrine\ORM\Mapping\Table;
 use InvalidArgumentException;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\CurrentMessage\MessageInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\Job;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunResult;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobRunStates;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\ValueObjects\LogLine;
+use Symfony\Component\Clock\Clock;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
@@ -56,7 +58,7 @@ class JobRun
     #[ORM\Column(type: 'text', length: 65535, nullable: true)]
     private ?string $currentMessage = null;
 
-    #[ORM\Column(type: 'text', length: 65535, nullable: true)]
+    #[ORM\Column(type: 'text', length: 16777215, nullable: true)]
     private ?string $log = null;
 
     private ?SerializerInterface $serializer = null;
@@ -84,12 +86,44 @@ class JobRun
     #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
     private int $processedElementsForStep = 0;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $jobName = null;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $pendingOperations = 0;
+
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true, 'default' => 0])]
+    private int $dispatchedMessages = 0;
+
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true, 'default' => 0])]
+    private int $succeededMessages = 0;
+
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true, 'default' => 0])]
+    private int $failedMessages = 0;
+
+    #[ORM\Column(type: 'integer', nullable: true, options: ['unsigned' => true])]
+    private ?int $total = null;
+
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true, 'default' => 0])]
+    private int $progress = 0;
+
+    /**
+     * @var array{
+     *     message: string,
+     *     parameters: array<string, scalar|null>,
+     *     artifacts: list<string>,
+     *     downloadedArtifacts: list<string>
+     * }|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $result = null;
+
     public function __construct(
         #[ORM\Column(nullable: true, options: ['unsigned' => true])]
         private ?int $ownerId = null
     ) {
-        $this->creationDate = time();
-        $this->modificationDate = time();
+        $this->creationDate = Clock::get()->now()->getTimestamp();
+        $this->modificationDate = $this->creationDate;
     }
 
     public function getId(): int
@@ -225,7 +259,7 @@ class JobRun
     #[ORM\PreUpdate]
     public function updateModificationDate(): void
     {
-        $this->modificationDate = time();
+        $this->modificationDate = Clock::get()->now()->getTimestamp();
     }
 
     public function getExecutionContext(): string
@@ -261,6 +295,61 @@ class JobRun
     public function setProcessedElementsForStep(int $processedElementsForStep): void
     {
         $this->processedElementsForStep = $processedElementsForStep;
+    }
+
+    public function getJobName(): ?string
+    {
+        return $this->jobName;
+    }
+
+    public function setJobName(?string $jobName): void
+    {
+        $this->jobName = $jobName;
+    }
+
+    public function getPendingOperations(): int
+    {
+        return $this->pendingOperations;
+    }
+
+    public function setPendingOperations(int $pendingOperations): void
+    {
+        $this->pendingOperations = $pendingOperations;
+    }
+
+    public function getDispatchedMessages(): int
+    {
+        return $this->dispatchedMessages;
+    }
+
+    public function getSucceededMessages(): int
+    {
+        return $this->succeededMessages;
+    }
+
+    public function getFailedMessages(): int
+    {
+        return $this->failedMessages;
+    }
+
+    public function getTotal(): ?int
+    {
+        return $this->total;
+    }
+
+    public function getProgress(): int
+    {
+        return $this->progress;
+    }
+
+    public function getResult(): ?JobRunResult
+    {
+        return $this->result === null ? null : JobRunResult::fromArray($this->result);
+    }
+
+    public function setResult(?JobRunResult $result): void
+    {
+        $this->result = $result?->toArray();
     }
 
     private function getSerializer(): SerializerInterface

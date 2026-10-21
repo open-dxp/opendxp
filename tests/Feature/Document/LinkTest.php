@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Document;
 
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentLinkFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 
@@ -26,7 +27,7 @@ it('loads the document it points at', function () {
         ->withTarget($this->target)
         ->create();
 
-    $element = reloaded($link)->getElement();
+    $element = Elements::refresh($link)->getElement();
 
     expect($element->getId())->toBe($this->target->getId());
 });
@@ -39,5 +40,5 @@ it('drops a target that is the link itself', function () {
     $link->setInternal($link->getId());
     $link->save();
 
-    expect(reloaded($link)->getInternal())->toBeNull();
+    expect(Elements::refresh($link)->getInternal())->toBeNull();
 });

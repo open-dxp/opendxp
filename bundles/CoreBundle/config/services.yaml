@@ -42,6 +42,18 @@ services:
             - { name: monolog.logger, channel: opendxp }
 
     #
+    # Logging
+
+    Symfony\Bridge\Monolog\Processor\TokenProcessor:
+        tags: [monolog.processor]
+
+    Symfony\Bridge\Monolog\Processor\RouteProcessor:
+        tags: [monolog.processor]
+
+    Symfony\Bridge\Monolog\Processor\ConsoleCommandProcessor:
+        tags: [monolog.processor]
+
+    #
     # Config
 
     OpenDxp\Config:

@@ -138,7 +138,6 @@ class Dao extends AbstractDao
         $this->model->setLinkedElement($linkedElement);
         $this->model->setRead($data['read'] === 1);
         $this->model->setPayload($data['payload']);
-        $this->model->setIsStudio($data['isStudio'] === 1); // TODO: Remove with end of Classic-UI
     }
 
     protected function getData(Notification $model): array
@@ -156,7 +155,6 @@ class Dao extends AbstractDao
             'linkedElementType' => $model->getLinkedElementType(),
             'read' => (int) $model->isRead(),
             'payload' => $model->getPayload(),
-            'isStudio' => (int) $model->isStudio(), // TODO: Remove with end of Classic-UI
         ];
     }
 }

@@ -15,6 +15,12 @@ App\Maintenance\MyMaintenanceTask:
 
 OpenDXP will then call your maintenance task on the maintenance cron job you have to configure. You will have to take care about timing operations inside the Task yourself.
 
+## Track a Maintenance Task
+
+A task can appear as a job run in the admin, with its progress and its errors. Wrap the work of `execute()` in
+`JobTrackingAgentInterface::trackJob()` of the Generic Execution Engine. See
+[Track Background Work](../19_Development_Tools_and_Details/08_Generic_Execution_Engine/01_Jobs_and_Jobruns/03_Track_Background_Work.md).
+
 ## Register a new Maintenance Task using a separate messenger transport
 
 First follow the steps mentioned above, then add the `messengerMessageClass` property to your tag, as shown in the example below.

@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\LazyLoading;
 use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingLocalizedTest;
 use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -37,7 +38,7 @@ it('binds the fields of a version to that version', function (Concrete $object, 
     $object->setInput('in the version');
 
     $object->saveVersion();
-    $version = reloaded($object)->getLatestVersion()->loadData();
+    $version = Elements::refresh($object)->getLatestVersion()->loadData();
 
     expect($field($version)->getObject())->getInput()->toBe('in the version');
 })->with([

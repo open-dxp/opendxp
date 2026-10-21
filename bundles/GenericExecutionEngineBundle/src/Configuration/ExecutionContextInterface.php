@@ -21,7 +21,16 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration;
  */
 interface ExecutionContextInterface
 {
+    public function hasContext(string $context): bool;
+
     public function getTranslationDomain(string $context): string;
 
     public function getErrorHandlingFromContext(string $context): ?string;
+
+    public function isDisposable(string $context): bool;
+
+    /**
+     * @return list<string>
+     */
+    public function getDisposableContexts(): array;
 }

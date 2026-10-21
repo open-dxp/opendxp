@@ -4,3 +4,7 @@ _opendxp_bundle_seo_backend:
     prefix:   /admin/bundle/seo
     options:
         expose: true
+
+_opendxp_bundle_seo_site_declarations:
+    resource: 'OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRouteLoader::loadRoutes'
+    type: service

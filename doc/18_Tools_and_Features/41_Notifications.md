@@ -40,8 +40,6 @@ Be aware that the service is tagged as internal and can change in future release
     {
         $listing = new Listing();
 
-        $filter  = [...$filter, ...['isStudio' => 0]];
-
         $conditions = [];
         $conditionVariables = [];
         foreach ($filter as $key => $value) {

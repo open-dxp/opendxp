@@ -23,6 +23,7 @@ use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Event\DataObjectEvents;
 use OpenDxp\Event\Model\DataObjectEvent;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Test\Elements;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use ReflectionProperty;
@@ -52,7 +53,7 @@ function asAnotherWorker(callable $work): void
 function changedByAnotherWorker(DataObject $object): void
 {
     asAnotherWorker(static function () use ($object): void {
-        $current = reloaded($object);
+        $current = Elements::refresh($object);
         $current->setInput('changed by another worker');
         $current->save();
     });

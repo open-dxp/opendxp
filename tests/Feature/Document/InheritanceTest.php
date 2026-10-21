@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Document;
 
 use Exception;
 use OpenDxp\Model\Document\Editable\Input;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 
 beforeEach(function () {
@@ -31,7 +32,7 @@ it('inherits no editable from its parent alone', function () {
         ->withParent($this->main)
         ->create();
 
-    $headline = reloaded($child)->getEditable('headline');
+    $headline = Elements::refresh($child)->getEditable('headline');
 
     expect($headline)->toBeNull();
 });
@@ -41,7 +42,7 @@ it('takes the editables of its content main document', function () {
         ->withContentMainDocument($this->main)
         ->create();
 
-    $headline = reloaded($page)->getEditable('headline');
+    $headline = Elements::refresh($page)->getEditable('headline');
 
     expect($headline->getValue())->toBe('test');
 });

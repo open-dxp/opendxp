@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\LazyLoading;
 
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
+use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 
@@ -30,13 +31,13 @@ beforeEach(function () {
 });
 
 it('keeps an advanced relation of a loaded object clean', function () {
-    $loaded = reloaded($this->object);
+    $loaded = Elements::refresh($this->object);
 
     expect($loaded->isFieldDirty('advancedObjects'))->toBeFalse();
 });
 
 it('marks an advanced relation dirty once its metadata changes', function () {
-    $loaded = reloaded($this->object);
+    $loaded = Elements::refresh($this->object);
 
     $loaded->getAdvancedObjects()[0]->setMetadataUpper('another note');
 

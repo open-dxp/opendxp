@@ -537,6 +537,24 @@ class Service extends Model\AbstractModel
     }
 
     /**
+     * Returns the element as the subject of an error message, for example `Object /products/shoe (ID 123)`.
+     *
+     * A new element has no ID yet. It reads `New object "shoe"`, or `New object` without a key.
+     */
+    public static function getMessageSubject(ElementInterface $element): string
+    {
+        $type = self::getElementType($element) ?? 'element';
+
+        if ($element->getId() === null) {
+            $key = (string) $element->getKey();
+
+            return $key === '' ? sprintf('New %s', $type) : sprintf('New %s "%s"', $type, $key);
+        }
+
+        return sprintf('%s %s (ID %d)', ucfirst($type), $element->getRealFullPath(), $element->getId());
+    }
+
+    /**
      * @internal
      */
     public static function getElementTypeByClassName(string $className): ?string

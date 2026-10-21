@@ -1,7 +1,3 @@
-_opendxp_service_robots_txt:
-    path: /robots.txt
-    defaults: { _controller: OpenDxp\Bundle\CoreBundle\Controller\PublicServicesController::robotsTxtAction }
-
 _opendxp_service_common_files:
     path: /{filename}
     defaults: { _controller: OpenDxp\Bundle\CoreBundle\Controller\PublicServicesController::commonFilesAction }

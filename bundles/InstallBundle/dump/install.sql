@@ -813,7 +813,6 @@ CREATE TABLE `notifications` (
   `linkedElementType` ENUM('document', 'asset', 'object') NULL,
   `linkedElement` INT(11) NULL,
   `payload` LONGTEXT NULL,
-  `isStudio` TINYINT(1) DEFAULT 0 NOT NULL, -- TODO: Remove with end of Classic-UI
   INDEX `recipient` (`recipient`)
 ) DEFAULT CHARSET=utf8mb4;
 

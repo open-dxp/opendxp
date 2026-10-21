@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Cache;
 
 use OpenDxp\Cache;
 use OpenDxp\Cache\RuntimeCache;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 
 beforeEach(fn () => useApplicationCache());
@@ -58,7 +59,7 @@ it('caches the stored element instead of an outdated copy', function () {
     $outdated = AssetImageFactory::createOne([
         'customSettings' => ['marker' => 'outdated'],
     ]);
-    $current = reloaded($outdated);
+    $current = Elements::refresh($outdated);
     $current->setCustomSetting('marker', 'current');
     $current->save();
 

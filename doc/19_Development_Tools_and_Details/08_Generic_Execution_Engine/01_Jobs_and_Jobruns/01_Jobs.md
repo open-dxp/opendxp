@@ -32,16 +32,56 @@ To execute a job use the `startJobExecution` method which accepts 3 arguments:
 $jobExecutionAgent->startJobExecution($job, null, 'my-custom-context');
 ```
 
-:::caution
-Be aware that the execution engine does not retry failed messages.
-
-```yaml
-opendxp_generic_execution_engine:
-    dsn: 'doctrine://default?queue_name=opendxp_generic_execution_engine'
-    retry_strategy:
-        max_retries: 0 # no retries to prevent data corruption
-```
-:::
+> [!CAUTION]
+> Be aware that the execution engine does not retry failed messages.
+>
+> ```yaml
+> opendxp_generic_execution_engine:
+>     dsn: 'doctrine://default?queue_name=opendxp_generic_execution_engine'
+>     retry_strategy:
+>         max_retries: 0 # no retries to prevent data corruption
+> ```
 
 After starting the job execution, the job run is created and the job steps are executed based on the configuration.
 For further information on how to handle job runs (cancel, stop, ...), see [Job Runs](./02_JobRun.md).
+
+## Report from a Handler
+
+A handler of a job step gets the `JobProgress` of its job run as an additional argument:
+`__invoke(ExportMessage $message, JobProgress $progress)`. It reports progress, status line and result like any tracked
+code. See [Show the progress](03_Track_Background_Work.md#show-the-progress).
+
+## Start a Job from the Admin
+
+An action in the admin starts its job through a route of your bundle. The route answers with the ID of the job run:
+
+```php
+#[Route('/admin/my-bundle/delete-elements', name: 'my_bundle_delete_elements', methods: ['POST'])]
+public function deleteElementsAction(Request $request, JobExecutionAgentInterface $jobExecutionAgent): JsonResponse
+{
+    $jobRun = $jobExecutionAgent->startJobExecution(
+        $this->createDeleteJob($request),
+        $this->getAdminUser()->getId(),
+        'my_bundle_delete',
+    );
+
+    return $this->json(['jobRunId' => $jobRun->getId()]);
+}
+```
+
+The button of the action calls the runner of the engine:
+
+```js
+opendxp.bundle.genericexecutionengine.jobrun.runner.start({
+    url: Routing.generate('my_bundle_delete_elements'),
+    params: {ids: selectedIds.join(',')},
+    title: t('delete'),
+    message: t('my_bundle_delete_started')
+});
+```
+
+- The runner shows the message and hands the job run to the menu in the sidebar. The menu shows its progress.
+- A file of the result arrives as a download in the browser tab that started the job.
+- The job run needs the user as its owner. A job run without an owner never appears in the menu.
+- An execution context with `disposable: true` removes the job run once the user picked up its result. See
+  [Configuration](../02_Configuration/02_Configuration.md).

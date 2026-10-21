@@ -6,7 +6,8 @@ own. At the end you build a story, a fixed world that several tests share. Every
 writes lives inside the transaction of the test and is gone when the test ends.
 
 The factories are [Foundry](https://github.com/zenstruck/foundry) factories. They need the Foundry
-extension in `phpunit.xml.dist`, as [Testing](./README.md#set-up-your-package) shows.
+extension in `phpunit.xml.dist`, as the
+[test foundation](https://github.com/open-dxp/test-foundation#2-add-phpunitxmldist) shows.
 
 ## Create a model
 
@@ -19,8 +20,10 @@ $page = DocumentPageFactory::createOne();
 ```
 
 The page is valid and published, and it sits below the root document. Its key is a random slug.
-Every call creates new random values, so two pages never collide, and a test never depends on a
-value it did not name.
+Every call creates new random values. Two pages therefore never collide. A test depends only on the
+values it sets itself.
+[Repeat a failing run](https://github.com/open-dxp/test-foundation#repeat-a-failing-run) shows how
+you get the same random values again.
 
 When a value matters to the test, name it:
 
@@ -37,8 +40,8 @@ $pages = DocumentPageFactory::createMany(3);
 ## Describe it with states
 
 Most tests need more than a page with a key. They need a page below another page, a page that is not
-published, or a page in one language. A factory says this with states. A state is a method in the
-language of the subject:
+published, or a page in one language. A factory expresses this with states. A state is a method
+named in the terms of the subject:
 
 ```php
 $parent = DocumentPageFactory::createOne(['key' => 'en']);
@@ -125,6 +128,9 @@ $page = DocumentPageFactory::new()
     ->create();
 ```
 
+`setDataFromResource()` takes a value in the form OpenDXP stores it. `setDataFromEditmode()` takes it in
+the form an editor submits. The two forms differ for checkboxes, selects, links and relations.
+
 Every document the factory creates gets editables of its own, even with `many()`.
 
 Most pages hold their content in areabricks. `withBricks()` fills one areablock of the template.
@@ -144,7 +150,7 @@ $page = DocumentPageFactory::new()
 
 A brick is one instance of an areabrick, with the values of its editables. It implements
 `OpenDxp\Test\Document\Brick`. `id()` returns the id the areabrick is registered with.
-`editables()` returns its editables, keyed by the names the template of the areabrick uses. This is
+`editables()` returns its editables, keyed by the names that the template of the areabrick uses. This is
 the brick of an areabrick `greeting` whose template renders `{{ opendxp_input('text') }}`:
 
 ```php
@@ -177,8 +183,8 @@ final readonly class GreetingBrick implements Brick
 }
 ```
 
-A bundle that ships areabricks ships a brick class for each of them, in its namespace `Test\Brick`.
-A project that uses the bundle then builds its pages with the bricks of the bundle.
+A bundle that ships areabricks also ships their bricks, as [Shipping a Test API](./11_Bundle_Test_API.md)
+describes.
 
 The template of an areabrick can hold an areablock of its own, like a container that holds other bricks.
 `OpenDxp\Test\Document\Areablocks::filledWith()` returns the editables of such an areablock with the bricks in it.
@@ -214,38 +220,9 @@ class `Author`.
 
 ### Install the class
 
-Export the class definition from the class editor and put it into `tests/Fixtures/classes/`. The
-file name is the name of the class:
-
-```
-tests/Fixtures/
-    classificationstores/
-    fieldcollections/
-    classes/Post.json
-    objectbricks/
-```
-
-The extension `InstallDefinitions` of the test foundation installs every definition it finds there,
-once, before the first test. Classes refer to classification stores and field collections, and
-object bricks refer to classes. The extension therefore installs classification stores first, then
-field collections, classes and object bricks.
-
-A classification store has a file format of its own. The file describes the store, its groups and
-the keys of each group. The type of a key is the name of a field type:
-
-```json
-{
-    "description": "The store a post keeps its facts in.",
-    "groups": {
-        "facts": {
-            "readingTime": {
-                "type": "numeric",
-                "description": "Minutes it takes to read the post."
-            }
-        }
-    }
-}
-```
+Export the class definition from the class editor and put it into `tests/Fixtures/classes/Post.json`.
+The test foundation installs it before the first test, as
+[Data object classes](https://github.com/open-dxp/test-foundation#data-object-classes) describes.
 
 ### Write the factory
 
@@ -297,7 +274,7 @@ collection, an object brick and a classification store in the same way.
 
 ## Write a good factory
 
-A factory is part of the language of your tests. These habits keep that language clear.
+Factories decide how your tests read. These habits keep them clear.
 
 **One factory per model.** Name it after the class it builds, and make it `final`. A base class is
 `abstract`. The `@extends` line gives the model class to Foundry and to PHPStan. `@method` lines
@@ -308,8 +285,8 @@ The values are random and realistic, and they come from `self::faker()` inside t
 calls `defaults()` for every model it creates, so every model gets values of its own. A closure as
 a single value in `defaults()` is not called. Leave out what the model sets itself, such as `type`.
 
-**Nothing is created in `defaults()`.** A model the new one depends on is a factory, and Foundry
-creates it only when the test does not pass one:
+**Nothing is created in `defaults()`.** A model that the new model depends on is given as a
+factory. Foundry creates it only when the test does not pass one:
 
 ```php
 protected function defaults(): array
@@ -322,8 +299,8 @@ protected function defaults(): array
 }
 ```
 
-A value with a side effect is wrapped in `lazy()`. A model that every created model shares is
-`AuthorFactory::new()->memoize()`. A file that `defaults()` reads is wrapped in `lazy()` too, so the
+A value with a side effect is wrapped in `lazy()`. A model that all created models share is given
+as `AuthorFactory::new()->memoize()`. A file that `defaults()` reads is wrapped in `lazy()` too, so the
 factory reads it only when the test does not replace it. The asset factories of OpenDXP do this:
 
 ```php
@@ -333,7 +310,8 @@ factory reads it only when the test does not replace it. The asset factories of 
 **States instead of options.** A state takes only required arguments and no boolean flag. Every
 variant has a name of its own. The thumbnail factory has `scalingByWidth(256)` and
 `enlargingToWidth(256)`, not `scalingByWidth(256, true)`. A state returns `$this->with([...])` or
-adds a hook. A random value in a state goes into a closure, or every model of `many()` shares it.
+adds a hook. A random value in a state goes into a closure. Otherwise every model of `many()` gets the same
+value.
 The redirect factory does this:
 
 ```php
@@ -374,9 +352,9 @@ public function assignedTo(ElementInterface ...$elements): static
 **A fixed order.** A factory lists `class()`, then the states, then `defaults()`, then
 `initialize()`, then its private methods.
 
-A factory for a model of your test application lives in `tests/Factory/`. A bundle whose models
-other packages create in their tests ships those factories in its own code, the way OpenDXP ships
-`OpenDxp\Test\Factory`.
+A factory for a model of your test application lives in `tests/Factory/`. A factory that other
+packages use goes into the test API of your bundle, as [Shipping a Test API](./11_Bundle_Test_API.md)
+describes.
 
 ## Share a world with a story
 
@@ -435,20 +413,7 @@ A story builds its world once per test, however often it is loaded. A story that
 calls `OtherStory::load()` in its `build()`. A test case can load a story for all of its tests with
 Foundry's attribute `#[WithStory(TwoSites::class)]`. Stories live in `tests/Story/`.
 
-## Repeat a failing run
-
-Random values can make a test fail only once in a while. Foundry prints the seed of its random
-values after every run:
-
-```
-Faker seed used: 1234
-```
-
-Set the environment variable `FOUNDRY_FAKER_SEED` to that number, for example in the `<php>` section
-of `phpunit.xml.dist`. Every factory then produces the same values again. Narrow the run to the
-failing test with `--filter`.
-
 ## Next
 
 [Test API](./07_Test_API.md) lists every factory, every state, every expectation and every installer
-that OpenDXP ships, with what it does. Come back to it whenever you look for a state.
+that OpenDXP ships, with what it does. Use it whenever you look for a state.

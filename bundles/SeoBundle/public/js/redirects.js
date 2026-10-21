@@ -478,11 +478,9 @@ opendxp.settings.redirects = Class.create({
                     }]
                 },
                 {
-                    text: t("export_csv"),
+                    text: t("export"),
                     iconCls: "opendxp_icon_export",
-                    handler: function () {
-                        opendxp.helpers.download(Routing.generate('opendxp_bundle_seo_redirects_csvexport'));
-                    }
+                    handler: this.startExport.bind(this)
                 },
                 {
                     text: t("import_csv"),
@@ -528,7 +526,7 @@ opendxp.settings.redirects = Class.create({
 
                                         var errorKeys = Object.keys(stats.errors);
                                         for (var i = 0; i < errorKeys.length; i++) {
-                                            message += '<tr><td>' + t('redirects_import_error_line') + ' ' + errorKeys[i] + ':</td><td>' + stats.errors[errorKeys[i]] + '</td></tr>';
+                                            message += '<tr><td>' + t('redirects_import_error_line') + ' ' + errorKeys[i] + ':</td><td>' + stats.errors[errorKeys[i]].map(function (error) { return t(error); }).join(', ') + '</td></tr>';
                                         }
 
                                         message += '</table>';
@@ -632,7 +630,6 @@ opendxp.settings.redirects = Class.create({
             viewConfig: {
                 forceFit: true,
                 listeners: {
-                    rowupdated: this.updateRows.bind(this),
                     refresh: this.updateRows.bind(this)
                 }
             }
@@ -672,9 +669,12 @@ opendxp.settings.redirects = Class.create({
             ["active", t("redirect_show_active")],
             ["inactive", t("redirect_show_inactive")],
             ["scheduled", t("redirect_show_scheduled")],
-            ["expired", t("redirect_show_expired")],
-            ["unused", t("redirect_show_unused")]
+            ["expired", t("redirect_show_expired")]
         ];
+
+        if (this.data.config.countHits) {
+            shown.push(["unused", t("redirect_show_unused")]);
+        }
 
         if (opendxp.globalmanager.get("user").isAllowed("redirects_protected")) {
             shown.push(["protected", t("redirect_show_protected")]);
@@ -713,6 +713,21 @@ opendxp.settings.redirects = Class.create({
                 this.store.remove(selection);
             }
         }.bind(this));
+    },
+
+    startExport: function () {
+        new opendxp.element.gridexport.runner({
+            source: "redirects",
+            getParameters: function () {
+                return opendxp.element.gridexport.runner.getStoreParameters(this.store);
+            }.bind(this),
+            filters: {filter: "", show: ""},
+            getSelectedIds: function () {
+                return this.grid.getSelectionModel().getSelection().map(function (record) {
+                    return record.get("id");
+                });
+            }.bind(this)
+        }).start();
     },
 
     cleanupExpiredRedirects: function () {

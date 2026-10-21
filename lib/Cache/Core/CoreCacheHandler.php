@@ -289,8 +289,10 @@ class CoreCacheHandler implements LoggerAwareInterface, ResetInterface
     }
 
     /**
-     * Drops the buffered prefetch entries and the tags cleared during the request. Wired to kernel.reset (via service autoconfiguration),
-     * so that a long-running process such as a Messenger worker neither serves entries that were prefetched but never consumed nor refuses to cache a tag that an earlier request cleared.
+     * Drops the buffered prefetch entries and the tags cleared during the request. Wired to kernel.reset (via service
+     * autoconfiguration), so that a long-running process such as a Messenger worker does not:
+     * - serve entries that were prefetched but never consumed
+     * - refuse to cache a tag that an earlier request cleared
      */
     public function reset(): void
     {

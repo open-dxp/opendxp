@@ -22,11 +22,9 @@ use InvalidArgumentException;
 use League\Csv\Bom;
 use League\Csv\Reader;
 use League\Csv\Statement;
-use League\Csv\Writer;
 use OpenDxp\Bundle\SeoBundle\Model\Redirect;
 use OpenDxp\DateFormat;
 use OpenDxp\Model\Document;
-use OpenDxp\Model\Element\Service;
 use OpenDxp\Tool\Admin;
 use OpenDxp\Tool\ArrayNormalizer;
 use OpenDxp\Tool\Text;
@@ -57,90 +55,78 @@ class Csv
     ];
 
     /**
-     * Columns that older exports do not have. An import without them takes the defaults.
-     *
-     * @var array<string, mixed>
+     * Older exports lack these columns. An import without them takes the defaults.
      */
-    private array $optionalColumns = [
+    private const array OPTIONAL_COLUMNS = [
         'validFrom' => null,
         'passThroughPath' => false,
         'protected' => false,
     ];
 
-    public function __construct(private readonly RedirectValidator $validator)
-    {
-    }
-
     private ?ArrayNormalizer $importNormalizer = null;
 
     private ?OptionsResolver $importResolver = null;
 
-    /**
-     * @throws \League\Csv\CannotInsertRecord
-     * @throws \League\Csv\Exception
-     */
-    public function createExportWriter(Redirect\Listing $list): Writer
+    public function __construct(private readonly RedirectValidator $validator)
     {
-        $writer = Writer::from('php://temp');
-        $writer->setDelimiter(';');
-        $writer->setOutputBOM(Bom::Utf8);
-
-        // force "" enclosure as it allows us to just open the file in excel
-        $writer->forceEnclosure();
-
-        $writer->insertOne([...$this->columns, ...array_keys($this->optionalColumns)]);
-
-        foreach ($list->getRedirects() as $redirect) {
-            $target = $redirect->getTarget();
-
-            if (is_numeric($redirect->getTarget())) {
-                $document = Document::getById((int)$redirect->getTarget());
-
-                if ($document) {
-                    $target = $document->getRealFullPath();
-                }
-            }
-
-            $expiry = null;
-            if ($redirect->getExpiry()) {
-                $expiry = (new DateTime('@' . $redirect->getExpiry()))->format(DateFormat::ISO_8601);
-            }
-
-            $validFrom = null;
-            if ($redirect->getValidFrom()) {
-                $validFrom = (new DateTime('@' . $redirect->getValidFrom()))->format(DateFormat::ISO_8601);
-            }
-
-            $data = [
-                $redirect->getId(),
-                $redirect->getType(),
-                $redirect->getSource(),
-                $redirect->getSourceSite(),
-                $target,
-                $redirect->getTargetSite(),
-                $redirect->getStatusCode(),
-                $redirect->getPriority(),
-                $redirect->getRegex(),
-                $redirect->getPassThroughParameters(),
-                $redirect->getActive(),
-                $expiry,
-                $validFrom,
-                $redirect->getPassThroughPath(),
-                $redirect->isProtected(),
-            ];
-            $data = Service::escapeCsvRecord($data);
-
-            $writer->insertOne($data);
-        }
-
-        return $writer;
     }
 
     /**
-     * @throws \League\Csv\Exception
+     * @return list<string>
      */
+    public function getExportColumns(): array
+    {
+        return [...$this->columns, ...array_keys(self::OPTIONAL_COLUMNS)];
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    public function getExportValues(Redirect $redirect): array
+    {
+        $target = $redirect->getTarget();
+
+        if (is_numeric($redirect->getTarget())) {
+            $document = Document::getById((int)$redirect->getTarget());
+
+            if ($document) {
+                $target = $document->getRealFullPath();
+            }
+        }
+
+        $expiry = null;
+        if ($redirect->getExpiry()) {
+            $expiry = (new DateTime('@' . $redirect->getExpiry()))->format(DateFormat::ISO_8601);
+        }
+
+        $validFrom = null;
+        if ($redirect->getValidFrom()) {
+            $validFrom = (new DateTime('@' . $redirect->getValidFrom()))->format(DateFormat::ISO_8601);
+        }
+
+        return [
+            $redirect->getId(),
+            $redirect->getType(),
+            $redirect->getSource(),
+            $redirect->getSourceSite(),
+            $target,
+            $redirect->getTargetSite(),
+            $redirect->getStatusCode(),
+            $redirect->getPriority(),
+            $redirect->getRegex(),
+            $redirect->getPassThroughParameters(),
+            $redirect->getActive(),
+            $expiry,
+            $validFrom,
+            $redirect->getPassThroughPath(),
+            $redirect->isProtected(),
+        ];
+    }
+
     /**
      * @param bool $mayManageProtected whether the importing user holds the permission redirects_protected
+     *
+     * @throws \League\Csv\Exception
      */
     public function import(string $filename, bool $mayManageProtected = true): array
     {
@@ -175,12 +161,16 @@ class Csv
         foreach ($result as $line => $record) {
             try {
                 $data = $this->preprocessImportData($record);
-                $this->processImportData($data, $stats, $mayManageProtected);
-
-                $stats['imported']++;
+                $messages = $this->processImportData($data, $stats, $mayManageProtected);
             } catch (Throwable $e) {
+                $messages = [$e->getMessage()];
+            }
+
+            if ($messages === []) {
+                $stats['imported']++;
+            } else {
                 $stats['errored']++;
-                $errors[$line] = $e->getMessage();
+                $errors[$line] = $messages;
             }
         }
 
@@ -202,12 +192,19 @@ class Csv
         return $data;
     }
 
-    private function processImportData(array $data, array &$stats, bool $mayManageProtected): void
+    /**
+     * Returns the translation keys of what keeps the redirect from being saved.
+     *
+     * @return list<string>
+     */
+    private function processImportData(array $data, array &$stats, bool $mayManageProtected): array
     {
         $redirect = $data['id'] ? Redirect::getById($data['id']) : null;
 
         if (!$mayManageProtected && ($redirect?->isProtected() || $data['protected'])) {
-            throw new InvalidArgumentException('Only users with the permission redirects_protected import a protected redirect.');
+            throw new InvalidArgumentException(
+                'Only users with the permission redirects_protected import a protected redirect.',
+            );
         }
 
         // ID is already set or will be generated
@@ -217,13 +214,15 @@ class Csv
         $redirect ??= new Redirect();
         $redirect->setValues($data);
 
-        $validation = $this->validator->validate($redirect, $mayManageProtected);
-        if (!$validation->isValid()) {
-            throw new InvalidArgumentException(implode(', ', array_column($validation->errors, 'message')));
+        $result = $this->validator->validate($redirect, $mayManageProtected);
+        if (!$result->isValid()) {
+            return array_map(static fn (RedirectValidationError $error): string => $error->message, $result->errors);
         }
 
         $redirect->save();
         $stats[$isNew ? 'created' : 'updated']++;
+
+        return [];
     }
 
     private function getImportNormalizer(): ArrayNormalizer
@@ -265,7 +264,8 @@ class Csv
             return (string)$value;
         });
 
-        $normalizer->addNormalizer(['regex', 'passThroughParameters', 'active', 'passThroughPath', 'protected'], function ($value) {
+        $flags = ['regex', 'passThroughParameters', 'active', 'passThroughPath', 'protected'];
+        $normalizer->addNormalizer($flags, function ($value) {
             if (empty($value)) {
                 return false;
             }
@@ -316,7 +316,7 @@ class Csv
         $resolver->setAllowedTypes('active', ['bool']);
         $resolver->setAllowedTypes('expiry', ['int', 'null']);
 
-        $resolver->setDefaults($this->optionalColumns);
+        $resolver->setDefaults(self::OPTIONAL_COLUMNS);
         $resolver->setAllowedTypes('validFrom', ['int', 'null']);
         $resolver->setAllowedTypes('passThroughPath', ['bool']);
         $resolver->setAllowedTypes('protected', ['bool']);

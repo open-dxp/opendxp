@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\Document\Editable\Areablock;
 use OpenDxp\Model\Document\Editable\Input;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\DocumentSnippetFactory;
 use OpenDxp\TestFoundation\Browser;
@@ -53,7 +54,7 @@ it('stores the bricks with the document', function () {
         )
         ->create();
 
-    $stored = reloaded($page);
+    $stored = Elements::refresh($page);
     expect($stored->getEditable('content'))
         ->toBeInstanceOf(Areablock::class)
         ->getIndices()
@@ -99,7 +100,7 @@ it('stores a brick inside a brick under the name OpenDXP gives it', function () 
         )
         ->create();
 
-    $stored = reloaded($page);
+    $stored = Elements::refresh($page);
 
     expect($stored->getEditable('content:1.inside'))
         ->toBeInstanceOf(Areablock::class)
@@ -116,7 +117,7 @@ it('stores editables directly on the document', function () {
         ->withEditables(['headline' => $headline])
         ->create();
 
-    expect(reloaded($page)->getEditable('headline'))->getData()->toBe('Imprint');
+    expect(Elements::refresh($page)->getEditable('headline'))->getData()->toBe('Imprint');
 });
 
 it('gives every document it creates editables of its own', function () {

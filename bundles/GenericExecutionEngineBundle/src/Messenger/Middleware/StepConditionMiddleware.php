@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Middleware;
 
-use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgentInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Extractor\JobRunExtractorInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Messenger\Messages\GenericExecutionEngineMessageInterface;
 use Psr\Log\LoggerInterface;
@@ -30,7 +29,6 @@ use Symfony\Component\Messenger\Middleware\StackInterface;
 final readonly class StepConditionMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private JobExecutionAgentInterface $jobExecutionAgent,
         private JobRunExtractorInterface $jobRunExtractor,
         private LoggerInterface $genericExecutionEngineLogger,
     ) {
@@ -44,38 +42,15 @@ final readonly class StepConditionMiddleware implements MiddlewareInterface
                 return $stack->next()->handle($envelope, $stack);
             }
 
-            $this->logToJobRun(
-                $message,
-            );
-
-            $this->jobExecutionAgent->continueJobMessageExecution($message);
+            $this->genericExecutionEngineLogger->info(sprintf(
+                '[JobRun %d]: Skipping a message of step %d. The condition of the step is no longer met.',
+                $message->getJobRunId(),
+                $message->getCurrentJobStep(),
+            ));
 
             return $envelope;
         }
 
         return $stack->next()->handle($envelope, $stack);
-    }
-
-    private function logToJobRun(
-        GenericExecutionEngineMessageInterface $message
-    ): void {
-        $jobRun = $this->jobRunExtractor->getJobRun($message);
-        $jobName = $jobRun->getJob()?->getName();
-        $stepId = $message->getCurrentJobStep();
-        $stepName = $jobRun->getJob()?->getSteps()[$stepId]->getName();
-        $params['%jobName%'] = $jobName;
-        $params['%stepId%'] = $stepId;
-        $params['%stepName%'] = $stepName;
-
-        $this->jobRunExtractor->logMessageToJobRun(
-            $jobRun,
-            'gee_middleware_step_condition_not_met',
-            $params
-        );
-
-        $this->genericExecutionEngineLogger->info(
-            "[JobRun {$jobRun->getId()}]:
-            Skipping step $stepName with id $stepId of Job '$jobName', job condition not met."
-        );
     }
 }

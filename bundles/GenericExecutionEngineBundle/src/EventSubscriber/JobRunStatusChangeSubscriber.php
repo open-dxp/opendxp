@@ -19,7 +19,6 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\EventSubscriber;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Entity\JobRun;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Event\JobRunStateChangedEvent;
-use OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepositoryInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -27,10 +26,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final readonly class JobRunStatusChangeSubscriber
 {
-    public function __construct(
-        private EventDispatcherInterface $eventDispatcher,
-        private JobRunRepositoryInterface $jobRunRepository
-    ) {
+    public function __construct(private EventDispatcherInterface $eventDispatcher)
+    {
 
     }
 
@@ -49,12 +46,10 @@ final readonly class JobRunStatusChangeSubscriber
             $newStatus = $args->getNewValue(self::STATE_FIELD);
 
             if ($oldStatus !== $newStatus) {
-                $jobRun = $this->jobRunRepository->getJobRunById($entity->getId());
-                $jobName = $jobRun->getJob()?->getName();
                 $event = new JobRunStateChangedEvent(
                     jobRunId: $entity->getId(),
-                    jobName: $jobName,
-                    jobRunOwnerId: $jobRun->getOwnerId(),
+                    jobName: $entity->getJobName(),
+                    jobRunOwnerId: $entity->getOwnerId(),
                     oldState: $oldStatus,
                     newState: $newStatus
                 );

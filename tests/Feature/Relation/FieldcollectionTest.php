@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
+use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
@@ -36,7 +37,7 @@ it('changes the relation of one item and keeps the others', function () {
     $object->getFieldcollection()->get(1)->setFieldRelation([$this->targets[2]]);
     $object->save();
 
-    $items = reloaded($object)->getFieldcollection();
+    $items = Elements::refresh($object)->getFieldcollection();
     expect($items->get(0)->getFieldRelation()[0]->getId())
         ->toBe($this->targets[0]->getId())
         ->and($items->get(1)->getFieldRelation()[0]->getId())
@@ -55,7 +56,7 @@ it('keeps no relation in an item that was emptied', function () {
     $object->getFieldcollection()->get(1)->setFieldRelation([]);
     $object->save();
 
-    $item = reloaded($object)->getFieldcollection()->get(1);
+    $item = Elements::refresh($object)->getFieldcollection()->get(1);
     expect($item)->getFieldRelation()->toBe([]);
 });
 
@@ -76,9 +77,9 @@ it('drops the relation with metadata to a target that was deleted', function () 
 
     $deleted->delete();
     // The relation is only dropped once the object is written again.
-    reloaded($object)->save();
+    Elements::refresh($object)->save();
 
-    $items = reloaded($object)->getFieldcollection();
+    $items = Elements::refresh($object)->getFieldcollection();
     expect($items->get(0)->getAdvancedFieldRelation()[0]->getElementId())
         ->toBe($kept->getId())
         ->and($items->get(1)->getAdvancedFieldRelation())
@@ -97,7 +98,7 @@ it('changes the localized relation of one item and keeps the others', function (
     $object->getFieldcollection()->get(1)->setLrelation($this->targets[2], 'en');
     $object->save();
 
-    $items = reloaded($object)->getFieldcollection();
+    $items = Elements::refresh($object)->getFieldcollection();
     expect($items->get(0)->getLrelation('en')->getId())
         ->toBe($this->targets[0]->getId())
         ->and($items->get(1)->getLrelation('en')->getId())
@@ -116,6 +117,6 @@ it('keeps no localized relation in an item that was emptied', function () {
     $object->getFieldcollection()->get(1)->setLrelation(null, 'en');
     $object->save();
 
-    $item = reloaded($object)->getFieldcollection()->get(1);
+    $item = Elements::refresh($object)->getFieldcollection()->get(1);
     expect($item)->getLrelation('en')->toBeNull();
 });

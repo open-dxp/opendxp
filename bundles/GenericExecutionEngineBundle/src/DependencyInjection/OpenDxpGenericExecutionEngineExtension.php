@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\GenericExecutionEngineBundle\DependencyInjection;
 use Exception;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Agent\JobExecutionAgentInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Configuration\ExecutionContextInterface;
+use OpenDxp\Bundle\GenericExecutionEngineBundle\Maintenance\JobRunCleanupTask;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\ErrorHandlingMode;
 use Override;
 use Symfony\Component\Config\FileLocator;
@@ -52,5 +53,9 @@ class OpenDxpGenericExecutionEngineExtension extends Extension
             '$errorHandlingMode',
             $config['error_handling'] ?? ErrorHandlingMode::CONTINUE_ON_ERROR->value
         );
+
+        $definition = $container->getDefinition(JobRunCleanupTask::class);
+        $definition->setArgument('$deleteJobRunsOlderThan', $config['delete_job_runs_older_than']);
+        $definition->setArgument('$failInactiveJobRunsAfter', $config['fail_inactive_job_runs_after']);
     }
 }

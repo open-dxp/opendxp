@@ -53,26 +53,21 @@ class Dao extends Model\Dao\AbstractDao
     public function getByExactMatch(Request $request, ?Site $site = null, bool $override = false): void
     {
         $partResolver = new RedirectUrlPartResolver($request);
-        $siteId = $site ? $site->getId() : null;
 
         $sql = 'SELECT * FROM redirects WHERE
             (
                 (source = :sourcePath AND (`type` = :typePath OR `type` = :typeAuto)) OR
                 (source = :sourcePathQuery AND `type` = :typePathQuery) OR
                 (source = :sourceEntireUri AND `type` = :typeEntireUri)
-            ) AND active = 1 AND (regex IS NULL OR regex = 0) AND (expiry > UNIX_TIMESTAMP() OR expiry IS NULL)';
-
-        if ($siteId) {
-            $sql .= ' AND sourceSite = ' . $siteId;
-        } else {
-            $sql .= ' AND sourceSite IS NULL';
-        }
+            )
+            AND active = 1 AND (regex IS NULL OR regex = 0) AND sourceSite <=> :sourceSite
+            AND (expiry IS NULL OR expiry > :now) AND (validFrom IS NULL OR validFrom <= :now)';
 
         if ($override) {
             $sql .= ' AND priority = 99';
         }
 
-        $sql .= ' ORDER BY `priority` DESC';
+        $sql .= ' ORDER BY `protected` DESC, `priority` DESC, id ASC LIMIT 1';
 
         $data = $this->db->fetchAssociative($sql, [
             'sourcePath' => $partResolver->getRequestUriPart(Redirect::TYPE_PATH),
@@ -82,6 +77,8 @@ class Dao extends Model\Dao\AbstractDao
             'typePathQuery' => Redirect::TYPE_PATH_QUERY,
             'typeEntireUri' => Redirect::TYPE_ENTIRE_URI,
             'typeAuto' => Redirect::TYPE_AUTO_CREATE,
+            'sourceSite' => $site?->getId(),
+            'now' => time(),
         ]);
 
         if (!$data) {

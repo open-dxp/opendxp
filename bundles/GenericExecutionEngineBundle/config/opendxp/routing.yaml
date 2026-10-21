@@ -1,0 +1,6 @@
+_opendxp_generic_execution_engine:
+    resource: "@OpenDxpGenericExecutionEngineBundle/src/Controller/"
+    type: attribute
+    prefix: /admin/bundle/genericexecutionengine
+    options:
+        expose: true

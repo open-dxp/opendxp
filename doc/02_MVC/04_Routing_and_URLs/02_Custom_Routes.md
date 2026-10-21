@@ -1,11 +1,9 @@
 # URLs Based on Custom (Static) Routes 
-:::caution
 
-To use this feature, please enable the `OpenDxpStaticRoutesBundle` in your `bundle.php` file and install it accordingly with the following command:
-
-`bin/console opendxp:bundle:install OpenDxpStaticRoutesBundle`
-
-:::
+> [!CAUTION]
+> To use this feature, please enable the `OpenDxpStaticRoutesBundle` in your `bundle.php` file and install it accordingly with the following command:
+>
+> `bin/console opendxp:bundle:install OpenDxpStaticRoutesBundle`
 
 ## Introduction
 Static routes are necessary for functionalities where you don't have an underlying document or where you have the need

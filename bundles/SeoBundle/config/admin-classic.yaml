@@ -1,18 +1,24 @@
 opendxp_admin:
-  user:
-    default_key_bindings:
-      seo_document_editor:
-        key: 'S'
-        action: seoDocumentEditor
-        ctrl: true
-        alt: true
-      robots:
-        key: 'J'
-        action: robots
-        ctrl: true
-        alt: true
-      http_error_log:
-        key: 'O'
-        action: httpErrorLog
-        ctrl: true
-        alt: true
+    user:
+        default_key_bindings:
+            seo_document_editor:
+                key: 'S'
+                action: seoDocumentEditor
+                ctrl: true
+                alt: true
+            robots:
+                key: 'J'
+                action: robots
+                ctrl: true
+                alt: true
+            http_error_log:
+                key: 'O'
+                action: httpErrorLog
+                ctrl: true
+                alt: true
+
+services:
+    OpenDxp\Bundle\SeoBundle\EventListener\IndexSettingsListener:
+        autowire: true
+        tags:
+            - { name: kernel.event_listener, event: opendxp.admin.indexAction.settings, method: indexSettings }

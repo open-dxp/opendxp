@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * OpenDXP
+ *
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
+ */
+
+namespace OpenDxp\Bundle\SeoBundle\Redirect;
+
+/**
+ * @internal
+ */
+final readonly class RedirectValidationWarning
+{
+    /**
+     * @param string                    $message    a translation key
+     * @param array<string, string|int> $parameters the values of the placeholders in the message
+     */
+    public function __construct(
+        public string $message,
+        public array $parameters = [],
+    ) {
+    }
+}
