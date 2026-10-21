@@ -8,7 +8,7 @@
   - [Database Setup](03_System_Setup_and_Hosting/05_DB_Setup.md)
   - [Additional Tools Installation](03_System_Setup_and_Hosting/06_Additional_Tools_Installation.md)
 - [Updating OpenDXP](07_Updating_OpenDxp/README.md)
-- [Upgrade Notes](09_Upgrade_Notes/README.md)
+- [Migrating to OpenDXP](09_Migrating_to_OpenDXP/README.md)
 
 ## Advanced Topics
 - [Performance Guide](03_System_Setup_and_Hosting/09_Performance_Guide.md)

@@ -7,11 +7,15 @@ on:
             - "[0-9]+.[0-9]+"
             - "[0-9]+.x"
         paths-ignore:
+            - '**.md'
             - 'doc/**'
+            - 'docs/**'
     pull_request:
         types: [ opened, synchronize, reopened ]
         paths-ignore:
+            - '**.md'
             - 'doc/**'
+            - 'docs/**'
 
 jobs:
     setup-matrix:

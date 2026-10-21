@@ -110,7 +110,7 @@ cd ./my-project
 | [Documentation](https://docs.opendxp.io/)                                                                                        | Full platform & bundle docs               |
 | [Issue Tracker](https://github.com/open-dxp/opendxp/issues)                                                                      | Report bugs or request features           |
 | [Discussions](https://github.com/orgs/open-dxp/discussions)                                                                      | Community support                         |
-| [Upgrade Notes](https://docs.opendxp.io/docs/core-framework/Installation_and_Upgrade/Upgrade_Notes/#get-started-with-opendxp-10) | Get started with OpenDXP 1.0              |
+| [Migrating to OpenDXP](https://docs.opendxp.io/docs/core-framework/Installation_and_Upgrade/Migrating_to_OpenDXP/#get-started-with-opendxp-10) | Get started with OpenDXP 1.0              |
 | [Testing](doc/19_Development_Tools_and_Details/29_Testing/README.md)                                                             | Test your project, bundle or OpenDXP itself |
 
 ## Contributing

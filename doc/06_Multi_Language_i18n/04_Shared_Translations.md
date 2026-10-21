@@ -13,7 +13,7 @@ For more information, please also check out [Symfony's Translations Component](h
 
 Available languages are defined within the system languages, see [here](./README.md).
 
-Shared translations are stored in `translations_messages` database table and can be versioned using [Migrations](docs/Development_Documentation/Development_Tools_and_Details/Migrations.html).
+Shared translations are stored in `translations_messages` database table and can be versioned using [Migrations](../19_Development_Tools_and_Details/37_Migrations.md).
 
 ## Translations case sensitivity
 
