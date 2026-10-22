@@ -396,11 +396,14 @@ class SearchController extends UserAwareController
                         break;
                     }
                     if ($allowedPaths) {
-                        $exceptionsConcat = implode("%' OR fullpath LIKE '", $allowedPaths);
-                        $exceptions = " OR (fullpath LIKE '" . $exceptionsConcat . "%')";
+                        $exceptionConditions = array_map(
+                            static fn (string $allowedPath): string => 'fullpath LIKE ' . $db->quote(Helper::escapeLike($allowedPath) . '%'),
+                            $allowedPaths
+                        );
+                        $exceptions = ' OR (' . implode(' OR ', $exceptionConditions) . ')';
                         $folderSuffix = '/'; //if allowed children are found, the current folder is listable but its content is still blocked, can easily done by adding a trailing slash
                     }
-                    $forbiddenPathSql[] = ' (fullpath NOT LIKE ' . $db->quote($forbiddenPath . $folderSuffix . '%') . $exceptions . ') ';
+                    $forbiddenPathSql[] = ' (fullpath NOT LIKE ' . $db->quote(Helper::escapeLike($forbiddenPath) . $folderSuffix . '%') . $exceptions . ') ';
                 }
                 foreach ($elementPaths['allowed'] as $allowedPaths) {
                     //has root access, skip 'fullpath LIKE %' as it slows the search; no need to check other paths
@@ -409,12 +412,12 @@ class SearchController extends UserAwareController
 
                         break;
                     }
-                    $allowedPathSql[] = ' fullpath LIKE ' . $db->quote($allowedPaths  . '%');
+                    $allowedPathSql[] = ' fullpath LIKE ' . $db->quote(Helper::escapeLike($allowedPaths) . '%');
                 }
 
                 // this is to avoid query error when implode is empty.
                 // the result would be like `(maintype = type AND ((path1 OR path2) AND (not_path3 AND not_path4)))`
-                $forbiddenAndAllowedSql = '(maintype = \'' . $type . '\'';
+                $forbiddenAndAllowedSql = '(maintype = ' . $db->quote($type);
 
                 if ($allowedPathSql || $forbiddenPathSql) {
                     $forbiddenAndAllowedSql .= ' AND (';
