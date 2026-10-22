@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.0
+- [SECURITY] The simple backend search quotes the workspace paths in its permission condition and escapes LIKE wildcards in them. The allowed paths below a forbidden folder went into the SQL unquoted [#261](https://github.com/open-dxp/opendxp/pull/261)
 - [NEW FEATURE] `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
 - [NEW FEATURE] `TrustedHosts` knows the general domain, the site domains and `opendxp.security.trusted_hosts`. `opendxp.security.enforce_trusted_hosts: true` answers every request to another host with 400. See [Domain and Host Handling](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md#trusted-hosts) [#234](https://github.com/open-dxp/opendxp/pull/234)
 - [NEW FEATURE] [HIGHLIGHT] [OPT-IN] Site declarations serve robots.txt, security.txt, ads.txt, app-ads.txt and llms.txt per site. Only robots.txt is enabled after the update. See [Site Declarations](doc/18_Tools_and_Features/38_Site_Declarations.md) [#84](https://github.com/open-dxp/opendxp/issues/84)
