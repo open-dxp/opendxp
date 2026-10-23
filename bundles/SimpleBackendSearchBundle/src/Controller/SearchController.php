@@ -384,11 +384,12 @@ class SearchController extends UserAwareController
             if ($user->isAllowed($type . 's')) { //the permissions are just plural
                 $elementPaths = Element\Service::findForbiddenPaths($type, $user);
 
+                $childrenPattern = static fn (string $path): string => $db->quote(Helper::escapeLike(rtrim($path, '/')) . '/%');
+                $pathOrChildren = static fn (string $path): string => '(fullpath = ' . $db->quote($path) . ' OR fullpath LIKE ' . $childrenPattern($path) . ')';
+
                 $forbiddenPathSql = [];
                 $allowedPathSql = [];
                 foreach ($elementPaths['forbidden'] as $forbiddenPath => $allowedPaths) {
-                    $exceptions = '';
-                    $folderSuffix = '';
                     //if there is restriction to root path, and not other paths allowed, no need to check further
                     if ($forbiddenPath === '/' && !$allowedPaths) {
                         $forbiddenPathSql = [' false '];
@@ -396,11 +397,13 @@ class SearchController extends UserAwareController
                         break;
                     }
                     if ($allowedPaths) {
-                        $exceptionsConcat = implode("%' OR fullpath LIKE '", $allowedPaths);
-                        $exceptions = " OR (fullpath LIKE '" . $exceptionsConcat . "%')";
-                        $folderSuffix = '/'; //if allowed children are found, the current folder is listable but its content is still blocked, can easily done by adding a trailing slash
+                        //if allowed children are found, the current folder is listable but its content is still blocked
+                        $exceptions = implode(' OR ', array_map($pathOrChildren, $allowedPaths));
+                        $forbiddenPathSql[] = ' (fullpath NOT LIKE ' . $childrenPattern($forbiddenPath) . ' OR ' . $exceptions . ') ';
+
+                        continue;
                     }
-                    $forbiddenPathSql[] = ' (fullpath NOT LIKE ' . $db->quote($forbiddenPath . $folderSuffix . '%') . $exceptions . ') ';
+                    $forbiddenPathSql[] = ' NOT ' . $pathOrChildren($forbiddenPath) . ' ';
                 }
                 foreach ($elementPaths['allowed'] as $allowedPaths) {
                     //has root access, skip 'fullpath LIKE %' as it slows the search; no need to check other paths
@@ -409,12 +412,12 @@ class SearchController extends UserAwareController
 
                         break;
                     }
-                    $allowedPathSql[] = ' fullpath LIKE ' . $db->quote($allowedPaths  . '%');
+                    $allowedPathSql[] = ' ' . $pathOrChildren($allowedPaths);
                 }
 
                 // this is to avoid query error when implode is empty.
                 // the result would be like `(maintype = type AND ((path1 OR path2) AND (not_path3 AND not_path4)))`
-                $forbiddenAndAllowedSql = '(maintype = \'' . $type . '\'';
+                $forbiddenAndAllowedSql = '(maintype = ' . $db->quote($type);
 
                 if ($allowedPathSql || $forbiddenPathSql) {
                     $forbiddenAndAllowedSql .= ' AND (';

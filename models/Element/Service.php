@@ -749,6 +749,9 @@ class Service extends Model\AbstractModel
                 if (!str_starts_with($paths[$j], $path)) {
                     break;
                 }
+                if (!str_starts_with($paths[$j], rtrim($path, '/') . '/')) {
+                    continue;
+                }
                 if ($uniquePaths[$paths[$j]] === 1) {
                     $forbidden[$path][] = $paths[$j];
                 }

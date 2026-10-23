@@ -118,3 +118,39 @@ it('fills a limited page only with objects a user may see', function () {
 
     expect($answer->paths)->toBe([$visible->getRealFullPath()]);
 });
+
+it('counts only the objects in a workspace and not in a folder whose name starts with it', function () {
+    $parent = DataObjectFolderFactory::createOne();
+    $workspace = DataObjectFolderFactory::new()
+        ->withParent($parent)
+        ->create(['key' => 'shop']);
+    $neighbour = DataObjectFolderFactory::new()
+        ->withParent($parent)
+        ->create(['key' => 'shopping']);
+    $inside = UnittestFactory::new()
+        ->withParent($workspace)
+        ->create([
+            'key' => 'shopobject',
+            'input' => 'shopobject',
+        ]);
+    $outside = UnittestFactory::new()
+        ->withParent($neighbour)
+        ->create([
+            'key' => 'shopobject',
+            'input' => 'shopobject',
+        ]);
+    index($inside);
+    index($outside);
+    $user = UserFactory::new()
+        ->withPermissions('objects')
+        ->withObjectWorkspace($workspace, 'list', 'view')
+        ->create();
+    $this->forgetAfterwards($parent, $user);
+
+    $answer = $this->searchAs($user->getName(), 'object', 'shopobject');
+
+    expect($answer->paths)
+        ->toBe([$inside->getRealFullPath()])
+        ->and($answer->total)
+        ->toBe(1);
+});
