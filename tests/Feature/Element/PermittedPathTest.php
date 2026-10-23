@@ -294,3 +294,18 @@ it('opens a path that one role opens and another role closes', function (string 
 
     expect($paths['allowed'])->toContain('/shared');
 })->with('workspaces');
+
+it('does not treat a path with the same beginning as a child', function (string $type, Closure $withWorkspace) {
+    $owner = UserFactory::new();
+    $owner = $withWorkspace($owner, '/foo');
+    $owner = $withWorkspace($owner, '/foo-bar', 'list');
+    $owner = $withWorkspace($owner, '/foo/bar', 'list');
+    $user = $owner->create();
+
+    $paths = Service::findForbiddenPaths($type, $user);
+
+    expect($paths['forbidden']['/foo'])
+        ->toBe(['/foo/bar'])
+        ->and($paths['allowed'])
+        ->toContain('/foo-bar', '/foo/bar');
+})->with('workspaces');
