@@ -54,7 +54,8 @@
 - [BUGFIX] Deleting an element removes the dependencies on it [#116](https://github.com/open-dxp/opendxp/issues/116)
 - [BUGFIX] The dependency views list existing elements only [#116](https://github.com/open-dxp/opendxp/issues/116)
 - [BUGFIX] Filtering "Required By" by path finds elements of every type [#116](https://github.com/open-dxp/opendxp/issues/116)
-- [SECURITY] Mail placeholders and dynamic layout texts may only read objects. Allow more with `readable_classes` and `methods` in `opendxp.templating_engine.twig.sandbox_security_policy`.
+- [SECURITY] [FOLLOW-UP] Mail placeholders and dynamic layout texts may only read objects
+  1. Only if a placeholder or a layout text of your project reads anything else: allow it with `readable_classes` and `methods` in `opendxp.templating_engine.twig.sandbox_security_policy`.
 - [SECURITY] Mail placeholders and dynamic layout texts can no longer call `opendxp_dump`.
 - [CHORE] Require `twig/twig` ^3.29
 - [BUGFIX] A mail placeholder that breaks the sandbox policy names what is not allowed.
