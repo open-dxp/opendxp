@@ -68,12 +68,18 @@ Here is an example of Twig content in htmleditor source edit mode:
 
 ### Sandbox Restrictions
 Dynamic Text renders user controlled twig templates in a sandbox with a restrictive security policy.
-The policy allows the tag `set`, the filters `escape`, `trans` and `default` and the functions `path` and `asset`.
-Every function whose name starts with `opendxp_` is allowed too, except `opendxp_dump`.
+The policy allows the tag `set` and the filters `escape`, `trans` and `default`. It allows the functions `path`,
+`asset`, `opendxp_asset`, `opendxp_asset_by_path`, `opendxp_document`, `opendxp_document_by_path`, `opendxp_object`,
+`opendxp_object_by_path`, `opendxp_url` and `opendxp_website_config`.
+
+A function belongs on this list only if it reads and changes nothing. It returns a plain value or an object of a
+readable class. It does not depend on the current request.
 
 A template reads objects and does not change them. It may read an object of a readable class through its getters,
-its `is` and `has` methods, `__toString()` and its properties. Elements, the values of their fields, quantity value
-units, asset thumbnails and dates are readable. A date may also call `format()`. Every other method is refused.
+its `is` and `has` methods, `__toString()` and its properties. Elements, their notes, the values of their fields,
+quantity value units, asset thumbnails and dates are readable. A date may also call `format()`. Every other method is refused.
+A template reads a field by its getter or its name, never through `get()` or `getValueForFieldName()`.
+The file of an asset and the value of a password field are never readable.
 So `{{ object.name }}`, `{{ object.getName() }}` and `{{ object.date.format("Y") }}` work, but
 `{{ object.save() }}` and `{{ container.get("database_connection") }}` do not.
 

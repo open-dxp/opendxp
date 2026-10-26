@@ -17,6 +17,13 @@ declare(strict_types=1);
 
 namespace OpenDxp\Twig\Sandbox;
 
+use OpenDxp\Model\Asset;
+use OpenDxp\Model\DataObject\ClassDefinition\Data;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
+use OpenDxp\Model\DataObject\ClassDefinition\Data\Password;
+use OpenDxp\Model\DataObject\Concrete;
+use OpenDxp\Model\DataObject\Fieldcollection;
+use OpenDxp\Model\DataObject\Objectbrick;
 use Twig\Markup;
 use Twig\Sandbox\SecurityNotAllowedFilterError;
 use Twig\Sandbox\SecurityNotAllowedFunctionError;
@@ -29,9 +36,15 @@ use Twig\Template;
 /**
  * A template may read the objects of the readable classes through their getters, `is` and `has` methods,
  * `__toString()` and properties. Any other method has to be allowed for its class.
+ *
+ * A template never reads the file of an asset or the hash of a password. It reads a field of an object by its getter.
  */
 final class SecurityPolicy implements SecurityPolicyInterface
 {
+    private const array FILE_METHODS = ['getdata', 'getstream', 'gettext', 'getlocalfile', 'gettemporaryfile'];
+
+    private const array FIELD_BY_NAME_METHODS = ['get', 'getvalueforfieldname', 'getvaluefromparent'];
+
     /**
      * @param string[] $allowedTags
      * @param string[] $allowedFilters
@@ -136,13 +149,7 @@ final class SecurityPolicy implements SecurityPolicyInterface
 
     private function isAllowedFunction(string $function): bool
     {
-        if (in_array($function, $this->allowedFunctions, true)) {
-            return true;
-        }
-
-        // The dump prints the inner state of an object, which the method checks never see.
-        return str_starts_with($function, 'opendxp_')
-            && $function !== 'opendxp_dump';
+        return in_array($function, $this->allowedFunctions, true);
     }
 
     private function isReadable(object $obj): bool
@@ -165,8 +172,65 @@ final class SecurityPolicy implements SecurityPolicyInterface
             return false;
         }
 
-        return $method === '__toString'
-            || preg_match('/^(get|is|has)(?![a-z])/', $method) === 1;
+        if ($method === '__toString') {
+            return true;
+        }
+
+        return preg_match('/^(get|is|has)(?![a-z])/', $method) === 1
+            && !$this->isSecretAccessor($obj, strtolower($method));
+    }
+
+    private function isSecretAccessor(object $obj, string $method): bool
+    {
+        if ($obj instanceof Asset) {
+            return in_array($method, self::FILE_METHODS, true);
+        }
+
+        $fieldDefinitions = $this->getFieldDefinitions($obj);
+
+        if ($fieldDefinitions === []) {
+            return false;
+        }
+
+        if (in_array($method, self::FIELD_BY_NAME_METHODS, true)) {
+            return true;
+        }
+
+        foreach ($fieldDefinitions as $fieldDefinition) {
+            if ($fieldDefinition instanceof Password && $method === 'get' . strtolower($fieldDefinition->getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the fields of the object together with the fields in its localized fields.
+     *
+     * @return array<string, Data>
+     */
+    private function getFieldDefinitions(object $obj): array
+    {
+        $definition = match (true) {
+            $obj instanceof Concrete => $obj->getClass(),
+            $obj instanceof Fieldcollection\Data\AbstractData,
+            $obj instanceof Objectbrick\Data\AbstractData => $obj->getDefinition(),
+            default => null,
+        };
+
+        if ($definition === null) {
+            return [];
+        }
+
+        $fieldDefinitions = $definition->getFieldDefinitions();
+        $localizedFields = $fieldDefinitions['localizedfields'] ?? null;
+
+        if ($localizedFields instanceof Localizedfields) {
+            return [...$fieldDefinitions, ...$localizedFields->getFieldDefinitions()];
+        }
+
+        return $fieldDefinitions;
     }
 
     private function isAllowedMethod(object $obj, string $method): bool
