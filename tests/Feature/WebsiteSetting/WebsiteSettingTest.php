@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\WebsiteSetting;
 
+use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Model\WebsiteSetting;
 use OpenDxp\Test\Factory\SiteFactory;
 use OpenDxp\Test\Factory\WebsiteSettingFactory;
@@ -93,4 +94,18 @@ it('returns nothing for a name without a setting', function () {
     $setting = WebsiteSetting::getByName('test2');
 
     expect($setting)->toBeNull();
+});
+
+it('finds a setting that another process deleted and created again', function () {
+    $replaced = WebsiteSetting::getByName('test');
+    $replaced->getDao()->delete();
+    WebsiteSettingFactory::createOne([
+        'name' => 'test',
+        'data' => 'created again',
+    ]);
+    RuntimeCache::clear();
+
+    $setting = WebsiteSetting::getByName('test');
+
+    expect($setting?->getData())->toBe('created again');
 });
