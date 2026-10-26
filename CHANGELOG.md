@@ -103,12 +103,12 @@
 - [SECURITY] Anchor the class definition name/ID validation and quote table names built from a class ID, closing a SQL injection path in `Block` field loading.
 - [SECURITY] `Asset\WebDAV\Tree::move()` and `Element\Service::getElementFromSession()` now verify what a deserialized element actually is before using it, instead of trusting it implicitly.
 - [SECURITY] Restrict which classes the admin session token and `TmpStore` may deserialize into. Custom authenticators and objects stored via `TmpStore` may need a config entry after this update, see [Restrict Deserialization Classes](doc/19_Development_Tools_and_Details/10_Security_Authentication/06_Restrict_Deserialization_Classes.md).
-- [BUGFIX] `JobRun#context` is now mapped as `json` instead of `text`, matching its `array` property type [#182](https://github.com/open-dxp/opendxp/issues/182)
+- [BUGFIX] [MIGRATION] `JobRun#context` is now mapped as `json` instead of `text`, matching its `array` property type [#182](https://github.com/open-dxp/opendxp/issues/182)
 - [BUGFIX] `PermissionService` reads the session on the first permission check instead of in its constructor, which broke requests that had already closed the session
 
 ## 1.4.1
 - [BUGFIX] Fix NULL writes into NOT NULL columns in classificationstore configs [#179](https://github.com/open-dxp/opendxp/pull/179)
-- [BUGFIX] Fix application log archive growing with duplicate rows [#185](https://github.com/open-dxp/opendxp/pull/185)
+- [BUGFIX] [MIGRATION] Fix application log archive growing with duplicate rows [#185](https://github.com/open-dxp/opendxp/pull/185)
 - [BUGFIX] Only resolve pretty URLs for documents that are still pages [#186](https://github.com/open-dxp/opendxp/pull/186)
 - [BUGFIX] Fix pretty URL resolving to a document from another site [#187](https://github.com/open-dxp/opendxp/pull/187)
 - [BUGFIX] Ignore pretty URLs when checking whether a document path exists [#188](https://github.com/open-dxp/opendxp/pull/188)
@@ -162,7 +162,7 @@
 - [ENHANCEMENT] Use try-finally for disable/enable versioning
 - [ENHANCEMENT] Refactor SQL queries: enforce parameterized bindings and consistent style
 - [ENHANCEMENT] Refactor constants
-- [NEW FEATURE] Add site custom settings
+- [NEW FEATURE] [MIGRATION] Add site custom settings
 - [NEW FEATURE] Introduce `GeneralHostResolver` service for centralized domain resolution, see [docs](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
 
 ## 1.2.2
@@ -170,6 +170,7 @@
 - [BUGFIX] Update IgnoreCoreTablesFilterListener
 
 ## 1.2.1
+- [BUGFIX] [MIGRATION] The HTTP error log no longer stores the POST parameters, the cookies and the server variables of a request
 - [ENHANCEMENT] DataObject\Listing: Add missing PhpDocs
 - [BUGFIX] Snippets will be cached with wrong links
 - [BUGFIX] Make translations sortable by dates
