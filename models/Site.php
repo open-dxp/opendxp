@@ -228,7 +228,7 @@ final class Site extends AbstractModel
             $domains = Serialize::unserialize($domains);
         }
         if (is_array($domains)) {
-            $domains = array_filter($domains);
+            $domains = array_values(array_filter($domains));
             array_map(static function ($domain): void {
                 //replace all wildcards with a placeholder dummy string
                 $wildCardLessDomain = str_replace('*', 'anystring', $domain);
