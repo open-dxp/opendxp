@@ -187,7 +187,12 @@ class Sql extends AbstractAdapter
             $total = sprintf('SELECT COUNT(*) FROM (%s) AS somerandxyz WHERE %s', $sql, $condition);
 
             if ($fields && !$extractAllFields) {
-                $data = sprintf('SELECT `%s` FROM (%s) AS somerandxyz WHERE %s', implode('`,`', $fields), $sql, $condition);
+                $data = sprintf(
+                    'SELECT %s FROM (%s) AS somerandxyz WHERE %s',
+                    implode(',', array_map($db->quoteIdentifier(...), $fields)),
+                    $sql,
+                    $condition,
+                );
             } else {
                 $data = sprintf('SELECT * FROM (%s) AS somerandxyz WHERE %s', $sql, $condition);
             }

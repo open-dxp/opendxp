@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.0
+- [SECURITY] The drill-down filter of a custom report reads its field only as the name of a column
 - [SECURITY] Mail placeholders and dynamic layout texts no longer read the file of an asset or a password
 - [SECURITY] A data object listing reads the field name of a field collection only as a value
 - [SECURITY] The deprecated `NotificationServiceFilterParser` filters only by title and date
