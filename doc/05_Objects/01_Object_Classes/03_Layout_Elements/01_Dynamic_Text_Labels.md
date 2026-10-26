@@ -76,8 +76,8 @@ A function belongs on this list only if it reads and changes nothing. It returns
 readable class. It does not depend on the current request.
 
 A template reads objects and does not change them. It may read an object of a readable class through its getters,
-its `is` and `has` methods, `__toString()` and its properties. Elements, the values of their fields, quantity value
-units, asset thumbnails and dates are readable. A date may also call `format()`. Every other method is refused.
+its `is` and `has` methods, `__toString()` and its properties. Elements, their notes, the values of their fields,
+quantity value units, asset thumbnails and dates are readable. A date may also call `format()`. Every other method is refused.
 A template reads a field by its getter or its name, never through `get()` or `getValueForFieldName()`.
 The file of an asset and the value of a password field are never readable.
 So `{{ object.name }}`, `{{ object.getName() }}` and `{{ object.date.format("Y") }}` work, but

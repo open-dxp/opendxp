@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Closure;
 use Exception;
 use OpenDxp\Mail;
+use OpenDxp\Model\Element\Note;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
@@ -189,6 +190,15 @@ it('reads a document in a placeholder', function () {
     $body = renderedMailBody('{{ document.title }}', ['document' => $document]);
 
     expect($body)->toContain('Welcome');
+});
+
+it('reads a note in a placeholder', function () {
+    $note = new Note();
+    $note->setDescription('Please ring twice');
+
+    $body = renderedMailBody('{{ comment.description }}', ['comment' => $note]);
+
+    expect($body)->toContain('Please ring twice');
 });
 
 it('renders a global', function () {

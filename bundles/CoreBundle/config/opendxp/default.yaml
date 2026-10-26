@@ -353,6 +353,7 @@ opendxp:
                     DateTimeInterface: ['format']
                 readable_classes:
                     - OpenDxp\Model\Element\ElementInterface
+                    - OpenDxp\Model\Element\Note
                     - OpenDxp\Model\DataObject\OwnerAwareFieldInterface
                     - OpenDxp\Model\DataObject\ObjectAwareFieldInterface
                     - OpenDxp\Model\DataObject\Classificationstore
