@@ -49,16 +49,9 @@ final class WebsiteSetting extends AbstractModel
 
     protected ?int $modificationDate = null;
 
-    /**
-     * this is a small per request cache to know which website setting is which is, this info is used in self::getByName()
-     *
-     * @var array<string, int>
-     */
-    protected static array $nameIdMappingCache = [];
-
     protected static function getCacheKey(string $name, ?int $siteId = null, ?string $language = null): string
     {
-        return $name . '~~~' . $siteId . '~~~' . $language;
+        return 'website_setting_name_' . $name . '~~~' . $siteId . '~~~' . $language;
     }
 
     public static function getById(int $id): ?WebsiteSetting
@@ -99,9 +92,8 @@ final class WebsiteSetting extends AbstractModel
     {
         $nameCacheKey = self::getCacheKey($name, $siteId, $language);
 
-        // check if opendxp already knows the id for this $name, if yes just return it
-        if (array_key_exists($nameCacheKey, self::$nameIdMappingCache)) {
-            return self::getById(self::$nameIdMappingCache[$nameCacheKey]);
+        if (RuntimeCache::isRegistered($nameCacheKey)) {
+            return self::getById(RuntimeCache::get($nameCacheKey));
         }
 
         // create a tmp object to obtain the id
@@ -119,8 +111,7 @@ final class WebsiteSetting extends AbstractModel
 
         // to have a singleton in a way. like all instances of Element\ElementInterface do also, like DataObject\AbstractObject
         if ($setting->getId() > 0) {
-            // add it to the mini-per request cache
-            self::$nameIdMappingCache[$nameCacheKey] = $setting->getId();
+            RuntimeCache::set($nameCacheKey, $setting->getId());
 
             return self::getById($setting->getId());
         }
@@ -277,8 +268,8 @@ final class WebsiteSetting extends AbstractModel
         $nameCacheKey = self::getCacheKey($this->getName(), $this->getSiteId(), $this->getLanguage());
 
         // Remove cached element to avoid returning it with e.g. getByName() after if it is deleted
-        if (array_key_exists($nameCacheKey, self::$nameIdMappingCache)) {
-            unset(self::$nameIdMappingCache[$nameCacheKey]);
+        if (RuntimeCache::isRegistered($nameCacheKey)) {
+            RuntimeCache::getInstance()->offsetUnset($nameCacheKey);
         }
 
         $event = new WebsiteSettingEvent($this);

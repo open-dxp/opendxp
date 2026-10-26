@@ -71,11 +71,6 @@ final class Staticroute extends AbstractModel
     protected array $_values = [];
 
     /**
-     * this is a small per request cache to know which route is which is, this info is used in self::getByName()
-     */
-    protected static array $nameIdMappingCache = [];
-
-    /**
      * contains the static route which the current request matches (it he does), this is used in the view to get the current route
      */
     protected static ?Staticroute $_currentRoute = null;
@@ -121,11 +116,10 @@ final class Staticroute extends AbstractModel
      */
     public static function getByName(string $name, ?int $siteId = null): ?Staticroute
     {
-        $cacheKey = $name . '~~~' . $siteId;
+        $cacheKey = 'staticroute_name_' . $name . '~~~' . $siteId;
 
-        // check if opendxp already knows the id for this $name, if yes just return it
-        if (array_key_exists($cacheKey, self::$nameIdMappingCache)) {
-            return self::getById(self::$nameIdMappingCache[$cacheKey]);
+        if (\OpenDxp\Cache\RuntimeCache::isRegistered($cacheKey)) {
+            return self::getById(\OpenDxp\Cache\RuntimeCache::get($cacheKey));
         }
 
         // create a tmp object to obtain the id
@@ -139,8 +133,7 @@ final class Staticroute extends AbstractModel
 
         // to have a singleton in a way. like all instances of Element\ElementInterface do also, like DataObject\AbstractObject
         if ($route->getId() > 0) {
-            // add it to the mini-per request cache
-            self::$nameIdMappingCache[$cacheKey] = $route->getId();
+            \OpenDxp\Cache\RuntimeCache::set($cacheKey, $route->getId());
 
             return self::getById($route->getId());
         }
