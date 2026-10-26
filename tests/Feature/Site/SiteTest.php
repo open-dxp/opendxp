@@ -85,3 +85,20 @@ it('is not found under a domain no site answers to', function () {
 
     expect($found)->toBeNull();
 });
+
+it('lists its domains without the empty entries', function () {
+    $site = SiteFactory::new()
+        ->withDomains([
+            'alias.example.com',
+            '',
+            'other.example.com',
+        ])
+        ->create(['mainDomain' => 'example.com']);
+
+    $reloaded = Site::getById($site->getId());
+
+    expect($reloaded->getDomains())->toBe([
+        'alias.example.com',
+        'other.example.com',
+    ]);
+});
