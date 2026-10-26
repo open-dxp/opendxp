@@ -176,7 +176,7 @@ CONDITION;
 
                 if (!empty($fc['fieldname'])) {
                     $condition .= <<<CONDITION
- AND {$this->db->quoteIdentifier($name)}.fieldname = "{$fc['fieldname']}"
+ AND {$this->db->quoteIdentifier($name)}.fieldname = {$this->db->quote($fc['fieldname'])}
 CONDITION;
                 }
 

@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.5.0
+- [SECURITY] Mail placeholders and dynamic layout texts no longer read the file of an asset or a password
+- [SECURITY] A data object listing reads the field name of a field collection only as a value
+- [SECURITY] The deprecated `NotificationServiceFilterParser` filters only by title and date
 - [BUGFIX] The "Edit Site" dialog opens for a site with an empty entry in its domains [#265](https://github.com/open-dxp/opendxp/issues/265)
 - [SECURITY] The simple backend search opens a workspace only for its own path and the paths below it. A workspace on `/shop` does not open `/shopping`, and a workspace on `/shop_de` does not open `/shopXde` [#261](https://github.com/open-dxp/opendxp/pull/261)
 - [NEW FEATURE] `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
@@ -57,6 +60,7 @@
 - [BUGFIX] Filtering "Required By" by path finds elements of every type [#116](https://github.com/open-dxp/opendxp/issues/116)
 - [SECURITY] [FOLLOW-UP] Mail placeholders and dynamic layout texts may only read objects
   1. Only if a placeholder or a layout text of your project reads anything else: allow it with `readable_classes` and `methods` in `opendxp.templating_engine.twig.sandbox_security_policy`.
+  2. Only if a placeholder or a layout text of your project calls a function that is not listed in [Sandbox Restrictions](doc/19_Development_Tools_and_Details/25_Email_Framework/README.md#sandbox-restrictions): allow it with `functions` in the same policy.
 - [SECURITY] Mail placeholders and dynamic layout texts can no longer call `opendxp_dump`.
 - [CHORE] Require `twig/twig` ^3.29
 - [BUGFIX] A mail placeholder that breaks the sandbox policy names what is not allowed.

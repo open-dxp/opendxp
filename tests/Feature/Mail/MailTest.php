@@ -21,6 +21,7 @@ use Closure;
 use Exception;
 use OpenDxp\Mail;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 use Symfony\Component\Mime\Header\Headers;
@@ -155,10 +156,12 @@ it('escapes the parameters in the html body', function () {
     expect($body)->toContain('Hi &lt;b&gt;Jo&lt;/b&gt;');
 });
 
-it('lets a placeholder call an opendxp function', function () {
-    $body = renderedMailBody('{{ opendxp_file_extension("report.pdf") }}', []);
+it('lets a placeholder look up an element', function () {
+    $object = UnittestFactory::createOne(['input' => 'Jane']);
 
-    expect($body)->toContain('pdf');
+    $body = renderedMailBody(sprintf('{{ opendxp_object(%d).input }}', $object->getId()), []);
+
+    expect($body)->toContain('Jane');
 });
 
 it('refuses a filter the sandbox policy does not allow', function () {
@@ -230,9 +233,30 @@ it('refuses to delete an object', function () {
         ->not->toBeNull();
 });
 
-it('refuses the dump function', function () {
-    renderedMailBody('{{ opendxp_dump(object) }}', ['object' => UnittestFactory::createOne()]);
-})->throws(Exception::class, 'Function "opendxp_dump" is not allowed');
+it('refuses a function that is not on the list', function (string $html) {
+    renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
+})->with([
+    'the dump' => '{{ opendxp_dump(object) }}',
+    'a look into the file system' => '{{ opendxp_file_exists("/etc/passwd") }}',
+])->throws(Exception::class, 'Failed rendering the body');
+
+it('refuses the file of an asset', function (string $html) {
+    renderedMailBody($html, ['asset' => AssetDocumentFactory::createOne()]);
+})->with([
+    'its data' => '{{ asset.data }}',
+    'its stream' => '{{ asset.getStream() }}',
+    'its text' => '{{ asset.getText() }}',
+    'a local copy' => '{{ asset.getLocalFile() }}',
+    'a temporary copy' => '{{ asset.getTemporaryFile() }}',
+])->throws(Exception::class, 'Failed rendering the body');
+
+it('refuses a password', function (string $html) {
+    renderedMailBody($html, ['object' => UnittestFactory::createOne(['password' => 'sEcret$%!1'])]);
+})->with([
+    'through its getter' => '{{ object.password }}',
+    'through its field name' => '{{ object.getValueForFieldName("password") }}',
+    'through get' => '{{ object.get("password") }}',
+])->throws(Exception::class, 'Failed rendering the body');
 
 it('calls a method the configuration allows', function () {
     $body = renderedMailBody('{{ app.environment }}', []);

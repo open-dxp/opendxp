@@ -338,7 +338,17 @@ opendxp:
             sandbox_security_policy:
                 tags: ['set']
                 filters: ['escape', 'trans', 'default']
-                functions: ['path', 'asset']
+                functions:
+                    - path
+                    - asset
+                    - opendxp_asset
+                    - opendxp_asset_by_path
+                    - opendxp_document
+                    - opendxp_document_by_path
+                    - opendxp_object
+                    - opendxp_object_by_path
+                    - opendxp_url
+                    - opendxp_website_config
                 methods:
                     DateTimeInterface: ['format']
                 readable_classes:
