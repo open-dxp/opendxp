@@ -2,6 +2,7 @@
 
 ## 1.5.1
 - [BUGFIX] A worker finds a website setting or a static route by its name after another process deleted and created it again
+- [BUGFIX] Hide empty job run menu in sidebar
 
 ## 1.5.0
 - [SECURITY] The drill-down filter of a custom report reads its field only as the name of a column
