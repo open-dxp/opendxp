@@ -81,6 +81,7 @@
 - [ENHANCEMENT] When an element cannot be saved, the error says which element it is and why, for example `Object /products/shoe (ID 123) cannot be saved. Its parent 4711 does not exist.` See [Error Messages](doc/19_Development_Tools_and_Details/12_Error_Messages.md) [#232](https://github.com/open-dxp/opendxp/issues/232)
 - [CHORE] [FOLLOW-UP] [MIGRATION] The update marks running job runs of the Generic Execution Engine as failed
   1. Only if your project uses the Generic Execution Engine: wait until no job run is running before you update.
+  2. Run the migrations of the Generic Execution Engine after the update. See [Updating OpenDXP](doc/23_Installation_and_Upgrade/07_Updating_OpenDxp/README.md).
 - [NEW FEATURE] A data type can split its value into several grid columns with `GridColumnsInterface`. See [Grid Columns](doc/20_Extending_OpenDxp/13_Bundle_Developers_Guide/11_Adding_Object_Datatypes.md#grid-columns) [#253](https://github.com/open-dxp/opendxp/pull/253)
 - [BUGFIX] A grid filtered by a column of a classification store counts its objects again [#253](https://github.com/open-dxp/opendxp/pull/253)
 - [NEW FEATURE] `OpenDxp\Test\Elements::refresh()` loads an element again in a test. See [Writing Tests](doc/19_Development_Tools_and_Details/29_Testing/03_Writing_Tests.md#refresh-an-element) [#254](https://github.com/open-dxp/opendxp/pull/254)

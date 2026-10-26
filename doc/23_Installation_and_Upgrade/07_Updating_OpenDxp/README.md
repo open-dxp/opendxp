@@ -11,4 +11,5 @@ https://symfony.com/doc/current/contributing/code/bc.html
 - Run `COMPOSER_MEMORY_LIMIT=-1 composer update`
 - Clear the data cache `bin/console opendxp:cache:clear`
 - Run core migrations: `bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\CoreBundle`
+- If your project uses the Generic Execution Engine, run its migrations: `bin/console doctrine:migrations:migrate --prefix=OpenDxp\\Bundle\\GenericExecutionEngineBundle`
 - (optional) Run [migrations of your app or bundles](../../19_Development_Tools_and_Details/37_Migrations.md)
