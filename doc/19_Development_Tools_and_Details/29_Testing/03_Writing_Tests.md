@@ -291,6 +291,10 @@ final readonly class SearchAnswer
 }
 ```
 
+A double for a service of the framework is a named class under `tests/Application/`. Its name says
+which slot it fills, like `MockTranslator` or `MockResponseFactory`. It is never an anonymous class
+in a test or a helper.
+
 This table sums up where test code goes:
 
 | What                                                    | Where                                                            |
@@ -302,6 +306,7 @@ This table sums up where test code goes:
 | Something that builds a model and saves it              | A factory                                                        |
 | A check that repeats                                    | An expectation in `tests/Expectations/`                          |
 | Something other packages need for their tests too       | A class with one task in the package itself, like `OpenDxp\Test` |
+| A double for a service of the framework                 | A named class in `tests/Application/`, like `MockTranslator`     |
 
 ## The layout of a suite
 
