@@ -71,6 +71,13 @@ opendxp.bundle.genericexecutionengine.jobrun.menu = Class.create({
                 return;
             }
 
+            // The list may miss a job run that another user started, so a click without job runs asks again.
+            if (this.jobRuns.length === 0) {
+                this.update();
+
+                return;
+            }
+
             event.stopEvent();
             this.menu.showAt([60, item.getOffsetsTo(Ext.getBody())[1]]);
         }.bind(this));
@@ -188,10 +195,7 @@ opendxp.bundle.genericexecutionengine.jobrun.menu = Class.create({
         this.menu.removeAll();
 
         if (this.jobRuns.length === 0) {
-            this.menu.add({
-                text: t('no_items_found'),
-                disabled: true
-            });
+            this.menu.hide();
 
             return;
         }
