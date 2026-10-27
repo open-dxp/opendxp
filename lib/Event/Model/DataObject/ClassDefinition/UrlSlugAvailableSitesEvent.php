@@ -47,7 +47,7 @@ final class UrlSlugAvailableSitesEvent extends Event
     }
 
     /**
-     * The language is null outside localized fields.
+     * Returns the language of the slug, or null outside localized fields.
      */
     public function getLanguage(): ?string
     {
@@ -76,7 +76,8 @@ final class UrlSlugAvailableSitesEvent extends Event
     }
 
     /**
-     * A language that is not available has no slug in this field, not even the fallback slug.
+     * Takes the language out of the field when it is false. The field then has no slug in this language, not even
+     * the fallback slug.
      */
     public function setLanguageAvailable(bool $languageAvailable): void
     {

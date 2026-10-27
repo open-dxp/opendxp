@@ -90,7 +90,7 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     /**
      * @internal
      *
-     * The ids of the available sites of each language, null for a language that is not available.
+     * Holds the ids of the available sites per language, or null for a language that is not available.
      *
      * @var array<string, int[]|null>|null
      */
@@ -396,8 +396,12 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
      *
      * @param array<int, Site> $sitesById
      */
-    private function fillSlug(Model\DataObject\Data\UrlSlug $slug, Concrete $owner, ?string $language, array $sitesById): Model\DataObject\Data\UrlSlug
-    {
+    private function fillSlug(
+        Model\DataObject\Data\UrlSlug $slug,
+        Concrete $owner,
+        ?string $language,
+        array $sitesById,
+    ): Model\DataObject\Data\UrlSlug {
         $siteId = $slug->getSiteId() ?? 0;
 
         if ($siteId !== 0 && !isset($sitesById[$siteId])) {
