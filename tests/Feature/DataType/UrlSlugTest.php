@@ -17,9 +17,14 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use Exception;
+use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Data\UrlSlug;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Tests\Application\Service\AvailableSitesListener;
+use OpenDxp\Tests\Application\Service\FailingSlugGenerator;
+use OpenDxp\Tests\Application\Service\SharedPrefixSlugGenerator;
+use OpenDxp\Tests\Application\Service\ThingSlugGenerator;
 use OpenDxp\Tests\Factory\SluggableFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -90,6 +95,30 @@ it('fills an empty localized slug when an object is saved again without touching
     expect($slugs)->toBe([0 => '/de/things/gr-nes-rad']);
 });
 
+it('leaves the slug of a language empty that is not available', function () {
+    $listener = (new AvailableSitesListener())
+        ->makeUnavailable('de');
+
+    $object = runWithAvailableSitesListener($listener, fn () => SluggableFactory::new()
+        ->withLocalizedValues(
+            'lname',
+            [
+                'de' => 'Grünes Rad',
+                'en' => 'Green Bike',
+            ],
+        )
+        ->create());
+
+    expect(slugsBySite(
+        $object
+            ->getLocalizedfields()
+            ->getLocalizedValue('lslug', 'de', ignoreFallbackLanguage: true),
+    ))
+        ->toBe([])
+        ->and(slugsBySite($object->getLslug('en')))
+        ->toBe([0 => '/en/things/green-bike']);
+});
+
 it('keeps a slug that is not empty', function () {
     $object = SluggableFactory::createOne([
         'name' => 'Green Bike',
@@ -127,6 +156,72 @@ it('keeps the slugs of the sites when it fills the fallback slug', function () {
         $site->getId() => '/site/bike',
     ]);
 });
+
+it('fills an empty slug of a site with the prefix of that site', function () {
+    $site = SiteFactory::createOne();
+
+    $object = SluggableFactory::createOne([
+        'name' => 'Green Bike',
+        'slug' => [new UrlSlug('', $site->getId())],
+    ]);
+
+    expect(slugsBySite($object->getSlug()))->toBe([
+        0 => '/things/green-bike',
+        $site->getId() => sprintf('/site-%d/things/green-bike', $site->getId()),
+    ]);
+});
+
+it('leaves an empty slug of a site empty when a listener takes the site away', function () {
+    $site = SiteFactory::createOne();
+    $listener = (new AvailableSitesListener())
+        ->removeSite($site, language: null);
+
+    $object = runWithAvailableSitesListener($listener, fn () => SluggableFactory::createOne([
+        'name' => 'Green Bike',
+        'slug' => [new UrlSlug('', $site->getId())],
+    ]));
+
+    expect(slugsBySite(Elements::refresh($object)->getSlug()))->toBe([0 => '/things/green-bike']);
+});
+
+it('gives a site with another prefix a slug of its own', function () {
+    $site = SiteFactory::createOne();
+
+    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+
+    expect(slugsBySite($object->getSlug()))->toBe([
+        0 => '/things/green-bike',
+        $site->getId() => sprintf('/site-%d/things/green-bike', $site->getId()),
+    ]);
+});
+
+it('gives a site with the prefix of the fallback slug no slug of its own', function () {
+    SiteFactory::createOne();
+    ClassDefinition::getByName('Sluggable')
+        ->getFieldDefinition('slug')
+        ->setSlugGeneratorClass(SharedPrefixSlugGenerator::class);
+
+    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+
+    expect(slugsBySite($object->getSlug()))->toBe([0 => '/things/green-bike']);
+})->after(fn () => ClassDefinition::getByName('Sluggable')
+    ->getFieldDefinition('slug')
+    ->setSlugGeneratorClass(ThingSlugGenerator::class));
+
+it('saves a filled slug without asking the generator for a prefix', function () {
+    ClassDefinition::getByName('Sluggable')
+        ->getFieldDefinition('slug')
+        ->setSlugGeneratorClass(FailingSlugGenerator::class);
+
+    $object = SluggableFactory::createOne([
+        'name' => 'Green Bike',
+        'slug' => [new UrlSlug('/bike')],
+    ]);
+
+    expect(slugsBySite(Elements::refresh($object)->getSlug()))->toBe([0 => '/bike']);
+})->after(fn () => ClassDefinition::getByName('Sluggable')
+    ->getFieldDefinition('slug')
+    ->setSlugGeneratorClass(ThingSlugGenerator::class));
 
 it('leaves the slug empty when there is no default slug', function () {
     $object = SluggableFactory::createOne();

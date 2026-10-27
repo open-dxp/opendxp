@@ -14,7 +14,9 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
+use OpenDxp\Event\UrlSlugEvents;
 use OpenDxp\Model\DataObject\Data\UrlSlug;
+use OpenDxp\Tests\Application\Service\AvailableSitesListener;
 
 /**
  * @param UrlSlug[]|null $slugs
@@ -32,4 +34,16 @@ function slugsBySite(?array $slugs): array
     ksort($bySite);
 
     return $bySite;
+}
+
+function runWithAvailableSitesListener(AvailableSitesListener $listener, Closure $action): mixed
+{
+    $dispatcher = OpenDxp::getEventDispatcher();
+    $dispatcher->addListener(UrlSlugEvents::AVAILABLE_SITES, $listener);
+
+    try {
+        return $action();
+    } finally {
+        $dispatcher->removeListener(UrlSlugEvents::AVAILABLE_SITES, $listener);
+    }
 }
