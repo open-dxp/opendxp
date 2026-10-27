@@ -212,12 +212,35 @@ shows the whole stored path. Unlocking such a slug gives it the current prefix.
 A stored slug is locked in the object editor, because it is a public URL. The lock icon unlocks it, and a second click
 brings the stored slug back.
 
+When the generator throws an exception, the object editor still opens and shows the message at the slug field.
+
 #### Fill an Empty Slug
 
-With this setting, an empty fallback slug gets the text of `getDefaultSlug()`, formatted and behind the prefix. This
-happens on every save of the object, also in imports and through the PHP API. A slug with a value never changes.
+With this setting, an empty slug gets the text of `getDefaultSlug()`, formatted and behind the prefix. This holds for
+the fallback slug and for the slug of a site, which gets the prefix of its site. It happens on every save of the
+object, also in imports and through the PHP API. A slug with a value never changes.
+
+A site whose prefix differs from the prefix of the fallback slug needs a slug of its own. The object editor shows a
+row for such a site, and saving fills it.
 
 #### Extend Duplicate Slugs
 
 A slug must be unique on its site. Without this setting, the object is not saved when another object uses the slug.
 With it, the slug gets `-1`, `-2` and so on appended.
+
+#### Available Sites
+
+The field setting "Available Sites" limits the sites an editor can add a slug for. A listener of
+`UrlSlugEvents::AVAILABLE_SITES` narrows them further for each language, or takes a language out of the field. A
+language without a slug shows a note in the object editor, and its empty fallback slug is not filled.
+
+```php
+use OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugAvailableSitesEvent;
+
+public function onAvailableSites(UrlSlugAvailableSitesEvent $event): void
+{
+    if ($event->getLanguage() === 'fr') {
+        $event->setLanguageAvailable(false);
+    }
+}
+```

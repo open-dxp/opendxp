@@ -21,6 +21,8 @@ use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\UrlSlug;
 use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Tests\Application\Service\AvailableSitesListener;
+use OpenDxp\Tests\Application\Service\FailingSlugGenerator;
 use OpenDxp\Tests\Application\Service\ThingSlugGenerator;
 use OpenDxp\Tests\Factory\SluggableFactory;
 use stdClass;
@@ -92,3 +94,80 @@ it('gives the object editor prefixes without a language outside of localized fie
 
     expect($field->getSlugPrefixes()[''][0])->toBe('/things');
 });
+
+it('leaves a site out of a language when a listener takes it away', function () {
+    $keptSite = SiteFactory::createOne();
+    $removedSite = SiteFactory::createOne();
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $listener = (new AvailableSitesListener())
+        ->removeSite($removedSite, 'de');
+
+    runWithAvailableSitesListener(
+        $listener,
+        fn () => $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']),
+    );
+
+    expect($field->getSlugSites()['de'])
+        ->toBe([$keptSite->getId()])
+        ->and($field->getSlugPrefixes()['de'])
+        ->not->toHaveKey($removedSite->getId())
+        ->and($field->getSlugSites()['fr'])
+        ->toBe([$keptSite->getId(), $removedSite->getId()]);
+});
+
+it('takes a language out of the object editor when a listener makes it unavailable', function () {
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $listener = (new AvailableSitesListener())
+        ->makeUnavailable('de');
+
+    runWithAvailableSitesListener(
+        $listener,
+        fn () => $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']),
+    );
+
+    expect($field->getSlugSites()['de'])
+        ->toBeNull()
+        ->and($field->getSlugPrefixes())
+        ->not->toHaveKey('de')
+        ->and($field->getSlugPrefixes()['en'][0])
+        ->toBe('/en/things');
+});
+
+it('opens the object editor with the message of a generator that fails', function () {
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(FailingSlugGenerator::class);
+
+    $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']);
+
+    expect($field->getSlugErrors()['de'])
+        ->toContain('The generator has no prefix.')
+        ->and($field->getSlugPrefixes()['de'][0])
+        ->toBeNull();
+});
+
+it('asks a listener for the next language after it failed for one', function () {
+    $keptSite = SiteFactory::createOne();
+    $removedSite = SiteFactory::createOne();
+    $object = SluggableFactory::createOne();
+    $field = slugField();
+    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $listener = (new AvailableSitesListener())
+        ->failFor('de')
+        ->removeSite($removedSite, 'fr');
+
+    runWithAvailableSitesListener(
+        $listener,
+        fn () => $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']),
+    );
+
+    expect($field->getSlugErrors()['de'])
+        ->toBe(['The listener fails for "de".'])
+        ->and($field->getSlugSites()['fr'])
+        ->toBe([$keptSite->getId()]);
+});
+
