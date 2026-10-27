@@ -32,6 +32,15 @@ parameters:
             message: '#unknown class OpenDxp\\Bundle\\AdminBundle\\Service\\GridData\\#'
             identifier: class.notFound
             reportUnmatched: false
+        # PHPStan reports these regex shapes only before 2.3.3.
+        -
+            identifier: ternary.alwaysTrue
+            path: lib/Tool/Text.php
+            reportUnmatched: false
+        -
+            identifier: if.alwaysTrue
+            path: lib/Tool/Text/Csv.php
+            reportUnmatched: false
         # Doctrine hydrates the total of a job run. The engine writes it with DBAL.
         -
             identifier: property.unusedType
