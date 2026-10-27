@@ -170,4 +170,3 @@ it('asks a listener for the next language after it failed for one', function () 
         ->and($field->getSlugSites()['fr'])
         ->toBe([$keptSite->getId()]);
 });
-
