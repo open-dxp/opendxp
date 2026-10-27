@@ -1,12 +1,9 @@
 # Changelog
 
 ## 1.5.1
-- [NEW FEATURE] The installer offers core bundles and extension bundles. Extension bundles are all installed composer packages of type `opendxp-bundle` that are no core bundles. In interactive mode, the installer asks for each kind separately. See [Advanced Installation Topics](doc/01_Getting_Started/02_Advanced_Installation_Topics/README.md#installing-bundles)
-- [NEW FEATURE] `--with-core-bundles` and `--with-extension-bundles` install all core or all extension bundles. Combine them with each other and with `--install-bundles`.
-- [NEW FEATURE] `BundleSetupEvent::getExtensionBundles()` returns the extension bundles the installer found. `removeInstallableBundle()` hides one of them.
+- [NEW FEATURE] The installer offers core bundles and extension bundles: all installed composer packages of type `opendxp-bundle` that are no core bundles. `--with-core-bundles` and `--with-extension-bundles` install all bundles of one kind and combine with each other and with `--install-bundles`. In interactive mode, the installer asks for each kind and preselects the bundles that `config/bundles.php` registers or a `BundleSetupEvent` subscriber recommends. See [Advanced Installation Topics](doc/01_Getting_Started/02_Advanced_Installation_Topics/README.md#installing-bundles)
 - [BUGFIX] The installer reads `OPENDXP_INSTALL_INSTALL_BUNDLES` and warns about unknown bundles in `--install-bundles`.
-- [ENHANCEMENT] `--install-bundles` without a list no longer asks for bundles in interactive mode.
-- [CHORE] `BundleSetupEvent::clearBundlesAndRecommendations()` also clears the extension bundles, so the installer still asks no bundle question.
+- [CHORE] The installer no longer recommends `OpenDxpSimpleBackendSearchBundle` by default, `Installer::RECOMMENDED_BUNDLES` is removed. `--install-bundles` without a list no longer asks for bundles. `BundleSetupEvent::clearBundlesAndRecommendations()` also clears the extension bundles.
 - [BUGFIX] A worker finds a website setting or a static route by its name after another process deleted and created it again
 - [BUGFIX] Hide empty job run menu in sidebar
 

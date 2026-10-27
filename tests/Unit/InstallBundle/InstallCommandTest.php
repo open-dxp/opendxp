@@ -18,9 +18,14 @@ namespace OpenDxp\Tests\Unit\InstallBundle;
 
 use OpenDxp\Bundle\AdminBundle\OpenDxpAdminBundle;
 use OpenDxp\Bundle\CoreBundle\OpenDxpCoreBundle;
+use OpenDxp\Bundle\GlossaryBundle\OpenDxpGlossaryBundle;
 use OpenDxp\Bundle\InstallBundle\Command\InstallCommand;
+use OpenDxp\Bundle\InstallBundle\Event\BundleSetupEvent;
+use OpenDxp\Bundle\InstallBundle\Event\InstallEvents;
 use OpenDxp\Bundle\InstallBundle\Installer;
 use OpenDxp\Bundle\InstallBundle\OpenDxpInstallBundle;
+use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
+use OpenDxp\Bundle\XliffBundle\OpenDxpXliffBundle;
 use OpenDxp\Composer\PackageInfo;
 use OpenDxp\Extension\Bundle\OpenDxpBundleLocator;
 use Psr\Log\NullLogger;
@@ -35,7 +40,9 @@ beforeEach(function () {
         }
     };
 
-    $this->installer = new class(new NullLogger(), new EventDispatcher(), $locator) extends Installer {
+    $this->eventDispatcher = new EventDispatcher();
+
+    $this->installer = new class(new NullLogger(), $this->eventDispatcher, $locator) extends Installer {
         public ?array $selectedBundles = null;
 
         public array $registeredBundles = [];
@@ -124,9 +131,29 @@ function executeInteractively(CommandTester $tester, array $inputs): void
 }
 
 it('asks for the core and the extension bundles one after the other', function () {
-    executeInteractively($this->tester, ['yes', '', 'yes', '1', 'no']);
+    executeInteractively($this->tester, ['yes', '5', 'yes', '1', 'no']);
 
     expect($this->installer->selectedBundles)->toBe(['OpenDxpSimpleBackendSearchBundle', 'OpenDxpInstallBundle']);
+});
+
+it('preselects the core bundles that bundles.php registers and installs them on enter', function () {
+    $this->installer->registeredBundles = [OpenDxpGlossaryBundle::class, OpenDxpSeoBundle::class];
+
+    executeInteractively($this->tester, ['', '', 'no', 'no']);
+
+    expect($this->installer->selectedBundles)->toBe(['OpenDxpGlossaryBundle', 'OpenDxpSeoBundle']);
+});
+
+it('preselects the bundles a subscriber recommends', function () {
+    $this->installer->registeredBundles = [OpenDxpSeoBundle::class];
+    $this->eventDispatcher->addListener(
+        InstallEvents::EVENT_BUNDLE_SETUP,
+        fn (BundleSetupEvent $event) => $event->addInstallableBundle('OpenDxpXliffBundle', OpenDxpXliffBundle::class, true)
+    );
+
+    executeInteractively($this->tester, ['yes', '', 'no', 'no']);
+
+    expect($this->installer->selectedBundles)->toBe(['OpenDxpSeoBundle', 'OpenDxpXliffBundle']);
 });
 
 it('preselects the extension bundles that bundles.php registers', function () {

@@ -70,8 +70,6 @@ use Throwable;
  */
 class Installer
 {
-    public const array RECOMMENDED_BUNDLES = ['OpenDxpSimpleBackendSearchBundle'];
-
     public const array INSTALLABLE_BUNDLES = [
         'OpenDxpAdminBundle' => OpenDxpAdminBundle::class,
         'OpenDxpApplicationLoggerBundle' => OpenDxpApplicationLoggerBundle::class,
@@ -221,7 +219,7 @@ class Installer
     public function dispatchBundleSetupEvent(): BundleSetupEvent
     {
         return $this->eventDispatcher->dispatch(
-            new BundleSetupEvent(self::INSTALLABLE_BUNDLES, self::RECOMMENDED_BUNDLES, $this->findExtensionBundles()),
+            new BundleSetupEvent(self::INSTALLABLE_BUNDLES, [], $this->findExtensionBundles()),
             InstallEvents::EVENT_BUNDLE_SETUP
         );
     }

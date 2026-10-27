@@ -335,11 +335,10 @@ class InstallCommand extends Command
     {
         if (!$this->bundlesSelectedByOption && $input->isInteractive()) {
             $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
-            $extensionBundles = $bundleSetupEvent->getExtensionBundles();
 
             $bundles = [
                 ...$this->askForBundles('core bundles', $bundleSetupEvent->getBundles(), $bundleSetupEvent->getRecommendedBundles()),
-                ...$this->askForBundles('extension bundles', $extensionBundles, array_keys(array_intersect($extensionBundles, $this->installer->getRegisteredBundles()))),
+                ...$this->askForBundles('extension bundles', $bundleSetupEvent->getExtensionBundles()),
             ];
 
             if ($bundles !== []) {
@@ -470,14 +469,15 @@ class InstallCommand extends Command
         return InputOption::VALUE_NONE === $config['mode'] ? filter_var($env, FILTER_VALIDATE_BOOL) : $env;
     }
 
-    private function askForBundles(string $category, array $bundles, array $preselectedBundles): array
+    private function askForBundles(string $category, array $bundles, array $recommendedBundles = []): array
     {
-        if ($bundles === [] || !$this->io->confirm(sprintf('Do you want to install %s? %d available.', $category, count($bundles)), false)) {
+        $choices = array_keys($bundles);
+        $preselectedBundles = [...$recommendedBundles, ...array_keys(array_intersect($bundles, $this->installer->getRegisteredBundles()))];
+        $preselectedChoices = implode(',', array_keys(array_intersect($choices, $preselectedBundles)));
+
+        if ($bundles === [] || !$this->io->confirm(sprintf('Do you want to install %s? %d available.', $category, count($bundles)), '' !== $preselectedChoices)) {
             return [];
         }
-
-        $choices = array_keys($bundles);
-        $preselectedChoices = implode(',', array_keys(array_intersect($choices, $preselectedBundles)));
 
         if ('' === $preselectedChoices) {
             return $this->io->choice(sprintf('Which %s do you want to install? You can choose multiple e.g. 0,1,2,3', $category), $choices, null, true);
