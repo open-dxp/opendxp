@@ -21,6 +21,7 @@ use Exception;
 use OpenDxp\Http\Request\Resolver\SiteResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Site;
 use OpenDxp\Routing\DataObjectRoute;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\RouteCollection;
@@ -58,7 +59,7 @@ final readonly class DataObjectRouteHandler implements DynamicRouteHandlerInterf
         if ($slug) {
             $object = DataObject::getById($slug->getObjectId());
 
-            if ($object instanceof DataObject\Concrete) {
+            if ($object instanceof DataObject\Concrete && $this->isAvailable($slug, $object, $site)) {
                 $doBuildRoute = $object->isPublished() || $this->requestHelper->isObjectPreviewRequestByAdmin($context->getRequest());
 
                 if ($doBuildRoute) {
@@ -67,6 +68,16 @@ final readonly class DataObjectRouteHandler implements DynamicRouteHandlerInterf
                 }
             }
         }
+    }
+
+    /**
+     * Keeps a slug without field definition, so that getAction() removes it.
+     */
+    private function isAvailable(DataObject\Data\UrlSlug $slug, DataObject\Concrete $object, ?Site $site): bool
+    {
+        $language = $slug->getOwnertype() === 'localizedfield' ? $slug->getPosition() : null;
+
+        return $slug->getFieldDefinition()?->isAvailable($object, $language, $site) ?? true;
     }
 
     /**
