@@ -25,7 +25,8 @@ class BundleSetupEvent extends Event
 
     public function __construct(
         private array $bundles,
-        private array $recommendations
+        private array $recommendations,
+        private array $extensionBundles = []
     ) {
     }
 
@@ -39,6 +40,11 @@ class BundleSetupEvent extends Event
         return $this->recommendations;
     }
 
+    public function getExtensionBundles(): array
+    {
+        return array_diff($this->extensionBundles, $this->bundles, $this->required);
+    }
+
     public function addInstallableBundle(string $key, string $class, bool $recommend = false): void
     {
         $this->bundles[$key] = $class;
@@ -49,7 +55,7 @@ class BundleSetupEvent extends Event
 
     public function removeInstallableBundle(string $key): void
     {
-        unset($this->bundles[$key]);
+        unset($this->bundles[$key], $this->extensionBundles[$key]);
         if (($index = array_search($key, $this->recommendations)) !== false) {
             unset($this->recommendations[$index]);
         }
@@ -72,7 +78,7 @@ class BundleSetupEvent extends Event
 
     public function getAvailableBundles(): array
     {
-        return array_unique([...$this->required, ...$this->bundles]);
+        return array_unique([...$this->required, ...$this->bundles, ...$this->getExtensionBundles()]);
     }
 
     public function getExcludeBundlesFromPhpBundles(): array
@@ -87,6 +93,7 @@ class BundleSetupEvent extends Event
     public function clearBundlesAndRecommendations(): void
     {
         $this->bundles = [];
+        $this->extensionBundles = [];
         $this->recommendations = [];
     }
 }

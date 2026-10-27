@@ -75,9 +75,14 @@ class OpenDxpBundleLocator
     {
         $result = [];
 
+        $directories = array_unique(array_filter($paths, is_dir(...)));
+        if ($directories === []) {
+            return $result;
+        }
+
         $finder = new Finder();
         $finder
-            ->in(array_unique(array_filter($paths, is_dir(...))))
+            ->in($directories)
             ->name('*Bundle.php');
 
         /** @var SplFileInfo $file */

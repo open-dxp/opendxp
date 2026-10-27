@@ -35,6 +35,17 @@ $ OPENDXP_INSTALL_MYSQL_USERNAME=username OPENDXP_INSTALL_MYSQL_PASSWORD=passwor
 
 ### Installing Bundles
 
+#### Core and Extension Bundles
+
+The installer offers two kinds of bundles:
+
+- **Core bundles** ship with OpenDXP, see [Default Recommended Bundles](#default-recommended-bundles).
+- **Extension bundles** are all installed composer packages of type `opendxp-bundle` that are no core bundles. The
+  installer finds them on its own, so a bundle you add with `composer require` before the installation is offered as well.
+
+In interactive mode, the installer asks for each kind separately. It preselects the recommended core bundles and the
+extension bundles that `config/bundles.php` already registers.
+
 #### Overview of Bundle Lists
 
 When installing, you will [interact with](#modifying-required-bundles-and-bundle-recommendations) two lists of
@@ -64,8 +75,16 @@ By default, here's what's included in the Recommended Bundles list:
 
 #### Automating Bundle Installation
 
-To install specific bundles automatically, use the `--install-bundles[=bundleList]` flag. This flag installs and
-activates all required bundles and any specified bundles, provided they are part of the recommended bundles list.
+Three options select the bundles without a prompt. Combine them as you like. The installer always adds the required
+bundles.
+
+| Option                     | Env var                                  | Installs                                     |
+|----------------------------|------------------------------------------|----------------------------------------------|
+| `--with-core-bundles`      | `OPENDXP_INSTALL_WITH_CORE_BUNDLES`      | all core bundles                             |
+| `--with-extension-bundles` | `OPENDXP_INSTALL_WITH_EXTENSION_BUNDLES` | all extension bundles                        |
+| `--install-bundles[=list]` | `OPENDXP_INSTALL_INSTALL_BUNDLES`        | the bundles of the comma separated list      |
+
+The installer warns about a bundle in `--install-bundles` that it does not know and skips it.
 
 **Note**: The bundles will be automatically added to `config/bundles.php`.
 
@@ -73,7 +92,8 @@ activates all required bundles and any specified bundles, provided they are part
 ./vendor/bin/opendxp-install --admin-username=admin --admin-password=admin \
 --mysql-username=username --mysql-password=password --mysql-database=opendxp \
 --mysql-host-socket=127.0.0.1 --mysql-port=3306 \
---install-bundles=OpenDxpApplicationLoggerBundle,OpenDxpCustomReportsBundle \
+--with-core-bundles \
+--install-bundles=OpenDxpNewsBundle \
 --no-interaction
 ```
 
@@ -118,6 +138,10 @@ class BundleSetupSubscriber implements EventSubscriberInterface
     }
 }
 ```
+
+`$event->getExtensionBundles()` returns the extension bundles the installer found. To hide one of them, remove it
+with `$event->removeInstallableBundle('OpenDxpNewsBundle')`. `$event->clearBundlesAndRecommendations()` clears the
+core and the extension bundles, so the installer asks no bundle question at all.
 
 Make sure to register your listener/subscriber under `config/installer.yaml` as described in [Preconfiguring the Installer](#preconfiguring-the-installer).
 

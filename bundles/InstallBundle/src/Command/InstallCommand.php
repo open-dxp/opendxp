@@ -49,6 +49,8 @@ class InstallCommand extends Command
 
     private ?array $options = null;
 
+    private bool $bundlesSelectedByOption = false;
+
     public function __construct(
         private readonly Installer $installer,
         private readonly EventDispatcherInterface $eventDispatcher
@@ -112,9 +114,19 @@ class InstallCommand extends Command
                 'group' => 'db_credentials',
             ],
             'install-bundles' => [
-                'description' => sprintf('Installable bundles: %s', $this->generateBundleDescription()),
+                'description' => sprintf('Comma separated bundles to install: core bundles (%s) or extension bundles by their short class name', $this->generateBundleDescription()),
                 'mode' => InputOption::VALUE_OPTIONAL,
                 'default' => false,
+                'group' => 'bundles',
+            ],
+            'with-core-bundles' => [
+                'description' => 'Install all core bundles',
+                'mode' => InputOption::VALUE_NONE,
+                'group' => 'bundles',
+            ],
+            'with-extension-bundles' => [
+                'description' => 'Install all extension bundles: every installed composer package of type "opendxp-bundle" that is not a core bundle',
+                'mode' => InputOption::VALUE_NONE,
                 'group' => 'bundles',
             ],
         ];
@@ -200,17 +212,34 @@ class InstallCommand extends Command
         if ($input->getOption('skip-database-data-dump')) {
             $this->installer->setImportDatabaseDataDump(false);
         }
-        $bundleOption = $input->getOption('install-bundles');
-        if (false !== $bundleOption) {
+        $this->io = new OpenDxpStyle($input, $output);
+
+        $installBundles = $this->getBundleOption($input, 'install-bundles');
+        $withCoreBundles = $this->getBundleOption($input, 'with-core-bundles');
+        $withExtensionBundles = $this->getBundleOption($input, 'with-extension-bundles');
+        $this->bundlesSelectedByOption = false !== $installBundles || $withCoreBundles || $withExtensionBundles;
+
+        if ($this->bundlesSelectedByOption) {
             $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
 
-            $bundles = null === $bundleOption ? [] : explode(',', $bundleOption);
+            $bundles = [];
+            if ($withCoreBundles) {
+                array_push($bundles, ...array_keys($bundleSetupEvent->getBundles()));
+            }
+            if ($withExtensionBundles) {
+                array_push($bundles, ...array_keys($bundleSetupEvent->getExtensionBundles()));
+            }
+            if (is_string($installBundles)) {
+                $requestedBundles = array_filter(array_map(trim(...), explode(',', $installBundles)));
+                $unknownBundles = array_diff($requestedBundles, array_keys($bundleSetupEvent->getAvailableBundles()));
+                if ($unknownBundles !== []) {
+                    $this->io->warning(sprintf('Ignoring unknown bundles: %s', implode(', ', $unknownBundles)));
+                }
+                array_push($bundles, ...$requestedBundles);
+            }
 
-            $installableBundles = $bundleSetupEvent->getInstallableBundles($bundles);
-            $this->installer->setBundlesToInstall($installableBundles, $bundleSetupEvent->getAvailableBundles(), $bundleSetupEvent->getExcludeBundlesFromPhpBundles());
+            $this->setBundlesToInstall($bundleSetupEvent, $bundles);
         }
-
-        $this->io = new OpenDxpStyle($input, $output);
 
         foreach ($this->getOptions() as $name => $config) {
             if (!$this->installerNeedsOption($config)) {
@@ -304,13 +333,18 @@ class InstallCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // dispatch a bundle config event here to manually add/remove bundles/recommendations
-        $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
+        if (!$this->bundlesSelectedByOption && $input->isInteractive()) {
+            $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
+            $extensionBundles = $bundleSetupEvent->getExtensionBundles();
 
-        if (!empty($bundleSetupEvent->getBundles()) && !$input->getOption('install-bundles') && $input->isInteractive() && $this->io->confirm(sprintf('Do you want to install bundles? We recommend %s.', implode(', ', $bundleSetupEvent->getRecommendedBundles())), false)) {
-            $bundles = $this->io->choice('Which bundle(s) do you want to install? You can choose multiple e.g. 0,1,2,3 or just hit enter to install recommended bundles', array_keys($bundleSetupEvent->getBundles()), $this->getRecommendBundles($bundleSetupEvent), true);
-            $installableBundles = $bundleSetupEvent->getInstallableBundles($bundles);
-            $this->installer->setBundlesToInstall($installableBundles, $bundleSetupEvent->getAvailableBundles(), $bundleSetupEvent->getExcludeBundlesFromPhpBundles());
+            $bundles = [
+                ...$this->askForBundles('core bundles', $bundleSetupEvent->getBundles(), $bundleSetupEvent->getRecommendedBundles()),
+                ...$this->askForBundles('extension bundles', $extensionBundles, array_keys(array_intersect($extensionBundles, $this->installer->getRegisteredBundles()))),
+            ];
+
+            if ($bundles !== []) {
+                $this->setBundlesToInstall($bundleSetupEvent, $bundles);
+            }
         }
 
         if ($input->isInteractive() && !$this->io->confirm('This will install OpenDxp with the given settings. Do you want to continue?')) {
@@ -423,14 +457,41 @@ class InstallCommand extends Command
         return implode(',', array_keys(Installer::INSTALLABLE_BUNDLES));
     }
 
-    private function getRecommendBundles(BundleSetupEvent $bundleSetupEvent): string
+    private function getBundleOption(InputInterface $input, string $name): mixed
     {
-        $installableBundleKeys = array_keys($bundleSetupEvent->getBundles());
-        $recommendedBundles = [];
-        foreach ($bundleSetupEvent->getRecommendedBundles() as $recBundle) {
-            $recommendedBundles[] = array_search($recBundle, $installableBundleKeys);
+        $value = $input->getOption($name);
+        $config = $this->getOptions()[$name];
+        $env = getenv($config['env']);
+
+        if (false !== $value || false === $env || '' === $env) {
+            return $value;
         }
 
-        return implode(',', $recommendedBundles);
+        return InputOption::VALUE_NONE === $config['mode'] ? filter_var($env, FILTER_VALIDATE_BOOL) : $env;
+    }
+
+    private function askForBundles(string $category, array $bundles, array $preselectedBundles): array
+    {
+        if ($bundles === [] || !$this->io->confirm(sprintf('Do you want to install %s? %d available.', $category, count($bundles)), false)) {
+            return [];
+        }
+
+        $choices = array_keys($bundles);
+        $preselectedChoices = implode(',', array_keys(array_intersect($choices, $preselectedBundles)));
+
+        if ('' === $preselectedChoices) {
+            return $this->io->choice(sprintf('Which %s do you want to install? You can choose multiple e.g. 0,1,2,3', $category), $choices, null, true);
+        }
+
+        return $this->io->choice(sprintf('Which %s do you want to install? You can choose multiple e.g. 0,1,2,3 or just hit enter to install the preselected ones', $category), $choices, $preselectedChoices, true);
+    }
+
+    private function setBundlesToInstall(BundleSetupEvent $bundleSetupEvent, array $bundles): void
+    {
+        $this->installer->setBundlesToInstall(
+            $bundleSetupEvent->getInstallableBundles($bundles),
+            $bundleSetupEvent->getAvailableBundles(),
+            $bundleSetupEvent->getExcludeBundlesFromPhpBundles()
+        );
     }
 }

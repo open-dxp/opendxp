@@ -41,9 +41,11 @@ use OpenDxp\Bundle\TinymceBundle\OpenDxpTinymceBundle;
 use OpenDxp\Bundle\UuidBundle\OpenDxpUuidBundle;
 use OpenDxp\Bundle\WordExportBundle\OpenDxpWordExportBundle;
 use OpenDxp\Bundle\XliffBundle\OpenDxpXliffBundle;
+use OpenDxp\Composer\PackageInfo;
 use OpenDxp\Config;
 use OpenDxp\Console\Style\OpenDxpStyle;
 use OpenDxp\Db\Helper;
+use OpenDxp\Extension\Bundle\OpenDxpBundleLocator;
 use OpenDxp\Model\Tool\SettingsStore;
 use OpenDxp\Security\CorePermission;
 use OpenDxp\Security\PermissionAttribute;
@@ -53,6 +55,7 @@ use OpenDxp\Tool\Requirements;
 use OpenDxp\Tool\Requirements\Check;
 use PDO;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Symfony\Component\Cache\Adapter\DoctrineDbalAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
@@ -132,6 +135,11 @@ class Installer
      */
     private array $excludeFromBundlesPhp = [];
 
+    /**
+     * @var array<string, class-string>|null
+     */
+    private ?array $extensionBundles = null;
+
     public function setSkipDatabaseConfig(bool $skipDatabaseConfig): void
     {
         $this->skipDatabaseConfig = $skipDatabaseConfig;
@@ -163,7 +171,8 @@ class Installer
 
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly EventDispatcherInterface $eventDispatcher
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly OpenDxpBundleLocator $bundleLocator = new OpenDxpBundleLocator(new PackageInfo())
     ) {
     }
 
@@ -211,7 +220,40 @@ class Installer
 
     public function dispatchBundleSetupEvent(): BundleSetupEvent
     {
-        return $this->eventDispatcher->dispatch(new BundleSetupEvent(self::INSTALLABLE_BUNDLES, self::RECOMMENDED_BUNDLES), InstallEvents::EVENT_BUNDLE_SETUP);
+        return $this->eventDispatcher->dispatch(
+            new BundleSetupEvent(self::INSTALLABLE_BUNDLES, self::RECOMMENDED_BUNDLES, $this->findExtensionBundles()),
+            InstallEvents::EVENT_BUNDLE_SETUP
+        );
+    }
+
+    private function findExtensionBundles(): array
+    {
+        if (null !== $this->extensionBundles) {
+            return $this->extensionBundles;
+        }
+
+        $this->extensionBundles = [];
+        foreach (array_diff($this->bundleLocator->findBundles(), self::INSTALLABLE_BUNDLES) as $class) {
+            $key = (new ReflectionClass($class))->getShortName();
+            if (isset($this->extensionBundles[$key]) || isset(self::INSTALLABLE_BUNDLES[$key])) {
+                $key = $class;
+            }
+
+            $this->extensionBundles[$key] = $class;
+        }
+
+        return $this->extensionBundles;
+    }
+
+    /**
+     * @return list<class-string>
+     */
+    public function getRegisteredBundles(): array
+    {
+        $bundlesPhpFile = OPENDXP_PROJECT_ROOT . '/config/bundles.php';
+        $bundles = is_file($bundlesPhpFile) ? include $bundlesPhpFile : [];
+
+        return is_array($bundles) ? array_keys($bundles) : [];
     }
 
     public function checkPrerequisites(?Connection $db = null): array

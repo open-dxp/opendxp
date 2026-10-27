@@ -10,4 +10,8 @@ services:
 
     OpenDxp\Composer\PackageInfo: ~
 
+    OpenDxp\Extension\Bundle\OpenDxpBundleLocator:
+        arguments:
+            $paths: []
+
     OpenDxp\Bundle\InstallBundle\Installer: ~
