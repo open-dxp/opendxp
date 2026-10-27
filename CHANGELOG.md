@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.1
+- [SECURITY] A field collection or an object brick loads its definition only for a valid key
 - [ENHANCEMENT] `UrlSlugEvents::AVAILABLE_SITES` narrows the sites of a slug field for each language, or takes a language out of the field
 - [ENHANCEMENT] "Fill an empty slug" also fills the empty slug of a site, with the prefix of that site. A site whose prefix differs from the prefix of the fallback slug gets a slug of its own
 - [BUGFIX] The object editor opens when a slug generator throws an exception, and shows its message at the slug field
