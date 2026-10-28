@@ -839,6 +839,17 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     }
 
     /**
+     * Returns true when a slug of the language may lead to the object on the site. The site is null for a request
+     * without a site.
+     */
+    public function isAvailable(Concrete $object, ?string $language, ?Site $site): bool
+    {
+        $sites = $this->dispatchAvailableSites($object, $language, $site === null ? [] : [$site]);
+
+        return $sites !== null && ($site === null || $sites !== []);
+    }
+
+    /**
      * @param Site[] $sites
      *
      * @return int[]

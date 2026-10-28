@@ -234,6 +234,9 @@ The field setting "Available Sites" limits the sites an editor can add a slug fo
 `UrlSlugEvents::AVAILABLE_SITES` narrows them further for each language, or takes a language out of the field. A
 language without a slug shows a note in the object editor, and its empty fallback slug is not filled.
 
+The router asks the same listener. A stored slug of a language that is not available on the requested site is not
+found.
+
 ```php
 use OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugAvailableSitesEvent;
 

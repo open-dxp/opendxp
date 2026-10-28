@@ -15,8 +15,13 @@ declare(strict_types=1);
  */
 
 use OpenDxp\Event\UrlSlugEvents;
+use OpenDxp\Http\Request\Resolver\SiteResolver;
 use OpenDxp\Model\DataObject\Data\UrlSlug;
+use OpenDxp\Model\Site;
+use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Application\Service\AvailableSitesListener;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 /**
  * @param UrlSlug[]|null $slugs
@@ -45,5 +50,20 @@ function runWithAvailableSitesListener(AvailableSitesListener $listener, Closure
         return $action();
     } finally {
         $dispatcher->removeListener(UrlSlugEvents::AVAILABLE_SITES, $listener);
+    }
+}
+
+function findRoutedObjectId(string $path, ?Site $site = null): ?int
+{
+    $request = Request::create($path);
+
+    if ($site instanceof Site) {
+        $request->attributes->set(SiteResolver::ATTRIBUTE_SITE, $site);
+    }
+
+    try {
+        return (Container::get('router')->matchRequest($request)['object'] ?? null)?->getId();
+    } catch (ResourceNotFoundException) {
+        return null;
     }
 }

@@ -241,6 +241,25 @@ class UrlSlug implements OwnerAwareFieldInterface
      */
     public function getAction(): string
     {
+        $fd = $this->getFieldDefinition();
+
+        if (!$fd instanceof ClassDefinition\Data\UrlSlug) {
+            // slug could not be resolved which means that the data model has changed in the meantime, delete me.
+            $this->delete();
+
+            throw new Exception('Could not resolve field definition for slug: ' . $this->getSlug(). '. Remove it!');
+        }
+
+        return $fd->getAction();
+    }
+
+    /**
+     * Returns the slug field of the slug, or null when the data model no longer has that field.
+     *
+     * @internal
+     */
+    public function getFieldDefinition(): ?ClassDefinition\Data\UrlSlug
+    {
         $fd = null;
 
         $classDefinition = ClassDefinition::getById($this->getClassId());
@@ -329,14 +348,7 @@ class UrlSlug implements OwnerAwareFieldInterface
             }
         }
 
-        if (!$fd instanceof ClassDefinition\Data\UrlSlug) {
-            // slug could not be resolved which means that the data model has changed in the meantime, delete me.
-            $this->delete();
-
-            throw new Exception('Could not resolve field definition for slug: ' . $this->getSlug(). '. Remove it!');
-        }
-
-        return $fd->getAction();
+        return $fd instanceof ClassDefinition\Data\UrlSlug ? $fd : null;
     }
 
     /**
