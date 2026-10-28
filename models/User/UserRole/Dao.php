@@ -18,6 +18,7 @@ namespace OpenDxp\Model\User\UserRole;
 use Exception;
 use OpenDxp\Model;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -55,7 +56,7 @@ class Dao extends Model\User\AbstractUser\Dao
 
     public function loadWorkspaces(): void
     {
-        $types = ['asset', 'document', 'object'];
+        $types = [ElementType::Asset->value, ElementType::Document->value, ElementType::Object->value];
 
         foreach ($types as $type) {
             $workspaces = [];
@@ -76,7 +77,7 @@ class Dao extends Model\User\AbstractUser\Dao
                 $row['settings'] = (bool)$row['settings'];
                 $row['versions'] = (bool)$row['versions'];
                 $row['properties'] = (bool)$row['properties'];
-                if ($type === 'document' || $type === 'object') {
+                if ($type === ElementType::Document->value || $type === ElementType::Object->value) {
                     $row['save'] = (bool)$row['save'];
                     $row['unpublish'] = (bool)$row['unpublish'];
                 }

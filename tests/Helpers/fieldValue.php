@@ -17,6 +17,7 @@ declare(strict_types=1);
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\User;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
@@ -59,7 +60,7 @@ function linkTo(Document $target): DataObject\Data\Link
 function video(Asset $data): DataObject\Data\Video
 {
     $video = new DataObject\Data\Video();
-    $video->setType('asset');
+    $video->setType(ElementType::Asset->value);
     $video->setData($data);
     $video->setPoster(image('poster.jpg'));
     $video->setTitle('title');

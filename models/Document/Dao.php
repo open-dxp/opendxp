@@ -21,6 +21,7 @@ use Exception;
 use OpenDxp\Db\Helper;
 use OpenDxp\Logger;
 use OpenDxp\Model;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\User;
 use OpenDxp\Tool\Serialize;
 
@@ -327,7 +328,7 @@ class Dao extends Model\Element\Dao
                     $property->setCid($id);
                 }
                 $property->setName($propertyRaw['name']);
-                $property->setCtype('document');
+                $property->setCtype(ElementType::Document->value);
                 $property->setDataFromResource($propertyRaw['data']);
                 $property->setInherited(true);
                 if ($propertyRaw['cid'] == $id) {
@@ -358,7 +359,7 @@ class Dao extends Model\Element\Dao
      */
     public function deleteAllProperties(): void
     {
-        $this->db->delete('properties', ['cid' => $this->model->getId(), 'ctype' => 'document']);
+        $this->db->delete('properties', ['cid' => $this->model->getId(), 'ctype' => ElementType::Document->value]);
     }
 
     /**
@@ -489,11 +490,11 @@ class Dao extends Model\Element\Dao
      */
     public function updateLocks(): void
     {
-        $this->db->delete('tree_locks', ['id' => $this->model->getId(), 'type' => 'document']);
+        $this->db->delete('tree_locks', ['id' => $this->model->getId(), 'type' => ElementType::Document->value]);
         if ($this->model->getLocked()) {
             $this->db->insert('tree_locks', [
                 'id' => $this->model->getId(),
-                'type' => 'document',
+                'type' => ElementType::Document->value,
                 'locked' => $this->model->getLocked(),
             ]);
         }
@@ -523,7 +524,7 @@ class Dao extends Model\Element\Dao
      */
     public function isInheritingPermission(string $type, array $userIds): int
     {
-        return $this->InheritingPermission($type, $userIds, 'document');
+        return $this->InheritingPermission($type, $userIds, ElementType::Document->value);
     }
 
     /**
@@ -590,7 +591,7 @@ class Dao extends Model\Element\Dao
      */
     public function areAllowed(array $columns, User $user): array
     {
-        return $this->permissionByTypes($columns, $user, 'document');
+        return $this->permissionByTypes($columns, $user, ElementType::Document->value);
     }
 
     /**

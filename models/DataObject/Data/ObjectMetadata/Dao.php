@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Db\Helper;
 use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -31,7 +32,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
 
     protected ?array $tableDefinitions = null;
 
-    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = 'object'): void
+    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = ElementType::Object->value): void
     {
         $table = $this->getTablename($object);
 
@@ -42,7 +43,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
             'ownername' => $ownername ?: '',
             'index' => $index ?: '0',
             'position' => $position ?: '0',
-            'type' => $type ?: 'object', ];
+            'type' => $type ?: ElementType::Object->value, ];
 
         foreach ($this->model->getColumns() as $column) {
             $getter = 'get' . ucfirst($column);
@@ -59,7 +60,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
         return 'object_metadata_' . $object->getClassId();
     }
 
-    public function load(DataObject\Concrete $source, int $destinationId, string $fieldname, string $ownertype, string $ownername, string $position, int $index, string $destinationType = 'object'): ?DataObject\Data\ObjectMetadata
+    public function load(DataObject\Concrete $source, int $destinationId, string $fieldname, string $ownertype, string $ownername, string $position, int $index, string $destinationType = ElementType::Object->value): ?DataObject\Data\ObjectMetadata
     {
         $typeQuery = ' AND (`type` = "object" OR `type` = "")';
 

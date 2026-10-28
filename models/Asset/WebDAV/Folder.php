@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Tool\Admin as AdminTool;
 use Override;
 use Sabre\DAV;
@@ -68,7 +69,7 @@ class Folder extends DAV\Collection
         $asset = null;
 
         if (is_string($name)) {
-            $name = Element\Service::getValidKey(basename($name), 'asset');
+            $name = Element\Service::getValidKey(basename($name), ElementType::Asset->value);
 
             $parentPath = $this->asset->getRealFullPath();
             if ($parentPath === '/') {
@@ -114,7 +115,7 @@ class Folder extends DAV\Collection
 
         if ($this->asset->isAllowed('create')) {
             Asset::create($this->asset->getId(), [
-                'filename' => Element\Service::getValidKey($name, 'asset'),
+                'filename' => Element\Service::getValidKey($name, ElementType::Asset->value),
                 'sourcePath' => $tmpFile,
                 'userModification' => $user->getId(),
                 'userOwner' => $user->getId(),
@@ -141,7 +142,7 @@ class Folder extends DAV\Collection
 
         if ($this->asset->isAllowed('create')) {
             $asset = Asset::create($this->asset->getId(), [
-                'filename' => Element\Service::getValidKey($name, 'asset'),
+                'filename' => Element\Service::getValidKey($name, ElementType::Asset->value),
                 'type' => 'folder',
                 'userModification' => $user->getId(),
                 'userOwner' => $user->getId(),
@@ -175,7 +176,7 @@ class Folder extends DAV\Collection
     public function setName($name): static
     {
         if ($this->asset->isAllowed('rename')) {
-            $this->asset->setFilename(Element\Service::getValidKey($name, 'asset'));
+            $this->asset->setFilename(Element\Service::getValidKey($name, ElementType::Asset->value));
             $this->asset->save();
         } else {
             throw new DAV\Exception\Forbidden('Missing "rename" permission');

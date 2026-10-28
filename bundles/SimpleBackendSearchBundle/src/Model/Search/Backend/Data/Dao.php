@@ -22,6 +22,7 @@ use OpenDxp\Db\Helper;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Dao\AbstractDao;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @internal
@@ -34,11 +35,11 @@ class Dao extends AbstractDao
     {
         try {
             if ($element instanceof Model\Document) {
-                $maintype = 'document';
+                $maintype = ElementType::Document->value;
             } elseif ($element instanceof Model\Asset) {
-                $maintype = 'asset';
+                $maintype = ElementType::Asset->value;
             } elseif ($element instanceof Model\DataObject\AbstractObject) {
-                $maintype = 'object';
+                $maintype = ElementType::Object->value;
             } else {
                 throw new Exception('unknown type of element with id [ '.$element->getId().' ] ');
             }

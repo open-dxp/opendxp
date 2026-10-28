@@ -22,6 +22,7 @@ use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Logger;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -47,7 +48,7 @@ class SearchBackendReindexCommand extends AbstractCommand
         $db->executeQuery('TRUNCATE `search_backend_data`;');
 
         $elementsPerLoop = 100;
-        $types = ['asset', 'document', 'object'];
+        $types = [ElementType::Asset->value, ElementType::Document->value, ElementType::Object->value];
 
         foreach ($types as $type) {
             $baseClass = Service::getBaseClassNameForElement($type);

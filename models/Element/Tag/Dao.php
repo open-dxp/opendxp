@@ -20,6 +20,7 @@ use Doctrine\DBAL\ParameterType;
 use Exception;
 use OpenDxp\Db\Helper;
 use OpenDxp\Model;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Tag;
 
 /**
@@ -210,10 +211,12 @@ class Dao extends Model\Dao\AbstractDao
      * Retrieves all elements that have a specific tag or one of its child tags assigned
      *
      * @param Tag    $tag               The tag to search for
-     * @param string $type              The type of elements to search for: 'document', 'asset' or 'object'
+     * @param string $type              The type of elements to search for
      * @param array  $subtypes          Filter by subtypes, eg. page, object, email, folder etc.
      * @param array  $classNames        For objects only: filter by classnames
      * @param bool $considerChildTags Look for elements having one of $tag's children assigned
+     *
+     * @see ElementType
      */
     public function getElementsForTag(
         Tag $tag,
@@ -225,9 +228,9 @@ class Dao extends Model\Dao\AbstractDao
         $elements = [];
 
         $map = [
-            'document' => ['documents', \OpenDxp\Model\Document::class],
-            'asset' => ['assets', \OpenDxp\Model\Asset::class],
-            'object' => ['objects', \OpenDxp\Model\DataObject\AbstractObject::class],
+            ElementType::Document->value => ['documents', \OpenDxp\Model\Document::class],
+            ElementType::Asset->value => ['assets', \OpenDxp\Model\Asset::class],
+            ElementType::Object->value => ['objects', \OpenDxp\Model\DataObject\AbstractObject::class],
         ];
 
         $select = $this->db->createQueryBuilder()->select('*')
@@ -250,7 +253,7 @@ class Dao extends Model\Dao\AbstractDao
                    ->setParameter('subtypes', $subtypes, ArrayParameterType::STRING);
         }
 
-        if ('object' === $type && $classNames !== []) {
+        if (ElementType::Object->value === $type && $classNames !== []) {
             $select->andWhere($select->expr()->in('className', ':classNames'))
                    ->setParameter('classNames', $classNames, ArrayParameterType::STRING);
         }

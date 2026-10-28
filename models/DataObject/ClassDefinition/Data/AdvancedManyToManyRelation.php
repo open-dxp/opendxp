@@ -28,6 +28,7 @@ use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 class AdvancedManyToManyRelation extends ManyToManyRelation implements IdRewriterInterface, PreGetDataInterface, ClassSavedInterface
@@ -244,9 +245,9 @@ class AdvancedManyToManyRelation extends ManyToManyRelation implements IdRewrite
 
                 $keyCol = 'key';
                 $className = '';
-                if ($targetType === 'object') {
+                if ($targetType === ElementType::Object->value) {
                     $className = ', className';
-                } elseif ($targetType === 'asset') {
+                } elseif ($targetType === ElementType::Asset->value) {
                     $keyCol = 'filename';
                 }
 
@@ -293,14 +294,14 @@ class AdvancedManyToManyRelation extends ManyToManyRelation implements IdRewrite
                         $className = $elementData['className'];
                         $itemData = ['id' => $id, 'path' => $fullpath, 'type' => DataObject::OBJECT_TYPE_OBJECT, 'subtype' => $className];
                         /** @var DataObject\Concrete $obj */
-                        $obj = Element\Service::getElementById('object', (int) $id);
+                        $obj = Element\Service::getElementById(ElementType::Object->value, (int) $id);
                         $itemData['published'] = $obj->getPublished();
                     }
-                } elseif ($targetType === 'asset') {
-                    $itemData = ['id' => $id, 'path' => $fullpath, 'type' => 'asset', 'subtype' => $type];
-                } elseif ($targetType === 'document') {
-                    $itemData = ['id' => $id, 'path' => $fullpath, 'type' => 'document', 'subtype' => $type];
-                    $document = Element\Service::getElementById('document', (int) $id);
+                } elseif ($targetType === ElementType::Asset->value) {
+                    $itemData = ['id' => $id, 'path' => $fullpath, 'type' => ElementType::Asset->value, 'subtype' => $type];
+                } elseif ($targetType === ElementType::Document->value) {
+                    $itemData = ['id' => $id, 'path' => $fullpath, 'type' => ElementType::Document->value, 'subtype' => $type];
+                    $document = Element\Service::getElementById(ElementType::Document->value, (int) $id);
                     if (method_exists($document, 'getPublished')) {
                         $itemData['published'] = $document->getPublished();
                     }
@@ -346,11 +347,11 @@ class AdvancedManyToManyRelation extends ManyToManyRelation implements IdRewrite
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $element) {
                 $e = null;
-                if ($element['type'] === 'object') {
+                if ($element['type'] === ElementType::Object->value) {
                     $e = DataObject::getById((int) $element['id']);
-                } elseif ($element['type'] === 'asset') {
+                } elseif ($element['type'] === ElementType::Asset->value) {
                     $e = Asset::getById((int) $element['id']);
-                } elseif ($element['type'] === 'document') {
+                } elseif ($element['type'] === ElementType::Document->value) {
                     $e = Document::getById((int) $element['id']);
                 }
 

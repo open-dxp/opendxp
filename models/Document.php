@@ -29,6 +29,7 @@ use OpenDxp\Model\Document\Hardlink\Wrapper\WrapperInterface;
 use OpenDxp\Model\Document\Listing;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Exception\NotFoundException;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Frontend as FrontendTool;
@@ -407,7 +408,7 @@ class Document extends Element\AbstractElement
         // set path
         if ($this->getId() != 1) { // not for the root node
             // check for a valid key, home has no key, so omit the check
-            if (!Element\Service::isValidKey($this->getKey(), 'document')) {
+            if (!Element\Service::isValidKey($this->getKey(), ElementType::Document->value)) {
                 throw new Exception(sprintf(
                     '%s cannot be saved. The key "%s" is invalid.',
                     Element\Service::getMessageSubject($this),
@@ -506,7 +507,7 @@ class Document extends Element\AbstractElement
                 if (!$property->getInherited()) {
                     $property->setDao(null);
                     $property->setCid($this->getId());
-                    $property->setCtype('document');
+                    $property->setCtype(ElementType::Document->value);
                     $property->setCpath($this->getRealFullPath());
                     $property->save();
                 }

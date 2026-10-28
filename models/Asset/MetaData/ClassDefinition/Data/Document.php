@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Model\Asset\MetaData\ClassDefinition\Data;
 
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Override;
 
@@ -25,7 +26,7 @@ class Document extends Data
     {
         $element = $value;
         if (is_string($value)) {
-            $element = Service::getElementByPath('document', $value);
+            $element = Service::getElementByPath(ElementType::Document->value, $value);
         }
         if ($element instanceof \OpenDxp\Model\Document) {
             return $element->getId();
@@ -37,7 +38,7 @@ class Document extends Data
     public function denormalize(mixed $value, array $params = []): mixed
     {
         if (is_numeric($value)) {
-            return Service::getElementById('document', (int) $value);
+            return Service::getElementById(ElementType::Document->value, (int) $value);
         }
 
         return null;
@@ -47,7 +48,7 @@ class Document extends Data
     public function transformGetterData(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            return \OpenDxp\Model\Document\Service::getElementById('document', (int) $data);
+            return \OpenDxp\Model\Document\Service::getElementById(ElementType::Document->value, (int) $data);
         }
 
         return $data;
@@ -68,7 +69,7 @@ class Document extends Data
     {
         $element = $data;
         if (is_string($data)) {
-            $element = Service::getElementByPath('document', $data);
+            $element = Service::getElementByPath(ElementType::Document->value, $data);
         }
         if ($element instanceof \OpenDxp\Model\Document) {
             return $element->getId();
@@ -91,7 +92,7 @@ class Document extends Data
     public function getDataForEditMode(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            $data = Service::getElementById('document', (int) $data);
+            $data = Service::getElementById(ElementType::Document->value, (int) $data);
         }
         if ($data instanceof \OpenDxp\Model\Document) {
             return $data->getRealFullPath();

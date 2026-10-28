@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\CoreBundle\Command;
 
 use InvalidArgumentException;
 use OpenDxp\Cache\Tool\Warming;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Console\AbstractCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,9 +35,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CacheWarmingCommand extends AbstractCommand
 {
     protected array $validTypes = [
-        'document',
-        'asset',
-        'object',
+        ElementType::Document->value,
+        ElementType::Asset->value,
+        ElementType::Object->value,
     ];
 
     protected array $validDocumentTypes = [
@@ -119,19 +120,19 @@ class CacheWarmingCommand extends AbstractCommand
             return 1;
         }
 
-        if (in_array('document', $types)) {
-            $this->writeWarmingMessage('document', $documentTypes);
+        if (in_array(ElementType::Document->value, $types)) {
+            $this->writeWarmingMessage(ElementType::Document->value, $documentTypes);
             Warming::documents($documentTypes);
         }
 
-        if (in_array('asset', $types)) {
-            $this->writeWarmingMessage('asset', $assetTypes);
+        if (in_array(ElementType::Asset->value, $types)) {
+            $this->writeWarmingMessage(ElementType::Asset->value, $assetTypes);
             Warming::assets($assetTypes);
         }
 
-        if (in_array('object', $types)) {
+        if (in_array(ElementType::Object->value, $types)) {
             $extraInfo = count($objectClasses) ? ' from class: ' . implode(',', $objectClasses) : '';
-            $this->writeWarmingMessage('object', $objectTypes, $extraInfo);
+            $this->writeWarmingMessage(ElementType::Object->value, $objectTypes, $extraInfo);
             Warming::objects($objectTypes, $objectClasses);
         }
 

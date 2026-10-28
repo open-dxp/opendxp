@@ -24,6 +24,7 @@ use OpenDxp\Logger;
 use OpenDxp\Messenger\SanityCheckMessage;
 use OpenDxp\Model;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
 
 /**
@@ -69,7 +70,7 @@ class Dao extends Model\Dao\AbstractDao
 
         $sourceId = (int)$this->model->getSourceId();
 
-        if (in_array($this->model->getSourceType(), ['object', 'document', 'asset'])) {
+        if (in_array($this->model->getSourceType(), ElementType::values(), true)) {
             $sourceType = $this->model->getSourceType();
         } else {
             throw new SuspiciousOperationException('Illegal source type ' . $this->model->getSourceType());
@@ -142,7 +143,7 @@ class Dao extends Model\Dao\AbstractDao
 
         $targetId = (int)$this->model->getSourceId();
 
-        if (in_array($this->model->getSourceType(), ['object', 'document', 'asset'])) {
+        if (in_array($this->model->getSourceType(), ElementType::values(), true)) {
             $targetType = $this->model->getSourceType();
         } else {
             throw new SuspiciousOperationException('Illegal source type ' . $this->model->getSourceType());
@@ -351,7 +352,7 @@ class Dao extends Model\Dao\AbstractDao
     {
         $targetId = $this->model->getSourceId();
 
-        if (in_array($this->model->getSourceType(), ['object', 'document', 'asset'])) {
+        if (in_array($this->model->getSourceType(), ElementType::values(), true)) {
             $targetType = $this->model->getSourceType();
         } else {
             throw new SuspiciousOperationException('Illegal source type ' . $this->model->getSourceType());

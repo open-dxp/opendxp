@@ -21,6 +21,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
 use Override;
@@ -134,7 +135,7 @@ class Video extends Data implements
         if ($data) {
             $raw = Serialize::unserialize($data);
 
-            if ($raw['type'] === 'asset' && $asset = Asset::getById((int) $raw['data'])) {
+            if ($raw['type'] === ElementType::Asset->value && $asset = Asset::getById((int) $raw['data'])) {
                 $raw['data'] = $asset;
             }
 
@@ -197,7 +198,7 @@ class Video extends Data implements
     {
         $video = null;
 
-        if (isset($data['type']) && $data['type'] === 'asset') {
+        if (isset($data['type']) && $data['type'] === ElementType::Asset->value) {
             $data['data'] = Asset::getByPath($data['data']);
         }
 
@@ -242,7 +243,7 @@ class Video extends Data implements
     #[Override]
     public function getVersionPreview(mixed $data, ?DataObject\Concrete $object = null, array $params = []): string
     {
-        if ($data && $data->getType() === 'asset' && $data->getData() instanceof Asset) {
+        if ($data && $data->getType() === ElementType::Asset->value && $data->getData() instanceof Asset) {
             return '<img src="/admin/asset/get-video-thumbnail?id=' . $data->getData()->getId() . '&width=100&height=100&aspectratio=true" />';
         }
 
@@ -312,14 +313,14 @@ class Video extends Data implements
         if ($data && $data->getData() instanceof Asset) {
             $dependencies['asset_' . $data->getData()->getId()] = [
                 'id' => $data->getData()->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 
         if ($data && $data->getPoster() instanceof Asset) {
             $dependencies['asset_' . $data->getPoster()->getId()] = [
                 'id' => $data->getPoster()->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 
@@ -430,7 +431,7 @@ class Video extends Data implements
 
             $data = $value->getData();
 
-            if ($data && $value->getType() === 'asset') {
+            if ($data && $value->getType() === ElementType::Asset->value) {
                 $result['data'] = [
                     'type' => Model\Element\Service::getElementType($data),
                     'id' => $data->getId(),

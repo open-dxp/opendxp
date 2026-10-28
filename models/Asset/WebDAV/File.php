@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\File as FileHelper;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Tool\Admin as AdminTool;
 use Override;
 use Sabre\DAV;
@@ -52,7 +53,7 @@ class File extends DAV\File
             $user = AdminTool::getCurrentUser();
             $this->asset->setUserModification($user->getId());
 
-            $this->asset->setFilename(Element\Service::getValidKey($name, 'asset'));
+            $this->asset->setFilename(Element\Service::getValidKey($name, ElementType::Asset->value));
             $this->asset->save();
         } else {
             throw new DAV\Exception\Forbidden();

@@ -46,6 +46,7 @@ use OpenDxp\Model\Asset\MetaData\ClassDefinition\Data\Data;
 use OpenDxp\Model\Asset\MetaData\ClassDefinition\Data\DataDefinitionInterface;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Element\Traits\ScheduledTasksTrait;
 use OpenDxp\Model\Element\ValidationException;
@@ -634,7 +635,7 @@ class Asset extends Element\AbstractElement
     {
         // set path
         if ($this->getId() != 1) { // not for the root node
-            if (!Element\Service::isValidKey($this->getKey(), 'asset')) {
+            if (!Element\Service::isValidKey($this->getKey(), ElementType::Asset->value)) {
                 throw new Exception(sprintf(
                     '%s cannot be saved. The filename "%s" is invalid.',
                     Element\Service::getMessageSubject($this),
@@ -799,7 +800,7 @@ class Asset extends Element\AbstractElement
                 if (!$property->getInherited()) {
                     $property->setDao(null);
                     $property->setCid($this->getId());
-                    $property->setCtype('asset');
+                    $property->setCtype(ElementType::Asset->value);
                     $property->setCpath($this->getRealFullPath());
                     $property->save();
                 }

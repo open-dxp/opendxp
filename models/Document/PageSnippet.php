@@ -27,6 +27,7 @@ use OpenDxp\Messenger\VersionDeleteMessage;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Editable\Loader\EditableLoaderInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\SystemSettingsConfig;
 use OpenDxp\Tool;
 use Override;
@@ -251,7 +252,7 @@ abstract class PageSnippet extends Model\Document
             $dependencies[] = [
                 'document_' . $mainDocumentId => [
                     'id' => $mainDocumentId,
-                    'type' => 'document',
+                    'type' => ElementType::Document->value,
                 ],
             ];
         }

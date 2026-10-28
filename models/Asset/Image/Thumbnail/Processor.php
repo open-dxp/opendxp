@@ -26,6 +26,7 @@ use OpenDxp\Image\Adapter;
 use OpenDxp\Logger;
 use OpenDxp\Messenger\OptimizeImageMessage;
 use OpenDxp\Model\Asset;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Tool\TmpStore;
 use OpenDxp\Tool\Storage;
 use Symfony\Component\Lock\LockFactory;
@@ -133,7 +134,7 @@ class Processor
             ) {
                 return [
                     'src' => $asset->getRealFullPath(),
-                    'type' => 'asset',
+                    'type' => ElementType::Asset->value,
                 ];
             }
         } elseif ($format === 'tiff') {

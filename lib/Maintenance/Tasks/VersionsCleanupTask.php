@@ -22,6 +22,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Version;
 use OpenDxp\SystemSettingsConfig;
 use Psr\Log\LoggerInterface;
@@ -65,9 +66,9 @@ class VersionsCleanupTask implements TaskInterface
     {
         $systemSettingsConfig = $this->config->getSystemSettingsConfig();
         $conf = [
-            'document' => $systemSettingsConfig['documents']['versions'] ?? null,
-            'asset' => $systemSettingsConfig['assets']['versions'] ?? null,
-            'object' => $systemSettingsConfig['objects']['versions'] ?? null,
+            ElementType::Document->value => $systemSettingsConfig['documents']['versions'] ?? null,
+            ElementType::Asset->value => $systemSettingsConfig['assets']['versions'] ?? null,
+            ElementType::Object->value => $systemSettingsConfig['objects']['versions'] ?? null,
         ];
 
         $elementTypes = [];
@@ -140,11 +141,11 @@ class VersionsCleanupTask implements TaskInterface
 
                 $element = null;
 
-                if ($version->getCtype() === 'document') {
+                if ($version->getCtype() === ElementType::Document->value) {
                     $element = Document::getById($version->getCid());
-                } elseif ($version->getCtype() === 'asset') {
+                } elseif ($version->getCtype() === ElementType::Asset->value) {
                     $element = Asset::getById($version->getCid());
-                } elseif ($version->getCtype() === 'object') {
+                } elseif ($version->getCtype() === ElementType::Object->value) {
                     $element = DataObject::getById($version->getCid());
                 }
 

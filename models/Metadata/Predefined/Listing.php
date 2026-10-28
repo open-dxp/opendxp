@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Metadata\Predefined;
 
 use Exception;
 use OpenDxp\Model\AbstractModel;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Listing\CallableFilterListingInterface;
 use OpenDxp\Model\Listing\CallableOrderListingInterface;
 use OpenDxp\Model\Listing\Traits\FilterListingTrait;
@@ -70,7 +71,7 @@ class Listing extends AbstractModel implements CallableFilterListingInterface, C
      */
     public static function getByTargetType(string $type, array|string|null $subTypes = null): ?array
     {
-        if ($type !== 'asset') {
+        if ($type !== ElementType::Asset->value) {
             throw new Exception('other types than assets are currently not supported');
         }
 

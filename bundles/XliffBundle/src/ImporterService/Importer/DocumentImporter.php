@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\XliffBundle\ImporterService\Importer;
 use OpenDxp\Bundle\XliffBundle\AttributeSet\Attribute;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 class DocumentImporter extends AbstractElementImporter
@@ -50,7 +51,7 @@ class DocumentImporter extends AbstractElementImporter
             $setter = 'set' . ucfirst($attribute->getName());
             if (method_exists($element, $setter)) {
                 $content = $attribute->getContent();
-                $content = $attribute->getType() === Attribute::TYPE_ELEMENT_KEY ? Element\Service::getValidKey($content, 'document') : $content;
+                $content = $attribute->getType() === Attribute::TYPE_ELEMENT_KEY ? Element\Service::getValidKey($content, ElementType::Document->value) : $content;
 
                 $element->$setter($content);
             }

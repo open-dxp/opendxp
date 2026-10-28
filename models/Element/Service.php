@@ -254,9 +254,9 @@ class Service extends Model\AbstractModel
     private static function getDependedElement(array $config): Asset|Document|AbstractObject|null
     {
         return match ($config['type']) {
-            'asset' => Asset::getById((int) $config['id']),
-            'object' => DataObject::getById((int) $config['id']),
-            'document' => Document::getById((int) $config['id']),
+            ElementType::Asset->value => Asset::getById((int) $config['id']),
+            ElementType::Object->value => DataObject::getById((int) $config['id']),
+            ElementType::Document->value => Document::getById((int) $config['id']),
             default => null,
         };
     }
@@ -306,7 +306,7 @@ class Service extends Model\AbstractModel
                 $elementId = null;
                 if ($advancedElement instanceof DataObject\Data\ObjectMetadata) {
                     $elementId = $advancedElement->getObjectId();
-                    $elementType = 'object';
+                    $elementType = ElementType::Object->value;
                 } else {
                     $elementId = $advancedElement->getElementId();
                     $elementType = $advancedElement->getElementType();
@@ -315,7 +315,7 @@ class Service extends Model\AbstractModel
                 if (!$elementId) {
                     continue;
                 }
-                if ($elementType === 'asset') {
+                if ($elementType === ElementType::Asset->value) {
                     // there is no published flag for assets
                     continue;
                 }
@@ -340,13 +340,13 @@ class Service extends Model\AbstractModel
                 $elementId = null;
                 if ($advancedElement instanceof DataObject\Data\ObjectMetadata) {
                     $elementId = $advancedElement->getObjectId();
-                    $elementType = 'object';
+                    $elementType = ElementType::Object->value;
                 } else {
                     $elementId = $advancedElement->getElementId();
                     $elementType = $advancedElement->getElementType();
                 }
 
-                if ($elementType === 'asset') {
+                if ($elementType === ElementType::Asset->value) {
                     $publishedList[] = $advancedElement;
                 }
 
@@ -364,9 +364,9 @@ class Service extends Model\AbstractModel
     public static function getElementByPath(string $type, string $path): ?ElementInterface
     {
         return match ($type) {
-            'asset' => Asset::getByPath($path),
-            'object' => DataObject::getByPath($path),
-            'document' => Document::getByPath($path),
+            ElementType::Asset->value => Asset::getByPath($path),
+            ElementType::Object->value => DataObject::getByPath($path),
+            ElementType::Document->value => Document::getByPath($path),
             default => null,
         };
     }
@@ -379,7 +379,7 @@ class Service extends Model\AbstractModel
     public static function getBaseClassNameForElement(string|ElementInterface $element): string
     {
         $elementType = $element instanceof ElementInterface ? self::getElementType($element) : $element;
-        if ($elementType === 'object') {
+        if ($elementType === ElementType::Object->value) {
             return 'DataObject';
         }
 
@@ -396,7 +396,7 @@ class Service extends Model\AbstractModel
             // only for assets: add the prefix _copy before the file extension (if exist)
             // not after to that source.jpg will be source_copy.jpg and not source.jpg_copy
             $fileExtension = '';
-            if ($type === 'asset' && $fileExtension = pathinfo($sourceKey, PATHINFO_EXTENSION)) {
+            if ($type === ElementType::Asset->value && $fileExtension = pathinfo($sourceKey, PATHINFO_EXTENSION)) {
                 // temporary remove file extension from sourceKey
                 $sourceKey = preg_replace('/\.' . $fileExtension . '$/i', '', $sourceKey);
             }
@@ -428,9 +428,9 @@ class Service extends Model\AbstractModel
     public static function pathExists(string $path, ?string $type = null): bool
     {
         return match ($type) {
-            'asset' => Asset\Service::pathExists($path),
-            'object' => DataObject\Service::pathExists($path),
-            'document' => Document\Service::pathExists($path),
+            ElementType::Asset->value => Asset\Service::pathExists($path),
+            ElementType::Object->value => DataObject\Service::pathExists($path),
+            ElementType::Document->value => Document\Service::pathExists($path),
             default => false,
         };
     }
@@ -440,9 +440,9 @@ class Service extends Model\AbstractModel
         $params = self::prepareGetByIdParams($params);
 
         return match ($type) {
-            'asset' => Asset::getById($id, $params),
-            'object' => DataObject::getById($id, $params),
-            'document' => Document::getById($id, $params),
+            ElementType::Asset->value => Asset::getById($id, $params),
+            ElementType::Object->value => DataObject::getById($id, $params),
+            ElementType::Document->value => Document::getById($id, $params),
             default => null,
         };
     }
@@ -487,8 +487,10 @@ class Service extends Model\AbstractModel
      *
      * @internal
      *
-     * @param 'asset'|'document'|'object' $type
+     * @param string $type
      * @param int[] $ids
+     *
+     * @see ElementType
      */
     public static function prefetchElementsByIds(string $type, array $ids): void
     {
@@ -513,8 +515,10 @@ class Service extends Model\AbstractModel
      *
      * @internal
      *
-     * @param 'asset'|'document'|'object' $type
+     * @param string $type
      * @param int[] $ids
+     *
+     * @see ElementType
      */
     public static function invalidatePrefetchedElementsByIds(string $type, array $ids): void
     {
@@ -529,9 +533,9 @@ class Service extends Model\AbstractModel
     public static function getElementType(ElementInterface $element): ?string
     {
         return match (true) {
-            $element instanceof Asset => 'asset',
-            $element instanceof Document => 'document',
-            $element instanceof DataObject\AbstractObject => 'object',
+            $element instanceof Asset => ElementType::Asset->value,
+            $element instanceof Document => ElementType::Document->value,
+            $element instanceof DataObject\AbstractObject => ElementType::Object->value,
             default => null,
         };
     }
@@ -562,9 +566,9 @@ class Service extends Model\AbstractModel
         $className = trim($className, '\\');
 
         return match (true) {
-            is_a($className, Asset::class, true) => 'asset',
-            is_a($className, Document::class, true) => 'document',
-            is_a($className, AbstractObject::class, true) => 'object',
+            is_a($className, Asset::class, true) => ElementType::Asset->value,
+            is_a($className, Document::class, true) => ElementType::Document->value,
+            is_a($className, AbstractObject::class, true) => ElementType::Object->value,
             default => null,
         };
     }
@@ -1029,12 +1033,12 @@ class Service extends Model\AbstractModel
         // replace slashes with a hyphen
         $key = str_replace('/', '-', $key);
 
-        if ($type === 'object') {
+        if ($type === ElementType::Object->value) {
             $key = preg_replace('/[<>]/', '-', $key);
-        } elseif ($type === 'document') {
+        } elseif ($type === ElementType::Document->value) {
             // replace URL reserved characters with a hyphen
             $key = preg_replace('/[#?*:\\\\<>|"%&@=;+]/', '-', $key);
-        } elseif ($type === 'asset') {
+        } elseif ($type === ElementType::Asset->value) {
             // keys shouldn't start with a "." (=hidden file) *nix operating systems
             // keys shouldn't end with a "." - Windows issue: filesystem API trims automatically . at the end of a folder name (no warning ... et al)
             $key = trim($key, '. ');
@@ -1267,7 +1271,7 @@ class Service extends Model\AbstractModel
             $type = $d['type'];
             $data = $d['data'];
 
-            if (in_array($type, ['document', 'object', 'asset'])) {
+            if (in_array($type, ElementType::values(), true)) {
                 if ($d['data'] instanceof ElementInterface) {
                     $data = [
                         'id' => $d['data']->getId(),

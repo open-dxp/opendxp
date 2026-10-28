@@ -39,6 +39,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\DynamicOptionsProvider\SelectOption
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\DirtyIndicatorInterface;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Admin as AdminTool;
 use Override;
@@ -660,12 +661,12 @@ class Service extends Model\Element\Service
             $pathElements = explode('/', $path);
             $keyIdx = count($pathElements) - 1;
             $key = $pathElements[$keyIdx];
-            $validKey = Element\Service::getValidKey($key, 'object');
+            $validKey = Element\Service::getValidKey($key, ElementType::Object->value);
 
             unset($pathElements[$keyIdx]);
             $pathOnly = implode('/', $pathElements);
 
-            if ($validKey === $key && self::isValidPath($pathOnly, 'object')) {
+            if ($validKey === $key && self::isValidPath($pathOnly, ElementType::Object->value)) {
                 $object->getDao()->getByPath($path);
 
                 return true;
@@ -1114,7 +1115,7 @@ class Service extends Model\Element\Service
         $list = new Listing();
         $list->setUnpublished(true);
         $list->setObjectTypes(DataObject::$types);
-        $key = Element\Service::getValidKey($element->getKey(), 'object');
+        $key = Element\Service::getValidKey($element->getKey(), ElementType::Object->value);
         if (!$key) {
             throw new Exception('No item key set.');
         }

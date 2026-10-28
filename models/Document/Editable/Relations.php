@@ -22,6 +22,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -90,9 +91,9 @@ class Relations extends Model\Document\Editable implements Iterator, IdRewriterI
             } elseif ($element instanceof DataObject\AbstractObject) {
                 $return[] = [$element->getId(), $element->getRealFullPath(), DataObject::OBJECT_TYPE_OBJECT, DataObject::OBJECT_TYPE_FOLDER];
             } elseif ($element instanceof Asset) {
-                $return[] = [$element->getId(), $element->getRealFullPath(), 'asset', $element->getType()];
+                $return[] = [$element->getId(), $element->getRealFullPath(), ElementType::Asset->value, $element->getType()];
             } elseif ($element instanceof Document) {
-                $return[] = [$element->getId(), $element->getRealFullPath(), 'document', $element->getType()];
+                $return[] = [$element->getId(), $element->getRealFullPath(), ElementType::Document->value, $element->getType()];
             }
         }
 

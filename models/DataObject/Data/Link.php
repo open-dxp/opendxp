@@ -24,6 +24,7 @@ use OpenDxp\Model\DataObject\Traits\ObjectVarTrait;
 use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Stringable;
 
@@ -303,15 +304,15 @@ class Link implements OwnerAwareFieldInterface, Stringable
             if (!$matchedElement) {
                 if ($document = Document::getByPath($path)) {
                     $this->linktype = 'internal';
-                    $this->internalType = 'document';
+                    $this->internalType = ElementType::Document->value;
                     $this->internal = $document->getId();
                 } elseif ($asset = Asset::getByPath($path)) {
                     $this->linktype = 'internal';
-                    $this->internalType = 'asset';
+                    $this->internalType = ElementType::Asset->value;
                     $this->internal = $asset->getId();
                 } elseif ($object = Concrete::getByPath($path)) {
                     $this->linktype = 'internal';
-                    $this->internalType = 'object';
+                    $this->internalType = ElementType::Object->value;
                     $this->internal = $object->getId();
                 } else {
                     $this->linktype = 'direct';
@@ -374,11 +375,11 @@ class Link implements OwnerAwareFieldInterface, Stringable
         $element = null;
 
         if ($this->internal !== null) {
-            if ($this->internalType === 'document') {
+            if ($this->internalType === ElementType::Document->value) {
                 $element = Document::getById($this->internal);
-            } elseif ($this->internalType === 'asset') {
+            } elseif ($this->internalType === ElementType::Asset->value) {
                 $element = Asset::getById($this->internal);
-            } elseif ($this->internalType === 'object') {
+            } elseif ($this->internalType === ElementType::Object->value) {
                 $element = Concrete::getById($this->internal);
             }
         }

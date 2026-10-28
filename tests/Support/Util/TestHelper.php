@@ -30,6 +30,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Tag;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Model\Property;
@@ -708,9 +709,9 @@ class TestHelper
     public static function assignTag(Tag $tag, ElementInterface $element): void
     {
         Tag::addTagToElement(match (true) {
-            $element instanceof Asset => 'asset',
-            $element instanceof Document => 'document',
-            $element instanceof DataObject => 'object',
+            $element instanceof Asset => ElementType::Asset->value,
+            $element instanceof Document => ElementType::Document->value,
+            $element instanceof DataObject => ElementType::Object->value,
         }, $element->getId(), $tag);
     }
 
@@ -748,17 +749,17 @@ class TestHelper
 
         try {
             if ($cleanObjects) {
-                static::cleanUpTree(DataObject::getById(1), 'object');
+                static::cleanUpTree(DataObject::getById(1), ElementType::Object->value);
                 codecept_debug(sprintf('Number of objects is: %d', static::getObjectCount()));
             }
 
             if ($cleanAssets) {
-                static::cleanUpTree(Asset::getById(1), 'asset');
+                static::cleanUpTree(Asset::getById(1), ElementType::Asset->value);
                 codecept_debug(sprintf('Number of assets is: %d', static::getAssetCount()));
             }
 
             if ($cleanDocuments) {
-                static::cleanUpTree(Document::getById(1), 'document');
+                static::cleanUpTree(Document::getById(1), ElementType::Document->value);
                 codecept_debug(sprintf('Number of documents is: %d', static::getDocumentCount()));
             }
 

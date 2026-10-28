@@ -22,6 +22,7 @@ use OpenDxp\Bundle\ApplicationLoggerBundle\ApplicationLogger;
 use OpenDxp\Bundle\ApplicationLoggerBundle\FileObject;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\AbstractObject;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Document;
 
 /**
@@ -74,13 +75,13 @@ class ApplicationLoggerProcessor
 
         if ($relatedObject instanceof AbstractObject) {
             $relatedObject = $relatedObject->getId();
-            $relatedObjectType = 'object';
+            $relatedObjectType = ElementType::Object->value;
         } elseif ($relatedObject instanceof Asset) {
             $relatedObject = $relatedObject->getId();
-            $relatedObjectType = 'asset';
+            $relatedObjectType = ElementType::Asset->value;
         } elseif ($relatedObject instanceof Document) {
             $relatedObject = $relatedObject->getId();
-            $relatedObjectType = 'document';
+            $relatedObjectType = ElementType::Document->value;
         }
 
         $context['relatedObject'] = $relatedObject;

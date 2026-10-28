@@ -20,6 +20,7 @@ use OpenDxp\Bundle\GenericExecutionEngineBundle\Model\JobStep;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Repository\JobRunRepositoryInterface;
 use OpenDxp\Bundle\GenericExecutionEngineBundle\Utils\Enums\SelectionProcessingMode;
 use OpenDxp\Model\Element\ElementDescriptor;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Application\GenericExecutionEngine\CountStepsMessage;
 use OpenDxp\Tests\Application\GenericExecutionEngine\NoteElementMessage;
@@ -33,7 +34,7 @@ function createJob(array $elementIds, array $steps): Job
     return new Job(
         'note-elements',
         $steps,
-        array_map(static fn (int $id): ElementDescriptor => new ElementDescriptor('object', $id), $elementIds),
+        array_map(static fn (int $id): ElementDescriptor => new ElementDescriptor(ElementType::Object->value, $id), $elementIds),
     );
 }
 

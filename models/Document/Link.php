@@ -22,6 +22,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -271,7 +272,7 @@ class Link extends Model\Document
     {
         try {
             if ($this->internal) {
-                if ($this->internalType === 'document') {
+                if ($this->internalType === ElementType::Document->value) {
 
                     if ($this->getId() === $this->internal) {
                         throw new Exception(
@@ -280,9 +281,9 @@ class Link extends Model\Document
                     }
 
                     $this->object = Document::getById($this->internal);
-                } elseif ($this->internalType === 'asset') {
+                } elseif ($this->internalType === ElementType::Asset->value) {
                     $this->object = Asset::getById($this->internal);
-                } elseif ($this->internalType === 'object') {
+                } elseif ($this->internalType === ElementType::Object->value) {
                     $this->object = Model\DataObject\Concrete::getById($this->internal);
                 }
             }

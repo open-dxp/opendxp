@@ -19,6 +19,7 @@ namespace OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data\Lis
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\Model\Search\Backend\Data;
 use OpenDxp\Logger;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Listing\Dao\AbstractDao;
 use Override;
@@ -43,7 +44,7 @@ class Dao extends AbstractDao
         );
 
         foreach ($data as $entryData) {
-            if (!in_array($entryData['maintype'], ['document', 'asset', 'object'], true)) {
+            if (!in_array($entryData['maintype'], ElementType::values(), true)) {
                 Logger::err('unknown maintype');
             }
 

@@ -19,6 +19,7 @@ namespace OpenDxp\Workflow\Notification;
 use Exception;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\User;
 use OpenDxp\Tool;
 use OpenDxp\Workflow\EventSubscriber\NotificationSubscriber;
@@ -54,13 +55,13 @@ class NotificationEmailService extends AbstractNotificationService
             $hostUrl = Tool::getHostUrl();
             if ($hostUrl !== '') {
                 // Decide what kind of link to create
-                $objectType = $type = 'object';
+                $objectType = $type = ElementType::Object->value;
                 if ($subject instanceof \OpenDxp\Model\Document) {
-                    $objectType = 'document';
+                    $objectType = ElementType::Document->value;
                     $type = $subject->getType();
                 }
                 if ($subject instanceof \OpenDxp\Model\Asset) {
-                    $objectType = 'asset';
+                    $objectType = ElementType::Asset->value;
                     $type = $subject->getType();
                 }
 

@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
 use Override;
@@ -158,7 +159,7 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
     {
         if ($data instanceof DataObject\Data\Link) {
             if ((int)$data->getInternal() > 0) {
-                if ($data->getInternalType() === 'document') {
+                if ($data->getInternalType() === ElementType::Document->value) {
                     $doc = Document::getById($data->getInternal());
                     if (!$doc instanceof Document) {
                         if (isset($params['resetInvalidFields']) && $params['resetInvalidFields']) {
@@ -168,7 +169,7 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
                             throw new Element\ValidationException('invalid internal link, referenced document with id [' . $data->getInternal() . '] does not exist');
                         }
                     }
-                } elseif ($data->getInternalType() === 'asset') {
+                } elseif ($data->getInternalType() === ElementType::Asset->value) {
                     $asset = Asset::getById($data->getInternal());
                     if (!$asset instanceof Asset) {
                         if (isset($params['resetInvalidFields']) && $params['resetInvalidFields']) {
@@ -191,30 +192,30 @@ class Link extends Data implements ResourcePersistenceAwareInterface, QueryResou
         $dependencies = [];
 
         if ($data instanceof DataObject\Data\Link && $data->getInternal() && (int) $data->getInternal() > 0) {
-            if ($data->getInternalType() === 'document') {
+            if ($data->getInternalType() === ElementType::Document->value) {
                 if ($doc = Document::getById($data->getInternal())) {
                     $key = 'document_' . $doc->getId();
                     $dependencies[$key] = [
                         'id' => $doc->getId(),
-                        'type' => 'document',
+                        'type' => ElementType::Document->value,
                     ];
                 }
-            } elseif ($data->getInternalType() === 'asset') {
+            } elseif ($data->getInternalType() === ElementType::Asset->value) {
                 if ($asset = Asset::getById($data->getInternal())) {
                     $key = 'asset_' . $asset->getId();
 
                     $dependencies[$key] = [
                         'id' => $asset->getId(),
-                        'type' => 'asset',
+                        'type' => ElementType::Asset->value,
                     ];
                 }
-            } elseif ($data->getInternalType() === 'object') {
+            } elseif ($data->getInternalType() === ElementType::Object->value) {
                 if ($object = DataObject\Concrete::getById($data->getInternal())) {
                     $key = 'object_' . $object->getId();
 
                     $dependencies[$key] = [
                         'id' => $object->getId(),
-                        'type' => 'object',
+                        'type' => ElementType::Object->value,
                     ];
                 }
             }

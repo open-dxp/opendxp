@@ -20,6 +20,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementDescriptor;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -145,7 +146,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
                                 $metaData = get_object_vars($metaData);
                             }
 
-                            if (in_array($metaData['type'], ['object', 'asset', 'document'])
+                            if (in_array($metaData['type'], ElementType::values(), true)
                             && $el = Element\Service::getElementById($metaData['type'], (int) $metaData['value'])) {
                                 $metaData['value'] = $el;
                             }
@@ -299,7 +300,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
                 if (array_key_exists('data', $element) && is_array($element['data']) && count($element['data']) > 0) {
                     foreach ($element['data'] as &$metaData) {
                         $metaData = new Element\Data\MarkerHotspotItem($metaData);
-                        if (in_array($metaData['type'], ['object', 'asset', 'document'])) {
+                        if (in_array($metaData['type'], ElementType::values(), true)) {
                             $el = Element\Service::getElementByPath($metaData['type'], $metaData->getValue());
                             $metaData['value'] = $el;
                         }
@@ -496,7 +497,7 @@ class Image extends Model\Document\Editable implements IdRewriterInterface, Edit
 
             $dependencies[$key] = [
                 'id' => $image->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 

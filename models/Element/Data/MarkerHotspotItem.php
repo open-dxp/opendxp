@@ -18,6 +18,7 @@ namespace OpenDxp\Model\Element\Data;
 
 use ArrayAccess;
 use OpenDxp\Model;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @internal
@@ -84,7 +85,7 @@ class MarkerHotspotItem implements ArrayAccess
     public function offsetGet($offset): mixed
     {
         if ($this->offsetExists($offset)) {
-            if ($offset === 'value' && in_array($this->type, ['object', 'asset', 'document']) && $this->value) {
+            if ($offset === 'value' && in_array($this->type, ElementType::values(), true) && $this->value) {
                 return Model\Element\Service::getElementById($this->type, (int) $this->value);
             }
 
