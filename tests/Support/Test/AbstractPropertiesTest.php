@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Support\Test;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Tests\Support\Helper\Element\PropertiesTestHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
@@ -108,7 +109,7 @@ abstract class AbstractPropertiesTest extends ModelTestCase
         $asset = TestHelper::createImageAsset();
 
         $this->createElement();
-        $this->testElement->setProperty('assetProperty', 'asset', $asset);
+        $this->testElement->setProperty('assetProperty', PropertyType::Asset->value, $asset);
         $this->testElement->save();
         $this->reloadElement();
 

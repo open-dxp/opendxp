@@ -18,6 +18,7 @@ namespace OpenDxp\Model;
 
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
+use OpenDxp\Model\Property\PropertyType;
 
 /**
  * @method \OpenDxp\Model\Property\Dao getDao()
@@ -50,13 +51,14 @@ final class Property extends AbstractModel
     {
         // IMPORTANT: if you use this method be sure that the type of the property is already set
 
-        if (in_array($this->getType(), ['document', 'asset', 'object'])) {
+        $type = PropertyType::tryFrom((string) $this->getType());
+        if ($type?->isElementReference() === true) {
             $el = Element\Service::getElementByPath($this->getType(), (string)$data);
             $this->data = null;
             if ($el) {
                 $this->data = $el->getId();
             }
-        } elseif ($this->type === 'bool') {
+        } elseif ($type === PropertyType::Bool) {
             $this->data = false;
             if (!empty($data)) {
                 $this->data = true;
@@ -78,9 +80,11 @@ final class Property extends AbstractModel
     {
         // IMPORTANT: if you use this method be sure that the type of the property is already set
         // do not set data for object, asset and document here, this is loaded dynamically when calling $this->getData();
+        // "date" is a legacy type that is not part of the PropertyType vocabulary
+        $type = PropertyType::tryFrom((string) $this->type);
         if ($this->type === 'date') {
             $this->data = \OpenDxp\Tool\Serialize::unserialize($data);
-        } elseif ($this->type === 'bool') {
+        } elseif ($type === PropertyType::Bool) {
             $this->data = false;
             if (!empty($data)) {
                 $this->data = true;
@@ -116,7 +120,8 @@ final class Property extends AbstractModel
     public function getData(): mixed
     {
         // lazy-load data of type asset, document, object
-        if (in_array($this->getType(), ['document', 'asset', 'object']) && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
+        $type = PropertyType::tryFrom((string) $this->getType());
+        if ($type?->isElementReference() === true && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
             return Element\Service::getElementById($this->getType(), (int) $this->data);
         }
 
@@ -129,7 +134,7 @@ final class Property extends AbstractModel
     }
 
     /**
-     * enum('text','document','asset','object','bool','select')
+     * @see PropertyType
      */
     public function getType(): ?string
     {
@@ -185,8 +190,7 @@ final class Property extends AbstractModel
     }
 
     /**
-     * enum('text','document','asset','object','bool','select')
-     *
+     * @see PropertyType
      *
      * @return $this
      */

@@ -34,6 +34,7 @@ use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Tag;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Model\Property;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Tests\Support\Helper\DataType\TestDataHelper;
 use OpenDxp\Tool;
 use ReflectionClass;
@@ -82,19 +83,20 @@ class TestHelper
 
         if (is_array($properties)) {
             foreach ($properties as $key => $value) {
-                if (in_array($value->getType(), ['document', 'asset', 'object'])) {
+                $type = PropertyType::tryFrom((string) $value->getType());
+                if ($type?->isElementReference() === true) {
                     if ($value->getData() instanceof ElementInterface) {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData()->getId();
                     } else {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ': null';
                     }
-                } elseif ($value->getType() === 'date') {
+                } elseif ($value->getType() === 'date') { // legacy type, not part of the PropertyType vocabulary
                     if ($value->getData() instanceof DateTimeInterface) {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData()->getTimestamp();
                     }
-                } elseif ($value->getType() === 'bool') {
+                } elseif ($type === PropertyType::Bool) {
                     $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . (bool)$value->getData();
-                } elseif (in_array($value->getType(), ['text', 'select'])) {
+                } elseif ($type === PropertyType::Text || $type === PropertyType::Select) {
                     $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData();
                 } else {
                     throw new Exception('Unknown property of type [ ' . $value->getType() . ' ]');
@@ -577,7 +579,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];
@@ -616,7 +618,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];
@@ -655,7 +657,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];

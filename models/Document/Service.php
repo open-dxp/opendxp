@@ -31,6 +31,7 @@ use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\ValidationException;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Serialize;
 use Override;
@@ -193,7 +194,7 @@ class Service extends Model\Element\Service
         }
 
         if ($language) {
-            $new->setProperty('language', 'text', $language, false, true);
+            $new->setProperty('language', PropertyType::Text->value, $language, false, true);
         }
 
         $new->save();

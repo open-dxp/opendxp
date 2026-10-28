@@ -32,7 +32,8 @@ class Dao extends Model\Dao\AbstractDao
     {
         $data = $this->model->getData();
 
-        if (in_array($this->model->getType(), ['object', 'asset', 'document'])) {
+        $type = PropertyType::tryFrom((string) $this->model->getType());
+        if ($type?->isElementReference() === true) {
             $data = $data instanceof Model\Element\ElementInterface ? $data->getId() : null;
         }
 

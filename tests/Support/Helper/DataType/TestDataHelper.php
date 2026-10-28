@@ -31,6 +31,7 @@ use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Model\Property;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Model\User;
 use OpenDxp\Tests\Support\Helper\AbstractTestDataHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
@@ -1262,7 +1263,7 @@ class TestDataHelper extends AbstractTestDataHelper
 
         // object property
         $property = new Property();
-        $property->setType('object');
+        $property->setType(PropertyType::Object->value);
         $property->setName('object');
         $property->setInheritable(true);
 
