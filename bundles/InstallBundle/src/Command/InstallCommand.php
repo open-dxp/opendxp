@@ -49,7 +49,11 @@ class InstallCommand extends Command
 
     private ?array $options = null;
 
-    private bool $bundlesSelectedByOption = false;
+    private array $bundlesFromOptions = [];
+
+    private bool $askForCoreBundles = true;
+
+    private bool $askForExtensionBundles = true;
 
     public function __construct(
         private readonly Installer $installer,
@@ -217,9 +221,11 @@ class InstallCommand extends Command
         $installBundles = $this->getBundleOption($input, 'install-bundles');
         $withCoreBundles = $this->getBundleOption($input, 'with-core-bundles');
         $withExtensionBundles = $this->getBundleOption($input, 'with-extension-bundles');
-        $this->bundlesSelectedByOption = false !== $installBundles || $withCoreBundles || $withExtensionBundles;
+        $this->bundlesFromOptions = [];
+        $this->askForCoreBundles = false === $installBundles && !$withCoreBundles;
+        $this->askForExtensionBundles = false === $installBundles && !$withExtensionBundles;
 
-        if ($this->bundlesSelectedByOption) {
+        if (!$this->askForCoreBundles || !$this->askForExtensionBundles) {
             $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
 
             $bundles = [];
@@ -238,6 +244,7 @@ class InstallCommand extends Command
                 array_push($bundles, ...$requestedBundles);
             }
 
+            $this->bundlesFromOptions = $bundles;
             $this->setBundlesToInstall($bundleSetupEvent, $bundles);
         }
 
@@ -333,12 +340,13 @@ class InstallCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->bundlesSelectedByOption && $input->isInteractive()) {
+        if ($input->isInteractive() && ($this->askForCoreBundles || $this->askForExtensionBundles)) {
             $bundleSetupEvent = $this->installer->dispatchBundleSetupEvent();
 
             $bundles = [
-                ...$this->askForBundles('core bundles', $bundleSetupEvent->getBundles(), $bundleSetupEvent->getRecommendedBundles()),
-                ...$this->askForBundles('extension bundles', $bundleSetupEvent->getExtensionBundles()),
+                ...$this->bundlesFromOptions,
+                ...($this->askForCoreBundles ? $this->askForBundles('core bundles', $bundleSetupEvent->getBundles(), $bundleSetupEvent->getRecommendedBundles()) : []),
+                ...($this->askForExtensionBundles ? $this->askForBundles('extension bundles', $bundleSetupEvent->getExtensionBundles()) : []),
             ];
 
             if ($bundles !== []) {

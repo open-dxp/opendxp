@@ -118,7 +118,7 @@ it('selects no bundles without a bundle option', function () {
     expect($this->installer->selectedBundles)->toBeNull();
 });
 
-function executeInteractively(CommandTester $tester, array $inputs): void
+function executeInteractively(CommandTester $tester, array $inputs, array $options = []): void
 {
     $tester->setInputs($inputs);
     $tester->execute([
@@ -127,8 +127,37 @@ function executeInteractively(CommandTester $tester, array $inputs): void
         '--mysql-username' => 'db',
         '--mysql-password' => 'db',
         '--mysql-database' => 'db',
+        ...$options,
     ]);
 }
+
+it('asks only for the extension bundles with all core bundles', function () {
+    executeInteractively($this->tester, ['yes', '1', 'no'], ['--with-core-bundles' => true]);
+
+    expect($this->installer->selectedBundles)->toBe([...array_keys(Installer::INSTALLABLE_BUNDLES), 'OpenDxpInstallBundle'])
+        ->and($this->tester->getDisplay())->not->toContain('install core bundles');
+});
+
+it('asks only for the core bundles with all extension bundles', function () {
+    executeInteractively($this->tester, ['yes', '5', 'no'], ['--with-extension-bundles' => true]);
+
+    expect($this->installer->selectedBundles)->toBe(['OpenDxpCoreBundle', 'OpenDxpInstallBundle', 'OpenDxpSimpleBackendSearchBundle'])
+        ->and($this->tester->getDisplay())->not->toContain('install extension bundles');
+});
+
+it('asks for no bundles with both bundle flags', function () {
+    executeInteractively($this->tester, ['no'], ['--with-core-bundles' => true, '--with-extension-bundles' => true]);
+
+    expect($this->installer->selectedBundles)->toBe([...array_keys(Installer::INSTALLABLE_BUNDLES), 'OpenDxpCoreBundle', 'OpenDxpInstallBundle'])
+        ->and($this->tester->getDisplay())->not->toContain('Do you want to install');
+});
+
+it('asks for no bundles with a bundle list', function () {
+    executeInteractively($this->tester, ['no'], ['--install-bundles' => 'OpenDxpUuidBundle']);
+
+    expect($this->installer->selectedBundles)->toBe(['OpenDxpUuidBundle'])
+        ->and($this->tester->getDisplay())->not->toContain('Do you want to install');
+});
 
 it('asks for the core and the extension bundles one after the other', function () {
     executeInteractively($this->tester, ['yes', '5', 'yes', '1', 'no']);

@@ -80,8 +80,10 @@ The installer offers these core bundles. None of them is recommended by default:
 
 #### Automating Bundle Installation
 
-Three options select the bundles without a prompt. Combine them as you like. The installer always adds the required
-bundles.
+Three options select the bundles. Combine them as you like. The installer always adds the required bundles.
+
+In interactive mode, a `--with-*` flag skips only the question for its kind, so the installer still asks for the
+other kind. `--install-bundles` skips both questions. With `--no-interaction`, the installer asks no question at all.
 
 | Option                     | Env var                                  | Installs                                     |
 |----------------------------|------------------------------------------|----------------------------------------------|
