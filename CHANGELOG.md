@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.5.2
+- [NEW FEATURE] The installer offers core bundles and extension bundles: all installed composer packages of type `opendxp-bundle` that are no core bundles. `--with-core-bundles` and `--with-extension-bundles` install all bundles of one kind and combine with each other and with `--install-bundles`. In interactive mode, the installer asks for each kind no flag covers and preselects the bundles that `config/bundles.php` registers or a `BundleSetupEvent` subscriber recommends. See [Advanced Installation Topics](doc/01_Getting_Started/02_Advanced_Installation_Topics/README.md#installing-bundles)
+- [BUGFIX] The installer reads `OPENDXP_INSTALL_INSTALL_BUNDLES` and warns about unknown bundles in `--install-bundles`.
+- [CHORE] The installer no longer recommends `OpenDxpSimpleBackendSearchBundle` by default, `Installer::RECOMMENDED_BUNDLES` is removed. `--install-bundles` without a list no longer asks for bundles. `BundleSetupEvent::clearBundlesAndRecommendations()` also clears the extension bundles.
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
 
 ## 1.5.1
