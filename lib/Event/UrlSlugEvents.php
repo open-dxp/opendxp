@@ -23,4 +23,11 @@ final class UrlSlugEvents
      * @Event("OpenDxp\Event\Model\DataObjectEvent")
      */
     public const string POST_SAVE = 'opendxp.model.dataobject.classdefinition.urlslug.postsave';
+
+    /**
+     * Narrows the sites a slug of a language can belong to, or takes the language out of the field.
+     *
+     * @Event("OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugAvailableSitesEvent")
+     */
+    public const string AVAILABLE_SITES = 'opendxp.model.dataobject.classdefinition.urlslug.availablesites';
 }

@@ -79,7 +79,8 @@ class Definition extends Model\DataObject\Fieldcollection\Definition
             $def->setKey($key);
             $fieldFile = $def->getDefinitionFile();
 
-            if (is_file($fieldFile)) {
+            // Only a valid key stays inside the definition directory.
+            if (!$def->isForbiddenName() && is_file($fieldFile)) {
                 $brick = include $fieldFile;
                 RuntimeCache::set($cacheKey, $brick);
             }

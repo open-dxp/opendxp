@@ -20,6 +20,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Exception;
 use OpenDxp;
 use OpenDxp\Db;
+use OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugAvailableSitesEvent;
 use OpenDxp\Event\Model\DataObject\ClassDefinition\UrlSlugEvent;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Event\UrlSlugEvents;
@@ -37,6 +38,7 @@ use OpenDxp\Model\Site;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool;
 use Override;
+use Throwable;
 
 class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoadingSupportInterface, TypeDeclarationSupportInterface, EqualComparisonInterface, VarExporterInterface, NormalizerInterface, PreGetDataInterface, PreSetDataInterface, DataContainerAwareInterface, LayoutDefinitionEnrichmentInterface
 {
@@ -84,6 +86,22 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
      * @var array<string, array<int, string|null>>|null
      */
     public ?array $slugPrefixes = null;
+
+    /**
+     * @internal
+     *
+     * Holds the ids of the available sites per language, or null for a language that is not available.
+     *
+     * @var array<string, int[]|null>|null
+     */
+    public ?array $slugSites = null;
+
+    /**
+     * @internal
+     *
+     * @var array<string, string[]>|null
+     */
+    public ?array $slugErrors = null;
 
     /**
      * @see Data::getDataForEditmode
@@ -295,24 +313,37 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
      */
     private function applyDefaultSlug(array $slugs, Localizedfield|AbstractData|Model\DataObject\Objectbrick\Data\AbstractData|Concrete $container, array $params): array
     {
-        $fallback = current(array_filter($slugs, static fn ($slug): bool => !$slug->getSiteId())) ?: null;
-
-        if (!$this->fillEmptySlug || $fallback?->getSlug()) {
+        if (!$this->fillEmptySlug) {
             return $slugs;
         }
 
         $owner = $container instanceof Concrete ? $container : $container->getObject();
         $language = $container instanceof Localizedfield ? $params['language'] : null;
-        $suggestion = $this->getDefaultSlug(new UrlSlugContext($owner, $this, $language, null));
+        $sites = $this->resolveAvailableSites($owner, $language);
 
-        if ($suggestion === null) {
+        if ($sites === null) {
             return $slugs;
         }
 
-        $filled = [
-            new Model\DataObject\Data\UrlSlug($suggestion, 0),
-            ...array_filter($slugs, static fn ($slug): bool => $slug !== $fallback),
-        ];
+        $sitesById = [];
+
+        foreach ($sites as $site) {
+            $sitesById[$site->getId()] = $site;
+        }
+
+        $filled = [];
+
+        foreach ($this->addMissingSlugs($slugs, $owner, $language, $sitesById) as $slug) {
+            $slug = $slug->getSlug() ? $slug : $this->fillSlug($slug, $owner, $language, $sitesById);
+
+            if ($slug->getSlug()) {
+                $filled[] = $slug;
+            }
+        }
+
+        if ($filled === $slugs) {
+            return $slugs;
+        }
 
         if ($container instanceof Localizedfield) {
             $container->setLocalizedValue($this->getName(), $filled, $language, false);
@@ -321,6 +352,65 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         }
 
         return $filled;
+    }
+
+    /**
+     * Adds an empty fallback slug when there is none. A site whose prefix differs from the prefix of the fallback
+     * slug needs a slug of its own, so it gets an empty slug as well.
+     *
+     * @param Model\DataObject\Data\UrlSlug[] $slugs
+     * @param array<int, Site> $sitesById
+     *
+     * @return Model\DataObject\Data\UrlSlug[]
+     */
+    private function addMissingSlugs(array $slugs, Concrete $owner, ?string $language, array $sitesById): array
+    {
+        $siteIdsWithSlug = array_map(static fn ($slug): int => $slug->getSiteId() ?? 0, $slugs);
+
+        if (!in_array(0, $siteIdsWithSlug, true)) {
+            array_unshift($slugs, new Model\DataObject\Data\UrlSlug(null, 0));
+        }
+
+        $sitesWithoutSlug = array_filter(
+            $sitesById,
+            static fn (Site $site): bool => !in_array($site->getId(), $siteIdsWithSlug, true),
+        );
+
+        if ($sitesWithoutSlug === []) {
+            return $slugs;
+        }
+
+        $fallbackPrefix = $this->getPrefix(new UrlSlugContext($owner, $this, $language, null));
+
+        foreach ($sitesWithoutSlug as $site) {
+            if ($this->getPrefix(new UrlSlugContext($owner, $this, $language, $site)) !== $fallbackPrefix) {
+                $slugs[] = new Model\DataObject\Data\UrlSlug(null, $site->getId());
+            }
+        }
+
+        return $slugs;
+    }
+
+    /**
+     * Returns the slug filled with the suggestion of the generator, or the slug as it is when there is none.
+     *
+     * @param array<int, Site> $sitesById
+     */
+    private function fillSlug(
+        Model\DataObject\Data\UrlSlug $slug,
+        Concrete $owner,
+        ?string $language,
+        array $sitesById,
+    ): Model\DataObject\Data\UrlSlug {
+        $siteId = $slug->getSiteId() ?? 0;
+
+        if ($siteId !== 0 && !isset($sitesById[$siteId])) {
+            return $slug;
+        }
+
+        $suggestion = $this->getDefaultSlug(new UrlSlugContext($owner, $this, $language, $sitesById[$siteId] ?? null));
+
+        return $suggestion === null ? $slug : new Model\DataObject\Data\UrlSlug($suggestion, $siteId);
     }
 
     /**
@@ -637,6 +727,22 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return $this->slugPrefixes;
     }
 
+    /**
+     * @return array<string, int[]|null>|null
+     */
+    public function getSlugSites(): ?array
+    {
+        return $this->slugSites;
+    }
+
+    /**
+     * @return array<string, string[]>|null
+     */
+    public function getSlugErrors(): ?array
+    {
+        return $this->slugErrors;
+    }
+
     public function getPrefix(UrlSlugContext $context): ?string
     {
         $prefix = $this->getSlugGenerator()?->getPrefix($context);
@@ -672,32 +778,109 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
     public function enrichLayoutDefinition(?Concrete $object, array $context = []): static
     {
         $this->slugPrefixes = null;
+        $this->slugSites = null;
+        $this->slugErrors = null;
 
-        if (!$object instanceof Concrete || !$this->getSlugGenerator()) {
+        if (!$object instanceof Concrete) {
             return $this;
         }
 
         $localized = ($context['ownerType'] ?? null) === 'localizedfield'
             || ($context['subContainerType'] ?? null) === 'localizedfield';
         $languages = $localized ? Tool::getValidLanguages() : [null];
-        $sites = array_filter(
-            (new Site\Listing())->getSites(),
-            fn (Site $site): bool => !$this->availableSites || in_array($site->getId(), $this->availableSites),
-        );
+        $availableSites = $this->loadAvailableSites();
 
         foreach ($languages as $language) {
-            $prefixes = [
-                0 => $this->getPrefix(new UrlSlugContext($object, $this, $language, null)),
-            ];
+            $key = $language ?? '';
 
-            foreach ($sites as $site) {
-                $prefixes[$site->getId()] = $this->getPrefix(new UrlSlugContext($object, $this, $language, $site));
+            try {
+                $sites = $this->dispatchAvailableSites($object, $language, $availableSites);
+            } catch (Throwable $exception) {
+                $this->slugSites[$key] = $this->collectSiteIds($availableSites);
+                $this->slugErrors[$key][] = $exception->getMessage();
+
+                continue;
             }
 
-            $this->slugPrefixes[$language ?? ''] = $prefixes;
+            $this->slugSites[$key] = $sites === null ? null : $this->collectSiteIds($sites);
+
+            if ($sites === null || !$this->getSlugGenerator()) {
+                continue;
+            }
+
+            $prefixes = [];
+
+            foreach ([null, ...$sites] as $site) {
+                $siteId = $site?->getId() ?? 0;
+
+                try {
+                    $prefixes[$siteId] = $this->getPrefix(new UrlSlugContext($object, $this, $language, $site));
+                } catch (Throwable $exception) {
+                    $prefixes[$siteId] = null;
+                    $this->slugErrors[$key][] = $exception->getMessage();
+                }
+            }
+
+            $this->slugPrefixes[$key] = $prefixes;
         }
 
         return $this;
+    }
+
+    /**
+     * Returns the sites a slug of the language can belong to, or null when the language is not available.
+     * The language is null outside of localized fields.
+     *
+     * @return Site[]|null
+     */
+    public function resolveAvailableSites(Concrete $object, ?string $language): ?array
+    {
+        return $this->dispatchAvailableSites($object, $language, $this->loadAvailableSites());
+    }
+
+    /**
+     * Returns true when a slug of the language may lead to the object on the site. The site is null for a request
+     * without a site.
+     */
+    public function isAvailable(Concrete $object, ?string $language, ?Site $site): bool
+    {
+        $sites = $this->dispatchAvailableSites($object, $language, $site === null ? [] : [$site]);
+
+        return $sites !== null && ($site === null || $sites !== []);
+    }
+
+    /**
+     * @param Site[] $sites
+     *
+     * @return int[]
+     */
+    private function collectSiteIds(array $sites): array
+    {
+        return array_map(static fn (Site $site): int => $site->getId(), $sites);
+    }
+
+    /**
+     * @return Site[]
+     */
+    private function loadAvailableSites(): array
+    {
+        return array_values(array_filter(
+            (new Site\Listing())->getSites(),
+            fn (Site $site): bool => !$this->availableSites || in_array($site->getId(), $this->availableSites),
+        ));
+    }
+
+    /**
+     * @param Site[] $sites
+     *
+     * @return Site[]|null
+     */
+    private function dispatchAvailableSites(Concrete $object, ?string $language, array $sites): ?array
+    {
+        $event = new UrlSlugAvailableSitesEvent($object, $this, $language, $sites);
+        $this->dispatchEvent($event, UrlSlugEvents::AVAILABLE_SITES);
+
+        return $event->isLanguageAvailable() ? $event->getSites() : null;
     }
 
     public function preSave(mixed $containerDefinition, array $params = []): void
@@ -736,6 +919,8 @@ class UrlSlug extends Data implements CustomResourcePersistingInterface, LazyLoa
         return [
             ...parent::resolveBlockedVars(),
             'slugPrefixes',
+            'slugSites',
+            'slugErrors',
         ];
     }
 

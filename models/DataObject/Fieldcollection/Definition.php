@@ -104,7 +104,8 @@ class Definition extends Model\AbstractModel
             $def->setKey($key);
             $fieldFile = $def->getDefinitionFile();
 
-            if (is_file($fieldFile)) {
+            // Only a valid key stays inside the definition directory.
+            if (!$def->isForbiddenName() && is_file($fieldFile)) {
                 $fc = include $fieldFile;
                 RuntimeCache::set($cacheKey, $fc);
             }

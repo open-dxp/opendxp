@@ -1,9 +1,17 @@
 # Changelog
 
-## 1.5.1
+## 1.5.2
 - [NEW FEATURE] The installer offers core bundles and extension bundles: all installed composer packages of type `opendxp-bundle` that are no core bundles. `--with-core-bundles` and `--with-extension-bundles` install all bundles of one kind and combine with each other and with `--install-bundles`. In interactive mode, the installer asks for each kind and preselects the bundles that `config/bundles.php` registers or a `BundleSetupEvent` subscriber recommends. See [Advanced Installation Topics](doc/01_Getting_Started/02_Advanced_Installation_Topics/README.md#installing-bundles)
 - [BUGFIX] The installer reads `OPENDXP_INSTALL_INSTALL_BUNDLES` and warns about unknown bundles in `--install-bundles`.
 - [CHORE] The installer no longer recommends `OpenDxpSimpleBackendSearchBundle` by default, `Installer::RECOMMENDED_BUNDLES` is removed. `--install-bundles` without a list no longer asks for bundles. `BundleSetupEvent::clearBundlesAndRecommendations()` also clears the extension bundles.
+- [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
+
+## 1.5.1
+- [SECURITY] A field collection or an object brick loads its definition only for a valid key
+- [ENHANCEMENT] `UrlSlugEvents::AVAILABLE_SITES` narrows the sites of a slug field for each language, or takes a language out of the field
+- [ENHANCEMENT] "Fill an empty slug" also fills the empty slug of a site, with the prefix of that site. A site whose prefix differs from the prefix of the fallback slug gets a slug of its own
+- [BUGFIX] The object editor opens when a slug generator throws an exception, and shows its message at the slug field
+- [BUGFIX] A listener that throws an exception no longer stops later dispatches of the same event
 - [BUGFIX] A worker finds a website setting or a static route by its name after another process deleted and created it again
 - [BUGFIX] Hide empty job run menu in sidebar
 
