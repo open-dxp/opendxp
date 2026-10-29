@@ -2,6 +2,7 @@
 
 ## 1.5.2
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
+- [ENHANCEMENT] `ElementType` and `PropertyType` define the fixed vocabulary of element types and property types
 
 ## 1.5.1
 - [SECURITY] A field collection or an object brick loads its definition only for a valid key
