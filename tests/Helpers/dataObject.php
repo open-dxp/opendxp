@@ -27,3 +27,14 @@ function queryTableValue(Concrete $object, string $column): mixed
         [$object->getId()],
     );
 }
+
+/**
+ * @return array<string, mixed>
+ */
+function storedRow(Concrete $object): array
+{
+    return Db::get()->fetchAssociative(
+        sprintf('SELECT * FROM object_store_%s WHERE oo_id = ?', $object->getClassId()),
+        [$object->getId()],
+    );
+}

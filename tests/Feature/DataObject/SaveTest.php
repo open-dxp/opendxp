@@ -16,24 +16,11 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataObject;
 
-use OpenDxp\Db;
-use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\InputQuantityValue;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\QuantityValueUnitFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
-
-/**
- * @return array<string, mixed>
- */
-function storedRow(Concrete $object): array
-{
-    return Db::get()->fetchAssociative(
-        sprintf('SELECT * FROM object_store_%s WHERE oo_id = ?', $object->getClassId()),
-        [$object->getId()],
-    );
-}
 
 it('writes the default value of a field into the version', function () {
     $object = UnittestFactory::createOne();
