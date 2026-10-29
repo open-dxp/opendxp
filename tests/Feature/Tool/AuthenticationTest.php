@@ -21,25 +21,7 @@ use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tool\Authentication;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
-
-/**
- * Builds a request that carries a session from an earlier request, with the token of the admin firewall in it.
- */
-function requestWithAdminToken(string $token): Request
-{
-    $session = new Session(new MockArraySessionStorage());
-    $session->set('_security_opendxp_admin', $token);
-
-    $request = Request::create('/admin');
-    $request->setSession($session);
-    $request->cookies->set($session->getName(), $session->getId());
-
-    return $request;
-}
 
 it('signs in a user whose access is restricted to a workspace', function () {
     $objects = DataObjectFolderFactory::createOne();
