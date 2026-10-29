@@ -68,12 +68,15 @@ class Authentication
     protected static function safelyUnserialize(string $serializedToken): mixed
     {
         $token = null;
-        // Scoped to just the unserialize() call below via try/finally, so any warning raised
-        // while this handler is active belongs to it, regardless of which file reports it -
-        // unserialize() itself lives in Serialize.php, not here.
-        set_error_handler(static function (int $type, string $msg) {
-            throw new CorruptedSerializedDataException($msg);
-        });
+        $previousHandler = set_error_handler(
+            static function (int $type, string $msg, string $file, int $line) use (&$previousHandler): bool {
+                if ($type === E_WARNING || $type === E_NOTICE) {
+                    throw new CorruptedSerializedDataException($msg);
+                }
+
+                return $previousHandler !== null && $previousHandler($type, $msg, $file, $line);
+            }
+        );
 
         try {
             $token = Serialize::unserializeWithScope(SerializationScope::Authentication, $serializedToken);

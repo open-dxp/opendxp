@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.2
+- [BUGFIX] In debug mode, the admin session is no longer lost when a deprecation occurs while its token is unserialized
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
 
 ## 1.5.1

@@ -1,0 +1,8 @@
+imports:
+    - { resource: test.yaml }
+
+opendxp:
+    serialization:
+        authentication:
+            allowed_classes:
+                OpenDxp\Tests\Application\Security\MockTokenAttribute: true

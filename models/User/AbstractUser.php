@@ -26,7 +26,6 @@ use ReflectionClass;
 
 /**
  * @method \OpenDxp\Model\User\AbstractUser\Dao getDao()
- * @method void setLastLoginDate()
  */
 abstract class AbstractUser extends Model\AbstractModel implements AbstractUserInterface
 {
@@ -100,6 +99,11 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
         } catch (Model\Exception\NotFoundException) {
             return null;
         }
+    }
+
+    public function setLastLoginDate(): void
+    {
+        $this->getDao()->setLastLoginDate();
     }
 
     public function getId(): ?int
