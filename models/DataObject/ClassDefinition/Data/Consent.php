@@ -22,6 +22,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use Override;
 
@@ -159,7 +160,7 @@ class Consent extends Data implements ResourcePersistenceAwareInterface, QueryRe
         }
 
         $noteId = null;
-        if (!$originalNote || ($originalNote->getCtype() === 'object' && $originalNote->getCid() != $object->getId())) {
+        if (!$originalNote || ($originalNote->getCtype() === ElementType::Object->value && $originalNote->getCid() != $object->getId())) {
             if ($consent == true) {
                 $note = $service->insertConsentNote($object, $this->getName(), $data['noteContent']);
             } else {

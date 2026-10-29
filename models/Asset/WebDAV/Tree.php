@@ -20,6 +20,7 @@ use Exception;
 use OpenDxp\Logger;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 use Sabre\DAV;
 
@@ -38,11 +39,11 @@ class Tree extends DAV\Tree
     public function move($sourcePath, $destinationPath): void
     {
         $nameParts = explode('/', $sourcePath);
-        $nameParts[count($nameParts) - 1] = Element\Service::getValidKey($nameParts[count($nameParts) - 1], 'asset');
+        $nameParts[count($nameParts) - 1] = Element\Service::getValidKey($nameParts[count($nameParts) - 1], ElementType::Asset->value);
         $sourcePath = implode('/', $nameParts);
 
         $nameParts = explode('/', $destinationPath);
-        $nameParts[count($nameParts) - 1] = Element\Service::getValidKey($nameParts[count($nameParts) - 1], 'asset');
+        $nameParts[count($nameParts) - 1] = Element\Service::getValidKey($nameParts[count($nameParts) - 1], ElementType::Asset->value);
         $destinationPath = implode('/', $nameParts);
 
         $user = \OpenDxp\Tool\Admin::getCurrentUser();

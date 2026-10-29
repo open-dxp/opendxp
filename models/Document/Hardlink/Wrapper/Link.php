@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Hardlink\Wrapper;
 
 use OpenDxp\Model;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -29,7 +30,7 @@ class Link extends Model\Document\Link implements Model\Document\Hardlink\Wrappe
     #[Override]
     public function getHref(): string
     {
-        if ($this->getLinktype() === 'internal' && $this->getInternalType() === 'document') {
+        if ($this->getLinktype() === 'internal' && $this->getInternalType() === ElementType::Document->value) {
             $element = $this->getElement();
             if (
                 $element instanceof Model\Document &&

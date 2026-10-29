@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Property\PropertyType;
 
 /**
  * @template T of Document
@@ -34,7 +35,7 @@ abstract class AbstractDocumentFactory extends AbstractElementFactory
     {
         return $this->afterInstantiate(
             static function (Document $document) use ($locale): void {
-                $document->setProperty('language', 'text', $locale, inheritable: true);
+                $document->setProperty('language', PropertyType::Text->value, $locale, inheritable: true);
             },
         );
     }
@@ -96,7 +97,7 @@ abstract class AbstractDocumentFactory extends AbstractElementFactory
 
     private static function nameInNavigation(Document $document, string $name): void
     {
-        $document->setProperty('navigation_title', 'text', $name);
-        $document->setProperty('navigation_name', 'text', $name);
+        $document->setProperty('navigation_title', PropertyType::Text->value, $name);
+        $document->setProperty('navigation_name', PropertyType::Text->value, $name);
     }
 }

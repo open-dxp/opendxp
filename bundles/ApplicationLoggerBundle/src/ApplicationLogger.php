@@ -21,6 +21,7 @@ use Monolog\Logger;
 use OpenDxp;
 use OpenDxp\Bundle\ApplicationLoggerBundle\Handler\ApplicationLoggerDb;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -35,7 +36,7 @@ class ApplicationLogger implements LoggerInterface
 
     protected \OpenDxp\Model\DataObject\AbstractObject|\OpenDxp\Model\Document|int|\OpenDxp\Model\Asset|null $relatedObject = null;
 
-    protected string $relatedObjectType = 'object';
+    protected string $relatedObjectType = ElementType::Object->value;
 
     protected array $loggers = [];
 

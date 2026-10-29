@@ -16,13 +16,14 @@ declare(strict_types=1);
 
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Property\PropertyType;
 
 function referencing(ElementInterface $source, Asset ...$targets): ElementInterface
 {
     foreach (array_values($targets) as $index => $target) {
         $source->setProperty(
             'related' . $index,
-            'asset',
+            PropertyType::Asset->value,
             $target,
         );
     }

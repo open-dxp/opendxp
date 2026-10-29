@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Db\Helper;
 use OpenDxp\Helper\ArrayHelper;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @internal
@@ -26,7 +27,7 @@ use OpenDxp\Model\DataObject;
  */
 class Dao extends DataObject\Data\AbstractMetadata\Dao
 {
-    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = 'object'): void
+    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = ElementType::Object->value): void
     {
         $table = $this->getTablename($object);
 
@@ -37,7 +38,7 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
             'ownername' => $ownername ?: '',
             'index' => $index ?: '0',
             'position' => $position ?: '0',
-            'type' => $type ?: 'object', ];
+            'type' => $type ?: ElementType::Object->value, ];
 
         foreach ($this->model->getColumns() as $column) {
             $getter = 'get' . ucfirst($column);
@@ -48,9 +49,9 @@ class Dao extends DataObject\Data\AbstractMetadata\Dao
         }
     }
 
-    public function load(DataObject\Concrete $source, int $destinationId, string $fieldname, string $ownertype, string $ownername, string $position, int $index, string $destinationType = 'object'): ?DataObject\Data\ElementMetadata
+    public function load(DataObject\Concrete $source, int $destinationId, string $fieldname, string $ownertype, string $ownername, string $position, int $index, string $destinationType = ElementType::Object->value): ?DataObject\Data\ElementMetadata
     {
-        if ($destinationType === 'object') {
+        if ($destinationType === ElementType::Object->value) {
             $typeQuery = " AND (`type` = 'object' or `type` = '')";
         } else {
             $typeQuery = ' AND `type` = ' . $this->db->quote($destinationType);

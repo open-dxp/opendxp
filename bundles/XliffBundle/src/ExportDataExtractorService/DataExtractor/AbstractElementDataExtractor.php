@@ -22,6 +22,7 @@ use OpenDxp\Bundle\XliffBundle\AttributeSet\AttributeSet;
 use OpenDxp\Bundle\XliffBundle\TranslationItemCollection\TranslationItem;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Property;
+use OpenDxp\Model\Property\PropertyType;
 
 abstract class AbstractElementDataExtractor implements DataExtractorInterface
 {
@@ -51,7 +52,7 @@ abstract class AbstractElementDataExtractor implements DataExtractorInterface
 
     protected function doExportProperty(Property $property): bool
     {
-        return $property->getType() === 'text' && !$property->isInherited() && !empty($property->getData());
+        return $property->getType() === PropertyType::Text->value && !$property->isInherited() && !empty($property->getData());
     }
 
     protected function addProperties(ElementInterface $element, AttributeSet $result): void

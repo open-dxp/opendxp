@@ -30,9 +30,11 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Tag;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Model\Property;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Tests\Support\Helper\DataType\TestDataHelper;
 use OpenDxp\Tool;
 use ReflectionClass;
@@ -81,19 +83,20 @@ class TestHelper
 
         if (is_array($properties)) {
             foreach ($properties as $key => $value) {
-                if (in_array($value->getType(), ['document', 'asset', 'object'])) {
+                $type = PropertyType::tryFrom((string) $value->getType());
+                if ($type?->isElementReference() === true) {
                     if ($value->getData() instanceof ElementInterface) {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData()->getId();
                     } else {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ': null';
                     }
-                } elseif ($value->getType() === 'date') {
+                } elseif ($value->getType() === 'date') { // legacy type, not part of the PropertyType vocabulary
                     if ($value->getData() instanceof DateTimeInterface) {
                         $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData()->getTimestamp();
                     }
-                } elseif ($value->getType() === 'bool') {
+                } elseif ($type === PropertyType::Bool) {
                     $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . (bool)$value->getData();
-                } elseif (in_array($value->getType(), ['text', 'select'])) {
+                } elseif ($type === PropertyType::Text || $type === PropertyType::Select) {
                     $propertiesStringArray['property_' . $key . '_' . $value->getType()] = 'property_' . $key . '_' . $value->getType() . ':' . $value->getData();
                 } else {
                     throw new Exception('Unknown property of type [ ' . $value->getType() . ' ]');
@@ -576,7 +579,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];
@@ -615,7 +618,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];
@@ -654,7 +657,7 @@ class TestHelper
 
         $property = new Property();
         $property->setName('propname');
-        $property->setType('text');
+        $property->setType(PropertyType::Text->value);
         $property->setData('bla');
 
         $properties = [$property];
@@ -708,9 +711,9 @@ class TestHelper
     public static function assignTag(Tag $tag, ElementInterface $element): void
     {
         Tag::addTagToElement(match (true) {
-            $element instanceof Asset => 'asset',
-            $element instanceof Document => 'document',
-            $element instanceof DataObject => 'object',
+            $element instanceof Asset => ElementType::Asset->value,
+            $element instanceof Document => ElementType::Document->value,
+            $element instanceof DataObject => ElementType::Object->value,
         }, $element->getId(), $tag);
     }
 
@@ -748,17 +751,17 @@ class TestHelper
 
         try {
             if ($cleanObjects) {
-                static::cleanUpTree(DataObject::getById(1), 'object');
+                static::cleanUpTree(DataObject::getById(1), ElementType::Object->value);
                 codecept_debug(sprintf('Number of objects is: %d', static::getObjectCount()));
             }
 
             if ($cleanAssets) {
-                static::cleanUpTree(Asset::getById(1), 'asset');
+                static::cleanUpTree(Asset::getById(1), ElementType::Asset->value);
                 codecept_debug(sprintf('Number of assets is: %d', static::getAssetCount()));
             }
 
             if ($cleanDocuments) {
-                static::cleanUpTree(Document::getById(1), 'document');
+                static::cleanUpTree(Document::getById(1), ElementType::Document->value);
                 codecept_debug(sprintf('Number of documents is: %d', static::getDocumentCount()));
             }
 

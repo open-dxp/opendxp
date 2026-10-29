@@ -38,6 +38,7 @@ use OpenDxp\Model\DataObject\Objectbrick\Definition;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\AdminStyle;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\ElementInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -288,7 +289,7 @@ class SearchController extends UserAwareController
         /** @var Data\Listing $searcherList */
         $searcherList = $beforeListLoadEvent->getArgument('list');
 
-        if (in_array('asset', $types)) {
+        if (in_array(ElementType::Asset->value, $types)) {
             // Global asset list event (same than the SEARCH_LIST_BEFORE_LIST_LOAD event, but this last one is global for search, list, tree)
             $beforeListLoadEvent = new GenericEvent($this, [
                 'list' => $searcherList,
@@ -300,7 +301,7 @@ class SearchController extends UserAwareController
             $searcherList = $beforeListLoadEvent->getArgument('list');
         }
 
-        if (in_array('document', $types)) {
+        if (in_array(ElementType::Document->value, $types)) {
             // Global document list event (same than the SEARCH_LIST_BEFORE_LIST_LOAD event, but this last one is global for search, list, tree)
             $beforeListLoadEvent = new GenericEvent($this, [
                 'list' => $searcherList,
@@ -311,7 +312,7 @@ class SearchController extends UserAwareController
             $searcherList = $beforeListLoadEvent->getArgument('list');
         }
 
-        if (in_array('object', $types)) {
+        if (in_array(ElementType::Object->value, $types)) {
             // Global object list event (same than the SEARCH_LIST_BEFORE_LIST_LOAD event, but this last one is global for search, list, tree)
             $beforeListLoadEvent = new GenericEvent($this, [
                 'list' => $searcherList,
@@ -373,7 +374,7 @@ class SearchController extends UserAwareController
     /**
      * @internal
      */
-    protected function getPermittedPaths(array $types = ['asset', 'document', 'object']): string
+    protected function getPermittedPaths(array $types = [ElementType::Asset->value, ElementType::Document->value, ElementType::Object->value]): string
     {
         $user = $this->getOpenDxpUser();
         $db = \OpenDxp\Db::get();

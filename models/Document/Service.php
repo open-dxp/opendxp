@@ -29,7 +29,9 @@ use OpenDxp\Model\Document\Editable\IdRewriterInterface;
 use OpenDxp\Model\Document\Editable\LazyLoadingInterface;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\ValidationException;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Tool;
 use OpenDxp\Tool\Serialize;
 use Override;
@@ -192,7 +194,7 @@ class Service extends Model\Element\Service
         }
 
         if ($language) {
-            $new->setProperty('language', 'text', $language, false, true);
+            $new->setProperty('language', PropertyType::Text->value, $language, false, true);
         }
 
         $new->save();
@@ -306,7 +308,7 @@ class Service extends Model\Element\Service
         try {
             $document = new Document();
             // validate path
-            if (self::isValidPath($path, 'document')) {
+            if (self::isValidPath($path, ElementType::Document->value)) {
                 return $document->getDao()->getIdByPath($path) !== null;
             }
         } catch (Exception) {
@@ -373,7 +375,7 @@ class Service extends Model\Element\Service
                 $document->setSourceId($rewriteConfig['document'][(int) $document->getSourceId()]);
             }
         } elseif ($document instanceof Document\Link) {
-            if (array_key_exists('document', $rewriteConfig) && $document->getLinktype() === 'internal' && $document->getInternalType() === 'document' && array_key_exists((int) $document->getInternal(), $rewriteConfig['document'])) {
+            if (array_key_exists('document', $rewriteConfig) && $document->getLinktype() === 'internal' && $document->getInternalType() === ElementType::Document->value && array_key_exists((int) $document->getInternal(), $rewriteConfig['document'])) {
                 $document->setInternal($rewriteConfig['document'][(int) $document->getInternal()]);
             }
         }
@@ -428,7 +430,7 @@ class Service extends Model\Element\Service
     {
         $list = new Listing();
         $list->setUnpublished(true);
-        $key = Element\Service::getValidKey($element->getKey(), 'document');
+        $key = Element\Service::getValidKey($element->getKey(), ElementType::Document->value);
         if (!$key) {
             throw new Exception('No item key set.');
         }

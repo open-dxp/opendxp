@@ -27,6 +27,7 @@ use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use Override;
 
@@ -211,11 +212,11 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         ];
         foreach ($data as $element) {
             $e = null;
-            if ($element['type'] === 'object') {
+            if ($element['type'] === ElementType::Object->value) {
                 $e = DataObject::getById((int) $element['dest_id']);
-            } elseif ($element['type'] === 'asset') {
+            } elseif ($element['type'] === ElementType::Asset->value) {
                 $e = Asset::getById((int) $element['dest_id']);
-            } elseif ($element['type'] === 'document') {
+            } elseif ($element['type'] === ElementType::Document->value) {
                 $e = Document::getById((int) $element['dest_id']);
             }
 
@@ -272,9 +273,9 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
                 } elseif ($element instanceof DataObject\AbstractObject) {
                     $return[] = [$element->getId(), $element->getRealFullPath(), DataObject::OBJECT_TYPE_OBJECT, DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_FOLDER];
                 } elseif ($element instanceof Asset) {
-                    $return[] = [$element->getId(), $element->getRealFullPath(), 'asset', $element->getType()];
+                    $return[] = [$element->getId(), $element->getRealFullPath(), ElementType::Asset->value, $element->getType()];
                 } elseif ($element instanceof Document) {
-                    $return[] = [$element->getId(), $element->getRealFullPath(), 'document', $element->getType(), $element->getPublished()];
+                    $return[] = [$element->getId(), $element->getRealFullPath(), ElementType::Document->value, $element->getType(), $element->getPublished()];
                 }
             }
             if ($return === []) {
@@ -301,11 +302,11 @@ class ManyToManyRelation extends AbstractRelations implements QueryResourcePersi
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $element) {
                 $e = null;
-                if ($element['type'] === 'object') {
+                if ($element['type'] === ElementType::Object->value) {
                     $e = DataObject::getById((int) $element['id']);
-                } elseif ($element['type'] === 'asset') {
+                } elseif ($element['type'] === ElementType::Asset->value) {
                     $e = Asset::getById((int) $element['id']);
-                } elseif ($element['type'] === 'document') {
+                } elseif ($element['type'] === ElementType::Document->value) {
                     $e = Document::getById((int) $element['id']);
                 }
 

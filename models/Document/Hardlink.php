@@ -19,6 +19,7 @@ namespace OpenDxp\Model\Document;
 use OpenDxp;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -65,7 +66,7 @@ class Hardlink extends Document
 
             $dependencies[$key] = [
                 'id' => $sourceDocument->getId(),
-                'type' => 'document',
+                'type' => ElementType::Document->value,
             ];
         }
 

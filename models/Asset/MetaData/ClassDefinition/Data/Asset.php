@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Model\Asset\MetaData\ClassDefinition\Data;
 
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Override;
 
@@ -25,7 +26,7 @@ class Asset extends Data
     {
         $element = $value;
         if (is_string($value)) {
-            $element = Service::getElementByPath('asset', $value);
+            $element = Service::getElementByPath(ElementType::Asset->value, $value);
         }
         if ($element instanceof \OpenDxp\Model\Asset) {
             return $element->getId();
@@ -37,7 +38,7 @@ class Asset extends Data
     public function denormalize(mixed $value, array $params = []): mixed
     {
         if (is_numeric($value)) {
-            return Service::getElementById('asset', (int) $value);
+            return Service::getElementById(ElementType::Asset->value, (int) $value);
         }
 
         return null;
@@ -47,7 +48,7 @@ class Asset extends Data
     public function transformGetterData(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            return \OpenDxp\Model\Asset\Service::getElementById('asset', (int) $data);
+            return \OpenDxp\Model\Asset\Service::getElementById(ElementType::Asset->value, (int) $data);
         }
 
         return $data;
@@ -68,7 +69,7 @@ class Asset extends Data
     {
         $element = $data;
         if (is_string($data)) {
-            $element = Service::getElementByPath('asset', $data);
+            $element = Service::getElementByPath(ElementType::Asset->value, $data);
         }
         if ($element instanceof \OpenDxp\Model\Asset) {
             return $element->getId();
@@ -91,7 +92,7 @@ class Asset extends Data
     public function getDataForEditMode(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            $data = Service::getElementById('asset', (int) $data);
+            $data = Service::getElementById(ElementType::Asset->value, (int) $data);
         }
         if ($data instanceof \OpenDxp\Model\Asset) {
             return $data->getRealFullPath();

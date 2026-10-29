@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\SimpleBackendSearchBundle\Controller;
 
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -48,26 +49,26 @@ class DataObjectController extends UserAwareController
             $types = [];
             $subtypes = [];
             if ($fieldConfig['documentsAllowed']) {
-                $types[] = 'document';
+                $types[] = ElementType::Document->value;
                 foreach ($fieldConfig['documentTypes'] as $documentTypes) {
                     $subtypes[] = $documentTypes['documentTypes'];
                 }
             }
             if ($fieldConfig['assetsAllowed']) {
-                $types[] = 'asset';
+                $types[] = ElementType::Asset->value;
                 foreach ($fieldConfig['assetTypes'] as $assetTypes) {
                     $subtypes[] = $assetTypes['assetTypes'];
                 }
             }
             if ($fieldConfig['objectsAllowed']) {
-                $types[] = 'object';
+                $types[] = ElementType::Object->value;
                 $subtypes[] = 'object';
                 $subtypes[] = 'variant';
             }
             $searchRequest->request->set('type', implode(',', $types));
             $searchRequest->request->set('subtype', implode(',', $subtypes));
         } else {
-            $searchRequest->request->set('type', 'object');
+            $searchRequest->request->set('type', ElementType::Object->value);
             $searchRequest->request->set('subtype', 'object,variant');
         }
         $searchRequest->request->set('class', implode(',', $classes));

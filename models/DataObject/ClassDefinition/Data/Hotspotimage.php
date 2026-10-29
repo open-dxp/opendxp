@@ -21,6 +21,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use OpenDxp\Tool\Serialize;
 use Override;
@@ -233,7 +234,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
                 if (array_key_exists('data', $element) && is_array($element['data']) && count($element['data']) > 0) {
                     foreach ($element['data'] as &$metaData) {
                         $metaData = new Element\Data\MarkerHotspotItem($metaData);
-                        if (in_array($metaData['type'], ['object', 'asset', 'document']) && $metaData->getValue()) {
+                        if (in_array($metaData['type'], ElementType::values(), true) && $metaData->getValue()) {
                             $el = Element\Service::getElementByPath($metaData['type'], $metaData->getValue());
                             $metaData['value'] = $el;
                         }
@@ -342,7 +343,7 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
         if ($data instanceof DataObject\Data\Hotspotimage && $data->getImage() instanceof Asset\Image) {
             $dependencies['asset_' . $data->getImage()->getId()] = [
                 'id' => $data->getImage()->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
 
             $getMetaDataDependencies = function ($data, $dependencies) {
@@ -422,21 +423,21 @@ class Hotspotimage extends Data implements ResourcePersistenceAwareInterface, Qu
                     $newData = [];
                     foreach ($dataArrayEntry['data'] as $dataEntry) {
                         //rewrite objects
-                        if ($dataEntry['type'] === 'object' && $dataEntry['value']) {
+                        if ($dataEntry['type'] === ElementType::Object->value && $dataEntry['value']) {
                             $id = $dataEntry['value']->getId();
                             if (array_key_exists('object', $idMapping) && array_key_exists($id, $idMapping['object'])) {
                                 $dataEntry['value'] = DataObject::getById((int) $idMapping['object'][$id]);
                             }
                         }
                         //rewrite assets
-                        if ($dataEntry['type'] === 'asset' && $dataEntry['value']) {
+                        if ($dataEntry['type'] === ElementType::Asset->value && $dataEntry['value']) {
                             $id = $dataEntry['value']->getId();
                             if (array_key_exists('asset', $idMapping) && array_key_exists($id, $idMapping['asset'])) {
                                 $dataEntry['value'] = Asset::getById((int) $idMapping['asset'][$id]);
                             }
                         }
                         //rewrite documents
-                        if ($dataEntry['type'] === 'document' && $dataEntry['value']) {
+                        if ($dataEntry['type'] === ElementType::Document->value && $dataEntry['value']) {
                             $id = $dataEntry['value']->getId();
                             if (array_key_exists('document', $idMapping) && array_key_exists($id, $idMapping['document'])) {
                                 $dataEntry['value'] = Document::getById((int) $idMapping['document'][$id]);

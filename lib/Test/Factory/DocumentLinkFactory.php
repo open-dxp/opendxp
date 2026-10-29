@@ -19,6 +19,7 @@ namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Document\Link;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @extends AbstractDocumentFactory<Link>
@@ -40,7 +41,7 @@ final class DocumentLinkFactory extends AbstractDocumentFactory
         return [
             ...parent::defaults(),
             'linktype'     => 'internal',
-            'internalType' => 'document',
+            'internalType' => ElementType::Document->value,
         ];
     }
 }

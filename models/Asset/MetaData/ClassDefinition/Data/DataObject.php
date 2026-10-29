@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Asset\MetaData\ClassDefinition\Data;
 
 use OpenDxp\Model\DataObject\AbstractObject;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Override;
 
@@ -26,7 +27,7 @@ class DataObject extends Data
     {
         $element = $value;
         if (is_string($value)) {
-            $element = Service::getElementByPath('object', $value);
+            $element = Service::getElementByPath(ElementType::Object->value, $value);
         }
         if ($element instanceof AbstractObject) {
             return $element->getId();
@@ -38,7 +39,7 @@ class DataObject extends Data
     public function denormalize(mixed $value, array $params = []): mixed
     {
         if (is_numeric($value)) {
-            return Service::getElementById('object', (int) $value);
+            return Service::getElementById(ElementType::Object->value, (int) $value);
         }
 
         return null;
@@ -48,7 +49,7 @@ class DataObject extends Data
     public function transformGetterData(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            return \OpenDxp\Model\DataObject\Service::getElementById('object', (int) $data);
+            return \OpenDxp\Model\DataObject\Service::getElementById(ElementType::Object->value, (int) $data);
         }
 
         return $data;
@@ -69,7 +70,7 @@ class DataObject extends Data
     {
         $element = $data;
         if (is_string($data)) {
-            $element = Service::getElementByPath('object', $data);
+            $element = Service::getElementByPath(ElementType::Object->value, $data);
         }
         if ($element instanceof AbstractObject) {
             return $element->getId();
@@ -92,7 +93,7 @@ class DataObject extends Data
     public function getDataForEditMode(mixed $data, array $params = []): mixed
     {
         if (is_numeric($data)) {
-            $data = Service::getElementById('object', (int) $data);
+            $data = Service::getElementById(ElementType::Object->value, (int) $data);
         }
         if ($data instanceof AbstractObject) {
             return $data->getRealFullPath();

@@ -32,6 +32,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 use ReflectionMethod;
 
@@ -668,7 +669,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
     {
         // set path
         if ($this->getId() != 1) { // not for the root node
-            if (!Element\Service::isValidKey($this->getKey(), 'object')) {
+            if (!Element\Service::isValidKey($this->getKey(), ElementType::Object->value)) {
                 throw new Exception(sprintf(
                     '%s cannot be saved. The key "%s" is invalid.',
                     Element\Service::getMessageSubject($this),
@@ -754,7 +755,7 @@ abstract class AbstractObject extends Model\Element\AbstractElement
                 if (!$property->getInherited()) {
                     $property->setDao(null);
                     $property->setCid($this->getId());
-                    $property->setCtype('object');
+                    $property->setCtype(ElementType::Object->value);
                     $property->setCpath($this->getRealFullPath());
                     $property->save();
                 }

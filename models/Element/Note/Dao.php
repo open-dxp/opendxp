@@ -23,6 +23,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @internal
@@ -54,15 +55,15 @@ class Dao extends Model\Dao\AbstractDao
             $type = $keyValue['type'];
             $name = $keyValue['name'];
 
-            if ($type === 'document') {
+            if ($type === ElementType::Document->value) {
                 if ($data) {
                     $data = Document::getById($data);
                 }
-            } elseif ($type === 'asset') {
+            } elseif ($type === ElementType::Asset->value) {
                 if ($data) {
                     $data = Asset::getById($data);
                 }
-            } elseif ($type === 'object') {
+            } elseif ($type === ElementType::Object->value) {
                 if ($data) {
                     $data = DataObject::getById($data);
                 }
@@ -115,15 +116,15 @@ class Dao extends Model\Dao\AbstractDao
             $data = $meta['data'];
             $type = $meta['type'];
 
-            if ($type === 'document') {
+            if ($type === ElementType::Document->value) {
                 if ($data instanceof Document) {
                     $data = $data->getId();
                 }
-            } elseif ($type === 'asset') {
+            } elseif ($type === ElementType::Asset->value) {
                 if ($data instanceof Asset) {
                     $data = $data->getId();
                 }
-            } elseif ($type === 'object') {
+            } elseif ($type === ElementType::Object->value) {
                 if ($data instanceof DataObject\AbstractObject) {
                     $data = $data->getId();
                 }

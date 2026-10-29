@@ -24,6 +24,7 @@ use OpenDxp\Loader\ImplementationLoader\Exception\UnsupportedException;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Asset\MetaData\ClassDefinition\Data\Data;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\User;
 use OpenDxp\Tool\Serialize;
 
@@ -177,11 +178,11 @@ class Dao extends Model\Element\Dao
         }
 
         // tree_locks
-        $this->db->delete('tree_locks', ['id' => $this->model->getId(), 'type' => 'asset']);
+        $this->db->delete('tree_locks', ['id' => $this->model->getId(), 'type' => ElementType::Asset->value]);
         if ($this->model->getLocked()) {
             $this->db->insert('tree_locks', [
                 'id' => $this->model->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
                 'locked' => $this->model->getLocked(),
             ]);
         }
@@ -270,7 +271,7 @@ class Dao extends Model\Element\Dao
                     $property->setCid($id);
                 }
                 $property->setName($propertyRaw['name']);
-                $property->setCtype('asset');
+                $property->setCtype(ElementType::Asset->value);
                 $property->setDataFromResource($propertyRaw['data']);
                 $property->setInherited(true);
                 if ($propertyRaw['cid'] == $this->model->getId()) {
@@ -301,7 +302,7 @@ class Dao extends Model\Element\Dao
      */
     public function deleteAllProperties(): void
     {
-        $this->db->delete('properties', ['cid' => $this->model->getId(), 'ctype' => 'asset']);
+        $this->db->delete('properties', ['cid' => $this->model->getId(), 'ctype' => ElementType::Asset->value]);
     }
 
     /**
@@ -505,7 +506,7 @@ class Dao extends Model\Element\Dao
      */
     public function isInheritingPermission(string $type, array $userIds): int
     {
-        return $this->InheritingPermission($type, $userIds, 'asset');
+        return $this->InheritingPermission($type, $userIds, ElementType::Asset->value);
     }
 
     public function isAllowed(string $type, User $user): bool
@@ -569,7 +570,7 @@ class Dao extends Model\Element\Dao
      */
     public function areAllowed(array $columns, User $user): array
     {
-        return $this->permissionByTypes($columns, $user, 'asset');
+        return $this->permissionByTypes($columns, $user, ElementType::Asset->value);
     }
 
     public function updateCustomSettings(): void

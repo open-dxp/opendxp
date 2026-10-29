@@ -25,6 +25,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\Asset\Image;
 use OpenDxp\Model\Asset\Image\Thumbnail\Config;
 use OpenDxp\Model\Asset\Thumbnail\ImageThumbnailTrait;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Exception\NotFoundException;
 use OpenDxp\Model\Exception\ThumbnailFormatNotSupportedException;
 use OpenDxp\Model\Exception\ThumbnailMaxScalingFactorException;
@@ -66,7 +67,7 @@ final class Thumbnail implements ThumbnailInterface
             // we use getRealFullPath() here, to avoid double encoding (getFullPath() returns already encoded path)
             $pathReference = [
                 'src' => $this->asset->getRealFullPath(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 
@@ -123,7 +124,7 @@ final class Thumbnail implements ThumbnailInterface
             // if no correct thumbnail config is given use the original image as thumbnail
             if (!$this->config) {
                 $this->pathReference = [
-                    'type' => 'asset',
+                    'type' => ElementType::Asset->value,
                     'src' => $this->asset->getRealFullPath(),
                 ];
             } else {

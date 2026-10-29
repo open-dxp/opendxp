@@ -23,6 +23,7 @@ use OpenDxp\Http\Request\Resolver\OpenDxpContextResolver;
 use OpenDxp\Http\RequestHelper;
 use OpenDxp\Model\DataObject\Service;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\User;
 use OpenDxp\Model\Version;
 use OpenDxp\Security\User\UserLoader;
@@ -149,7 +150,7 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
         // TODO originally, this was the following call. What was in this->getParam('document') and
         // why was it an object?
         // $docKey = "document_" . $this->getParam("document")->getId();
-        if ($request->query->getBoolean('opendxp_preview') && $documentFromSession = Document\Service::getElementFromSession('document', $document->getId(), $request->getSession()->getId())) {
+        if ($request->query->getBoolean('opendxp_preview') && $documentFromSession = Document\Service::getElementFromSession(ElementType::Document->value, $document->getId(), $request->getSession()->getId())) {
             // if there is a document in the session use it
             $this->logger->debug('Loading preview document {document} from session', [
                 'document' => $document->getFullPath(),
@@ -186,7 +187,7 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
     protected function handleEditmode(Document $document, User $user, SessionInterface $session): Document
     {
         // check if there is the document in the session
-        if ($documentFromSession = Document\Service::getElementFromSession('document', $document->getId(), $session->getId())) {
+        if ($documentFromSession = Document\Service::getElementFromSession(ElementType::Document->value, $document->getId(), $session->getId())) {
             // if there is a document in the session use it
             $this->logger->debug('Loading editmode document {document} from session', [
                 'document' => $document->getFullPath(),
@@ -216,7 +217,7 @@ class ElementListener implements EventSubscriberInterface, LoggerAwareInterface
     protected function handleObjectParams(Request $request): void
     {
         // object preview
-        if (($objectId = $request->query->getInt('opendxp_object_preview')) && $object = Service::getElementFromSession('object', $objectId, $request->getSession()->getId())) {
+        if (($objectId = $request->query->getInt('opendxp_object_preview')) && $object = Service::getElementFromSession(ElementType::Object->value, $objectId, $request->getSession()->getId())) {
             $this->logger->debug('Loading object {object} ({objectId}) from session', [
                 'object' => $object->getFullPath(),
                 'objectId' => $object->getId(),

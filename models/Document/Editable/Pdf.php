@@ -20,6 +20,7 @@ use OpenDxp;
 use OpenDxp\Logger;
 use OpenDxp\Model;
 use OpenDxp\Model\Asset;
+use OpenDxp\Model\Element\ElementType;
 use Override;
 
 /**
@@ -87,7 +88,7 @@ class Pdf extends Model\Document\Editable implements EditmodeDataInterface
             $key = 'asset_' . $asset->getId();
             $dependencies[$key] = [
                 'id' => $asset->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 

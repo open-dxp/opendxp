@@ -21,6 +21,7 @@ use OpenDxp\Maintenance\TaskInterface;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Recyclebin;
 use OpenDxp\Model\Schedule\Task\Listing;
 use OpenDxp\Model\User;
@@ -46,7 +47,7 @@ class ScheduledTasksTask implements TaskInterface
             $taskUser = User::getById($task->getUserId());
 
             try {
-                if ($task->getCtype() === 'document') {
+                if ($task->getCtype() === ElementType::Document->value) {
                     $document = Document::getById($task->getCid());
                     if ($document instanceof Document) {
                         if ($task->getAction() === 'publish-version' && $task->getVersion() && $document->isAllowed('publish', $taskUser) && $document->isAllowed('versions', $taskUser)) {
@@ -72,7 +73,7 @@ class ScheduledTasksTask implements TaskInterface
                             $document->delete();
                         }
                     }
-                } elseif ($task->getCtype() === 'asset') {
+                } elseif ($task->getCtype() === ElementType::Asset->value) {
                     $asset = Asset::getById($task->getCid());
 
                     if ($asset instanceof Asset) {
@@ -92,7 +93,7 @@ class ScheduledTasksTask implements TaskInterface
                             $asset->delete();
                         }
                     }
-                } elseif ($task->getCtype() === 'object') {
+                } elseif ($task->getCtype() === ElementType::Object->value) {
                     $object = DataObject::getById($task->getCid());
 
                     if ($object instanceof DataObject\Concrete) {

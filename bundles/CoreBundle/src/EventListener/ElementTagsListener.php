@@ -21,6 +21,7 @@ use OpenDxp\Event\DataObjectEvents;
 use OpenDxp\Event\DocumentEvents;
 use OpenDxp\Event\Model\AssetEvent;
 use OpenDxp\Event\Model\ElementEventInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Service;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -56,6 +57,6 @@ class ElementTagsListener implements EventSubscriberInterface
     public function onPostAssetDelete(AssetEvent $e): void
     {
         $asset = $e->getAsset();
-        \OpenDxp\Model\Element\Tag::setTagsForElement('asset', $asset->getId(), []);
+        \OpenDxp\Model\Element\Tag::setTagsForElement(ElementType::Asset->value, $asset->getId(), []);
     }
 }

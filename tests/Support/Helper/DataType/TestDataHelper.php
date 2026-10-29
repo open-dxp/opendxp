@@ -28,8 +28,10 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Model\Property;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Model\User;
 use OpenDxp\Tests\Support\Helper\AbstractTestDataHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
@@ -895,7 +897,7 @@ class TestDataHelper extends AbstractTestDataHelper
 
         $this->assertEquals('title' . $seed, $value->getTitle());
         $this->assertEquals('description' . $seed, $value->getDescription());
-        $this->assertEquals('asset', $value->getType());
+        $this->assertEquals(ElementType::Asset->value, $value->getType());
 
         $this->assertEquals($returnParams['poster']->getId(), $value->getPoster()->getId());
         $this->assertEquals($returnParams['video']->getId(), $value->getData()->getId());
@@ -1261,7 +1263,7 @@ class TestDataHelper extends AbstractTestDataHelper
 
         // object property
         $property = new Property();
-        $property->setType('object');
+        $property->setType(PropertyType::Object->value);
         $property->setName('object');
         $property->setInheritable(true);
 
@@ -1434,7 +1436,7 @@ class TestDataHelper extends AbstractTestDataHelper
         $returnData['poster'] = $poster;
 
         $value = new DataObject\Data\Video();
-        $value->setType('asset');
+        $value->setType(ElementType::Asset->value);
         $value->setData($video);
         $value->setPoster($poster);
         $value->setTitle('title' . $seed);

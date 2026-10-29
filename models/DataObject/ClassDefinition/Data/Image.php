@@ -22,6 +22,7 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use Override;
 
@@ -162,7 +163,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
         if ($data instanceof Asset) {
             $dependencies['asset_' . $data->getId()] = [
                 'id' => $data->getId(),
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
             ];
         }
 
@@ -252,7 +253,7 @@ class Image extends Data implements ResourcePersistenceAwareInterface, QueryReso
     {
         if ($value instanceof \OpenDxp\Model\Asset\Image) {
             return [
-                'type' => 'asset',
+                'type' => ElementType::Asset->value,
                 'id' => $value->getId(),
             ];
         }

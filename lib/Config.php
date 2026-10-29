@@ -27,6 +27,7 @@ use OpenDxp\Event\Model\WebsiteSettingLoadEvent;
 use OpenDxp\Event\SystemEvents;
 use OpenDxp\Event\WebsiteSettingEvents;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Property\PropertyType;
 use OpenDxp\Model\Tool\SettingsStore;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -297,9 +298,11 @@ final class Config implements ArrayAccess
             }
 
             $s = match ($item->getType()) {
-                'document', 'asset', 'object' => $item->getData(),
-                'bool' => (bool) $item->getData(),
-                'text' => (string) $item->getData(),
+                PropertyType::Document->value,
+                PropertyType::Asset->value,
+                PropertyType::Object->value => $item->getData(),
+                PropertyType::Bool->value => (bool) $item->getData(),
+                PropertyType::Text->value => (string) $item->getData(),
                 default => null,
             };
 

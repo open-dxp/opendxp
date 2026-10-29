@@ -23,6 +23,7 @@ use OpenDxp\Bundle\XliffBundle\AttributeSet\AttributeSet;
 use OpenDxp\Bundle\XliffBundle\Event\Model\TranslationXliffEvent;
 use OpenDxp\Bundle\XliffBundle\Event\XliffEvents;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Property\PropertyType;
 
 class AbstractElementImporter implements ImporterInterface
 {
@@ -60,7 +61,7 @@ class AbstractElementImporter implements ImporterInterface
             if ($property) {
                 $property->setData($attribute->getContent());
             } else {
-                $element->setProperty($attribute->getName(), 'text', $attribute->getContent(), false, true);
+                $element->setProperty($attribute->getName(), PropertyType::Text->value, $attribute->getContent(), false, true);
             }
         }
     }

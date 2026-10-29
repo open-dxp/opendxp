@@ -25,6 +25,7 @@ use OpenDxp\Event\WebsiteSettingEvents;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Model\Exception\NotFoundException;
+use OpenDxp\Model\Property\PropertyType;
 
 /**
  * @method \OpenDxp\Model\WebsiteSetting\Dao getDao()
@@ -182,7 +183,8 @@ final class WebsiteSetting extends AbstractModel
     public function getData(): mixed
     {
         // lazy-load data of type asset, document, object
-        if (in_array($this->getType(), ['document', 'asset', 'object']) && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
+        $type = PropertyType::tryFrom((string) $this->getType());
+        if ($type?->isElementReference() === true && !$this->data instanceof ElementInterface && is_numeric($this->data)) {
             return Element\Service::getElementById($this->getType(), (int) $this->data);
         }
 
@@ -220,8 +222,9 @@ final class WebsiteSetting extends AbstractModel
     }
 
     /**
-     * enum('text','document','asset','object','bool')
+     * The property type; the fixed vocabulary lives in the enum.
      *
+     * @see PropertyType
      *
      * @return $this
      */
@@ -233,7 +236,9 @@ final class WebsiteSetting extends AbstractModel
     }
 
     /**
-     * enum('text','document','asset','object','bool')
+     * The property type; the fixed vocabulary lives in the enum.
+     *
+     * @see PropertyType
      */
     public function getType(): ?string
     {

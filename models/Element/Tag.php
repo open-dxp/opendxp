@@ -149,10 +149,12 @@ final class Tag extends Model\AbstractModel implements Stringable
      * Retrieves all elements that have a specific tag or one of its child tags assigned
      *
      * @param Tag    $tag               The tag to search for
-     * @param string $type              The type of elements to search for: 'document', 'asset' or 'object'
+     * @param string $type              The type of elements to search for
      * @param array  $subtypes          Filter by subtypes, eg. page, object, email, folder etc.
      * @param array $classNames        For objects only: filter by classnames
      * @param bool $considerChildTags Look for elements having one of $tag's children assigned
+     *
+     * @see ElementType
      */
     public static function getElementsForTag(
         Tag $tag,

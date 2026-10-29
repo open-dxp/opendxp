@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\Data\AbstractMetadata;
 use Exception;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
+use OpenDxp\Model\Element\ElementType;
 
 /**
  * @internal
@@ -30,7 +31,7 @@ class Dao extends Model\Dao\AbstractDao
 
     protected ?array $tableDefinitions = null;
 
-    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = 'object'): void
+    public function save(DataObject\Concrete $object, string $ownertype, string $ownername, string $position, int $index, string $type = ElementType::Object->value): void
     {
         throw new Exception('Needs to be implemented by child class');
     }

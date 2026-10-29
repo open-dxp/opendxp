@@ -40,11 +40,11 @@ class PermissionChecker
         $protectedColumns = ['cid', 'cpath', 'userId', 'lEdit', 'lView', 'layouts'];
 
         if ($element instanceof DataObject\AbstractObject) {
-            $type = 'object';
+            $type = ElementType::Object->value;
         } elseif ($element instanceof Asset) {
-            $type = 'asset';
+            $type = ElementType::Asset->value;
         } elseif ($element instanceof Document) {
-            $type = 'document';
+            $type = ElementType::Document->value;
         } else {
             throw new Exception('type not supported');
         }

@@ -30,6 +30,7 @@ use OpenDxp\Model\Asset\Image\ThumbnailInterface;
 use OpenDxp\Model\Asset\MetaData\ClassDefinition\Data\Data;
 use OpenDxp\Model\Element;
 use OpenDxp\Model\Element\ElementInterface;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Tool\TmpStore;
 use OpenDxp\Tool\Storage;
 use Override;
@@ -208,7 +209,7 @@ class Service extends Model\Element\Service
         try {
             $asset = new Asset();
 
-            if (self::isValidPath($path, 'asset')) {
+            if (self::isValidPath($path, ElementType::Asset->value)) {
                 $asset->getDao()->getByPath($path);
 
                 return true;
@@ -319,7 +320,7 @@ class Service extends Model\Element\Service
     public static function getUniqueKey(ElementInterface $element, int $nr = 0): string
     {
         $list = new Listing();
-        $key = Element\Service::getValidKey($element->getKey(), 'asset');
+        $key = Element\Service::getValidKey($element->getKey(), ElementType::Asset->value);
         if (!$key) {
             throw new Exception('No item key set.');
         }

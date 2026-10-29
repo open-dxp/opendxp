@@ -26,6 +26,7 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\AbstractData;
 use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\Element;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Normalizer\NormalizerInterface;
 use Override;
 
@@ -95,7 +96,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
                 if ($element instanceof DataObject\Concrete) {
                     $return[] = [
                         'dest_id' => $element->getId(),
-                        'type' => 'object',
+                        'type' => ElementType::Object->value,
                         'fieldname' => $this->getName(),
                         'index' => $counter,
                     ];
@@ -292,7 +293,7 @@ class ManyToManyObjectRelation extends AbstractRelations implements QueryResourc
                 if ($o instanceof DataObject\AbstractObject) {
                     $dependencies['object_' . $o->getId()] = [
                         'id' => $o->getId(),
-                        'type' => 'object',
+                        'type' => ElementType::Object->value,
                     ];
                 }
             }

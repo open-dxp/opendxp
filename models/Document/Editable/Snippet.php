@@ -22,6 +22,7 @@ use OpenDxp\Cache;
 use OpenDxp\Document\Editable\EditableHandler;
 use OpenDxp\Model;
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Site;
 use OpenDxp\Tool\DeviceDetector;
 use Override;
@@ -181,7 +182,7 @@ class Snippet extends Model\Document\Editable implements IdRewriterInterface, Ed
 
             $dependencies[$key] = [
                 'id' => $this->snippet->getId(),
-                'type' => 'document',
+                'type' => ElementType::Document->value,
             ];
         }
 

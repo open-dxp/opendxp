@@ -40,6 +40,7 @@ use OpenDxp\Model\Document\Editable\Video;
 use OpenDxp\Model\Document\Editable\Wysiwyg;
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Model\Document\PageSnippet;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Tests\Support\Helper\AbstractTestDataHelper;
 use OpenDxp\Tests\Support\Util\TestHelper;
 
@@ -436,7 +437,7 @@ class TestDataHelper extends AbstractTestDataHelper
         $editable->setName($field);
 
         $editable->setDataFromEditmode([
-                'internalType' => 'asset',
+                'internalType' => ElementType::Asset->value,
                 'linktype' => 'internal',
                 'path' => $target->getFullPath(),
                 'text' => 'some text' . $seed,
@@ -487,7 +488,7 @@ class TestDataHelper extends AbstractTestDataHelper
 
         $editable->setDataFromEditmode([
                 'id' => $objects[0]->getId(),
-                'type' => 'object', ]
+                'type' => ElementType::Object->value, ]
 
         );
         $page->setEditable($editable);
@@ -508,7 +509,7 @@ class TestDataHelper extends AbstractTestDataHelper
         foreach ($objects as $object) {
             $list[] = [
                 'id' => $object->getId(),
-                'type' => 'object', ];
+                'type' => ElementType::Object->value, ];
         }
         $editable->setDataFromEditmode($list);
         $page->setEditable($editable);

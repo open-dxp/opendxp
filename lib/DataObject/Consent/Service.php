@@ -20,6 +20,7 @@ namespace OpenDxp\DataObject\Consent;
 use Exception;
 use OpenDxp\Model\DataObject\AbstractObject;
 use OpenDxp\Model\DataObject\Data\Consent;
+use OpenDxp\Model\Element\ElementType;
 use OpenDxp\Model\Element\Note;
 
 class Service
@@ -36,7 +37,7 @@ class Service
     {
         $note = new Note();
         $note->setCid($object->getId());
-        $note->setCtype('object');
+        $note->setCtype(ElementType::Object->value);
         $note->setType('consent-given');
         $note->setTitle('Consent given for field ' . $fieldname);
         $note->setDate(time());
@@ -60,7 +61,7 @@ class Service
     {
         $note = new Note();
         $note->setCid($object->getId());
-        $note->setCtype('object');
+        $note->setCtype(ElementType::Object->value);
         $note->setType('consent-revoked');
         $note->setTitle('Consent revoked for field ' . $fieldname);
         $note->setDate(time());
