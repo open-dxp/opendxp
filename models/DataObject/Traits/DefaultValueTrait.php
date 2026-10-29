@@ -88,8 +88,10 @@ trait DefaultValueTrait
         $configuredDefaultValue = $this->doGetDefaultValue($object, $params['context'] ?? []);
 
         // 4. we check first if we even want to work with default values.
+        // No default is configured: an empty value is stored as null, never as the
+        // empty configured value (the class editor stores "no default" as '').
         if ($this->isEmpty($configuredDefaultValue)) {
-            return $configuredDefaultValue;
+            return null;
         }
 
         $class = match (true) {

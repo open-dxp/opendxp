@@ -2,6 +2,7 @@
 
 ## 1.5.2
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
+- [BUGFIX] An unset field on a new object is stored as null when no default value is configured, instead of an empty string
 
 ## 1.5.1
 - [SECURITY] A field collection or an object brick loads its definition only for a valid key
