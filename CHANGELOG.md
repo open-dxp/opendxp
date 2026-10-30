@@ -2,7 +2,7 @@
 
 ## 1.5.2
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
-- [BUGFIX] An unset field on a new object is stored as null when no default value is configured, instead of an empty string
+- [BUGFIX] An unset field of a new object is stored as null when the field has no default value
 - [BUGFIX] `Input::setDefaultValue()` accepts null
 
 ## 1.5.1

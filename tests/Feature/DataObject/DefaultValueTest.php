@@ -20,7 +20,7 @@ use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function resetSelectDefault(?string $defaultValue): void
+function setSelectDefaultValue(?string $defaultValue): void
 {
     ClassDefinition::getByName('unittest')
         ->getFieldDefinition('select')
@@ -29,7 +29,7 @@ function resetSelectDefault(?string $defaultValue): void
 
 it('keeps null for a select field without a configured default on create', function () {
     // The class editor stores "no default" as an empty string.
-    resetSelectDefault('');
+    setSelectDefaultValue('');
 
     $object = UnittestFactory::createOne();
 
@@ -37,23 +37,23 @@ it('keeps null for a select field without a configured default on create', funct
         ->and(storedRow($object)['select'])->toBeNull()
         ->and(Elements::refresh($object)->getSelect())->toBeNull()
         ->and($object->getLatestVersion(includingPublished: true)->getData()->getSelect())->toBeNull();
-})->after(fn () => resetSelectDefault(null));
+})->after(fn () => setSelectDefaultValue(null));
 
 it('normalizes an explicitly set empty string to null on create', function () {
-    resetSelectDefault('');
+    setSelectDefaultValue('');
 
     $object = UnittestFactory::createOne(['select' => '']);
 
     expect(storedRow($object)['select'])->toBeNull()
         ->and(Elements::refresh($object)->getSelect())->toBeNull();
-})->after(fn () => resetSelectDefault(null));
+})->after(fn () => setSelectDefaultValue(null));
 
 it('applies a configured default value on create', function () {
-    resetSelectDefault('2');
+    setSelectDefaultValue('2');
 
     $object = UnittestFactory::createOne();
 
     expect($object->getSelect())->toBe('2')
         ->and(storedRow($object)['select'])->toBe('2')
         ->and(Elements::refresh($object)->getSelect())->toBe('2');
-})->after(fn () => resetSelectDefault(null));
+})->after(fn () => setSelectDefaultValue(null));
