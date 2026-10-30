@@ -3,6 +3,8 @@
 ## 1.5.2
 - [BUGFIX] In debug mode, the admin session is no longer lost when a deprecation occurs while its token is unserialized
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
+- [BUGFIX] An unset field of a new object is stored as null when the field has no default value
+- [BUGFIX] `Input::setDefaultValue()` accepts null
 
 ## 1.5.1
 - [SECURITY] A field collection or an object brick loads its definition only for a valid key

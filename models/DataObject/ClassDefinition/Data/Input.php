@@ -241,7 +241,7 @@ class Input extends Data implements
     /**
      * @return $this
      */
-    public function setDefaultValue(string $defaultValue): static
+    public function setDefaultValue(?string $defaultValue): static
     {
         $this->defaultValue = $defaultValue;
 
