@@ -5,6 +5,7 @@
 - [BUGFIX] A stored slug of a language that the requested site does not offer returns 404
 - [BUGFIX] An unset field of a new object is stored as null when the field has no default value
 - [BUGFIX] `Input::setDefaultValue()` accepts null
+- [BUGFIX] A missing translation that is created on lookup is stored with empty texts and no longer with its key. Only a lookup that asks for the key gets it back as text
 
 ## 1.5.1
 - [SECURITY] A field collection or an object brick loads its definition only for a valid key
