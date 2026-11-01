@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Translation;
 
-use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Db;
 use OpenDxp\Model\Translation;
 use OpenDxp\Test\Factory\TranslationFactory;
@@ -226,15 +225,12 @@ it('stores a translation without its script and with its special characters enco
 });
 
 it('returns the key of a missing translation when it is asked to', function () {
-    RuntimeCache::clear();
-
     $text = Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
 
     expect($text)->toBe('some.missing.key');
 });
 
 it('stores a missing translation with empty texts, not with its key', function () {
-    RuntimeCache::clear();
     Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
 
     (new TranslationEntriesDumper())->dumpToDb();
@@ -248,7 +244,6 @@ it('stores a missing translation with empty texts, not with its key', function (
 });
 
 it('gives the key as text only to the call that asked for it', function () {
-    RuntimeCache::clear();
     Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
 
     $text = Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true);
