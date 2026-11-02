@@ -21,6 +21,7 @@ use OpenDxp\Model\Translation;
 use OpenDxp\Test\Factory\TranslationFactory;
 use OpenDxp\TestFoundation\Container;
 use OpenDxp\Tests\Story\Translations;
+use OpenDxp\Translation\TranslationEntriesDumper;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 function messagesListing(): Translation\Listing
@@ -221,4 +222,31 @@ it('stores a translation without its script and with its special characters enco
         ->create();
 
     expect(storedText($translation, 'en'))->toBe('!&#64;#$%^abc&#039;&#34; 测试&lt; edf &gt; &#34;');
+});
+
+it('returns the key of a missing translation when it is asked to', function () {
+    $text = Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
+
+    expect($text)->toBe('some.missing.key');
+});
+
+it('stores a missing translation with empty texts, not with its key', function () {
+    Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
+
+    (new TranslationEntriesDumper())->dumpToDb();
+
+    $texts = Db::get()->fetchFirstColumn(
+        'SELECT `text` FROM translations_admin WHERE `key` = ?',
+        ['some.missing.key'],
+    );
+    expect($texts)->not->toBeEmpty()
+        ->and(array_unique($texts))->toBe(['']);
+});
+
+it('gives the key as text only to the call that asked for it', function () {
+    Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true, true);
+
+    $text = Translation::getByKeyLocalized('some.missing.key', Translation::DOMAIN_ADMIN, true);
+
+    expect($text)->toBe('');
 });

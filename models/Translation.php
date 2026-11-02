@@ -244,37 +244,42 @@ final class Translation extends AbstractModel
             $cacheKey .= '_' . implode('-', $languages);
         }
 
-        if (RuntimeCache::isRegistered($cacheKey)) {
-            return RuntimeCache::get($cacheKey);
-        }
-
-        $translation = new self();
-        $translation->setDomain($domain);
         $idOriginal = $id;
         $languages = $languages ? array_intersect(self::getValidLanguages($domain), $languages) : self::getValidLanguages($domain);
 
-        try {
-            $translation->getDao()->getByKey($id, $languages);
-        } catch (Exception $e) {
-            if (!$create && !$returnIdIfEmpty) {
-                return null;
-            }
+        if (RuntimeCache::isRegistered($cacheKey)) {
+            $translation = RuntimeCache::get($cacheKey);
+        } else {
+            $translation = new self();
+            $translation->setDomain($domain);
 
-            $translation->setKey($id);
-            $translation->setCreationDate(time());
-            $translation->setModificationDate(time());
-
-            if ($create && ($e instanceof NotFoundResourceException || $e instanceof TableNotFoundException)) {
-                $translations = [];
-                foreach ($languages as $lang) {
-                    $translations[$lang] = '';
+            try {
+                $translation->getDao()->getByKey($id, $languages);
+            } catch (Exception $e) {
+                if (!$create && !$returnIdIfEmpty) {
+                    return null;
                 }
-                $translation->setTranslations($translations);
-                TranslationEntriesDumper::addToSaveQueue($translation);
+
+                $translation->setKey($id);
+                $translation->setCreationDate(time());
+                $translation->setModificationDate(time());
+
+                if ($create && ($e instanceof NotFoundResourceException || $e instanceof TableNotFoundException)) {
+                    $translations = [];
+                    foreach ($languages as $lang) {
+                        $translations[$lang] = '';
+                    }
+                    $translation->setTranslations($translations);
+                    TranslationEntriesDumper::addToSaveQueue($translation);
+                }
             }
+
+            // add to key cache
+            RuntimeCache::set($cacheKey, $translation);
         }
 
         if ($returnIdIfEmpty) {
+            $translation = clone $translation;
             $translations = $translation->getTranslations();
             foreach ($languages as $language) {
                 if (!array_key_exists($language, $translations) || empty($translations[$language])) {
@@ -283,9 +288,6 @@ final class Translation extends AbstractModel
             }
             $translation->setTranslations($translations);
         }
-
-        // add to key cache
-        RuntimeCache::set($cacheKey, $translation);
 
         return $translation;
     }
