@@ -22,8 +22,8 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data as Definition;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Model\User;
 use OpenDxp\Normalizer\NormalizerInterface;
-use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 /**
  * A normalizer sets this owner on the value it builds, so the value going in carries the same one.

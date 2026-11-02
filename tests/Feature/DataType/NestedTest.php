@@ -19,8 +19,8 @@ namespace OpenDxp\Tests\Feature\DataType;
 use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Objectbrick\Data\TestFieldTypesBrick;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 it('loads the relations of a brick on a cold load', function () {
     $object = TestFieldTypesFactory::new()

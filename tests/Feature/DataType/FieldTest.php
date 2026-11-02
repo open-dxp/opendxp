@@ -22,8 +22,8 @@ use Closure;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetVideoFactory;
-use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 /**
  * @return list<Data\GeoCoordinates>

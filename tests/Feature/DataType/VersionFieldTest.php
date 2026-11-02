@@ -19,12 +19,12 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Closure;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection;
-use OpenDxp\Model\DataObject\TestLazyRelations;
 use OpenDxp\Model\DataObject\Objectbrick\Data\TestLocalizedLazyBrick;
 use OpenDxp\Model\DataObject\TestFieldTypes;
+use OpenDxp\Model\DataObject\TestLazyRelations;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\TestLazyRelationsFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
+use OpenDxp\Tests\Factory\TestLazyRelationsFactory;
 
 function itemWithLocalizedText(): Fieldcollection\Data\TestFeature
 {

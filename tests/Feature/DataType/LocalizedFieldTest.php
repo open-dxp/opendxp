@@ -20,8 +20,8 @@ use Carbon\Carbon;
 use Closure;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 it('keeps a localized field apart per language', function (string $field, Closure $german, Closure $english) {
     $germanValue = $german();
