@@ -19,13 +19,13 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Exception;
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Data\UrlSlug;
+use OpenDxp\Test\DataObject\ArticleSlugGenerator;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Test\Factory\TestArticleFactory;
 use OpenDxp\Tests\Application\Service\AvailableSitesListener;
 use OpenDxp\Tests\Application\Service\FailingSlugGenerator;
 use OpenDxp\Tests\Application\Service\SharedPrefixSlugGenerator;
-use OpenDxp\Tests\Application\Service\ThingSlugGenerator;
-use OpenDxp\Tests\Factory\SluggableFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 it('keeps the slug of every site', function () {
@@ -51,15 +51,15 @@ it('keeps the slug of every site', function () {
 });
 
 it('fills an empty slug with the default slug behind the prefix', function () {
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    expect(slugsBySite($object->getSlug()))->toBe([0 => '/things/green-bike']);
+    expect(slugsBySite($object->getSlug()))->toBe([0 => '/articles/green-bike']);
 });
 
 it('fills the slug of every language with the prefix of the language', function () {
-    $object = SluggableFactory::new()
+    $object = TestArticleFactory::new()
         ->withLocalizedValues(
-            'lname',
+            'headline',
             [
                 'de' => 'Grünes Rad',
                 'en' => 'Green Bike',
@@ -67,41 +67,41 @@ it('fills the slug of every language with the prefix of the language', function 
         )
         ->create();
 
-    expect(slugsBySite($object->getLslug('de')))
-        ->toBe([0 => '/de/things/gr-nes-rad'])
-        ->and(slugsBySite($object->getLslug('en')))
-        ->toBe([0 => '/en/things/green-bike']);
+    expect(slugsBySite($object->getLocalizedSlug('de')))
+        ->toBe([0 => '/de/articles/gr-nes-rad'])
+        ->and(slugsBySite($object->getLocalizedSlug('en')))
+        ->toBe([0 => '/en/articles/green-bike']);
 });
 
 it('fills an empty slug when an object is saved again without touching the slug', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
 
     $loaded = Elements::refresh($object);
-    $loaded->setName('Green Bike');
+    $loaded->setTitle('Green Bike');
     $loaded->save();
     $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
-    expect($slugs)->toBe([0 => '/things/green-bike']);
+    expect($slugs)->toBe([0 => '/articles/green-bike']);
 });
 
 it('fills an empty localized slug when an object is saved again without touching the slug', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
 
     $loaded = Elements::refresh($object);
-    $loaded->setLname('Grünes Rad', 'de');
+    $loaded->setHeadline('Grünes Rad', 'de');
     $loaded->save();
-    $slugs = slugsBySite(Elements::refresh($object)->getLslug('de'));
+    $slugs = slugsBySite(Elements::refresh($object)->getLocalizedSlug('de'));
 
-    expect($slugs)->toBe([0 => '/de/things/gr-nes-rad']);
+    expect($slugs)->toBe([0 => '/de/articles/gr-nes-rad']);
 });
 
 it('leaves the slug of a language empty that is not available', function () {
     $listener = (new AvailableSitesListener())
         ->makeUnavailable('de');
 
-    $object = runWithAvailableSitesListener($listener, fn () => SluggableFactory::new()
+    $object = runWithAvailableSitesListener($listener, fn () => TestArticleFactory::new()
         ->withLocalizedValues(
-            'lname',
+            'headline',
             [
                 'de' => 'Grünes Rad',
                 'en' => 'Green Bike',
@@ -112,20 +112,20 @@ it('leaves the slug of a language empty that is not available', function () {
     expect(slugsBySite(
         $object
             ->getLocalizedfields()
-            ->getLocalizedValue('lslug', 'de', ignoreFallbackLanguage: true),
+            ->getLocalizedValue('localizedSlug', 'de', ignoreFallbackLanguage: true),
     ))
         ->toBe([])
-        ->and(slugsBySite($object->getLslug('en')))
-        ->toBe([0 => '/en/things/green-bike']);
+        ->and(slugsBySite($object->getLocalizedSlug('en')))
+        ->toBe([0 => '/en/articles/green-bike']);
 });
 
 it('keeps a slug that is not empty', function () {
-    $object = SluggableFactory::createOne([
-        'name' => 'Green Bike',
+    $object = TestArticleFactory::createOne([
+        'title' => 'Green Bike',
         'slug' => [new UrlSlug('/my/own/path', 0)],
     ]);
 
-    $object->setName('Red Bike');
+    $object->setTitle('Red Bike');
     $object->save();
     $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
@@ -133,26 +133,26 @@ it('keeps a slug that is not empty', function () {
 });
 
 it('fills the slug again after an editor empties it', function () {
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    $object->setName('Red Bike');
+    $object->setTitle('Red Bike');
     $object->setSlug([new UrlSlug('', 0)]);
     $object->save();
     $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
-    expect($slugs)->toBe([0 => '/things/red-bike']);
+    expect($slugs)->toBe([0 => '/articles/red-bike']);
 });
 
 it('keeps the slugs of the sites when it fills the fallback slug', function () {
     $site = SiteFactory::createOne();
 
-    $object = SluggableFactory::createOne([
-        'name' => 'Green Bike',
+    $object = TestArticleFactory::createOne([
+        'title' => 'Green Bike',
         'slug' => [new UrlSlug('/site/bike', $site->getId())],
     ]);
 
     expect(slugsBySite($object->getSlug()))->toBe([
-        0 => '/things/green-bike',
+        0 => '/articles/green-bike',
         $site->getId() => '/site/bike',
     ]);
 });
@@ -160,14 +160,14 @@ it('keeps the slugs of the sites when it fills the fallback slug', function () {
 it('fills an empty slug of a site with the prefix of that site', function () {
     $site = SiteFactory::createOne();
 
-    $object = SluggableFactory::createOne([
-        'name' => 'Green Bike',
+    $object = TestArticleFactory::createOne([
+        'title' => 'Green Bike',
         'slug' => [new UrlSlug('', $site->getId())],
     ]);
 
     expect(slugsBySite($object->getSlug()))->toBe([
-        0 => '/things/green-bike',
-        $site->getId() => sprintf('/site-%d/things/green-bike', $site->getId()),
+        0 => '/articles/green-bike',
+        $site->getId() => sprintf('/site-%d/articles/green-bike', $site->getId()),
     ]);
 });
 
@@ -176,87 +176,87 @@ it('leaves an empty slug of a site empty when a listener takes the site away', f
     $listener = (new AvailableSitesListener())
         ->removeSite($site, language: null);
 
-    $object = runWithAvailableSitesListener($listener, fn () => SluggableFactory::createOne([
-        'name' => 'Green Bike',
+    $object = runWithAvailableSitesListener($listener, fn () => TestArticleFactory::createOne([
+        'title' => 'Green Bike',
         'slug' => [new UrlSlug('', $site->getId())],
     ]));
 
-    expect(slugsBySite(Elements::refresh($object)->getSlug()))->toBe([0 => '/things/green-bike']);
+    expect(slugsBySite(Elements::refresh($object)->getSlug()))->toBe([0 => '/articles/green-bike']);
 });
 
 it('gives a site with another prefix a slug of its own', function () {
     $site = SiteFactory::createOne();
 
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
     expect(slugsBySite($object->getSlug()))->toBe([
-        0 => '/things/green-bike',
-        $site->getId() => sprintf('/site-%d/things/green-bike', $site->getId()),
+        0 => '/articles/green-bike',
+        $site->getId() => sprintf('/site-%d/articles/green-bike', $site->getId()),
     ]);
 });
 
 it('gives a site with the prefix of the fallback slug no slug of its own', function () {
     SiteFactory::createOne();
-    ClassDefinition::getByName('Sluggable')
+    ClassDefinition::getByName('TestArticle')
         ->getFieldDefinition('slug')
         ->setSlugGeneratorClass(SharedPrefixSlugGenerator::class);
 
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    expect(slugsBySite($object->getSlug()))->toBe([0 => '/things/green-bike']);
-})->after(fn () => ClassDefinition::getByName('Sluggable')
+    expect(slugsBySite($object->getSlug()))->toBe([0 => '/articles/green-bike']);
+})->after(fn () => ClassDefinition::getByName('TestArticle')
     ->getFieldDefinition('slug')
-    ->setSlugGeneratorClass(ThingSlugGenerator::class));
+    ->setSlugGeneratorClass(ArticleSlugGenerator::class));
 
 it('saves a filled slug without asking the generator for a prefix', function () {
-    ClassDefinition::getByName('Sluggable')
+    ClassDefinition::getByName('TestArticle')
         ->getFieldDefinition('slug')
         ->setSlugGeneratorClass(FailingSlugGenerator::class);
 
-    $object = SluggableFactory::createOne([
-        'name' => 'Green Bike',
+    $object = TestArticleFactory::createOne([
+        'title' => 'Green Bike',
         'slug' => [new UrlSlug('/bike')],
     ]);
 
     expect(slugsBySite(Elements::refresh($object)->getSlug()))->toBe([0 => '/bike']);
-})->after(fn () => ClassDefinition::getByName('Sluggable')
+})->after(fn () => ClassDefinition::getByName('TestArticle')
     ->getFieldDefinition('slug')
-    ->setSlugGeneratorClass(ThingSlugGenerator::class));
+    ->setSlugGeneratorClass(ArticleSlugGenerator::class));
 
 it('leaves the slug empty when there is no default slug', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
 
     expect(slugsBySite($object->getSlug()))->toBe([]);
 });
 
 it('extends a slug that another object uses', function () {
-    SluggableFactory::createOne(['name' => 'Green Bike']);
+    TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    expect(slugsBySite($object->getSlug()))->toBe([0 => '/things/green-bike-1']);
+    expect(slugsBySite($object->getSlug()))->toBe([0 => '/articles/green-bike-1']);
 });
 
 it('counts the extension up until the slug is free', function () {
-    SluggableFactory::createMany(2, ['name' => 'Green Bike']);
+    TestArticleFactory::createMany(2, ['title' => 'Green Bike']);
 
-    $object = SluggableFactory::createOne(['slug' => [new UrlSlug('/things/green-bike', 0)]]);
+    $object = TestArticleFactory::createOne(['slug' => [new UrlSlug('/articles/green-bike', 0)]]);
 
-    expect(slugsBySite($object->getSlug()))->toBe([0 => '/things/green-bike-2']);
+    expect(slugsBySite($object->getSlug()))->toBe([0 => '/articles/green-bike-2']);
 });
 
 it('keeps its own slug when an object is saved again', function () {
-    $object = SluggableFactory::createOne(['name' => 'Green Bike']);
+    $object = TestArticleFactory::createOne(['title' => 'Green Bike']);
 
-    $object->setName('Red Bike');
+    $object->setTitle('Red Bike');
     $object->save();
     $slugs = slugsBySite(Elements::refresh($object)->getSlug());
 
-    expect($slugs)->toBe([0 => '/things/green-bike']);
+    expect($slugs)->toBe([0 => '/articles/green-bike']);
 });
 
 it('rejects a slug that another object uses when the field does not extend it', function () {
-    SluggableFactory::createOne(['strictSlug' => [new UrlSlug('/taken', 0)]]);
+    TestArticleFactory::createOne(['strictSlug' => [new UrlSlug('/taken', 0)]]);
 
-    SluggableFactory::createOne(['strictSlug' => [new UrlSlug('/taken', 0)]]);
+    TestArticleFactory::createOne(['strictSlug' => [new UrlSlug('/taken', 0)]]);
 })->throws(Exception::class, 'Slug "/taken" is already used by object');

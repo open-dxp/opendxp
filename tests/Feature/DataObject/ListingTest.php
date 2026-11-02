@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataObject;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
+use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Model\DataObject\Unittest;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
@@ -243,13 +243,13 @@ it('counts the objects a condition with the word HAVING in a value matches', fun
 
 it('reads the field name of a field collection as a value', function () {
     UnittestFactory::new()
-        ->withFieldcollection('fieldcollection', new Unittestfieldcollection())
+        ->withFieldcollection('fieldcollection', new TestFeature())
         ->create();
     $fieldName = 'nothing" OR "1" = "1';
 
     $listing = new Unittest\Listing();
-    $listing->addFieldCollection('unittestfieldcollection', $fieldName);
-    $listing->setCondition(sprintf('`unittestfieldcollection~%s`.id IS NOT NULL', $fieldName));
+    $listing->addFieldCollection('TestFeature', $fieldName);
+    $listing->setCondition(sprintf('`TestFeature~%s`.id IS NOT NULL', $fieldName));
 
     expect($listing->getTotalCount())->toBe(0);
 });

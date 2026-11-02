@@ -151,10 +151,6 @@
         {
             "classname": "unittest",
             "fieldname": "mybricks"
-        },
-        {
-            "classname": "inheritance",
-            "fieldname": "mybricks"
         }
     ]
 }

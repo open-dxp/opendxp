@@ -14,19 +14,19 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Application\Service;
+namespace OpenDxp\Test\DataObject;
 
 use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugContext;
 use OpenDxp\Model\DataObject\ClassDefinition\UrlSlugGeneratorInterface;
 
-final class ThingSlugGenerator implements UrlSlugGeneratorInterface
+final class ArticleSlugGenerator implements UrlSlugGeneratorInterface
 {
     public function getPrefix(UrlSlugContext $context): string
     {
         return implode('/', array_filter([
             $context->language,
             $context->site ? 'site-' . $context->site->getId() : null,
-            'things',
+            'articles',
         ]));
     }
 
@@ -38,7 +38,7 @@ final class ThingSlugGenerator implements UrlSlugGeneratorInterface
     public function getDefaultSlug(UrlSlugContext $context): ?string
     {
         return $context->language === null
-            ? $context->object->get('name')
-            : $context->object->get('lname', $context->language);
+            ? $context->object->get('title')
+            : $context->object->get('headline', $context->language);
     }
 }

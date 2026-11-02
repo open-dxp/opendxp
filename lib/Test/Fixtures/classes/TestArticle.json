@@ -51,8 +51,8 @@
                         "permissions": null,
                         "children": [
                             {
-                                "name": "name",
-                                "title": "name",
+                                "name": "title",
+                                "title": "title",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -93,7 +93,7 @@
                                 "action": "",
                                 "availableSites": null,
                                 "width": null,
-                                "slugGeneratorClass": "OpenDxp\\Tests\\Application\\Service\\ThingSlugGenerator",
+                                "slugGeneratorClass": "OpenDxp\\Test\\DataObject\\ArticleSlugGenerator",
                                 "fillEmptySlug": true,
                                 "extendDuplicateSlugs": true,
                                 "fieldtype": "urlSlug",
@@ -117,7 +117,7 @@
                                 "action": "",
                                 "availableSites": null,
                                 "width": null,
-                                "slugGeneratorClass": "OpenDxp\\Tests\\Application\\Service\\ThingSlugGenerator",
+                                "slugGeneratorClass": "OpenDxp\\Test\\DataObject\\ArticleSlugGenerator",
                                 "fillEmptySlug": false,
                                 "extendDuplicateSlugs": false,
                                 "fieldtype": "urlSlug",
@@ -139,8 +139,8 @@
                                 "visibleSearch": true,
                                 "children": [
                                     {
-                                        "name": "lname",
-                                        "title": "lname",
+                                        "name": "headline",
+                                        "title": "headline",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -164,8 +164,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "lslug",
-                                        "title": "lslug",
+                                        "name": "localizedSlug",
+                                        "title": "localizedSlug",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -181,7 +181,7 @@
                                         "action": "",
                                         "availableSites": null,
                                         "width": null,
-                                        "slugGeneratorClass": "OpenDxp\\Tests\\Application\\Service\\ThingSlugGenerator",
+                                        "slugGeneratorClass": "OpenDxp\\Test\\DataObject\\ArticleSlugGenerator",
                                         "fillEmptySlug": true,
                                         "extendDuplicateSlugs": true,
                                         "fieldtype": "urlSlug",

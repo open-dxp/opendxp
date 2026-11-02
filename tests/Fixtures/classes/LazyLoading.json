@@ -91,7 +91,7 @@
                                 "visibleSearch": true,
                                 "classes": [
                                     {
-                                        "classes": "RelationTest"
+                                        "classes": "TestCategory"
                                     }
                                 ],
                                 "displayMode": null,
@@ -124,7 +124,7 @@
                                 "visibleSearch": true,
                                 "classes": [
                                     {
-                                        "classes": "RelationTest"
+                                        "classes": "TestCategory"
                                     }
                                 ],
                                 "displayMode": null,
@@ -156,7 +156,7 @@
                                 "visibleSearch": true,
                                 "classes": [
                                     {
-                                        "classes": "RelationTest"
+                                        "classes": "TestCategory"
                                     }
                                 ],
                                 "displayMode": null,
@@ -201,7 +201,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "allowedClassId": "RelationTest",
+                                "allowedClassId": "TestCategory",
                                 "columns": [
                                     {
                                         "position": 1,
@@ -234,7 +234,7 @@
                                 "visibleSearch": true,
                                 "classes": [
                                     {
-                                        "classes": "RelationTest"
+                                        "classes": "TestCategory"
                                     }
                                 ],
                                 "displayMode": null,
@@ -299,7 +299,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -332,7 +332,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -364,7 +364,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -409,7 +409,7 @@
                                         "visibleFieldDefinitions": [],
                                         "width": null,
                                         "height": null,
-                                        "allowedClassId": "RelationTest",
+                                        "allowedClassId": "TestCategory",
                                         "columns": [
                                             {
                                                 "position": 1,
@@ -442,7 +442,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -492,7 +492,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -564,7 +564,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -597,7 +597,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -629,7 +629,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -674,7 +674,7 @@
                                         "visibleFieldDefinitions": [],
                                         "width": null,
                                         "height": null,
-                                        "allowedClassId": "RelationTest",
+                                        "allowedClassId": "TestCategory",
                                         "columns": [
                                             {
                                                 "position": 1,
@@ -707,7 +707,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -784,7 +784,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -817,7 +817,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -849,7 +849,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -894,7 +894,7 @@
                                         "visibleFieldDefinitions": [],
                                         "width": null,
                                         "height": null,
-                                        "allowedClassId": "RelationTest",
+                                        "allowedClassId": "TestCategory",
                                         "columns": [
                                             {
                                                 "position": 1,
@@ -927,7 +927,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,

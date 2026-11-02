@@ -18,11 +18,11 @@ namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 beforeEach(function () {
-    $this->targets = RelationTestFactory::createMany(2);
+    $this->targets = TestCategoryFactory::createMany(2);
     $this->object = UnittestFactory::new()
         ->withObjectbrick(
             'mybricks',

@@ -17,13 +17,13 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Model\DataObject\ClassDefinition;
-use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Model\DataObject\Objectbrick\Data\TestDimensions;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\InheritanceFactory;
+use OpenDxp\Test\Factory\TestProductFactory;
 
 function forbidInheritance(): void
 {
-    $class = ClassDefinition::getByName('inheritance');
+    $class = ClassDefinition::getByName('TestProduct');
     $class->setAllowInherit(false);
     $class->save();
 }
@@ -31,7 +31,7 @@ function forbidInheritance(): void
 beforeEach(fn () => $this->written = []);
 
 afterEach(function () {
-    $class = ClassDefinition::getByName('inheritance');
+    $class = ClassDefinition::getByName('TestProduct');
     $class->setAllowInherit(true);
     $class->save();
 
@@ -41,10 +41,10 @@ afterEach(function () {
 });
 
 it('stops inheriting a localized text once the class forbids it', function () {
-    $parent = InheritanceFactory::new()
-        ->withLocalizedValues('input', ['en' => 'text of the parent'])
+    $parent = TestProductFactory::new()
+        ->withLocalizedValues('name', ['en' => 'text of the parent'])
         ->create();
-    $child = InheritanceFactory::new()
+    $child = TestProductFactory::new()
         ->withParent($parent)
         ->create();
     $this->written = [
@@ -57,16 +57,16 @@ it('stops inheriting a localized text once the class forbids it', function () {
     Elements::refresh($parent)->save();
     Elements::refresh($child)->save();
 
-    expect(Elements::refresh($child)->getInput('en'))->toBeNull();
+    expect(Elements::refresh($child)->getName('en'))->toBeNull();
 });
 
 it('keeps what an object holds of its own once the class forbids inheritance', function () {
-    $parent = InheritanceFactory::new()
-        ->withObjectbrick('mybricks', UnittestBrick::class, ['brickinput' => 'text of the parent'])
+    $parent = TestProductFactory::new()
+        ->withObjectbrick('attributes', TestDimensions::class, ['width' => 'text of the parent'])
         ->create();
-    $child = InheritanceFactory::new()
+    $child = TestProductFactory::new()
         ->withParent($parent)
-        ->withObjectbrick('mybricks', UnittestBrick::class, ['brickinput2' => 'text of the child'])
+        ->withObjectbrick('attributes', TestDimensions::class, ['height' => 'text of the child'])
         ->create();
     $this->written = [
         $parent,
@@ -77,9 +77,9 @@ it('keeps what an object holds of its own once the class forbids inheritance', f
     Elements::refresh($parent)->save();
     Elements::refresh($child)->save();
 
-    $brick = Elements::refresh($child)->getMybricks()->getUnittestBrick();
-    expect($brick->getBrickinput())
+    $brick = Elements::refresh($child)->getAttributes()->getTestDimensions();
+    expect($brick->getWidth())
         ->toBeNull()
-        ->and($brick->getBrickinput2())
+        ->and($brick->getHeight())
         ->toBe('text of the child');
 });

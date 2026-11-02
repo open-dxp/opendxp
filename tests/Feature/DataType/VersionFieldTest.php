@@ -26,10 +26,10 @@ use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-function itemWithLocalizedText(): Fieldcollection\Data\Unittestfieldcollection
+function itemWithLocalizedText(): Fieldcollection\Data\TestFeature
 {
-    $item = new Fieldcollection\Data\Unittestfieldcollection();
-    $item->setLinput('textEN', 'en');
+    $item = new Fieldcollection\Data\TestFeature();
+    $item->setLabel('textEN', 'en');
 
     return $item;
 }

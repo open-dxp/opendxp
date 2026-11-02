@@ -20,11 +20,11 @@ use Exception;
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Localizedfields;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\UrlSlug;
+use OpenDxp\Test\DataObject\ArticleSlugGenerator;
 use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Test\Factory\TestArticleFactory;
 use OpenDxp\Tests\Application\Service\AvailableSitesListener;
 use OpenDxp\Tests\Application\Service\FailingSlugGenerator;
-use OpenDxp\Tests\Application\Service\ThingSlugGenerator;
-use OpenDxp\Tests\Factory\SluggableFactory;
 use stdClass;
 
 function slugField(): UrlSlug
@@ -72,35 +72,35 @@ it('rejects filling an empty slug without a generator', function () {
 
 it('gives the object editor the prefix of every language and site', function () {
     $site = SiteFactory::createOne();
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
-    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $field->setSlugGeneratorClass(ArticleSlugGenerator::class);
 
     $field->enrichLayoutDefinition($object, ['ownerType' => 'localizedfield']);
 
     expect($field->getSlugPrefixes()['de'])
         ->toMatchArray([
-            0 => '/de/things',
-            $site->getId() => sprintf('/de/site-%d/things', $site->getId()),
+            0 => '/de/articles',
+            $site->getId() => sprintf('/de/site-%d/articles', $site->getId()),
         ]);
 });
 
 it('gives the object editor prefixes without a language outside of localized fields', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
-    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $field->setSlugGeneratorClass(ArticleSlugGenerator::class);
 
     $field->enrichLayoutDefinition($object);
 
-    expect($field->getSlugPrefixes()[''][0])->toBe('/things');
+    expect($field->getSlugPrefixes()[''][0])->toBe('/articles');
 });
 
 it('leaves a site out of a language when a listener takes it away', function () {
     $keptSite = SiteFactory::createOne();
     $removedSite = SiteFactory::createOne();
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
-    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $field->setSlugGeneratorClass(ArticleSlugGenerator::class);
     $listener = (new AvailableSitesListener())
         ->removeSite($removedSite, 'de');
 
@@ -118,9 +118,9 @@ it('leaves a site out of a language when a listener takes it away', function () 
 });
 
 it('takes a language out of the object editor when a listener makes it unavailable', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
-    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $field->setSlugGeneratorClass(ArticleSlugGenerator::class);
     $listener = (new AvailableSitesListener())
         ->makeUnavailable('de');
 
@@ -134,11 +134,11 @@ it('takes a language out of the object editor when a listener makes it unavailab
         ->and($field->getSlugPrefixes())
         ->not->toHaveKey('de')
         ->and($field->getSlugPrefixes()['en'][0])
-        ->toBe('/en/things');
+        ->toBe('/en/articles');
 });
 
 it('opens the object editor with the message of a generator that fails', function () {
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
     $field->setSlugGeneratorClass(FailingSlugGenerator::class);
 
@@ -153,9 +153,9 @@ it('opens the object editor with the message of a generator that fails', functio
 it('asks a listener for the next language after it failed for one', function () {
     $keptSite = SiteFactory::createOne();
     $removedSite = SiteFactory::createOne();
-    $object = SluggableFactory::createOne();
+    $object = TestArticleFactory::createOne();
     $field = slugField();
-    $field->setSlugGeneratorClass(ThingSlugGenerator::class);
+    $field->setSlugGeneratorClass(ArticleSlugGenerator::class);
     $listener = (new AvailableSitesListener())
         ->failFor('de')
         ->removeSite($removedSite, 'fr');

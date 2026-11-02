@@ -16,19 +16,19 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Schema;
 
-use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
+use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Test\Elements;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 function setLocalizedInputDefault(string $value): void
 {
-    $definition = Definition::getByKey('unittestfieldcollection');
+    $definition = Definition::getByKey('TestFeature');
     $fields = $definition->getFieldDefinitions();
     $localized = $fields['localizedfields'];
 
     foreach ($localized->getChildren() as $child) {
-        if ($child->getName() === 'linput') {
+        if ($child->getName() === 'label') {
             $child->setDefaultValue($value);
         }
     }
@@ -48,9 +48,9 @@ afterEach(function () {
 });
 
 it('applies a later default only to new items', function () {
-    $emptied = new Unittestfieldcollection();
-    $emptied->setLinput('', 'en');
-    $untouched = new Unittestfieldcollection();
+    $emptied = new TestFeature();
+    $emptied->setLabel('', 'en');
+    $untouched = new TestFeature();
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
@@ -61,16 +61,16 @@ it('applies a later default only to new items', function () {
     $this->written[] = $object;
     setLocalizedInputDefault('1234');
     $loaded = Elements::refresh($object);
-    $loaded->getFieldcollection()->add(new Unittestfieldcollection());
+    $loaded->getFieldcollection()->add(new TestFeature());
 
     $loaded->save();
 
     $items = Elements::refresh($object)->getFieldcollection();
-    expect($items->get(0)->getLinput('en'))
+    expect($items->get(0)->getLabel('en'))
         ->toBeNull()
-        ->and($items->get(1)->getLinput('en'))
+        ->and($items->get(1)->getLabel('en'))
         ->toBeNull()
-        ->and($items->get(2)->getLinput('en'))
+        ->and($items->get(2)->getLabel('en'))
         ->toBe('1234');
 });
 
@@ -80,7 +80,7 @@ it('applies a default to every item of an object saved afterwards', function () 
         ->unsaved()
         ->withFieldcollection(
             'fieldcollection',
-            new Unittestfieldcollection(),
+            new TestFeature(),
         )
         ->create();
     $this->written[] = $object;
@@ -88,5 +88,5 @@ it('applies a default to every item of an object saved afterwards', function () 
     $object->save();
 
     $items = Elements::refresh($object)->getFieldcollection();
-    expect($items->get(0)->getLinput('en'))->toBe('1234');
+    expect($items->get(0)->getLabel('en'))->toBe('1234');
 });

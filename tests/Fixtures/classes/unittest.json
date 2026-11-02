@@ -1430,7 +1430,7 @@
                                 "visibleGridView": true,
                                 "visibleSearch": true,
                                 "allowedTypes": [
-                                    "unittestfieldcollection"
+                                    "TestFeature"
                                 ],
                                 "lazyLoading": false,
                                 "maxItems": null,
@@ -1490,7 +1490,7 @@
                                 "visibleGridView": true,
                                 "visibleSearch": true,
                                 "allowedTypes": [
-                                    "unittestfieldcollection"
+                                    "TestFeature"
                                 ],
                                 "lazyLoading": false,
                                 "maxItems": null,

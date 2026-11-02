@@ -19,12 +19,12 @@ namespace OpenDxp\Tests\Feature\Inheritance;
 use OpenDxp\Db;
 use OpenDxp\Model\DataObject\AbstractObject;
 use OpenDxp\Model\DataObject\Concrete;
-use OpenDxp\Model\DataObject\Inheritance;
 use OpenDxp\Model\DataObject\Service;
+use OpenDxp\Model\DataObject\TestProduct;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
-use OpenDxp\Tests\Factory\InheritanceFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
+use OpenDxp\Test\Factory\TestProductFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
 /**
@@ -33,40 +33,40 @@ use OpenDxp\Tests\Factory\UnittestFactory;
 function relationColumnOf(Concrete $object): string|false
 {
     return Db::get()->fetchOne(
-        sprintf('SELECT relationobjects FROM object_%s WHERE oo_id = ?', $object->getClassId()),
+        sprintf('SELECT accessories FROM object_%s WHERE oo_id = ?', $object->getClassId()),
         [$object->getId()],
     );
 }
 
 function countListedWithText(string $text): int
 {
-    $listing = new Inheritance\Listing();
-    $listing->setCondition('normalinput = ?', [$text]);
+    $listing = new TestProduct\Listing();
+    $listing->setCondition('sku = ?', [$text]);
 
     return count($listing->load());
 }
 
 beforeEach(function () {
-    $this->parent = InheritanceFactory::createOne(['normalInput' => 'text of the parent']);
-    $this->child = InheritanceFactory::new()
+    $this->parent = TestProductFactory::createOne(['sku' => 'text of the parent']);
+    $this->child = TestProductFactory::new()
         ->withParent($this->parent)
         ->create();
 });
 
 it('keeps the value of the child instead of the value of its parent', function () {
-    $child = InheritanceFactory::new()
+    $child = TestProductFactory::new()
         ->withParent($this->parent)
-        ->create(['normalInput' => 'text of the child']);
+        ->create(['sku' => 'text of the child']);
 
     $loaded = Elements::refresh($child);
 
-    expect($loaded)->getNormalInput()->toBe('text of the child');
+    expect($loaded)->getSku()->toBe('text of the child');
 });
 
 it('gives the child the value of its parent while it holds none of its own', function () {
     $loaded = Elements::refresh($this->child);
 
-    expect($loaded)->getNormalInput()->toBe('text of the parent');
+    expect($loaded)->getSku()->toBe('text of the parent');
 });
 
 it('lists the parent and the child by the value the child inherits', function () {
@@ -76,7 +76,7 @@ it('lists the parent and the child by the value the child inherits', function ()
 });
 
 it('lists only the parent by its value once the child holds its own', function () {
-    $this->child->setNormalInput('text of the child');
+    $this->child->setSku('text of the child');
     $this->child->save();
 
     expect(countListedWithText('text of the parent'))->toBe(1);
@@ -85,7 +85,7 @@ it('lists only the parent by its value once the child holds its own', function (
 it('gives the child no value while inherited values are turned off', function () {
     $value = Service::useInheritedValues(
         false,
-        fn () => Elements::refresh($this->child)->getNormalInput(),
+        fn () => Elements::refresh($this->child)->getSku(),
     );
 
     expect($value)->toBeNull();
@@ -95,31 +95,31 @@ it('takes the value of the parent away from a child moved to the root', function
     $this->child->setParentId(1);
     $this->child->save();
 
-    expect(Elements::refresh($this->child))->getNormalInput()->toBeNull();
+    expect(Elements::refresh($this->child))->getSku()->toBeNull();
 });
 
 it('gives a moved object the value of its new parent', function () {
-    $object = InheritanceFactory::createOne();
+    $object = TestProductFactory::createOne();
 
     $object->setParentId($this->parent->getId());
     $object->save();
 
-    expect(Elements::refresh($object))->getNormalInput()->toBe('text of the parent');
+    expect(Elements::refresh($object))->getSku()->toBe('text of the parent');
 });
 
 it('gives the child the new value once the parent changed it', function () {
-    $this->parent->setNormalInput('another text');
+    $this->parent->setSku('another text');
     $this->parent->save();
 
-    expect(Elements::refresh($this->child))->getNormalInput()->toBe('another text');
+    expect(Elements::refresh($this->child))->getSku()->toBe('another text');
 });
 
 it('gives the child a relation of the parent and writes its id into the object view', function () {
-    $target = RelationTestFactory::createOne();
-    $this->parent->setRelationobjects([$target]);
+    $target = TestCategoryFactory::createOne();
+    $this->parent->setAccessories([$target]);
     $this->parent->save();
 
-    $relations = Elements::refresh($this->child)->getRelationobjects();
+    $relations = Elements::refresh($this->child)->getAccessories();
 
     expect($relations)
         ->toHaveCount(1)
@@ -132,14 +132,14 @@ it('gives the child a relation of the parent and writes its id into the object v
 it('gives a relation of the parent to its grandchild through another kind of child', function (
     AbstractObject $between,
 ) {
-    $target = RelationTestFactory::createOne();
-    $grandchild = InheritanceFactory::new()
+    $target = TestCategoryFactory::createOne();
+    $grandchild = TestProductFactory::new()
         ->withParent($between)
         ->create();
-    $this->parent->setRelationobjects([$target]);
+    $this->parent->setAccessories([$target]);
     $this->parent->save();
 
-    $relations = Elements::refresh($grandchild)->getRelationobjects();
+    $relations = Elements::refresh($grandchild)->getAccessories();
 
     expect($relations)
         ->toHaveCount(1)
@@ -157,41 +157,41 @@ it('gives a relation of the parent to its grandchild through another kind of chi
 ]);
 
 it('gives the child the single relation of its parent', function () {
-    $target = RelationTestFactory::createOne();
-    $parent = InheritanceFactory::createOne(['relation' => $target]);
-    $child = InheritanceFactory::new()
+    $target = TestCategoryFactory::createOne();
+    $parent = TestProductFactory::createOne(['category' => $target]);
+    $child = TestProductFactory::new()
         ->withParent($parent)
         ->create();
 
-    $relation = Elements::refresh($child)->getRelation();
+    $relation = Elements::refresh($child)->getCategory();
 
     expect($relation)->getId()->toBe($target->getId());
 });
 
 it('gives the child no single relation while inherited values are turned off', function () {
-    $parent = InheritanceFactory::createOne(['relation' => RelationTestFactory::createOne()]);
-    $child = InheritanceFactory::new()
+    $parent = TestProductFactory::createOne(['category' => TestCategoryFactory::createOne()]);
+    $child = TestProductFactory::new()
         ->withParent($parent)
         ->create();
 
     $relation = Service::useInheritedValues(
         false,
-        fn () => Elements::refresh($child)->getRelation(),
+        fn () => Elements::refresh($child)->getCategory(),
     );
 
     expect($relation)->toBeNull();
 });
 
 it('keeps a single relation of the child that equals the relation of its parent', function () {
-    $target = RelationTestFactory::createOne();
-    $parent = InheritanceFactory::createOne(['relation' => $target]);
-    $child = InheritanceFactory::new()
+    $target = TestCategoryFactory::createOne();
+    $parent = TestProductFactory::createOne(['category' => $target]);
+    $child = TestProductFactory::new()
         ->withParent($parent)
-        ->create(['relation' => $target]);
+        ->create(['category' => $target]);
 
     $relation = Service::useInheritedValues(
         false,
-        fn () => Elements::refresh($child)->getRelation(),
+        fn () => Elements::refresh($child)->getCategory(),
     );
 
     expect($relation)->getId()->toBe($target->getId());

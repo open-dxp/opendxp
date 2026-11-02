@@ -18,8 +18,8 @@ namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
 
 /**
  * @return list<ElementMetadata>
@@ -28,7 +28,7 @@ function notedRelations(int $count): array
 {
     $relations = [];
 
-    foreach (RelationTestFactory::createMany($count) as $position => $target) {
+    foreach (TestCategoryFactory::createMany($count) as $position => $target) {
         $relation = new ElementMetadata('multipleManyToMany', ['meta'], $target);
         $relation->setMeta(sprintf('note %d', $position));
         $relations[] = $relation;

@@ -14,18 +14,17 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Factory;
+namespace OpenDxp\Test\Factory;
 
-use OpenDxp\Model\DataObject\Inheritance;
-use OpenDxp\Test\Factory\AbstractDataObjectFactory;
+use OpenDxp\Model\DataObject\TestProduct;
 
 /**
- * @extends AbstractDataObjectFactory<Inheritance>
+ * @extends AbstractDataObjectFactory<TestProduct>
  */
-final class InheritanceFactory extends AbstractDataObjectFactory
+final class TestProductFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return Inheritance::class;
+        return TestProduct::class;
     }
 }

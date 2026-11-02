@@ -17,30 +17,30 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
-use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
+use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\UnittestFactory;
 
-beforeEach(fn () => $this->targets = RelationTestFactory::createMany(3));
+beforeEach(fn () => $this->targets = TestCategoryFactory::createMany(3));
 
 it('changes the relation of one item and keeps the others', function () {
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
-            (new Unittestfieldcollection())->setFieldRelation([$this->targets[0]]),
-            (new Unittestfieldcollection())->setFieldRelation([$this->targets[1]]),
+            (new TestFeature())->setDocuments([$this->targets[0]]),
+            (new TestFeature())->setDocuments([$this->targets[1]]),
         )
         ->create();
 
-    $object->getFieldcollection()->get(1)->setFieldRelation([$this->targets[2]]);
+    $object->getFieldcollection()->get(1)->setDocuments([$this->targets[2]]);
     $object->save();
 
     $items = Elements::refresh($object)->getFieldcollection();
-    expect($items->get(0)->getFieldRelation()[0]->getId())
+    expect($items->get(0)->getDocuments()[0]->getId())
         ->toBe($this->targets[0]->getId())
-        ->and($items->get(1)->getFieldRelation()[0]->getId())
+        ->and($items->get(1)->getDocuments()[0]->getId())
         ->toBe($this->targets[2]->getId());
 });
 
@@ -48,16 +48,16 @@ it('keeps no relation in an item that was emptied', function () {
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
-            (new Unittestfieldcollection())->setFieldRelation([$this->targets[0]]),
-            (new Unittestfieldcollection())->setFieldRelation([$this->targets[1]]),
+            (new TestFeature())->setDocuments([$this->targets[0]]),
+            (new TestFeature())->setDocuments([$this->targets[1]]),
         )
         ->create();
 
-    $object->getFieldcollection()->get(1)->setFieldRelation([]);
+    $object->getFieldcollection()->get(1)->setDocuments([]);
     $object->save();
 
     $item = Elements::refresh($object)->getFieldcollection()->get(1);
-    expect($item)->getFieldRelation()->toBe([]);
+    expect($item)->getDocuments()->toBe([]);
 });
 
 it('drops the relation with metadata to a target that was deleted', function () {
@@ -66,10 +66,10 @@ it('drops the relation with metadata to a target that was deleted', function () 
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
-            (new Unittestfieldcollection())->setAdvancedFieldRelation([
+            (new TestFeature())->setCertificates([
                 new ElementMetadata('metadataUpper', [], $kept),
             ]),
-            (new Unittestfieldcollection())->setAdvancedFieldRelation([
+            (new TestFeature())->setCertificates([
                 new ElementMetadata('metadataUpper', [], $deleted),
             ]),
         )
@@ -80,9 +80,9 @@ it('drops the relation with metadata to a target that was deleted', function () 
     Elements::refresh($object)->save();
 
     $items = Elements::refresh($object)->getFieldcollection();
-    expect($items->get(0)->getAdvancedFieldRelation()[0]->getElementId())
+    expect($items->get(0)->getCertificates()[0]->getElementId())
         ->toBe($kept->getId())
-        ->and($items->get(1)->getAdvancedFieldRelation())
+        ->and($items->get(1)->getCertificates())
         ->toBe([]);
 });
 
@@ -90,18 +90,18 @@ it('changes the localized relation of one item and keeps the others', function (
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
-            (new Unittestfieldcollection())->setLrelation($this->targets[0], 'en'),
-            (new Unittestfieldcollection())->setLrelation($this->targets[1], 'en'),
+            (new TestFeature())->setCategory($this->targets[0], 'en'),
+            (new TestFeature())->setCategory($this->targets[1], 'en'),
         )
         ->create();
 
-    $object->getFieldcollection()->get(1)->setLrelation($this->targets[2], 'en');
+    $object->getFieldcollection()->get(1)->setCategory($this->targets[2], 'en');
     $object->save();
 
     $items = Elements::refresh($object)->getFieldcollection();
-    expect($items->get(0)->getLrelation('en')->getId())
+    expect($items->get(0)->getCategory('en')->getId())
         ->toBe($this->targets[0]->getId())
-        ->and($items->get(1)->getLrelation('en')->getId())
+        ->and($items->get(1)->getCategory('en')->getId())
         ->toBe($this->targets[2]->getId());
 });
 
@@ -109,14 +109,14 @@ it('keeps no localized relation in an item that was emptied', function () {
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
-            (new Unittestfieldcollection())->setLrelation($this->targets[0], 'en'),
-            (new Unittestfieldcollection())->setLrelation($this->targets[1], 'en'),
+            (new TestFeature())->setCategory($this->targets[0], 'en'),
+            (new TestFeature())->setCategory($this->targets[1], 'en'),
         )
         ->create();
 
-    $object->getFieldcollection()->get(1)->setLrelation(null, 'en');
+    $object->getFieldcollection()->get(1)->setCategory(null, 'en');
     $object->save();
 
     $item = Elements::refresh($object)->getFieldcollection()->get(1);
-    expect($item)->getLrelation('en')->toBeNull();
+    expect($item)->getCategory('en')->toBeNull();
 });

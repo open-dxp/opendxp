@@ -44,11 +44,11 @@ it('loads the relations of a brick on a cold load', function () {
 });
 
 it('loads the relations of a field collection item on a cold load', function () {
-    $item = new Fieldcollection\Data\Unittestfieldcollection();
-    $item->setFieldinput1('field11');
-    $item->setFieldinput2('field21');
-    $item->setFieldRelation(TestObjectFactory::createMany(10));
-    $item->setFieldLazyRelation(TestObjectFactory::createMany(15));
+    $item = new Fieldcollection\Data\TestFeature();
+    $item->setName('field11');
+    $item->setContent('field21');
+    $item->setDocuments(TestObjectFactory::createMany(10));
+    $item->setDownloads(TestObjectFactory::createMany(15));
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'myfieldcollection',
@@ -61,12 +61,12 @@ it('loads the relations of a field collection item on a cold load', function () 
     expect($items)
         ->toHaveCount(1)
         ->and($items[0])
-        ->getFieldinput1()
+        ->getName()
         ->toBe('field11')
-        ->getFieldinput2()
+        ->getContent()
         ->toBe('field21')
-        ->getFieldRelation()
+        ->getDocuments()
         ->toHaveCount(10)
-        ->getFieldLazyRelation()
+        ->getDownloads()
         ->toHaveCount(15);
 });

@@ -23,7 +23,7 @@ final class SharedPrefixSlugGenerator implements UrlSlugGeneratorInterface
 {
     public function getPrefix(UrlSlugContext $context): string
     {
-        return 'things';
+        return 'articles';
     }
 
     public function formatSlug(string $text, UrlSlugContext $context): string
@@ -34,7 +34,7 @@ final class SharedPrefixSlugGenerator implements UrlSlugGeneratorInterface
     public function getDefaultSlug(UrlSlugContext $context): ?string
     {
         return $context->language === null
-            ? $context->object->get('name')
-            : $context->object->get('lname', $context->language);
+            ? $context->object->get('title')
+            : $context->object->get('headline', $context->language);
     }
 }

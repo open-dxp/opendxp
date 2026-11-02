@@ -61,8 +61,8 @@ it('refuses a value in strict mode', function (?string $language, string $compla
 ]);
 
 it('keeps a language of a field collection item when another one is written later', function () {
-    $item = new Fieldcollection\Data\Unittestfieldcollection();
-    $item->setLinput('textEN', 'en');
+    $item = new Fieldcollection\Data\TestFeature();
+    $item->setLabel('textEN', 'en');
     $object = UnittestFactory::new()
         ->withFieldcollection(
             'fieldcollection',
@@ -71,13 +71,13 @@ it('keeps a language of a field collection item when another one is written late
         ->create();
 
     $loaded = Elements::refresh($object);
-    $loaded->getFieldcollection()->get(0)->setLinput('textDE', 'de');
+    $loaded->getFieldcollection()->get(0)->setLabel('textDE', 'de');
     $loaded->save();
     $written = Elements::refresh($object)->getFieldcollection()->get(0);
 
-    expect($written->getLinput('en'))
+    expect($written->getLabel('en'))
         ->toBe('textEN')
-        ->and($written->getLinput('de'))
+        ->and($written->getLabel('de'))
         ->toBe('textDE');
 });
 

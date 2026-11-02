@@ -20,8 +20,8 @@ use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
 
 /**
  * @param class-string<ElementMetadata|ObjectMetadata> $metadata
@@ -32,7 +32,7 @@ function eachTargetTwice(string $metadata, string $field): array
 {
     $relations = [];
 
-    foreach (RelationTestFactory::createMany(3) as $position => $target) {
+    foreach (TestCategoryFactory::createMany(3) as $position => $target) {
         foreach (['first', 'second'] as $which) {
             $relation = new $metadata($field, ['meta'], $target);
             $relation->setMeta(sprintf('%s note of %d', $which, $position));

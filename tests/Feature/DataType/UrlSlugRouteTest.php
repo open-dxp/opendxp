@@ -17,13 +17,13 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Test\Factory\SiteFactory;
+use OpenDxp\Test\Factory\TestArticleFactory;
 use OpenDxp\Tests\Application\Service\AvailableSitesListener;
-use OpenDxp\Tests\Factory\SluggableFactory;
 
 beforeEach(function () {
-    $this->bike = SluggableFactory::new()
+    $this->bike = TestArticleFactory::new()
         ->withLocalizedValues(
-            'lname',
+            'headline',
             [
                 'de' => 'Gruenes Rad',
                 'en' => 'Green Bike',
@@ -37,15 +37,15 @@ it('routes the slug of every available language', function (string $path) {
 
     expect($objectId)->toBe($this->bike->getId());
 })->with([
-    'German' => ['/de/things/gruenes-rad'],
-    'English' => ['/en/things/green-bike'],
+    'German' => ['/de/articles/gruenes-rad'],
+    'English' => ['/en/articles/green-bike'],
 ]);
 
 it('finds no route for the slug of a language that is no longer available', function () {
     $listener = (new AvailableSitesListener())
         ->makeUnavailable('de');
 
-    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/de/things/gruenes-rad'));
+    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/de/articles/gruenes-rad'));
 
     expect($objectId)->toBeNull();
 });
@@ -55,7 +55,7 @@ it('finds no route for the slug of a language on a site that does not offer it',
     $listener = (new AvailableSitesListener())
         ->removeSite($site, 'de');
 
-    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/de/things/gruenes-rad', $site));
+    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/de/articles/gruenes-rad', $site));
 
     expect($objectId)->toBeNull();
 });
@@ -65,7 +65,7 @@ it('routes the slug of a language on a site that offers it', function () {
     $listener = (new AvailableSitesListener())
         ->removeSite($site, 'de');
 
-    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/en/things/green-bike', $site));
+    $objectId = runWithAvailableSitesListener($listener, fn () => findRoutedObjectId('/en/articles/green-bike', $site));
 
     expect($objectId)->toBe($this->bike->getId());
 });

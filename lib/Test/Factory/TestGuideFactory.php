@@ -15,34 +15,33 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Factory;
+namespace OpenDxp\Test\Factory;
 
 use OpenDxp\Model\DataObject\Data\BlockElement;
 use OpenDxp\Model\DataObject\Localizedfield;
-use OpenDxp\Model\DataObject\UnittestBlock;
-use OpenDxp\Test\Factory\AbstractDataObjectFactory;
+use OpenDxp\Model\DataObject\TestGuide;
 
 /**
- * @extends AbstractDataObjectFactory<UnittestBlock>
+ * @extends AbstractDataObjectFactory<TestGuide>
  */
-final class UnittestBlockFactory extends AbstractDataObjectFactory
+final class TestGuideFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return UnittestBlock::class;
+        return TestGuide::class;
     }
 
-    public function withLocalizedItems(string ...$values): static
+    public function withSections(string ...$headings): static
     {
-        return $this->with(['localizedtestblock' => array_map(self::localizedItem(...), $values)]);
+        return $this->with(['sections' => array_map(self::section(...), $headings)]);
     }
 
     /**
      * @return array<string, BlockElement>
      */
-    private static function localizedItem(string $value): array
+    private static function section(string $heading): array
     {
-        $localizedFields = new Localizedfield(['de' => ['linput' => $value]]);
+        $localizedFields = new Localizedfield(['de' => ['heading' => $heading]]);
 
         return ['localizedfields' => new BlockElement('localizedfields', 'localizedfields', $localizedFields)];
     }

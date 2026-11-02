@@ -14,15 +14,14 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Factory;
+namespace OpenDxp\Test\Factory;
 
-use OpenDxp\Model\DataObject\RelationTest;
-use OpenDxp\Test\Factory\AbstractDataObjectFactory;
+use OpenDxp\Model\DataObject\TestCategory;
 
 /**
- * @extends AbstractDataObjectFactory<RelationTest>
+ * @extends AbstractDataObjectFactory<TestCategory>
  */
-final class RelationTestFactory extends AbstractDataObjectFactory
+final class TestCategoryFactory extends AbstractDataObjectFactory
 {
     /**
      * A test looks for this text in a serialized object to tell whether a marked target was written along with it.
@@ -31,11 +30,11 @@ final class RelationTestFactory extends AbstractDataObjectFactory
 
     public static function class(): string
     {
-        return RelationTest::class;
+        return TestCategory::class;
     }
 
     public function marked(): static
     {
-        return $this->with(['someAttribute' => self::MARKER]);
+        return $this->with(['name' => self::MARKER]);
     }
 }

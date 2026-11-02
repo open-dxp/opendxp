@@ -17,24 +17,24 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Inheritance;
 
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\InheritanceFactory;
+use OpenDxp\Test\Factory\TestProductFactory;
 
 beforeEach(function () {
-    $this->group = storeGroup('testgroup2');
-    $parent = InheritanceFactory::new()
-        ->withClassificationValues('teststore', $this->group, [
+    $this->group = storeGroup('values');
+    $parent = TestProductFactory::new()
+        ->withClassificationValues('specifications', $this->group, [
             'input' => 'input of the parent',
             'textarea' => 'textarea of the parent',
         ])
         ->create();
-    $this->child = InheritanceFactory::new()
+    $this->child = TestProductFactory::new()
         ->withParent($parent)
-        ->withClassificationValues('teststore', $this->group, ['input' => 'input of the child'])
+        ->withClassificationValues('specifications', $this->group, ['input' => 'input of the child'])
         ->create();
 });
 
 it('gives the child the value of its parent for a key it holds no value for', function () {
-    $store = Elements::refresh($this->child)->getTeststore();
+    $store = Elements::refresh($this->child)->getSpecifications();
 
     $value = $store->getLocalizedKeyValue(
         $this->group->getId(),
@@ -45,7 +45,7 @@ it('gives the child the value of its parent for a key it holds no value for', fu
 });
 
 it('keeps the value of the child for a key it holds its own value for', function () {
-    $store = Elements::refresh($this->child)->getTeststore();
+    $store = Elements::refresh($this->child)->getSpecifications();
 
     $value = $store->getLocalizedKeyValue(
         $this->group->getId(),

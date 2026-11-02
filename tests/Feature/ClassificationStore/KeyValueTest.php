@@ -41,77 +41,77 @@ it('keeps the value a key of a group was given', function (string $group, string
     expect($stored)->toEqual($expected);
 })->with([
     'a date' => [
-        'testgroup1',
+        'dates',
         'date',
         fn () => Carbon::createFromTimestamp(1700000000),
     ],
     'a date and a time' => [
-        'testgroup1',
+        'dates',
         'datetime',
         fn () => Carbon::createFromTimestamp(1700000000),
     ],
     'an encrypted text' => [
-        'testgroup1',
+        'dates',
         'encryptedField',
         fn () => new Data\EncryptedField(new Input(), 'abc'),
     ],
     'a line of text' => [
-        'testgroup2',
+        'values',
         'input',
         fn () => 'abc',
     ],
     'a colour' => [
-        'testgroup2',
+        'values',
         'rgbaColor',
         fn () => new Data\RgbaColor(1, 2, 3, 4),
     ],
     'a select' => [
-        'testgroup2',
+        'values',
         'select',
         fn () => 'B',
     ],
     'a time of day' => [
-        'testgroup2',
+        'values',
         'time',
         fn () => '12:30',
     ],
     'a number' => [
-        'testgroup2',
+        'values',
         'numeric',
         fn () => 12.57,
     ],
     'a boolean select' => [
-        'testgroup2',
+        'values',
         'booleanSelect',
         fn () => true,
     ],
     'a user' => [
-        'testgroup2',
+        'values',
         'user',
         fn () => user('unittestdatauser1')->getId(),
     ],
     'a text area' => [
-        'testgroup2',
+        'values',
         'textarea',
         fn () => "line1\nline2",
     ],
     'formatted text' => [
-        'testgroup2',
+        'values',
         'wysiwyg',
         fn () => 'line1<br />line2',
     ],
     'a checkbox' => [
-        'testgroup2',
+        'values',
         'checkbox',
         fn () => true,
     ],
     'a slider' => [
-        'testgroup2',
+        'values',
         'slider',
         fn () => 47,
     ],
     'a table' => [
-        'testgroup2',
+        'values',
         'table',
         fn () => [
             [
@@ -125,17 +125,17 @@ it('keeps the value a key of a group was given', function (string $group, string
         ],
     ],
     'a country' => [
-        'testgroup2',
+        'values',
         'country',
         fn () => 'AT',
     ],
     'a language' => [
-        'testgroup2',
+        'values',
         'language',
         fn () => 'fr',
     ],
     'several selected values' => [
-        'testgroup2',
+        'values',
         'multiselect',
         fn () => [
             'A',
@@ -143,7 +143,7 @@ it('keeps the value a key of a group was given', function (string $group, string
         ],
     ],
     'several countries' => [
-        'testgroup2',
+        'values',
         'countrymultiselect',
         fn () => [
             'AT',
@@ -151,7 +151,7 @@ it('keeps the value a key of a group was given', function (string $group, string
         ],
     ],
     'several languages' => [
-        'testgroup2',
+        'values',
         'languagemultiselect',
         fn () => [
             'de',
@@ -159,25 +159,25 @@ it('keeps the value a key of a group was given', function (string $group, string
         ],
     ],
     'a quantity' => [
-        'testgroup2',
+        'values',
         'quantityValue',
         fn () => new Data\QuantityValue(123, quantityUnit('cm')->getId()),
     ],
     'a quantity written as text' => [
-        'testgroup2',
+        'values',
         'inputQuantityValue',
         fn () => new Data\InputQuantityValue('abc', quantityUnit('cm')->getId()),
     ],
 ]);
 
 it('keeps the value of a key apart per language', function () {
-    $groupId = storeGroup('testgroup2')->getId();
+    $groupId = storeGroup('values')->getId();
     $keyId = storeKey('input')->getId();
 
     $object = CsstoreFactory::new()
         ->withLocalizedClassificationValues(
             'csstore',
-            storeGroup('testgroup2'),
+            storeGroup('values'),
             'input',
             [
                 'en' => 'English',
@@ -200,7 +200,7 @@ it('returns the value of the default language for a language that holds none', f
     $object = CsstoreFactory::new()
         ->withLocalizedClassificationValues(
             'csstore',
-            storeGroup('testgroup2'),
+            storeGroup('values'),
             'input',
             [
                 'en' => null,
@@ -210,7 +210,7 @@ it('returns the value of the default language for a language that holds none', f
         ->create();
 
     $value = Elements::refresh($object)->getCsstore()->getLocalizedKeyValue(
-        storeGroup('testgroup2')->getId(),
+        storeGroup('values')->getId(),
         storeKey('input')->getId(),
         'en',
     );
@@ -221,12 +221,12 @@ it('returns the value of the default language for a language that holds none', f
 describe('a quantity', function () {
     beforeEach(function () {
         $this->unitId = quantityUnit('cm')->getId();
-        $this->groupId = storeGroup('testgroupQvalue')->getId();
+        $this->groupId = storeGroup('quantities')->getId();
         $this->keyId = storeKey('qValue')->getId();
         $this->object = CsstoreFactory::new()
             ->withClassificationValues(
                 'csstore',
-                storeGroup('testgroupQvalue'),
+                storeGroup('quantities'),
                 ['qValue' => new Data\QuantityValue(123, $this->unitId)],
             )
             ->create();

@@ -26,8 +26,8 @@ use OpenDxp\Model\DataObject\LazyLoading;
 use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingLocalizedTest;
 use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingTest;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
 use OpenDxp\Tests\Value\LazyRelation;
 
 const TARGET_COUNT = 5;
@@ -122,7 +122,7 @@ dataset('blocks', [
 ]);
 
 beforeEach(function () {
-    $this->targets = RelationTestFactory::new()
+    $this->targets = TestCategoryFactory::new()
         ->marked()
         ->many(TARGET_COUNT)
         ->create();
@@ -137,7 +137,7 @@ it('keeps a relation out of the serialized object', function (LazyRelation $rela
 
     expect($serialized)
         ->not->toContain(...LAZY_LOADING_INTERNALS)
-        ->not->toContain(RelationTestFactory::MARKER);
+        ->not->toContain(TestCategoryFactory::MARKER);
 })->with('lazy relations')->with('holders');
 
 it('loads a relation when it is asked for', function (LazyRelation $relation, Closure $holderOf) {
@@ -183,7 +183,7 @@ it('keeps a localized relation out of the serialized object', function (LazyRela
 
     $serialized = serialize($holder);
 
-    expect($serialized)->not->toContain(RelationTestFactory::MARKER);
+    expect($serialized)->not->toContain(TestCategoryFactory::MARKER);
 })->with('lazy relations')->with('holders');
 
 it('loads a localized relation when it is asked for', function (LazyRelation $relation, Closure $holderOf) {
@@ -257,7 +257,7 @@ it('keeps a relation of a field collection out of the serialized object', functi
 
     $serialized = serialize(Elements::refresh($object));
 
-    expect($serialized)->not->toContain(RelationTestFactory::MARKER);
+    expect($serialized)->not->toContain(TestCategoryFactory::MARKER);
 })->with('lazy relations');
 
 it('loads a relation of a field collection when the item is asked for', function (LazyRelation $relation) {
@@ -333,7 +333,7 @@ it('writes the targets of a relation in an eagerly loaded block into the seriali
 
     $serialized = serialize(Elements::refresh($object));
 
-    expect($serialized)->toContain(RelationTestFactory::MARKER);
+    expect($serialized)->toContain(TestCategoryFactory::MARKER);
 });
 
 it('changes a localized relation of a brick in one language only', function () {

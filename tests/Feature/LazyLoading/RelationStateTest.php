@@ -19,13 +19,13 @@ namespace OpenDxp\Tests\Feature\LazyLoading;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Tests\Factory\LazyLoadingFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
 
 beforeEach(function () {
     $relations = array_map(
         static fn (Concrete $target) => new ObjectMetadata('advancedObjects', ['metadataUpper'], $target),
-        RelationTestFactory::createMany(3),
+        TestCategoryFactory::createMany(3),
     );
     $this->object = LazyLoadingFactory::createOne(['advancedObjects' => $relations]);
 });
