@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\Sluggable;
+use OpenDxp\Model\DataObject\TestClassification;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<Sluggable>
+ * @extends AbstractDataObjectFactory<TestClassification>
  */
-final class SluggableFactory extends AbstractDataObjectFactory
+final class TestClassificationFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return Sluggable::class;
+        return TestClassification::class;
     }
 }

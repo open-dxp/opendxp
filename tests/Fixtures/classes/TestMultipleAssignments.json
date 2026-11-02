@@ -168,7 +168,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "allowedClassId": "RelationTest",
+                                "allowedClassId": "TestCategory",
                                 "columns": [
                                     {
                                         "position": 1,
@@ -211,7 +211,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "allowedClassId": "RelationTest",
+                                "allowedClassId": "TestCategory",
                                 "columns": [
                                     {
                                         "position": 1,

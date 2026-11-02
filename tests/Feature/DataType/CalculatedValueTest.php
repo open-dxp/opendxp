@@ -18,10 +18,10 @@ namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Tests\Application\Service\Calculator;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('returns what the calculator service works out', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     RuntimeCache::set(Calculator::VALUE_KEY, 'the calculated value');
 
     $value = $object->getCalculatedValue();
@@ -30,7 +30,7 @@ it('returns what the calculator service works out', function () {
 });
 
 it('works a value out of an expression', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $object->setFirstname('Jane');
 
@@ -38,7 +38,7 @@ it('works a value out of an expression', function () {
 });
 
 it('writes the value of an expression into the query table', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $object->setFirstname('Jane');
     $object->save();
@@ -47,7 +47,7 @@ it('writes the value of an expression into the query table', function () {
 });
 
 it('refuses to read a constant in an expression', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $value = $object->getCalculatedValueExpressionConstant();
 

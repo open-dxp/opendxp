@@ -17,10 +17,10 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataObject;
 
 use OpenDxp\Model\DataObject\Service;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('keeps a deep copy apart from a change to the original', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withLocalizedValues(
             'linput',
             ['en' => 'original'],

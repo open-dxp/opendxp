@@ -26,9 +26,9 @@ it('returns null for an id no class carries', function () {
 });
 
 it('finds a class under an id that differs only in case', function () {
-    $class = ClassDefinition::getByIdIgnoreCase('Inheritance');
+    $class = ClassDefinition::getByIdIgnoreCase('testproduct');
 
     expect($class)
         ->getName()
-        ->toBe('inheritance');
+        ->toBe('TestProduct');
 });

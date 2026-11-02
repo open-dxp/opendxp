@@ -21,7 +21,7 @@ use OpenDxp\Model\DataObject\Data\Link;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
-use OpenDxp\Tests\Factory\UnittestLinkFactory;
+use OpenDxp\Tests\Factory\TestLinksFactory;
 use TypeError;
 
 function linkToAsset(Asset $asset): Link
@@ -37,7 +37,7 @@ it('keeps the url of a link, localized or not', function () {
     $link = new Link();
     $link->setDirect('https://www.opendxp.io/');
 
-    $object = UnittestLinkFactory::createOne([
+    $object = TestLinksFactory::createOne([
         'testlink' => $link,
         'ltestlink' => $link,
     ]);
@@ -53,7 +53,7 @@ describe('a link to a deleted asset', function () {
     beforeEach(function () {
         $asset = AssetImageFactory::createOne();
         $this->link = linkToAsset($asset);
-        $object = UnittestLinkFactory::createOne(['testlink' => $this->link]);
+        $object = TestLinksFactory::createOne(['testlink' => $this->link]);
         $this->definition = $object->getClass()->getFieldDefinition('testlink');
 
         $asset->delete();
@@ -84,7 +84,7 @@ describe('a link to a deleted asset', function () {
 });
 
 it('refuses a plain url where a link belongs', function () {
-    $object = UnittestLinkFactory::new()
+    $object = TestLinksFactory::new()
         ->unsaved()
         ->create();
 

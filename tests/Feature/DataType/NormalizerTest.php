@@ -22,8 +22,8 @@ use OpenDxp\Model\DataObject\ClassDefinition\Data as Definition;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Model\User;
 use OpenDxp\Normalizer\NormalizerInterface;
-use OpenDxp\Tests\Factory\TestObjectFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * A normalizer sets this owner on the value it builds, so the value going in carries the same one.
@@ -75,7 +75,7 @@ function linkToAnObject(): Data\Link
 {
     $link = new Data\Link();
     $link->setInternalType('object');
-    $link->setInternal(TestObjectFactory::createOne()->getId());
+    $link->setInternal(TestPlainObjectFactory::createOne()->getId());
     $link->setTarget('_blank');
     $link->setTitle('sometitle');
 
@@ -313,12 +313,12 @@ it('reads a relation back as the elements it pointed at', function (Definition $
 })->with([
     'objects' => [
         fn () => new Definition\ManyToManyObjectRelation(),
-        fn () => TestObjectFactory::createMany(2),
+        fn () => TestPlainObjectFactory::createMany(2),
     ],
     'elements of any kind' => [
         fn () => new Definition\ManyToManyRelation(),
         fn () => [
-            TestObjectFactory::createOne(),
+            TestPlainObjectFactory::createOne(),
             image('image.jpg'),
         ],
     ],
@@ -326,7 +326,7 @@ it('reads a relation back as the elements it pointed at', function (Definition $
 
 it('reads a single relation back as the element it pointed at', function () {
     $definition = new Definition\ManyToOneRelation();
-    $target = TestObjectFactory::createOne();
+    $target = TestPlainObjectFactory::createOne();
 
     $normalized = $definition->normalize($target);
     $back = $definition->denormalize($normalized);
@@ -335,8 +335,8 @@ it('reads a single relation back as the element it pointed at', function () {
 });
 
 it('reads the localized fields back with the values of every language', function () {
-    $target = TestObjectFactory::createOne();
-    $object = UnittestFactory::new()
+    $target = TestPlainObjectFactory::createOne();
+    $object = TestFieldTypesFactory::new()
         ->withLocalizedValues(
             'linput',
             ['en' => '123'],

@@ -25,7 +25,7 @@ use OpenDxp\Event\Model\DataObjectEvent;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Test\Elements;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use ReflectionProperty;
 
 // Symfony's TagAwareAdapter remembers tag versions for 150ms, so an invalidation needs longer.
@@ -95,7 +95,7 @@ beforeEach(function () {
 });
 
 it('serves no stale object that a failed batch left in the prefetch buffer', function () {
-    $objects = UnittestFactory::createMany(
+    $objects = TestFieldTypesFactory::createMany(
         4,
         fn (int $index) => ['input' => sprintf('batch_%d', $index)],
     );
@@ -106,7 +106,7 @@ it('serves no stale object that a failed batch left in the prefetch buffer', fun
     // The third object fails while it is loaded. The fourth never gets its turn, so its prefetched entry stays.
     $failing = $objects[2];
     $orphaned = $objects[3];
-    $failure = loadFailingAt(unittestListing('batch_'), $failing);
+    $failure = loadFailingAt(testFieldTypesListing('batch_'), $failing);
     changedByAnotherWorker($orphaned);
 
     $loaded = loadedThroughTheCache($orphaned);
@@ -119,15 +119,15 @@ it('serves no stale object that a failed batch left in the prefetch buffer', fun
 
 it('drops only its own batch from the prefetch buffer', function () {
     // The outer object belongs to a batch that is still running.
-    $outer = UnittestFactory::createOne(['input' => 'outer']);
+    $outer = TestFieldTypesFactory::createOne(['input' => 'outer']);
     $outerKey = cacheAsAnEarlierRequest($outer);
-    UnittestFactory::createOne(['input' => 'inner']);
+    TestFieldTypesFactory::createOne(['input' => 'inner']);
     RuntimeCache::clear();
     Cache::prefetch([$outerKey]);
     // From here on only the prefetch buffer can serve the outer object.
     Container::get('opendxp.cache.pool')->deleteItem($outerKey);
 
-    unittestListing('inner')->load();
+    testFieldTypesListing('inner')->load();
 
     expect(Cache::load($outerKey))
         ->getInput()
@@ -135,7 +135,7 @@ it('drops only its own batch from the prefetch buffer', function () {
 });
 
 it('drops an unconsumed prefetch entry when the services are reset', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     $key = cacheAsAnEarlierRequest($object);
     RuntimeCache::clear();
     Cache::prefetch([$key]);

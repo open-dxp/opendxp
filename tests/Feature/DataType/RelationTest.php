@@ -17,31 +17,31 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('keeps the metadata a relation carries', function () {
     $assigned = array_map(
-        static function (Unittest $target): ObjectMetadata {
+        static function (TestFieldTypes $target): ObjectMetadata {
             $metadata = new ObjectMetadata('objectswithmetadata', ['meta1', 'meta2'], $target);
             $metadata->setMeta1('value11');
             $metadata->setMeta2('value21');
 
             return $metadata;
         },
-        UnittestFactory::createMany(4),
+        TestFieldTypesFactory::createMany(4),
     );
 
-    $object = UnittestFactory::createOne(['objectswithmetadata' => $assigned]);
+    $object = TestFieldTypesFactory::createOne(['objectswithmetadata' => $assigned]);
 
     expect(Elements::refresh($object))->toCarryField('objectswithmetadata', $assigned);
 });
 
 it('lists the objects that point at it', function () {
-    $target = UnittestFactory::createOne();
+    $target = TestFieldTypesFactory::createOne();
 
-    $object = UnittestFactory::createOne(['objects' => [$target]]);
+    $object = TestFieldTypesFactory::createOne(['objects' => [$target]]);
     $pointing = Elements::refresh($target)->getNonowner();
 
     expect($pointing)
@@ -52,9 +52,9 @@ it('lists the objects that point at it', function () {
 });
 
 it('lists the objects that point at it without a reload', function () {
-    $target = UnittestFactory::createOne();
+    $target = TestFieldTypesFactory::createOne();
 
-    $object = UnittestFactory::createOne(['objects' => [$target]]);
+    $object = TestFieldTypesFactory::createOne(['objects' => [$target]]);
     $pointing = $target->getNonowner();
 
     expect($pointing)

@@ -20,10 +20,10 @@ use OpenDxp\Model\DataObject\Data\InputQuantityValue;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\QuantityValueUnitFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('writes the default value of a field into the version', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $versioned = $object->getLatestVersion(includingPublished: true)->getData();
 
@@ -36,7 +36,7 @@ it('writes the default value of a field into the version', function () {
 
 it('stores an empty string as an empty string', function () {
     $unit = QuantityValueUnitFactory::createOne();
-    $object = UnittestFactory::createOne([
+    $object = TestFieldTypesFactory::createOne([
         'input' => 'InputValue',
         'textarea' => 'TextareaValue',
         'wysiwyg' => 'WysiwygValue',
@@ -63,7 +63,7 @@ it('stores an empty string as an empty string', function () {
 
 it('stores null as null', function () {
     $unit = QuantityValueUnitFactory::createOne();
-    $object = UnittestFactory::createOne([
+    $object = TestFieldTypesFactory::createOne([
         'input' => 'InputValue',
         'textarea' => 'TextareaValue',
         'wysiwyg' => 'WysiwygValue',
@@ -88,7 +88,7 @@ it('stores null as null', function () {
 });
 
 it('strips a script from formatted text before it is stored', function () {
-    $object = UnittestFactory::createOne([
+    $object = TestFieldTypesFactory::createOne([
         'wysiwyg' => '!@#$%^abc\'"<script>console.log("ops");</script> 测试&lt; edf &gt; "',
     ]);
 
@@ -102,7 +102,7 @@ it('strips a script from formatted text before it is stored', function () {
 });
 
 it('refuses a value longer than its column', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->unsaved()
         ->create(['input' => str_repeat('x', 500)]);
 

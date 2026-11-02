@@ -21,12 +21,12 @@ use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetFolderFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
-use OpenDxp\Tests\Factory\InheritanceFactory;
+use OpenDxp\Test\Factory\TestProductFactory;
 
 dataset('property holders', [
     'an asset folder' => AssetFolderFactory::class,
     'a document folder' => DocumentFolderFactory::class,
-    'an object' => InheritanceFactory::class,
+    'an object' => TestProductFactory::class,
 ]);
 
 it('stores every property it is given', function (string $factory) {

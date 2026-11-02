@@ -54,6 +54,39 @@ data.
 `CustomReportFactory`, `GlossaryFactory`, `RedirectFactory` and `StaticRouteFactory` build models of the custom
 reports, glossary, SEO and static routes bundles. They need that bundle in the kernel of your test application.
 
+### Definitions for tests
+
+OpenDXP ships definitions for tests in `lib/Test/Fixtures`: data object classes, an object brick, a
+field collection and a classification store. Each class has a factory:
+
+| Factory               | Builds                    | Shape                                                              |
+|-----------------------|---------------------------|--------------------------------------------------------------------|
+| `TestArticleFactory`  | `DataObject\TestArticle`  | URL slugs, localized and not, with `ArticleSlugGenerator`          |
+| `TestCategoryFactory` | `DataObject\TestCategory` | a name and a localized title, as the target of relations           |
+| `TestGuideFactory`    | `DataObject\TestGuide`    | blocks, also inside and around localized fields                    |
+| `TestProductFactory`  | `DataObject\TestProduct`  | inheritance, localized fields, relations and the definitions below |
+
+`TestProduct` also holds these definitions:
+
+| Definition           | Kind                 | Field            |
+|----------------------|----------------------|------------------|
+| `TestDimensions`     | object brick         | `attributes`     |
+| `TestFeature`        | field collection     | `features`       |
+| `TestSpecifications` | classification store | `specifications` |
+
+`ArticleSlugGenerator` in `OpenDxp\Test\DataObject` builds the slugs of `TestArticle`, such as `/de/articles/green-bike`.
+
+A suite installs these definitions before it uses them. Set the parameter `opendxp-definitions` of the `InstallDefinitions` extension in `phpunit.xml.dist`:
+
+```xml
+<bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallDefinitions">
+    <parameter name="opendxp-definitions" value="true"/>
+</bootstrap>
+```
+
+The README of the test foundation explains the extension in
+[Data object classes](https://github.com/open-dxp/test-foundation#data-object-classes).
+
 ### Base classes
 
 A factory of your own extends one of these base classes and inherits its states:
@@ -107,6 +140,9 @@ These states belong to one factory:
   `withCustomSettings()`.
 - `StaticRouteFactory`: `withController()`, `withPattern()`.
 - `TagFactory`: `withParent()`, `assignedTo()`.
+- `TestArticleFactory`: `withLocalizedSlug()`.
+- `TestCategoryFactory`: `marked()`.
+- `TestGuideFactory`: `withSections()`.
 - `ThumbnailConfigFactory`: `scalingByWidth()`, `enlargingToWidth()`, `covering()`, `rotating()`.
 - `TranslationFactory`: `withTranslations()`, `inAdminDomain()`.
 - `UserFactory`: `admin()`, `withRoles()`, `withPassword()`.

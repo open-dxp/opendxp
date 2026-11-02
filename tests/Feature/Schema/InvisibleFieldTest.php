@@ -16,10 +16,10 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Schema;
 
-use OpenDxp\Model\DataObject\Fieldcollection\Data\Unittestfieldcollection;
+use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * The backend sends each item of the collection back with the fields the editor showed.
@@ -33,21 +33,21 @@ function editmodeItems(array $data): array
     return [
         [
             'data' => $data,
-            'type' => 'unittestfieldcollection',
+            'type' => 'TestFeature',
             'oIndex' => 0,
-            'title' => 'unittestfieldcollection',
+            'title' => 'TestFeature',
         ],
     ];
 }
 
 beforeEach(function () {
-    $collection = Definition::getByKey('unittestfieldcollection');
-    $collection->getFieldDefinition('fieldinput1')->setInvisible(true);
+    $collection = Definition::getByKey('TestFeature');
+    $collection->getFieldDefinition('name')->setInvisible(true);
     $collection->save();
 
-    $item = new Unittestfieldcollection();
-    $item->setFieldinput1('persisted value');
-    $object = UnittestFactory::new()
+    $item = new TestFeature();
+    $item->setName('persisted value');
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             $item,
@@ -58,8 +58,8 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    $collection = Definition::getByKey('unittestfieldcollection');
-    $collection->getFieldDefinition('fieldinput1')->setInvisible(false);
+    $collection = Definition::getByKey('TestFeature');
+    $collection->getFieldDefinition('name')->setInvisible(false);
     $collection->save();
 
     $this->object->delete();
@@ -67,19 +67,19 @@ afterEach(function () {
 
 it('takes the value of an invisible field that the backend sent', function () {
     $items = editmodeItems([
-        'fieldinput1' => 'edited value',
-        'fieldinput2' => 'untouched',
+        'name' => 'edited value',
+        'content' => 'untouched',
     ]);
 
     $read = $this->field->getDataFromEditmode($items, $this->object);
 
-    expect($read->get(0)->getFieldinput1())->toBe('edited value');
+    expect($read->get(0)->getName())->toBe('edited value');
 });
 
 it('keeps the stored value of an invisible field that the backend left out', function () {
-    $items = editmodeItems(['fieldinput2' => 'untouched']);
+    $items = editmodeItems(['content' => 'untouched']);
 
     $read = $this->field->getDataFromEditmode($items, $this->object);
 
-    expect($read->get(0)->getFieldinput1())->toBe('persisted value');
+    expect($read->get(0)->getName())->toBe('persisted value');
 });

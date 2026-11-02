@@ -818,7 +818,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "allowedClassId": "unittest",
+                                "allowedClassId": "TestFieldTypes",
                                 "columns": [
                                     {
                                         "position": 1,
@@ -1430,7 +1430,7 @@
                                 "visibleGridView": true,
                                 "visibleSearch": true,
                                 "allowedTypes": [
-                                    "unittestfieldcollection"
+                                    "TestFeature"
                                 ],
                                 "lazyLoading": false,
                                 "maxItems": null,
@@ -1468,7 +1468,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "ownerClassName": "unittest",
+                                "ownerClassName": "TestFieldTypes",
                                 "ownerClassId": null,
                                 "ownerFieldName": "objects",
                                 "lazyLoading": true,
@@ -1490,7 +1490,7 @@
                                 "visibleGridView": true,
                                 "visibleSearch": true,
                                 "allowedTypes": [
-                                    "unittestfieldcollection"
+                                    "TestFeature"
                                 ],
                                 "lazyLoading": false,
                                 "maxItems": null,

@@ -19,9 +19,9 @@ use OpenDxp\Model\DataObject\Classificationstore\KeyConfig;
 use OpenDxp\Model\DataObject\Classificationstore\StoreConfig;
 
 /**
- * The suite installs this store from tests/Fixtures/classificationstores before the first test.
+ * The suite installs this store from lib/Test/Fixtures/classificationstores before the first test.
  */
-const TEST_STORE = 'teststore';
+const TEST_STORE = 'TestSpecifications';
 
 function storeGroup(string $name): GroupConfig
 {

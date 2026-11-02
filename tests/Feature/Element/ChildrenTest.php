@@ -17,11 +17,11 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Element;
 
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 dataset('publishable elements', [
     'a document' => DocumentPageFactory::class,
-    'an object' => UnittestFactory::class,
+    'an object' => TestFieldTypesFactory::class,
 ]);
 
 it('lists only the published children', function (string $factory) {

@@ -18,8 +18,8 @@ namespace OpenDxp\Tests\Feature\Relation;
 
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
+use OpenDxp\Tests\Factory\TestMultipleAssignmentsFactory;
 
 /**
  * @return list<ElementMetadata>
@@ -28,7 +28,7 @@ function notedRelations(int $count): array
 {
     $relations = [];
 
-    foreach (RelationTestFactory::createMany($count) as $position => $target) {
+    foreach (TestCategoryFactory::createMany($count) as $position => $target) {
         $relation = new ElementMetadata('multipleManyToMany', ['meta'], $target);
         $relation->setMeta(sprintf('note %d', $position));
         $relations[] = $relation;
@@ -39,12 +39,12 @@ function notedRelations(int $count): array
 
 beforeEach(function () {
     $this->relations = notedRelations(4);
-    $this->object = MultipleAssignmentsFactory::createOne(['multipleManyToMany' => $this->relations]);
+    $this->object = TestMultipleAssignmentsFactory::createOne(['multipleManyToMany' => $this->relations]);
     $this->field = $this->object->getClass()->getFieldDefinition('multipleManyToMany');
 });
 
 it('counts every relation of a field that held none as new', function () {
-    $object = MultipleAssignmentsFactory::createOne();
+    $object = TestMultipleAssignmentsFactory::createOne();
     $object->setMultipleManyToMany($this->relations);
 
     $delta = $this->field->calculateDelta($object, ['context' => ['containerType' => 'object']]);

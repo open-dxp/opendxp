@@ -20,8 +20,8 @@ use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Model\Element\ValidationException;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\MultipleAssignmentsFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
+use OpenDxp\Tests\Factory\TestMultipleAssignmentsFactory;
 
 /**
  * @param class-string<ElementMetadata|ObjectMetadata> $metadata
@@ -32,7 +32,7 @@ function eachTargetTwice(string $metadata, string $field): array
 {
     $relations = [];
 
-    foreach (RelationTestFactory::createMany(3) as $position => $target) {
+    foreach (TestCategoryFactory::createMany(3) as $position => $target) {
         foreach (['first', 'second'] as $which) {
             $relation = new $metadata($field, ['meta'], $target);
             $relation->setMeta(sprintf('%s note of %d', $which, $position));
@@ -49,7 +49,7 @@ dataset('fields that allow a target twice', [
 ]);
 
 it('refuses the same target twice on a field that allows it once', function (string $metadata, string $field) {
-    MultipleAssignmentsFactory::createOne([$field => eachTargetTwice($metadata, $field)]);
+    TestMultipleAssignmentsFactory::createOne([$field => eachTargetTwice($metadata, $field)]);
 })->with([
     'an element relation' => [ElementMetadata::class, 'onlyOneManyToMany'],
     'an object relation' => [ObjectMetadata::class, 'onlyOneManyToManyObject'],
@@ -57,7 +57,7 @@ it('refuses the same target twice on a field that allows it once', function (str
 
 it('keeps the same target twice on a field that allows it', function (string $metadata, string $field) {
     $relations = eachTargetTwice($metadata, $field);
-    $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
+    $object = TestMultipleAssignmentsFactory::createOne([$field => $relations]);
 
     $loaded = Elements::refresh($object);
 
@@ -66,7 +66,7 @@ it('keeps the same target twice on a field that allows it', function (string $me
 
 it('keeps the same target twice in a serialized object', function (string $metadata, string $field) {
     $relations = eachTargetTwice($metadata, $field);
-    $object = MultipleAssignmentsFactory::createOne([$field => $relations]);
+    $object = TestMultipleAssignmentsFactory::createOne([$field => $relations]);
 
     $copy = unserialize(serialize(Elements::refresh($object)));
 

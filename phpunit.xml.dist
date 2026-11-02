@@ -13,7 +13,9 @@
     <extensions>
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
         <bootstrap class="Zenstruck\Foundry\PHPUnit\FoundryExtension"/>
-        <bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallDefinitions"/>
+        <bootstrap class="OpenDxp\TestFoundation\PHPUnit\InstallDefinitions">
+            <parameter name="opendxp-definitions" value="true"/>
+        </bootstrap>
         <bootstrap class="OpenDxp\Tests\PHPUnit\CreateMissingTables"/>
     </extensions>
     <php>

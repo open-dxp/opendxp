@@ -21,11 +21,11 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\Document;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 describe('an object listing', function () {
     beforeEach(function () {
-        $this->objects = UnittestFactory::createMany(
+        $this->objects = TestFieldTypesFactory::createMany(
             3,
             fn (int $index) => ['input' => sprintf('listed_%d', $index)],
         );
@@ -33,7 +33,7 @@ describe('an object listing', function () {
     });
 
     it('returns every object its condition matches', function () {
-        $listing = unittestListing('listed_');
+        $listing = testFieldTypesListing('listed_');
 
         $loaded = $listing->load();
 
@@ -41,15 +41,15 @@ describe('an object listing', function () {
     });
 
     it('returns the same objects on a second load', function () {
-        $first = unittestListing('listed_')->load();
+        $first = testFieldTypesListing('listed_')->load();
 
-        $second = unittestListing('listed_')->load();
+        $second = testFieldTypesListing('listed_')->load();
 
         expect(elementIds($second))->toBe(elementIds($first));
     });
 
     it('keeps the loaded objects on the listing', function () {
-        $listing = unittestListing('listed_');
+        $listing = testFieldTypesListing('listed_');
 
         $loaded = $listing->load();
 

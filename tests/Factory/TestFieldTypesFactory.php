@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\LazyLoading;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<LazyLoading>
+ * @extends AbstractDataObjectFactory<TestFieldTypes>
  */
-final class LazyLoadingFactory extends AbstractDataObjectFactory
+final class TestFieldTypesFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return LazyLoading::class;
+        return TestFieldTypes::class;
     }
 }

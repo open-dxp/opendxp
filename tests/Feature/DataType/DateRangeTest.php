@@ -17,12 +17,12 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use Carbon\CarbonPeriod;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('reads a range of dates back out of its version', function () {
     $range = new CarbonPeriod('2018-04-21', '3 days', '2018-04-27');
 
-    $object = UnittestFactory::createOne(['dateRange' => $range]);
+    $object = TestFieldTypesFactory::createOne(['dateRange' => $range]);
     $version = $object->getLatestVersion(includingPublished: true);
     $versioned = $version->loadData(renewReferences: true)->getDateRange();
 

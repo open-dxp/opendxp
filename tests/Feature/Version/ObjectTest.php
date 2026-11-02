@@ -25,7 +25,7 @@ use OpenDxp\Model\Version\Adapter\FileSystemVersionStorageAdapter;
 use OpenDxp\Model\Version\Adapter\VersionStorageAdapterInterface;
 use OpenDxp\Test\Elements;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use OpenDxp\Tests\Value\StoredVersion;
 use RuntimeException;
 
@@ -89,7 +89,7 @@ function versionCountOf(Concrete $object): int
 beforeEach(fn () => useVersionStorage(new FileSystemVersionStorageAdapter()));
 
 it('writes a version on every save', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $object->save();
 
@@ -97,7 +97,7 @@ it('writes a version on every save', function () {
 });
 
 it('writes no version while versioning is off', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     Version::disable();
 
     $object->save();
@@ -106,9 +106,9 @@ it('writes no version while versioning is off', function () {
 })->after(fn () => Version::enable());
 
 it('keeps a related object out of the version of the object that points at it', function () {
-    $target = UnittestFactory::createOne(['input' => 'the related object']);
+    $target = TestFieldTypesFactory::createOne(['input' => 'the related object']);
 
-    $source = UnittestFactory::createOne(['multihref' => [$target]]);
+    $source = TestFieldTypesFactory::createOne(['multihref' => [$target]]);
 
     expect(newestVersionContentOf($source))
         ->not->toContain('the related object')
@@ -117,7 +117,7 @@ it('keeps a related object out of the version of the object that points at it', 
 });
 
 it('writes an object version to the file system', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     expect(firstStoredVersionOf($object))
         ->storageType
@@ -133,7 +133,7 @@ it('writes an object version to the file system', function () {
 it('writes an object version to the database', function () {
     useVersionStorage(new DatabaseVersionStorageAdapter(Db::get()));
 
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     expect(firstStoredVersionOf($object))
         ->storageType
@@ -153,7 +153,7 @@ it('writes a version over the threshold of a delegate to the file system', funct
         new FileSystemVersionStorageAdapter(),
     ));
 
-    $object = UnittestFactory::createOne(['lastname' => str_repeat('y', 100)]);
+    $object = TestFieldTypesFactory::createOne(['lastname' => str_repeat('y', 100)]);
 
     expect(firstStoredVersionOf($object))
         ->storageType

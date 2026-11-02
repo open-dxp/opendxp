@@ -22,18 +22,19 @@ use OpenDxp\Model\DataObject\Data\BlockElement;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
 use OpenDxp\Model\DataObject\Data\Hotspotimage;
 use OpenDxp\Model\DataObject\Data\Link;
-use OpenDxp\Model\DataObject\UnittestBlock;
+use OpenDxp\Model\DataObject\TestGuide;
 use OpenDxp\Model\Document;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestBlockFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
+use OpenDxp\Test\Factory\TestGuideFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * A second request reads the object from the cache before it saves it again.
  */
-function savedAgainFromTheCache(UnittestBlock $object): UnittestBlock
+function savedAgainFromTheCache(TestGuide $object): TestGuide
 {
     cachedCopyOf($object)->save();
 
@@ -43,7 +44,7 @@ function savedAgainFromTheCache(UnittestBlock $object): UnittestBlock
 /**
  * @return array<string, BlockElement>
  */
-function blockReferencing(string $prefix, Document $page, Asset $image): array
+function blockReferencing(Document $page, Asset $image, string $textField, string $linkField, string $imageField): array
 {
     $link = new Link();
     $link->setPath($page->getFullPath());
@@ -66,10 +67,10 @@ function blockReferencing(string $prefix, Document $page, Asset $image): array
     ];
 
     return [
-        $prefix . 'input' => new BlockElement($prefix . 'input', 'input', 'test-input'),
-        $prefix . 'link' => new BlockElement($prefix . 'link', 'input', $link),
-        $prefix . 'hotspotimage' => new BlockElement(
-            $prefix . 'hotspotimage',
+        $textField => new BlockElement($textField, 'input', 'test-input'),
+        $linkField => new BlockElement($linkField, 'input', $link),
+        $imageField => new BlockElement(
+            $imageField,
             'hotspotimage',
             new Hotspotimage($image, $hotspots),
         ),
@@ -79,16 +80,16 @@ function blockReferencing(string $prefix, Document $page, Asset $image): array
 it('keeps the references of a block through a save from the cache', function () {
     $page = DocumentPageFactory::createOne();
     $image = AssetImageFactory::createOne();
-    $object = UnittestBlockFactory::createOne([
-        'testblock' => [blockReferencing('block', $page, $image)],
+    $object = TestGuideFactory::createOne([
+        'steps' => [blockReferencing($page, $image, 'title', 'link', 'image')],
     ]);
 
-    $block = savedAgainFromTheCache($object)->getTestblock()[0];
+    $block = savedAgainFromTheCache($object)->getSteps()[0];
 
-    expect($block['blocklink']->getData()->getElement())
+    expect($block['link']->getData()->getElement())
         ->getId()
         ->toBe($page->getId())
-        ->and($block['blockhotspotimage']->getData()->getImage())
+        ->and($block['image']->getData()->getImage())
         ->getId()
         ->toBe($image->getId());
 });
@@ -96,59 +97,59 @@ it('keeps the references of a block through a save from the cache', function () 
 it('keeps the references of a localized block through a save from the cache', function () {
     $page = DocumentPageFactory::createOne();
     $image = AssetImageFactory::createOne();
-    $object = UnittestBlockFactory::new()
+    $object = TestGuideFactory::new()
         ->withLocalizedValues(
-            'ltestblock',
-            ['de' => [blockReferencing('lblock', $page, $image)]],
+            'tips',
+            ['de' => [blockReferencing($page, $image, 'tipText', 'tipLink', 'tipImage')]],
         )
         ->create();
 
-    $block = savedAgainFromTheCache($object)->getLtestblock('de')[0];
+    $block = savedAgainFromTheCache($object)->getTips('de')[0];
 
-    expect($block['lblocklink']->getData()->getElement())
+    expect($block['tipLink']->getData()->getElement())
         ->getId()
         ->toBe($page->getId())
-        ->and($block['lblockhotspotimage']->getData()->getImage())
+        ->and($block['tipImage']->getData()->getImage())
         ->getId()
         ->toBe($image->getId());
 });
 
 it('reads the current relation of a block through another object', function () {
-    $first = UnittestFactory::createOne();
-    $second = UnittestFactory::createOne();
+    $first = TestCategoryFactory::createOne();
+    $second = TestCategoryFactory::createOne();
     $relation = new BlockElement(
-        'lblockadvancedRelations',
+        'tipTools',
         'advancedManyToManyRelation',
-        [new ElementMetadata('lblockadvancedRelations', [], $first)],
+        [new ElementMetadata('tipTools', [], $first)],
     );
-    $source = UnittestBlockFactory::new()
+    $source = TestGuideFactory::new()
         ->withLocalizedValues(
-            'ltestblock',
-            ['de' => [['lblockadvancedRelations' => $relation]]],
+            'tips',
+            ['de' => [['tipTools' => $relation]]],
         )
         ->create();
-    $pointing = UnittestFactory::createOne(['href' => $source]);
+    $pointing = TestFieldTypesFactory::createOne(['href' => $source]);
 
     $source
-        ->getLtestblock('de')[0]['lblockadvancedRelations']
-        ->setData([new ElementMetadata('lblockadvancedRelations', [], $second)]);
+        ->getTips('de')[0]['tipTools']
+        ->setData([new ElementMetadata('tipTools', [], $second)]);
     $source->save();
-    $current = Elements::refresh($pointing)->getHref()->getLtestblock('de')[0]['lblockadvancedRelations']->getData();
+    $current = Elements::refresh($pointing)->getHref()->getTips('de')[0]['tipTools']->getData();
 
     expect($current[0]->getElement())->getId()->toBe($second->getId());
 });
 
 it('rejects a block item with an original index outside the saved block', function () {
-    $object = UnittestBlockFactory::new()
-        ->withLocalizedItems('first', 'second')
+    $object = TestGuideFactory::new()
+        ->withSections('first', 'second')
         ->create();
     $submitted = [
         [
             'oIndex' => 2,
-            'data' => ['localizedfields' => ['de' => ['linput' => 'third']]],
+            'data' => ['localizedfields' => ['de' => ['heading' => 'third']]],
         ],
     ];
-    $block = $object->getClass()->getFieldDefinition('localizedtestblock');
+    $block = $object->getClass()->getFieldDefinition('sections');
 
     expect(fn () => $block->getDataFromEditmode($submitted, $object))
         ->toThrow(Exception::class, 'item with orginal index 2 not found');

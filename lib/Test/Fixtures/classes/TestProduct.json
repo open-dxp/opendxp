@@ -51,8 +51,8 @@
                         "permissions": null,
                         "children": [
                             {
-                                "name": "relation",
-                                "title": "relation",
+                                "name": "category",
+                                "title": "category",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -66,7 +66,7 @@
                                 "visibleSearch": true,
                                 "classes": [
                                     {
-                                        "classes": "RelationTest"
+                                        "classes": "TestCategory"
                                     }
                                 ],
                                 "displayMode": null,
@@ -98,8 +98,8 @@
                                 "visibleSearch": true,
                                 "children": [
                                     {
-                                        "name": "input",
-                                        "title": "input",
+                                        "name": "name",
+                                        "title": "name",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -123,8 +123,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "textarea",
-                                        "title": "textarea",
+                                        "name": "summary",
+                                        "title": "summary",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -145,8 +145,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "wysiwyg",
-                                        "title": "wysiwyg",
+                                        "name": "description",
+                                        "title": "description",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -197,8 +197,8 @@
                                 "permissions": null,
                                 "children": [
                                     {
-                                        "name": "normalinput",
-                                        "title": "normalinput",
+                                        "name": "sku",
+                                        "title": "sku",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -222,8 +222,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "yx",
-                                        "title": "yx",
+                                        "name": "image",
+                                        "title": "image",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -241,8 +241,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "slider",
-                                        "title": "slider",
+                                        "name": "rating",
+                                        "title": "rating",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -265,8 +265,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "relationobjects",
-                                        "title": "relationobjects",
+                                        "name": "accessories",
+                                        "title": "accessories",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -303,8 +303,8 @@
                                 "labelAlign": "left"
                             },
                             {
-                                "name": "mybricks",
-                                "title": "mybricks",
+                                "name": "attributes",
+                                "title": "attributes",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -323,8 +323,35 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "teststore",
-                                "title": "teststore",
+                                "name": "features",
+                                "title": "features",
+                                "tooltip": null,
+                                "mandatory": false,
+                                "noteditable": false,
+                                "index": false,
+                                "locked": false,
+                                "style": null,
+                                "permissions": null,
+                                "relationType": false,
+                                "invisible": false,
+                                "visibleGridView": true,
+                                "visibleSearch": true,
+                                "allowedTypes": [
+                                    "TestFeature"
+                                ],
+                                "lazyLoading": false,
+                                "maxItems": null,
+                                "disallowAddRemove": false,
+                                "disallowReorder": false,
+                                "collapsed": false,
+                                "collapsible": false,
+                                "border": false,
+                                "fieldtype": "fieldcollections",
+                                "datatype": "data"
+                            },
+                            {
+                                "name": "specifications",
+                                "title": "specifications",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,

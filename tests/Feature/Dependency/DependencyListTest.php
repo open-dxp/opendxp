@@ -21,7 +21,7 @@ use OpenDxp\Model\Dependency;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 /**
  * Writes dependencies on elements that do not exist.
@@ -95,7 +95,7 @@ it('counts an element as unused when only elements that no longer exist required
 it('filters the requiring elements of every kind by their path', function () {
     $asset = AssetImageFactory::createOne();
     $page = referencing(DocumentPageFactory::createOne(['key' => 'matching-page']), $asset);
-    $object = referencing(TestObjectFactory::createOne(['key' => 'matching-object']), $asset);
+    $object = referencing(TestPlainObjectFactory::createOne(['key' => 'matching-object']), $asset);
     $image = referencing(AssetImageFactory::createOne(['filename' => 'matching-image.jpg']), $asset);
     referencing(DocumentPageFactory::createOne(['key' => 'other-page']), $asset);
 

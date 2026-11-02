@@ -18,14 +18,14 @@ namespace OpenDxp\Tests\Feature\LazyLoading;
 
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\LazyLoadingFactory;
-use OpenDxp\Tests\Factory\RelationTestFactory;
+use OpenDxp\Test\Factory\TestCategoryFactory;
+use OpenDxp\Tests\Factory\TestLazyRelationsFactory;
 
 beforeEach(function () {
-    $unpublished = RelationTestFactory::new()
+    $unpublished = TestCategoryFactory::new()
         ->unpublished()
         ->create();
-    $this->object = LazyLoadingFactory::createOne(['relations' => [$unpublished]]);
+    $this->object = TestLazyRelationsFactory::createOne(['relations' => [$unpublished]]);
 });
 
 afterEach(fn () => Concrete::setHideUnpublished(true));

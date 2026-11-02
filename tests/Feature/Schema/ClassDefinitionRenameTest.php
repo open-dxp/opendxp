@@ -18,15 +18,15 @@ namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Model\DataObject\ClassDefinition;
 
-afterEach(fn () => ClassDefinition::getByName('unittest_renamed')?->rename('unittest'));
+afterEach(fn () => ClassDefinition::getByName('TestFieldTypesRenamed')?->rename('TestFieldTypes'));
 
 it('finds a class under the name it was renamed to', function () {
-    $class = ClassDefinition::getByName('unittest');
+    $class = ClassDefinition::getByName('TestFieldTypes');
 
-    $class->rename('unittest_renamed');
+    $class->rename('TestFieldTypesRenamed');
 
-    expect(ClassDefinition::getByName('unittest_renamed'))
+    expect(ClassDefinition::getByName('TestFieldTypesRenamed'))
         ->toBeInstanceOf(ClassDefinition::class)
-        ->and(ClassDefinition::getByName('unittest'))
+        ->and(ClassDefinition::getByName('TestFieldTypes'))
         ->toBeNull();
 });

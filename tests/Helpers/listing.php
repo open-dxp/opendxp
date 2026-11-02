@@ -14,11 +14,11 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 
-function unittestListing(string $inputPrefix): Unittest\Listing
+function testFieldTypesListing(string $inputPrefix): TestFieldTypes\Listing
 {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setCondition(
         'input LIKE ?',
         [sprintf('%s%%', $inputPrefix)],

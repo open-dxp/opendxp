@@ -14,18 +14,23 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Factory;
+namespace OpenDxp\Test\Factory;
 
-use OpenDxp\Model\DataObject\Csstore;
-use OpenDxp\Test\Factory\AbstractDataObjectFactory;
+use OpenDxp\Model\DataObject\Data\UrlSlug;
+use OpenDxp\Model\DataObject\TestArticle;
 
 /**
- * @extends AbstractDataObjectFactory<Csstore>
+ * @extends AbstractDataObjectFactory<TestArticle>
  */
-final class CsstoreFactory extends AbstractDataObjectFactory
+final class TestArticleFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return Csstore::class;
+        return TestArticle::class;
+    }
+
+    public function withLocalizedSlug(string $language, string $slug): static
+    {
+        return $this->withLocalizedValues('localizedSlug', [$language => [new UrlSlug($slug)]]);
     }
 }

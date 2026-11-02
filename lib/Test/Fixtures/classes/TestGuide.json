@@ -51,7 +51,7 @@
                         "permissions": null,
                         "children": [
                             {
-                                "name": "testblock",
+                                "name": "steps",
                                 "title": null,
                                 "tooltip": null,
                                 "mandatory": false,
@@ -73,8 +73,8 @@
                                 "styleElement": "",
                                 "children": [
                                     {
-                                        "name": "blockinput",
-                                        "title": "blockinput",
+                                        "name": "title",
+                                        "title": "title",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -98,8 +98,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "blocklink",
-                                        "title": "blocklink",
+                                        "name": "link",
+                                        "title": "link",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -118,8 +118,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "blockhotspotimage",
-                                        "title": "blockhotspotimage",
+                                        "name": "image",
+                                        "title": "image",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -137,8 +137,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "blockadvancedRelations",
-                                        "title": "blockadvancedRelations",
+                                        "name": "tools",
+                                        "title": "tools",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -152,7 +152,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,
@@ -207,7 +207,7 @@
                                 "visibleSearch": true,
                                 "children": [
                                     {
-                                        "name": "ltestblock",
+                                        "name": "tips",
                                         "title": null,
                                         "tooltip": null,
                                         "mandatory": false,
@@ -229,8 +229,8 @@
                                         "styleElement": "",
                                         "children": [
                                             {
-                                                "name": "lblockinput",
-                                                "title": "lblockinput",
+                                                "name": "tipText",
+                                                "title": "tipText",
                                                 "tooltip": null,
                                                 "mandatory": false,
                                                 "noteditable": false,
@@ -254,8 +254,8 @@
                                                 "datatype": "data"
                                             },
                                             {
-                                                "name": "lblocklink",
-                                                "title": "lblocklink",
+                                                "name": "tipLink",
+                                                "title": "tipLink",
                                                 "tooltip": null,
                                                 "mandatory": false,
                                                 "noteditable": false,
@@ -274,8 +274,8 @@
                                                 "datatype": "data"
                                             },
                                             {
-                                                "name": "lblockhotspotimage",
-                                                "title": "lblockhotspotimage",
+                                                "name": "tipImage",
+                                                "title": "tipImage",
                                                 "tooltip": null,
                                                 "mandatory": false,
                                                 "noteditable": false,
@@ -293,8 +293,8 @@
                                                 "datatype": "data"
                                             },
                                             {
-                                                "name": "lblockadvancedRelations",
-                                                "title": "lblockadvancedRelations",
+                                                "name": "tipTools",
+                                                "title": "tipTools",
                                                 "tooltip": null,
                                                 "mandatory": false,
                                                 "noteditable": false,
@@ -308,7 +308,7 @@
                                                 "visibleSearch": true,
                                                 "classes": [
                                                     {
-                                                        "classes": "unittest"
+                                                        "classes": "TestCategory"
                                                     }
                                                 ],
                                                 "displayMode": null,
@@ -365,7 +365,7 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "localizedtestblock",
+                                "name": "sections",
                                 "title": null,
                                 "tooltip": null,
                                 "mandatory": false,
@@ -402,8 +402,8 @@
                                         "visibleSearch": true,
                                         "children": [
                                             {
-                                                "name": "linput",
-                                                "title": "linput",
+                                                "name": "heading",
+                                                "title": "heading",
                                                 "tooltip": null,
                                                 "mandatory": false,
                                                 "noteditable": false,

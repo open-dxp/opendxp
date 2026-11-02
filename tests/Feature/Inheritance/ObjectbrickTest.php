@@ -16,28 +16,28 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Inheritance;
 
-use OpenDxp\Model\DataObject\Inheritance;
-use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Model\DataObject\Objectbrick\Data\TestDimensions;
+use OpenDxp\Model\DataObject\TestProduct;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\InheritanceFactory;
+use OpenDxp\Test\Factory\TestProductFactory;
 
 beforeEach(function () {
-    $this->parent = InheritanceFactory::new()
+    $this->parent = TestProductFactory::new()
         ->withObjectbrick(
-            'mybricks',
-            UnittestBrick::class,
-            ['brickinput' => 'text of the parent'],
+            'attributes',
+            TestDimensions::class,
+            ['width' => 'text of the parent'],
         )
         ->create();
-    $this->child = InheritanceFactory::new()
+    $this->child = TestProductFactory::new()
         ->withParent($this->parent)
         ->withObjectbrick(
-            'mybricks',
-            UnittestBrick::class,
-            ['brickinput2' => 'text of the child'],
+            'attributes',
+            TestDimensions::class,
+            ['height' => 'text of the child'],
         )
         ->create();
-    $this->grandchild = InheritanceFactory::new()
+    $this->grandchild = TestProductFactory::new()
         ->withParent($this->child)
         ->create();
 });
@@ -47,23 +47,23 @@ dataset('descendants', [
     'the grandchild' => fn () => $this->grandchild,
 ]);
 
-it('gives a brick value of the parent to every descendant', function (Inheritance $descendant) {
-    $brick = Elements::refresh($descendant)->getMybricks()->getUnittestBrick();
+it('gives a brick value of the parent to every descendant', function (TestProduct $descendant) {
+    $brick = Elements::refresh($descendant)->getAttributes()->getTestDimensions();
 
-    expect($brick)->getBrickinput()->toBe('text of the parent');
+    expect($brick)->getWidth()->toBe('text of the parent');
 })->with('descendants');
 
 it('keeps a brick value of the child next to an inherited one', function () {
-    $brick = Elements::refresh($this->child)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($this->child)->getAttributes()->getTestDimensions();
 
-    expect($brick)->getBrickinput2()->toBe('text of the child');
+    expect($brick)->getHeight()->toBe('text of the child');
 });
 
-it('gives every descendant the new brick value once the parent changed it', function (Inheritance $descendant) {
-    $this->parent->getMybricks()->getUnittestBrick()->setBrickinput('another text');
+it('gives every descendant the new brick value once the parent changed it', function (TestProduct $descendant) {
+    $this->parent->getAttributes()->getTestDimensions()->setWidth('another text');
     $this->parent->save();
 
-    $brick = Elements::refresh($descendant)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($descendant)->getAttributes()->getTestDimensions();
 
-    expect($brick)->getBrickinput()->toBe('another text');
+    expect($brick)->getWidth()->toBe('another text');
 })->with('descendants');

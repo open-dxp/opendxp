@@ -1,7 +1,7 @@
 {
-    "description": "The store the csstore class holds, one key per field type.",
+    "description": "The classes TestProduct and TestClassification hold this store. It has one key per field type.",
     "groups": {
-        "testgroup1": {
+        "dates": {
             "date": {
                 "type": "date",
                 "description": "keyDescdateDesc"
@@ -15,7 +15,7 @@
                 "description": "keyDescencryptedFieldDesc"
             }
         },
-        "testgroup2": {
+        "values": {
             "input": {
                 "type": "input",
                 "description": "keyDescinputDesc"
@@ -93,7 +93,7 @@
                 "description": "keyDescinputQuantityValueDesc"
             }
         },
-        "testgroupQvalue": {
+        "quantities": {
             "qValue": {
                 "type": "quantityValue",
                 "description": "Quantity Value Field"

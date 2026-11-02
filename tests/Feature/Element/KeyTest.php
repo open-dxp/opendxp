@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\Element;
 use Exception;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('refuses a key that is not valid', function (string $factory, string $type, string $name) {
     $unsaved = $factory::new()
@@ -38,7 +38,7 @@ it('refuses a key that is not valid', function (string $factory, string $type, s
 })->with([
     'an asset' => [AssetImageFactory::class, 'asset', 'filename'],
     'a document' => [DocumentPageFactory::class, 'document', 'key'],
-    'an object' => [UnittestFactory::class, 'object', 'key'],
+    'an object' => [TestFieldTypesFactory::class, 'object', 'key'],
 ]);
 
 it('refuses an empty key', function (string $factory, string $type) {
@@ -53,7 +53,7 @@ it('refuses an empty key', function (string $factory, string $type) {
     );
 })->with([
     'a document' => [DocumentPageFactory::class, 'document'],
-    'an object' => [UnittestFactory::class, 'object'],
+    'an object' => [TestFieldTypesFactory::class, 'object'],
 ]);
 
 it('refuses a reserved key in the root folder', function () {

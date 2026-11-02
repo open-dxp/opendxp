@@ -23,22 +23,22 @@ use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 dataset('elements', [
     'an asset' => [Asset::class, AssetImageFactory::class],
     'a document' => [Document::class, DocumentPageFactory::class],
-    'an object' => [AbstractObject::class, UnittestFactory::class],
+    'an object' => [AbstractObject::class, TestFieldTypesFactory::class],
 ]);
 
 dataset('elements with folders', [
     'an asset' => [AssetImageFactory::class, AssetFolderFactory::class],
     'a document' => [DocumentPageFactory::class, DocumentFolderFactory::class],
-    'an object' => [UnittestFactory::class, DataObjectFolderFactory::class],
+    'an object' => [TestFieldTypesFactory::class, DataObjectFolderFactory::class],
 ]);
 
 dataset('element types', [
     'an asset' => [AssetImageFactory::class, 'asset'],
     'a document' => [DocumentPageFactory::class, 'document'],
-    'an object' => [UnittestFactory::class, 'object'],
+    'an object' => [TestFieldTypesFactory::class, 'object'],
 ]);

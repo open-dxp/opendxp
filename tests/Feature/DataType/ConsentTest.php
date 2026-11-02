@@ -20,10 +20,10 @@ use OpenDxp\DataObject\Consent\Service;
 use OpenDxp\Model\DataObject\Data\Consent;
 use OpenDxp\Test\Elements;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 beforeEach(function () {
-    $this->object = UnittestFactory::createOne();
+    $this->object = TestFieldTypesFactory::createOne();
     $this->service = Container::get(Service::class);
 });
 

@@ -21,7 +21,7 @@ use OpenDxp\Model\Notification\Service\NotificationService;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Test\Factory\UserRoleFactory;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use UnexpectedValueException;
 
@@ -88,7 +88,7 @@ it('keeps an earlier notification when it sends another one', function () {
 
 it('links a notification to the element it was sent about', function () {
     $userId = UserFactory::createOne()->getId();
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $this->notifications->sendToUser($userId, 0, 'Title', 'Message', $object);
 

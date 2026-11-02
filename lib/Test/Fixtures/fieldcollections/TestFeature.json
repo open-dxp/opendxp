@@ -43,8 +43,8 @@
                         "permissions": null,
                         "children": [
                             {
-                                "name": "fieldinput1",
-                                "title": "fieldinput1",
+                                "name": "name",
+                                "title": "name",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -68,8 +68,8 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "fieldinput2",
-                                "title": "fieldinput2",
+                                "name": "content",
+                                "title": "content",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -93,8 +93,8 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "fieldRelation",
-                                "title": "fieldRelation",
+                                "name": "documents",
+                                "title": "documents",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -124,39 +124,8 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "fieldRelation",
-                                "title": "fieldRelation",
-                                "tooltip": null,
-                                "mandatory": false,
-                                "noteditable": false,
-                                "index": false,
-                                "locked": false,
-                                "style": null,
-                                "permissions": null,
-                                "relationType": true,
-                                "invisible": false,
-                                "visibleGridView": true,
-                                "visibleSearch": true,
-                                "classes": [],
-                                "displayMode": null,
-                                "pathFormatterClass": null,
-                                "maxItems": null,
-                                "assetInlineDownloadAllowed": false,
-                                "allowToClearRelation": true,
-                                "objectsAllowed": true,
-                                "assetsAllowed": true,
-                                "assetTypes": [],
-                                "documentsAllowed": true,
-                                "documentTypes": [],
-                                "enableTextSelection": false,
-                                "width": null,
-                                "height": null,
-                                "fieldtype": "manyToManyRelation",
-                                "datatype": "data"
-                            },
-                            {
-                                "name": "advancedFieldRelation",
-                                "title": "advancedFieldRelation",
+                                "name": "certificates",
+                                "title": "certificates",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -201,8 +170,8 @@
                                 "datatype": "data"
                             },
                             {
-                                "name": "fieldLazyRelation",
-                                "title": "fieldLazyRelation",
+                                "name": "downloads",
+                                "title": "downloads",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,
@@ -247,8 +216,8 @@
                                 "visibleSearch": true,
                                 "children": [
                                     {
-                                        "name": "linput",
-                                        "title": "linput",
+                                        "name": "label",
+                                        "title": "label",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -272,8 +241,8 @@
                                         "datatype": "data"
                                     },
                                     {
-                                        "name": "lrelation",
-                                        "title": "lrelation",
+                                        "name": "category",
+                                        "title": "category",
                                         "tooltip": null,
                                         "mandatory": false,
                                         "noteditable": false,
@@ -287,7 +256,7 @@
                                         "visibleSearch": true,
                                         "classes": [
                                             {
-                                                "classes": "RelationTest"
+                                                "classes": "TestCategory"
                                             }
                                         ],
                                         "displayMode": null,

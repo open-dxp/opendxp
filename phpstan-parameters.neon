@@ -41,6 +41,13 @@ parameters:
             identifier: if.alwaysTrue
             path: lib/Tool/Text/Csv.php
             reportUnmatched: false
+        # The factories build classes that exist only after a suite installs lib/Test/Fixtures.
+        -
+            message: '#OpenDxp\\Model\\DataObject\\(TestArticle|TestCategory|TestGuide|TestProduct)\b#'
+            identifiers:
+                - class.notFound
+                - generics.notSubtype
+            path: lib/Test/Factory/*
         # Doctrine hydrates the total of a job run. The engine writes it with DBAL.
         -
             identifier: property.unusedType
