@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataType;
 
+use Exception;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Data\BlockElement;
 use OpenDxp\Model\DataObject\Data\ElementMetadata;
@@ -135,4 +136,20 @@ it('reads the current relation of a block through another object', function () {
     $current = Elements::refresh($pointing)->getHref()->getLtestblock('de')[0]['lblockadvancedRelations']->getData();
 
     expect($current[0]->getElement())->getId()->toBe($second->getId());
+});
+
+it('rejects a block item with an original index outside the saved block', function () {
+    $object = UnittestBlockFactory::new()
+        ->withLocalizedItems('first', 'second')
+        ->create();
+    $submitted = [
+        [
+            'oIndex' => 2,
+            'data' => ['localizedfields' => ['de' => ['linput' => 'third']]],
+        ],
+    ];
+    $block = $object->getClass()->getFieldDefinition('localizedtestblock');
+
+    expect(fn () => $block->getDataFromEditmode($submitted, $object))
+        ->toThrow(Exception::class, 'item with orginal index 2 not found');
 });

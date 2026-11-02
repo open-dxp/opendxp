@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.3
+- [BUGFIX] A block item with an unknown original index throws instead of taking the data of another item
 - [BUGFIX] A missing translation that is created on lookup is stored with empty texts and no longer with its key. Only a lookup that asks for the key gets it back as text
 
 ## 1.5.2
