@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\TestObject;
+use OpenDxp\Model\DataObject\TestLazyRelations;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<TestObject>
+ * @extends AbstractDataObjectFactory<LazyLoading>
  */
-final class TestObjectFactory extends AbstractDataObjectFactory
+final class TestLazyRelationsFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return TestObject::class;
+        return TestLazyRelations::class;
     }
 }

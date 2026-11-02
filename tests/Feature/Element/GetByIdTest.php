@@ -31,7 +31,7 @@ use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('returns nothing for an id that no element has', function (string $element, int $id) {
     $loaded = $element::getById($id);
@@ -59,7 +59,7 @@ it('loads an element as the class it was saved as', function (string $element, s
     'an asset folder' => [Asset::class, AssetFolderFactory::class],
     'a document' => [Document::class, DocumentPageFactory::class],
     'a document folder' => [Document::class, DocumentFolderFactory::class],
-    'an object' => [AbstractObject::class, UnittestFactory::class],
+    'an object' => [AbstractObject::class, TestFieldTypesFactory::class],
     'an object folder' => [AbstractObject::class, DataObjectFolderFactory::class],
 ]);
 
@@ -119,7 +119,7 @@ it('fires the post load event', function (string $element, string $factory, stri
 })->with([
     'an asset' => [Asset::class, AssetImageFactory::class, AssetEvents::POST_LOAD],
     'a document' => [Document::class, DocumentPageFactory::class, DocumentEvents::POST_LOAD],
-    'an object' => [AbstractObject::class, UnittestFactory::class, DataObjectEvents::POST_LOAD],
+    'an object' => [AbstractObject::class, TestFieldTypesFactory::class, DataObjectEvents::POST_LOAD],
 ]);
 
 it('returns the instance it already holds on a second load', function (string $element, string $factory) {

@@ -24,7 +24,7 @@ use OpenDxp\Model\Element\Note;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Mime\Part\TextPart;
 
@@ -158,7 +158,7 @@ it('escapes the parameters in the html body', function () {
 });
 
 it('lets a placeholder look up an element', function () {
-    $object = UnittestFactory::createOne(['input' => 'Jane']);
+    $object = TestFieldTypesFactory::createOne(['input' => 'Jane']);
 
     $body = renderedMailBody(sprintf('{{ opendxp_object(%d).input }}', $object->getId()), []);
 
@@ -170,7 +170,7 @@ it('refuses a filter the sandbox policy does not allow', function () {
 })->throws(Exception::class, 'Failed rendering the body');
 
 it('reads an object in a placeholder', function () {
-    $object = UnittestFactory::createOne([
+    $object = TestFieldTypesFactory::createOne([
         'input' => 'Jane',
         'number' => 42,
         'date' => Carbon::create(2026, 10, 5),
@@ -219,21 +219,21 @@ it('refuses the request', function () {
 })->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses the database behind an object', function (string $html) {
-    renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
+    renderedMailBody($html, ['object' => TestFieldTypesFactory::createOne()]);
 })->with([
     'through the dao' => '{{ object.dao.db.fetchOne("SELECT 42") }}',
     'through a call the dao answers' => '{{ object.getDb().fetchOne("SELECT 42") }}',
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses to change an object', function (string $html) {
-    renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
+    renderedMailBody($html, ['object' => TestFieldTypesFactory::createOne()]);
 })->with([
     'through a setter' => '{{ object.setInput("John") }}',
     'through save' => '{{ object.save() }}',
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses to delete an object', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $deleting = fn () => renderedMailBody('{{ object.delete() }}', ['object' => $object]);
 
@@ -244,7 +244,7 @@ it('refuses to delete an object', function () {
 });
 
 it('refuses a function that is not on the list', function (string $html) {
-    renderedMailBody($html, ['object' => UnittestFactory::createOne()]);
+    renderedMailBody($html, ['object' => TestFieldTypesFactory::createOne()]);
 })->with([
     'the dump' => '{{ opendxp_dump(object) }}',
     'a look into the file system' => '{{ opendxp_file_exists("/etc/passwd") }}',
@@ -261,7 +261,7 @@ it('refuses the file of an asset', function (string $html) {
 ])->throws(Exception::class, 'Failed rendering the body');
 
 it('refuses a password', function (string $html) {
-    renderedMailBody($html, ['object' => UnittestFactory::createOne(['password' => 'sEcret$%!1'])]);
+    renderedMailBody($html, ['object' => TestFieldTypesFactory::createOne(['password' => 'sEcret$%!1'])]);
 })->with([
     'through its getter' => '{{ object.password }}',
     'through its field name' => '{{ object.getValueForFieldName("password") }}',

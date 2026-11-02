@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<Unittest>
+ * @extends AbstractDataObjectFactory<TestFieldTypes>
  */
-final class UnittestFactory extends AbstractDataObjectFactory
+final class TestFieldTypesFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return Unittest::class;
+        return TestFieldTypes::class;
     }
 }

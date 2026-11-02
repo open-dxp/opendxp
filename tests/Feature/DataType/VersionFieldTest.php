@@ -19,12 +19,12 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Closure;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Fieldcollection;
-use OpenDxp\Model\DataObject\LazyLoading;
-use OpenDxp\Model\DataObject\Objectbrick\Data\LazyLoadingLocalizedTest;
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestLazyRelations;
+use OpenDxp\Model\DataObject\Objectbrick\Data\TestLocalizedLazyBrick;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\LazyLoadingFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestLazyRelationsFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 function itemWithLocalizedText(): Fieldcollection\Data\TestFeature
 {
@@ -43,50 +43,50 @@ it('binds the fields of a version to that version', function (Concrete $object, 
     expect($field($version)->getObject())->getInput()->toBe('in the version');
 })->with([
     'the localized fields of an object' => [
-        fn () => UnittestFactory::new()
+        fn () => TestFieldTypesFactory::new()
             ->withLocalizedValues(
                 'linput',
                 ['en' => 'some text'],
             )
             ->create(['input' => 'in the database']),
-        fn (Unittest $version) => $version->getLocalizedfields(),
+        fn (TestFieldTypes $version) => $version->getLocalizedfields(),
     ],
     'an item of a field collection' => [
-        fn () => UnittestFactory::new()
+        fn () => TestFieldTypesFactory::new()
             ->withFieldcollection(
                 'fieldcollection',
                 itemWithLocalizedText(),
             )
             ->create(['input' => 'in the database']),
-        fn (Unittest $version) => $version->getFieldcollection()->getItems()[0],
+        fn (TestFieldTypes $version) => $version->getFieldcollection()->getItems()[0],
     ],
     'the localized fields of a field collection item' => [
-        fn () => UnittestFactory::new()
+        fn () => TestFieldTypesFactory::new()
             ->withFieldcollection(
                 'fieldcollection',
                 itemWithLocalizedText(),
             )
             ->create(['input' => 'in the database']),
-        fn (Unittest $version) => $version->getFieldcollection()->getItems()[0]->getLocalizedFields(),
+        fn (TestFieldTypes $version) => $version->getFieldcollection()->getItems()[0]->getLocalizedFields(),
     ],
     'an object brick' => [
-        fn () => LazyLoadingFactory::new()
+        fn () => TestLazyRelationsFactory::new()
             ->withObjectbrick(
                 'bricks',
-                LazyLoadingLocalizedTest::class,
+                TestLocalizedLazyBrick::class,
                 ['lInput' => 'some text'],
             )
             ->create(['input' => 'in the database']),
-        fn (LazyLoading $version) => $version->getBricks()->getItems()[0],
+        fn (TestLazyRelations $version) => $version->getBricks()->getItems()[0],
     ],
     'the localized fields of an object brick' => [
-        fn () => LazyLoadingFactory::new()
+        fn () => TestLazyRelationsFactory::new()
             ->withObjectbrick(
                 'bricks',
-                LazyLoadingLocalizedTest::class,
+                TestLocalizedLazyBrick::class,
                 ['lInput' => 'some text'],
             )
             ->create(['input' => 'in the database']),
-        fn (LazyLoading $version) => $version->getBricks()->getItems()[0]->getLocalizedFields(),
+        fn (TestLazyRelations $version) => $version->getBricks()->getItems()[0]->getLocalizedFields(),
     ],
 ]);

@@ -20,14 +20,14 @@ use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\TestCategoryFactory;
-use OpenDxp\Tests\Factory\LazyLoadingFactory;
+use OpenDxp\Tests\Factory\TestLazyRelationsFactory;
 
 beforeEach(function () {
     $relations = array_map(
         static fn (Concrete $target) => new ObjectMetadata('advancedObjects', ['metadataUpper'], $target),
         TestCategoryFactory::createMany(3),
     );
-    $this->object = LazyLoadingFactory::createOne(['advancedObjects' => $relations]);
+    $this->object = TestLazyRelationsFactory::createOne(['advancedObjects' => $relations]);
 });
 
 it('keeps an advanced relation of a loaded object clean', function () {

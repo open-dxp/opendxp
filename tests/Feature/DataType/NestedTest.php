@@ -17,24 +17,24 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataType;
 
 use OpenDxp\Model\DataObject\Fieldcollection;
-use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Model\DataObject\Objectbrick\Data\TestFieldTypesBrick;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\TestObjectFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('loads the relations of a brick on a cold load', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withObjectbrick(
             'mybricks',
-            UnittestBrick::class,
+            TestFieldTypesBrick::class,
             [
                 'brickInput' => 'brickinput1',
-                'brickLazyRelation' => TestObjectFactory::createMany(15),
+                'brickLazyRelation' => TestPlainObjectFactory::createMany(15),
             ],
         )
         ->create();
 
-    $brick = Elements::refresh($object)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($object)->getMybricks()->getTestFieldTypesBrick();
 
     expect($brick)
         ->getBrickInput()
@@ -47,9 +47,9 @@ it('loads the relations of a field collection item on a cold load', function () 
     $item = new Fieldcollection\Data\TestFeature();
     $item->setName('field11');
     $item->setContent('field21');
-    $item->setDocuments(TestObjectFactory::createMany(10));
-    $item->setDownloads(TestObjectFactory::createMany(15));
-    $object = UnittestFactory::new()
+    $item->setDocuments(TestPlainObjectFactory::createMany(10));
+    $item->setDownloads(TestPlainObjectFactory::createMany(15));
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'myfieldcollection',
             $item,

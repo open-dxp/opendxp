@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\Schema;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 function setLocalizedInputDefault(string $value): void
 {
@@ -51,7 +51,7 @@ it('applies a later default only to new items', function () {
     $emptied = new TestFeature();
     $emptied->setLabel('', 'en');
     $untouched = new TestFeature();
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             $emptied,
@@ -76,7 +76,7 @@ it('applies a later default only to new items', function () {
 
 it('applies a default to every item of an object saved afterwards', function () {
     setLocalizedInputDefault('1234');
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->unsaved()
         ->withFieldcollection(
             'fieldcollection',

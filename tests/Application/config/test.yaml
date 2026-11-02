@@ -11,7 +11,7 @@ services:
         tags:
             - { name: opendxp.area.brick, id: box }
 
-    # The Unittest class definition names this id for its calculated value.
+    # The TestFieldTypes class definition names this id for its calculated value.
     test.calculatorservice:
         class: OpenDxp\Tests\Application\Service\Calculator
 

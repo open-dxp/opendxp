@@ -21,7 +21,7 @@ use OpenDxp\Test\Factory\DocumentFolderFactory;
 use OpenDxp\Test\Factory\DocumentHardlinkFactory;
 use OpenDxp\Test\Factory\DocumentLinkFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 dataset('sources', [
     'a page' => [fn () => DocumentPageFactory::createOne()],
@@ -34,6 +34,6 @@ dataset('sources', [
     'a document folder' => [fn () => DocumentFolderFactory::createOne()],
     'an image' => [fn () => AssetImageFactory::createOne()],
     'an asset folder' => [fn () => AssetFolderFactory::createOne()],
-    'an object' => [fn () => TestObjectFactory::createOne()],
+    'an object' => [fn () => TestPlainObjectFactory::createOne()],
     'an object folder' => [fn () => DataObjectFolderFactory::createOne()],
 ]);

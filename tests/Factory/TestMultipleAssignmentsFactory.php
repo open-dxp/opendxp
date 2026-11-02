@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\Csstore;
+use OpenDxp\Model\DataObject\TestMultipleAssignments;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<Csstore>
+ * @extends AbstractDataObjectFactory<TestMultipleAssignments>
  */
-final class CsstoreFactory extends AbstractDataObjectFactory
+final class TestMultipleAssignmentsFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return Csstore::class;
+        return TestMultipleAssignments::class;
     }
 }

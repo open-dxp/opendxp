@@ -17,14 +17,14 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Document;
 
 use Carbon\Carbon;
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Model\Document\Editable;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetDocumentFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\AssetVideoFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 function savedAndLoaded(Editable $editable): Editable
 {
@@ -182,7 +182,7 @@ it('keeps a link with its text, title and target', function () {
 });
 
 it('keeps the element of a relation', function () {
-    $target = UnittestFactory::createOne();
+    $target = TestFieldTypesFactory::createOne();
     $editable = (new Editable\Relation())->setDataFromEditmode([
         'id' => $target->getId(),
         'type' => 'object',
@@ -194,9 +194,9 @@ it('keeps the element of a relation', function () {
 });
 
 it('keeps every element of a list of relations', function () {
-    $targets = UnittestFactory::createMany(4);
+    $targets = TestFieldTypesFactory::createMany(4);
     $related = array_map(
-        static fn (Unittest $target): array => [
+        static fn (TestFieldTypes $target): array => [
             'id' => $target->getId(),
             'type' => 'object',
         ],

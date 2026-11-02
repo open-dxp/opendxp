@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\Schema;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Model\DataObject\Fieldcollection\Definition;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * The backend sends each item of the collection back with the fields the editor showed.
@@ -47,7 +47,7 @@ beforeEach(function () {
 
     $item = new TestFeature();
     $item->setName('persisted value');
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             $item,

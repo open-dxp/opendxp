@@ -818,7 +818,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "allowedClassId": "unittest",
+                                "allowedClassId": "TestFieldTypes",
                                 "columns": [
                                     {
                                         "position": 1,
@@ -1468,7 +1468,7 @@
                                 "visibleFieldDefinitions": [],
                                 "width": null,
                                 "height": null,
-                                "ownerClassName": "unittest",
+                                "ownerClassName": "TestFieldTypes",
                                 "ownerClassId": null,
                                 "ownerFieldName": "objects",
                                 "lazyLoading": true,

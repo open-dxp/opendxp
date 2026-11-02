@@ -22,8 +22,8 @@ use Closure;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetVideoFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * @return list<Data\GeoCoordinates>
@@ -65,7 +65,7 @@ function hotspots(int $position): array
 it('keeps the value a field was saved with', function (string $field, Closure $value) {
     $expected = $value();
 
-    $object = UnittestFactory::createOne([$field => $expected]);
+    $object = TestFieldTypesFactory::createOne([$field => $expected]);
 
     expect(Elements::refresh($object))->toCarryField($field, $expected);
 })->with([
@@ -227,27 +227,27 @@ it('keeps the value a field was saved with', function (string $field, Closure $v
     ],
     'the one object it relates to' => [
         'href',
-        fn () => TestObjectFactory::createOne(),
+        fn () => TestPlainObjectFactory::createOne(),
     ],
     'the one object it relates to lazily' => [
         'lazyHref',
-        fn () => TestObjectFactory::createOne(),
+        fn () => TestPlainObjectFactory::createOne(),
     ],
     'the elements it relates to' => [
         'multihref',
-        fn () => TestObjectFactory::createMany(4),
+        fn () => TestPlainObjectFactory::createMany(4),
     ],
     'the elements it relates to lazily' => [
         'lazyMultihref',
-        fn () => TestObjectFactory::createMany(4),
+        fn () => TestPlainObjectFactory::createMany(4),
     ],
     'the objects it relates to' => [
         'objects',
-        fn () => TestObjectFactory::createMany(4),
+        fn () => TestPlainObjectFactory::createMany(4),
     ],
     'the objects it relates to lazily' => [
         'lazyObjects',
-        fn () => TestObjectFactory::createMany(4),
+        fn () => TestPlainObjectFactory::createMany(4),
     ],
     'an image' => [
         'image',
@@ -285,7 +285,7 @@ it('keeps the value a field was saved with', function (string $field, Closure $v
 ]);
 
 it('stores a password as a hash and not as the password', function () {
-    $object = UnittestFactory::createOne(['password' => 'sEcret$%!1']);
+    $object = TestFieldTypesFactory::createOne(['password' => 'sEcret$%!1']);
 
     $stored = Elements::refresh($object)->getPassword();
 
@@ -302,7 +302,7 @@ it('drops the empty place of a gallery and keeps the images around it', function
         new Data\Hotspotimage(image('gal2.jpg'), hotspots(2)),
     ]);
 
-    $object = UnittestFactory::createOne(['imageGallery' => $gallery]);
+    $object = TestFieldTypesFactory::createOne(['imageGallery' => $gallery]);
     $items = Elements::refresh($object)->getImageGallery()->getItems();
 
     expect($items)
@@ -318,7 +318,7 @@ it('drops the empty place of a gallery and keeps the images around it', function
 it('keeps a video with its poster, title and description', function () {
     $asset = AssetVideoFactory::createOne();
 
-    $object = UnittestFactory::createOne(['video' => video($asset)]);
+    $object = TestFieldTypesFactory::createOne(['video' => video($asset)]);
     $video = Elements::refresh($object)->getVideo();
 
     expect($video)

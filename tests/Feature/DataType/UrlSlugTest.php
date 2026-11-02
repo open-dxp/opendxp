@@ -26,12 +26,12 @@ use OpenDxp\Test\Factory\TestArticleFactory;
 use OpenDxp\Tests\Application\Service\AvailableSitesListener;
 use OpenDxp\Tests\Application\Service\FailingSlugGenerator;
 use OpenDxp\Tests\Application\Service\SharedPrefixSlugGenerator;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('keeps the slug of every site', function () {
     $firstSite = SiteFactory::createOne();
     $secondSite = SiteFactory::createOne();
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     $definition = $object->getClass()->getFieldDefinition('urlSlug');
     $sent = [
         [0, '/fallback', ''],

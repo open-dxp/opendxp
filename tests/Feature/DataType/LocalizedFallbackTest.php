@@ -19,13 +19,13 @@ namespace OpenDxp\Tests\Feature\DataType;
 use Exception;
 use OpenDxp\Model\DataObject\Fieldcollection;
 use OpenDxp\Model\DataObject\Localizedfield;
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 function countedWithLocale(string $locale, string $condition): int
 {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setLocale($locale);
     $listing->setCondition($condition);
 
@@ -35,7 +35,7 @@ function countedWithLocale(string $locale, string $condition): int
 afterEach(fn () => Localizedfield::setStrictMode(false));
 
 it('takes a value with and without a language while strict mode is off', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->unsaved()
         ->create();
 
@@ -49,7 +49,7 @@ it('takes a value with and without a language while strict mode is off', functio
 });
 
 it('refuses a value in strict mode', function (?string $language, string $complaint) {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->unsaved()
         ->create();
     Localizedfield::setStrictMode(Localizedfield::STRICT_ENABLED);
@@ -63,7 +63,7 @@ it('refuses a value in strict mode', function (?string $language, string $compla
 it('keeps a language of a field collection item when another one is written later', function () {
     $item = new Fieldcollection\Data\TestFeature();
     $item->setLabel('textEN', 'en');
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             $item,
@@ -87,7 +87,7 @@ it('returns the value of the fallback language only for an empty field', functio
     mixed $own,
     mixed $expected,
 ) {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withLocalizedValues(
             $field,
             [
@@ -115,7 +115,7 @@ it('finds an object in a listing through the fallback language only for an empty
     string $condition,
     int $expected,
 ) {
-    UnittestFactory::new()
+    TestFieldTypesFactory::new()
         ->withLocalizedValues(
             $field,
             [

@@ -20,14 +20,14 @@ use Carbon\Carbon;
 use Closure;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\TestObjectFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('keeps a localized field apart per language', function (string $field, Closure $german, Closure $english) {
     $germanValue = $german();
     $englishValue = $english();
 
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withLocalizedValues(
             $field,
             [
@@ -155,18 +155,18 @@ it('keeps a localized field apart per language', function (string $field, Closur
     ],
     'the objects it relates to' => [
         'lobjects',
-        fn () => TestObjectFactory::createMany(3),
-        fn () => TestObjectFactory::createMany(2),
+        fn () => TestPlainObjectFactory::createMany(3),
+        fn () => TestPlainObjectFactory::createMany(2),
     ],
     'the elements it relates to lazily' => [
         'lmultihrefLazy',
-        fn () => TestObjectFactory::createMany(3),
-        fn () => TestObjectFactory::createMany(2),
+        fn () => TestPlainObjectFactory::createMany(3),
+        fn () => TestPlainObjectFactory::createMany(2),
     ],
 ]);
 
 it('tells two texts apart that only look like the same number', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withLocalizedValues(
             'linput',
             [

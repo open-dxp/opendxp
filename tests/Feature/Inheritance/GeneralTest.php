@@ -25,7 +25,7 @@ use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Test\Factory\TestProductFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * A listing reads a relation from the object view of the class. The view keeps it as comma separated ids.
@@ -151,7 +151,7 @@ it('gives a relation of the parent to its grandchild through another kind of chi
     'a folder' => fn () => DataObjectFolderFactory::new()
         ->withParent($this->parent)
         ->create(),
-    'an object of another class' => fn () => UnittestFactory::new()
+    'an object of another class' => fn () => TestFieldTypesFactory::new()
         ->withParent($this->parent)
         ->create(),
 ]);

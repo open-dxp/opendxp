@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\DataObject;
 
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 dataset('empty values', [
     'left empty' => '',
@@ -25,7 +25,7 @@ dataset('empty values', [
 ]);
 
 it('reads nothing out of an empty field the backend sent', function (Data $definition, ?string $sent) {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     $value = $definition->getDataFromEditmode($sent, $object);
 
@@ -38,7 +38,7 @@ it('reads nothing out of an empty field the backend sent', function (Data $defin
 ])->with('empty values');
 
 it('reads nothing out of an empty quantity the backend sent', function (?string $sent) {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     $definition = new Data\InputQuantityValue();
 
     $value = $definition->getDataFromEditmode(

@@ -981,8 +981,8 @@
                                 "visibleGridView": true,
                                 "visibleSearch": true,
                                 "allowedTypes": [
-                                    "LazyLoadingTest",
-                                    "LazyLoadingLocalizedTest"
+                                    "TestLazyItem",
+                                    "TestLocalizedLazyItem"
                                 ],
                                 "lazyLoading": false,
                                 "maxItems": null,

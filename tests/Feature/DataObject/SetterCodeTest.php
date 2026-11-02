@@ -19,18 +19,18 @@ namespace OpenDxp\Tests\Feature\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition;
 
 it('writes the setter code a field needs', function (ClassDefinition\Data $definition) {
-    $class = ClassDefinition::getByName('unittest');
+    $class = ClassDefinition::getByName('TestFieldTypes');
     $expected = file_get_contents(fixture(sprintf('setters/%s.txt', $definition->getName())));
 
     $code = $definition->getSetterCode($class);
 
     expect($code)->toBe($expected);
 })->with([
-    'a line of text' => fn () => ClassDefinition::getByName('unittest')->getFieldDefinition('input'),
-    'a field collection' => fn () => ClassDefinition::getByName('unittest')->getFieldDefinition('fieldcollection'),
-    'object bricks' => fn () => ClassDefinition::getByName('unittest')->getFieldDefinition('mybricks'),
-    'a quantity' => fn () => ClassDefinition::getByName('unittest')->getFieldDefinition('quantityValue'),
-    'a localized line of text' => fn () => ClassDefinition::getByName('unittest')
+    'a line of text' => fn () => ClassDefinition::getByName('TestFieldTypes')->getFieldDefinition('input'),
+    'a field collection' => fn () => ClassDefinition::getByName('TestFieldTypes')->getFieldDefinition('fieldcollection'),
+    'object bricks' => fn () => ClassDefinition::getByName('TestFieldTypes')->getFieldDefinition('mybricks'),
+    'a quantity' => fn () => ClassDefinition::getByName('TestFieldTypes')->getFieldDefinition('quantityValue'),
+    'a localized line of text' => fn () => ClassDefinition::getByName('TestFieldTypes')
         ->getFieldDefinition('localizedfields')
         ->getFieldDefinition('linput'),
 ]);

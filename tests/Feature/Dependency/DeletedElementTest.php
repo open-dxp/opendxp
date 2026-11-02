@@ -23,7 +23,7 @@ use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use Symfony\Component\Messenger\Handler\Acknowledger;
 
 function dependenciesOn(Asset $target): int
@@ -81,7 +81,7 @@ it('forgets the dependencies on a deleted element after the sanity checks', func
 
 it('forgets the dependencies even when the source fails to save', function () {
     $target = AssetImageFactory::createOne();
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     // An import may save a published object without its mandatory fields. The sanity check then fails to save it.
     $object->setMandatoryInputWithDefault(null);
     $object->setOmitMandatoryCheck(true);

@@ -149,7 +149,7 @@
     },
     "classDefinitions": [
         {
-            "classname": "unittest",
+            "classname": "TestFieldTypes",
             "fieldname": "mybricks"
         }
     ]

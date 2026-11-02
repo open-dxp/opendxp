@@ -21,13 +21,13 @@ use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 // Every installation starts with a root element of each type. A listing counts the root like any other element.
 dataset('listings', [
     'assets' => [Asset\Listing::class, AssetImageFactory::class],
     'documents' => [Document\Listing::class, DocumentPageFactory::class],
-    'objects' => [DataObject\Listing::class, UnittestFactory::class],
+    'objects' => [DataObject\Listing::class, TestFieldTypesFactory::class],
 ]);
 
 it('counts every element there is', function (string $listing, string $factory) {

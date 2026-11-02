@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\ClassDefinition;
 use OpenDxp\Model\DataObject\ClassDefinition\Layout\Text;
 use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 function renderedLayoutText(string $html, Concrete $object): string
 {
@@ -30,7 +30,7 @@ function renderedLayoutText(string $html, Concrete $object): string
     return $text->getHtml();
 }
 
-beforeEach(fn () => $this->object = UnittestFactory::createOne());
+beforeEach(fn () => $this->object = TestFieldTypesFactory::createOne());
 
 it('renders the object it belongs to into the text', function () {
     $html = renderedLayoutText('Key: {{ object.key }}', $this->object);

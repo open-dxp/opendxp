@@ -21,7 +21,7 @@ use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 beforeEach(function () {
     $this->asset = AssetImageFactory::createOne();
@@ -74,6 +74,6 @@ it('keeps a stored metadata element through a round trip of the normalizer', fun
     ],
     'an object' => [
         'object',
-        fn () => UnittestFactory::createOne(),
+        fn () => TestFieldTypesFactory::createOne(),
     ],
 ]);

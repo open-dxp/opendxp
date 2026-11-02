@@ -1,5 +1,5 @@
 {
-    "description": "The classes TestProduct and csstore hold this store. It has one key per field type.",
+    "description": "The classes TestProduct and TestClassification hold this store. It has one key per field type.",
     "groups": {
         "dates": {
             "date": {

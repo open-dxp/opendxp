@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\Element;
 use Exception;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
-use OpenDxp\Tests\Factory\TestObjectFactory;
+use OpenDxp\Tests\Factory\TestPlainObjectFactory;
 
 // Two parents with keys of the greatest length make a path of 512 characters.
 beforeEach(function () {
@@ -30,7 +30,7 @@ beforeEach(function () {
 });
 
 it('saves an element with a path of 765 characters', function () {
-    $object = TestObjectFactory::new()
+    $object = TestPlainObjectFactory::new()
         ->withParent($this->parent)
         ->create(['key' => str_repeat('c', 252)]);
 
@@ -38,7 +38,7 @@ it('saves an element with a path of 765 characters', function () {
 });
 
 it('refuses an element with a path of more than 765 characters', function () {
-    TestObjectFactory::new()
+    TestPlainObjectFactory::new()
         ->withParent($this->parent)
         ->create(['key' => str_repeat('c', 253)]);
 })->throws(

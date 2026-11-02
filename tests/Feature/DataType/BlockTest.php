@@ -29,7 +29,7 @@ use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\TestCategoryFactory;
 use OpenDxp\Test\Factory\TestGuideFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * A second request reads the object from the cache before it saves it again.
@@ -128,7 +128,7 @@ it('reads the current relation of a block through another object', function () {
             ['de' => [['tipTools' => $relation]]],
         )
         ->create();
-    $pointing = UnittestFactory::createOne(['href' => $source]);
+    $pointing = TestFieldTypesFactory::createOne(['href' => $source]);
 
     $source
         ->getTips('de')[0]['tipTools']

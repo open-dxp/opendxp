@@ -22,7 +22,7 @@ use OpenDxp\Model\Element\Recyclebin;
 use OpenDxp\Model\Element\Recyclebin\Item;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\TestFoundation\Container;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use OpenDxp\Tool\Storage;
 
 function recycled(string $path): Item
@@ -52,7 +52,7 @@ beforeEach(function () {
 });
 
 it('stores an element it takes in', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
 
     Item::create($object, $this->user);
 
@@ -61,7 +61,7 @@ it('stores an element it takes in', function () {
 });
 
 it('restores a deleted element', function () {
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     Item::create($object, $this->user);
     $object->delete();
 
@@ -71,8 +71,8 @@ it('restores a deleted element', function () {
 });
 
 it('stores the children of an element it takes in', function () {
-    $parent = UnittestFactory::createOne();
-    UnittestFactory::new()
+    $parent = TestFieldTypesFactory::createOne();
+    TestFieldTypesFactory::new()
         ->withParent($parent)
         ->create();
 
@@ -86,8 +86,8 @@ it('stores the children of an element it takes in', function () {
 });
 
 it('restores the children of a deleted element', function () {
-    $parent = UnittestFactory::createOne();
-    $child = UnittestFactory::new()
+    $parent = TestFieldTypesFactory::createOne();
+    $child = TestFieldTypesFactory::new()
         ->withParent($parent)
         ->create();
     Item::create($parent, $this->user);
@@ -99,8 +99,8 @@ it('restores the children of a deleted element', function () {
 });
 
 it('restores the data and the relations of a deleted element', function () {
-    $related = UnittestFactory::createOne();
-    $object = UnittestFactory::createOne([
+    $related = TestFieldTypesFactory::createOne();
+    $object = TestFieldTypesFactory::createOne([
         'input' => 'some input',
         'objects' => [$related],
         'lobjects' => [$related],
@@ -124,7 +124,7 @@ it('empties itself when its storage root is a symlink', function () {
     $target = sprintf('%s-moved', $root);
     rename($root, $target);
     symlink($target, $root);
-    $object = UnittestFactory::createOne();
+    $object = TestFieldTypesFactory::createOne();
     Item::create($object, $this->user);
     $object->delete();
 

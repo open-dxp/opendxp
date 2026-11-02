@@ -18,7 +18,7 @@ namespace OpenDxp\Tests\Feature\Search;
 
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 use OpenDxp\Tests\Story\DataObjectPermissions;
 
 use function Zenstruck\Foundry\faker;
@@ -89,7 +89,7 @@ it('counts only the objects a user may see in the total', function () {
 
 it('fills a limited page only with objects a user may see', function () {
     $folder = index(DataObjectFolderFactory::createOne());
-    $hidden = UnittestFactory::new()
+    $hidden = TestFieldTypesFactory::new()
         ->withParent($folder)
         ->many(5)
         ->create(static function (): array {
@@ -101,7 +101,7 @@ it('fills a limited page only with objects a user may see', function () {
             ];
         });
     array_walk($hidden, index(...));
-    $visible = UnittestFactory::new()
+    $visible = TestFieldTypesFactory::new()
         ->withParent($folder)
         ->create([
             'key' => 'manyelement visible',
@@ -127,13 +127,13 @@ it('counts only the objects in a workspace and not in a folder whose name starts
     $neighbour = DataObjectFolderFactory::new()
         ->withParent($parent)
         ->create(['key' => 'shopping']);
-    $inside = UnittestFactory::new()
+    $inside = TestFieldTypesFactory::new()
         ->withParent($workspace)
         ->create([
             'key' => 'shopobject',
             'input' => 'shopobject',
         ]);
-    $outside = UnittestFactory::new()
+    $outside = TestFieldTypesFactory::new()
         ->withParent($neighbour)
         ->create([
             'key' => 'shopobject',

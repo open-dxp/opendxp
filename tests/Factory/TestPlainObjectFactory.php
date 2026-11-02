@@ -16,16 +16,16 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
-use OpenDxp\Model\DataObject\MultipleAssignments;
+use OpenDxp\Model\DataObject\TestPlainObject;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
 /**
- * @extends AbstractDataObjectFactory<MultipleAssignments>
+ * @extends AbstractDataObjectFactory<TestPlainObject>
  */
-final class MultipleAssignmentsFactory extends AbstractDataObjectFactory
+final class TestPlainObjectFactory extends AbstractDataObjectFactory
 {
     public static function class(): string
     {
-        return MultipleAssignments::class;
+        return TestPlainObject::class;
     }
 }

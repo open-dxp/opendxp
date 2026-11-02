@@ -21,19 +21,19 @@ use Closure;
 use OpenDxp\Model\DataObject\ClassDefinition\Data\Input;
 use OpenDxp\Model\DataObject\Data;
 use OpenDxp\Test\Elements;
-use OpenDxp\Tests\Factory\CsstoreFactory;
+use OpenDxp\Tests\Factory\TestClassificationFactory;
 
 it('keeps the value a key of a group was given', function (string $group, string $key, Closure $value) {
     $expected = $value();
 
-    $object = CsstoreFactory::new()
+    $object = TestClassificationFactory::new()
         ->withClassificationValues(
-            'csstore',
+            'specifications',
             storeGroup($group),
             [$key => $expected],
         )
         ->create();
-    $stored = Elements::refresh($object)->getCsstore()->getLocalizedKeyValue(
+    $stored = Elements::refresh($object)->getSpecifications()->getLocalizedKeyValue(
         storeGroup($group)->getId(),
         storeKey($key)->getId(),
     );
@@ -174,9 +174,9 @@ it('keeps the value of a key apart per language', function () {
     $groupId = storeGroup('values')->getId();
     $keyId = storeKey('input')->getId();
 
-    $object = CsstoreFactory::new()
+    $object = TestClassificationFactory::new()
         ->withLocalizedClassificationValues(
-            'csstore',
+            'specifications',
             storeGroup('values'),
             'input',
             [
@@ -186,7 +186,7 @@ it('keeps the value of a key apart per language', function () {
             ],
         )
         ->create();
-    $store = Elements::refresh($object)->getCsstore();
+    $store = Elements::refresh($object)->getSpecifications();
 
     expect($store->getLocalizedKeyValue($groupId, $keyId, 'en'))
         ->toBe('English')
@@ -197,9 +197,9 @@ it('keeps the value of a key apart per language', function () {
 });
 
 it('returns the value of the default language for a language that holds none', function () {
-    $object = CsstoreFactory::new()
+    $object = TestClassificationFactory::new()
         ->withLocalizedClassificationValues(
-            'csstore',
+            'specifications',
             storeGroup('values'),
             'input',
             [
@@ -209,7 +209,7 @@ it('returns the value of the default language for a language that holds none', f
         )
         ->create();
 
-    $value = Elements::refresh($object)->getCsstore()->getLocalizedKeyValue(
+    $value = Elements::refresh($object)->getSpecifications()->getLocalizedKeyValue(
         storeGroup('values')->getId(),
         storeKey('input')->getId(),
         'en',
@@ -223,9 +223,9 @@ describe('a quantity', function () {
         $this->unitId = quantityUnit('cm')->getId();
         $this->groupId = storeGroup('quantities')->getId();
         $this->keyId = storeKey('qValue')->getId();
-        $this->object = CsstoreFactory::new()
+        $this->object = TestClassificationFactory::new()
             ->withClassificationValues(
-                'csstore',
+                'specifications',
                 storeGroup('quantities'),
                 ['qValue' => new Data\QuantityValue(123, $this->unitId)],
             )
@@ -233,14 +233,14 @@ describe('a quantity', function () {
     });
 
     it('keeps its unit when its value is taken away', function () {
-        $this->object->getCsstore()->setLocalizedKeyValue(
+        $this->object->getSpecifications()->setLocalizedKeyValue(
             $this->groupId,
             $this->keyId,
             new Data\QuantityValue(null, $this->unitId),
         );
         $this->object->save();
 
-        $quantity = Elements::refresh($this->object)->getCsstore()->getLocalizedKeyValue($this->groupId, $this->keyId);
+        $quantity = Elements::refresh($this->object)->getSpecifications()->getLocalizedKeyValue($this->groupId, $this->keyId);
 
         expect($quantity)
             ->getValue()
@@ -250,14 +250,14 @@ describe('a quantity', function () {
     });
 
     it('is gone once its value and its unit are taken away', function () {
-        $this->object->getCsstore()->setLocalizedKeyValue(
+        $this->object->getSpecifications()->setLocalizedKeyValue(
             $this->groupId,
             $this->keyId,
             new Data\QuantityValue(null, null),
         );
         $this->object->save();
 
-        $quantity = Elements::refresh($this->object)->getCsstore()->getLocalizedKeyValue($this->groupId, $this->keyId);
+        $quantity = Elements::refresh($this->object)->getSpecifications()->getLocalizedKeyValue($this->groupId, $this->keyId);
 
         expect($quantity)->toBeNull();
     });

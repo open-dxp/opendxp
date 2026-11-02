@@ -21,12 +21,12 @@ use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\TestCategoryFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 beforeEach(fn () => $this->targets = TestCategoryFactory::createMany(3));
 
 it('changes the relation of one item and keeps the others', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             (new TestFeature())->setDocuments([$this->targets[0]]),
@@ -45,7 +45,7 @@ it('changes the relation of one item and keeps the others', function () {
 });
 
 it('keeps no relation in an item that was emptied', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             (new TestFeature())->setDocuments([$this->targets[0]]),
@@ -63,7 +63,7 @@ it('keeps no relation in an item that was emptied', function () {
 it('drops the relation with metadata to a target that was deleted', function () {
     $kept = AssetImageFactory::createOne();
     $deleted = AssetImageFactory::createOne();
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             (new TestFeature())->setCertificates([
@@ -87,7 +87,7 @@ it('drops the relation with metadata to a target that was deleted', function () 
 });
 
 it('changes the localized relation of one item and keeps the others', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             (new TestFeature())->setCategory($this->targets[0], 'en'),
@@ -106,7 +106,7 @@ it('changes the localized relation of one item and keeps the others', function (
 });
 
 it('keeps no localized relation in an item that was emptied', function () {
-    $object = UnittestFactory::new()
+    $object = TestFieldTypesFactory::new()
         ->withFieldcollection(
             'fieldcollection',
             (new TestFeature())->setCategory($this->targets[0], 'en'),

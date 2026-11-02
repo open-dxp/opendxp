@@ -51,8 +51,8 @@
                         "permissions": null,
                         "children": [
                             {
-                                "name": "csstore",
-                                "title": "csstore",
+                                "name": "specifications",
+                                "title": "specifications",
                                 "tooltip": null,
                                 "mandatory": false,
                                 "noteditable": false,

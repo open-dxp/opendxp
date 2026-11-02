@@ -318,7 +318,7 @@
     },
     "classDefinitions": [
         {
-            "classname": "LazyLoading",
+            "classname": "TestLazyRelations",
             "fieldname": "bricks"
         }
     ]

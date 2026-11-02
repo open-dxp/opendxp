@@ -20,7 +20,7 @@ use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * @return list<int>
@@ -39,17 +39,17 @@ function requiringIdsOf(ElementInterface $element): array
 }
 
 it('records a dependency for every related element', function () {
-    $targets = UnittestFactory::createMany(2);
+    $targets = TestFieldTypesFactory::createMany(2);
 
-    $source = UnittestFactory::createOne(['multihref' => $targets]);
+    $source = TestFieldTypesFactory::createOne(['multihref' => $targets]);
 
     expect(requiredIdsOf($source))->toEqualCanonicalizing(elementIds($targets));
 });
 
 it('drops the dependency of a removed relation', function () {
-    $kept = UnittestFactory::createOne();
-    $removed = UnittestFactory::createOne();
-    $source = UnittestFactory::createOne([
+    $kept = TestFieldTypesFactory::createOne();
+    $removed = TestFieldTypesFactory::createOne();
+    $source = TestFieldTypesFactory::createOne([
         'multihref' => [
             $kept,
             $removed,
@@ -66,7 +66,7 @@ it('lists what it requires and what requires it', function (ElementInterface $so
     $targets = AssetImageFactory::createMany(3);
     referencing($source, ...$targets);
 
-    $requiring = UnittestFactory::createOne(['multihref' => [$source]]);
+    $requiring = TestFieldTypesFactory::createOne(['multihref' => [$source]]);
 
     expect(requiredIdsOf($source))
         ->toEqualCanonicalizing(elementIds($targets))
@@ -75,7 +75,7 @@ it('lists what it requires and what requires it', function (ElementInterface $so
 })->with([
     'an asset' => [fn () => AssetImageFactory::createOne()],
     'a document' => [fn () => DocumentPageFactory::createOne()],
-    'an object' => [fn () => UnittestFactory::createOne()],
+    'an object' => [fn () => TestFieldTypesFactory::createOne()],
 ]);
 
 it('records the dependency of each kind of element', function (ElementInterface $source) {

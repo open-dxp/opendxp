@@ -25,7 +25,7 @@ use OpenDxp\Test\Factory\AbstractUserRoleFactory;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Test\Factory\UserFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * The quick search answers for every user at once, so the object tree has four more users and an asset beside it.
@@ -36,7 +36,7 @@ use OpenDxp\Tests\Factory\UnittestFactory;
  * @method static DataObject\Folder bars()
  * @method static DataObject\Folder userfolder()
  * @method static DataObject\Folder groupfolder()
- * @method static DataObject\Unittest usertestobject()
+ * @method static DataObject\TestFieldTypes usertestobject()
  * @method static User\Role testrole()
  * @method static User\Role dummyRole()
  * @method static User permissiontest1()
@@ -111,7 +111,7 @@ final class DataObjectPermissions extends PermissionTree
 
     protected function element(string $key): AbstractElementFactory
     {
-        return UnittestFactory::new()
+        return TestFieldTypesFactory::new()
             ->with([
                 'key' => $key,
                 'input' => $key,

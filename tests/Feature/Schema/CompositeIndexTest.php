@@ -18,27 +18,27 @@ namespace OpenDxp\Tests\Feature\Schema;
 
 use OpenDxp\Db;
 use OpenDxp\Model\DataObject\ClassDefinition;
-use OpenDxp\Model\DataObject\Unittest;
+use OpenDxp\Model\DataObject\TestFieldTypes;
 
 /**
  * @return list<string>
  */
 function queryTableIndexes(): array
 {
-    $query = sprintf('SHOW INDEX FROM `object_query_%s`', Unittest::classId());
+    $query = sprintf('SHOW INDEX FROM `object_query_%s`', TestFieldTypes::classId());
     $indexes = Db::get()->fetchAllAssociative($query);
 
     return array_column($indexes, 'Key_name');
 }
 
 afterEach(function () {
-    $definition = ClassDefinition::getById(Unittest::classId());
+    $definition = ClassDefinition::getById(TestFieldTypes::classId());
     $definition->setCompositeIndices([]);
     $definition->save();
 });
 
 it('writes the composite index a class definition names', function () {
-    $definition = ClassDefinition::getById(Unittest::classId());
+    $definition = ClassDefinition::getById(TestFieldTypes::classId());
     $definition->setCompositeIndices([
         [
             'index_key' => 'mycomposite',

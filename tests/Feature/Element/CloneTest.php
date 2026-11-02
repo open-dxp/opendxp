@@ -19,7 +19,7 @@ namespace OpenDxp\Tests\Feature\Element;
 use OpenDxp\Model\Element\Service;
 use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('returns a copy without an id', function (string $element, string $factory) {
     $original = $factory::createOne();
@@ -30,7 +30,7 @@ it('returns a copy without an id', function (string $element, string $factory) {
 })->with('elements');
 
 it('returns a copy of an object without a parent', function () {
-    $original = UnittestFactory::createOne();
+    $original = TestFieldTypesFactory::createOne();
 
     $copy = Service::cloneMe($original);
 
@@ -63,5 +63,5 @@ it('names a copy after its original', function (string $factory, string $key, st
 })->with([
     'an asset' => [AssetImageFactory::class, 'photo.jpg', 'photo_copy.jpg'],
     'a document' => [DocumentPageFactory::class, 'about', 'about_copy'],
-    'an object' => [UnittestFactory::class, 'shoe', 'shoe_copy'],
+    'an object' => [TestFieldTypesFactory::class, 'shoe', 'shoe_copy'],
 ]);

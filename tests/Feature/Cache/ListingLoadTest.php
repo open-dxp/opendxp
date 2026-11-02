@@ -20,7 +20,7 @@ use OpenDxp;
 use OpenDxp\Cache\RuntimeCache;
 use OpenDxp\Event\DataObjectEvents;
 use OpenDxp\Event\Model\DataObjectEvent;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 /**
  * @return list<int>
@@ -58,7 +58,7 @@ dataset('cached objects', [
 beforeEach(fn () => useApplicationCache());
 
 it('keeps the order of the listing for objects from the cache', function (callable $cached) {
-    $objects = UnittestFactory::createMany(
+    $objects = TestFieldTypesFactory::createMany(
         4,
         fn (int $index) => ['input' => sprintf('listed_%d', $index)],
     );
@@ -67,13 +67,13 @@ it('keeps the order of the listing for objects from the cache', function (callab
     }
     RuntimeCache::clear();
 
-    $loaded = unittestListing('listed_')->load();
+    $loaded = testFieldTypesListing('listed_')->load();
 
     expect(elementIds($loaded))->toBe(elementIds($objects));
 })->with('cached objects');
 
 it('fires the post load event once per object in the order of the listing', function (callable $cached) {
-    $objects = UnittestFactory::createMany(
+    $objects = TestFieldTypesFactory::createMany(
         4,
         fn (int $index) => ['input' => sprintf('listed_%d', $index)],
     );
@@ -82,7 +82,7 @@ it('fires the post load event once per object in the order of the listing', func
     }
     RuntimeCache::clear();
 
-    $fired = idsLoadedBy(fn () => unittestListing('listed_')->load());
+    $fired = idsLoadedBy(fn () => testFieldTypesListing('listed_')->load());
 
     expect($fired)->toBe(elementIds($objects));
 })->with('cached objects');

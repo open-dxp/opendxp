@@ -16,24 +16,24 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\Relation;
 
-use OpenDxp\Model\DataObject\Objectbrick\Data\UnittestBrick;
+use OpenDxp\Model\DataObject\Objectbrick\Data\TestFieldTypesBrick;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\TestCategoryFactory;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 beforeEach(function () {
     $this->targets = TestCategoryFactory::createMany(2);
-    $this->object = UnittestFactory::new()
+    $this->object = TestFieldTypesFactory::new()
         ->withObjectbrick(
             'mybricks',
-            UnittestBrick::class,
+            TestFieldTypesBrick::class,
             ['brickLazyRelation' => $this->targets],
         )
         ->create();
 });
 
 it('keeps the relations of a brick', function () {
-    $relations = Elements::refresh($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
+    $relations = Elements::refresh($this->object)->getMybricks()->getTestFieldTypesBrick()->getBrickLazyRelation();
 
     expect($relations)
         ->toHaveCount(2)
@@ -44,10 +44,10 @@ it('keeps the relations of a brick', function () {
 });
 
 it('keeps the remaining relation of a brick', function () {
-    $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([$this->targets[1]]);
+    $this->object->getMybricks()->getTestFieldTypesBrick()->setBrickLazyRelation([$this->targets[1]]);
     $this->object->save();
 
-    $relations = Elements::refresh($this->object)->getMybricks()->getUnittestBrick()->getBrickLazyRelation();
+    $relations = Elements::refresh($this->object)->getMybricks()->getTestFieldTypesBrick()->getBrickLazyRelation();
     expect($relations)
         ->toHaveCount(1)
         ->and($relations[0]->getId())
@@ -55,9 +55,9 @@ it('keeps the remaining relation of a brick', function () {
 });
 
 it('keeps no relation in a brick that was emptied', function () {
-    $this->object->getMybricks()->getUnittestBrick()->setBrickLazyRelation([]);
+    $this->object->getMybricks()->getTestFieldTypesBrick()->setBrickLazyRelation([]);
     $this->object->save();
 
-    $brick = Elements::refresh($this->object)->getMybricks()->getUnittestBrick();
+    $brick = Elements::refresh($this->object)->getMybricks()->getTestFieldTypesBrick();
     expect($brick)->getBrickLazyRelation()->toBe([]);
 });

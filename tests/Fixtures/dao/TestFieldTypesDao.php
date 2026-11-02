@@ -15,18 +15,21 @@ declare(strict_types=1);
  * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
-namespace OpenDxp\Tests\Factory;
+namespace OpenDxp\Model\DataObject\TestFieldTypes;
 
-use OpenDxp\Model\DataObject\UnittestLink;
-use OpenDxp\Test\Factory\AbstractDataObjectFactory;
+use OpenDxp\Model\DataObject\Concrete;
 
-/**
- * @extends AbstractDataObjectFactory<UnittestLink>
- */
-final class UnittestLinkFactory extends AbstractDataObjectFactory
+final class Dao extends Concrete\Dao
 {
-    public static function class(): string
+    /**
+     * @var int[]
+     */
+    public static array $getByIdCalls = [];
+
+    public function getById(int $id): void
     {
-        return UnittestLink::class;
+        self::$getByIdCalls[] = $id;
+
+        parent::getById($id);
     }
 }

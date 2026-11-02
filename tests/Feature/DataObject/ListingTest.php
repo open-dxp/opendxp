@@ -18,11 +18,11 @@ namespace OpenDxp\Tests\Feature\DataObject;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use OpenDxp\Model\DataObject\Fieldcollection\Data\TestFeature;
-use OpenDxp\Model\DataObject\Unittest;
-use OpenDxp\Tests\Factory\UnittestFactory;
+use OpenDxp\Model\DataObject\TestFieldTypes;
+use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 beforeEach(function () {
-    UnittestFactory::createSequence(
+    TestFieldTypesFactory::createSequence(
         static function (): iterable {
             foreach ([10, 11, 42, 53, 65, 78, 85] as $seed) {
                 yield [
@@ -37,7 +37,7 @@ beforeEach(function () {
 });
 
 it('counts the objects a condition matches', function (string $condition, array $parameters) {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setCondition($condition, $parameters);
 
     $count = $listing->getTotalCount();
@@ -110,7 +110,7 @@ it('counts the objects a condition matches', function (string $condition, array 
 ]);
 
 it('counts the objects its collected conditions match', function (array $conditions, int $expected) {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
 
     foreach ($conditions as $condition) {
         $listing->addConditionParam(...$condition);
@@ -179,7 +179,7 @@ it('counts the objects its collected conditions match', function (array $conditi
 ]);
 
 it('counts again once its condition changes', function () {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setCondition(
         'input IN (?)',
         [
@@ -206,7 +206,7 @@ it('counts again once its condition changes', function () {
 });
 
 it('counts again once its limit changes', function () {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setCondition(
         'input IN (?)',
         [
@@ -225,7 +225,7 @@ it('counts again once its limit changes', function () {
 });
 
 it('counts the objects a HAVING condition on a selected alias matches', function () {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->onCreateQueryBuilder(static function (QueryBuilder $queryBuilder): void {
         $queryBuilder->addSelect('input AS alias_input');
         $queryBuilder->having("alias_input LIKE 'content1%'");
@@ -235,19 +235,19 @@ it('counts the objects a HAVING condition on a selected alias matches', function
 });
 
 it('counts the objects a condition with the word HAVING in a value matches', function () {
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->setCondition("input LIKE '% HAVING %' OR input = 'content10'");
 
     expect($listing->getTotalCount())->toBe(1);
 });
 
 it('reads the field name of a field collection as a value', function () {
-    UnittestFactory::new()
+    TestFieldTypesFactory::new()
         ->withFieldcollection('fieldcollection', new TestFeature())
         ->create();
     $fieldName = 'nothing" OR "1" = "1';
 
-    $listing = new Unittest\Listing();
+    $listing = new TestFieldTypes\Listing();
     $listing->addFieldCollection('TestFeature', $fieldName);
     $listing->setCondition(sprintf('`TestFeature~%s`.id IS NOT NULL', $fieldName));
 
