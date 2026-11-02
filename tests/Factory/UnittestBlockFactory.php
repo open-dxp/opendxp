@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Factory;
 
+use OpenDxp\Model\DataObject\Data\BlockElement;
+use OpenDxp\Model\DataObject\Localizedfield;
 use OpenDxp\Model\DataObject\UnittestBlock;
 use OpenDxp\Test\Factory\AbstractDataObjectFactory;
 
@@ -28,5 +30,20 @@ final class UnittestBlockFactory extends AbstractDataObjectFactory
     public static function class(): string
     {
         return UnittestBlock::class;
+    }
+
+    public function withLocalizedItems(string ...$values): static
+    {
+        return $this->with(['localizedtestblock' => array_map(self::localizedItem(...), $values)]);
+    }
+
+    /**
+     * @return array<string, BlockElement>
+     */
+    private static function localizedItem(string $value): array
+    {
+        $localizedFields = new Localizedfield(['de' => ['linput' => $value]]);
+
+        return ['localizedfields' => new BlockElement('localizedfields', 'localizedfields', $localizedFields)];
     }
 }
