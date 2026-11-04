@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.4
+- [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
+
 ## 1.5.3
 - [NEW FEATURE] `OpenDxp\Test` ships the classes `TestArticle`, `TestCategory`, `TestGuide` and `TestProduct` with their factories, the brick `TestDimensions`, the field collection `TestFeature` and the store `TestSpecifications`, see [Test API](doc/19_Development_Tools_and_Details/29_Testing/07_Test_API.md#definitions-for-tests)
 - [BUGFIX] A block item with an unknown original index throws instead of taking the data of another item
