@@ -649,7 +649,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
         }
 
         return $code . ('<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video ' . ($config['class'] ?? '') . '">
-            <iframe width="' . $width . '" height="' . $height . '" src="https://www.youtube-nocookie.com/embed/' . $seriesPrefix . $youtubeId . $wmode . $additionalParams . '" title="YouTube video" allow="fullscreen" data-type="opendxp_video_editable"></iframe>
+            <iframe width="' . $width . '" height="' . $height . '" src="https://www.youtube-nocookie.com/embed/' . $seriesPrefix . $youtubeId . $wmode . $additionalParams . '" title="YouTube video" allow="fullscreen" referrerpolicy="strict-origin-when-cross-origin" data-type="opendxp_video_editable"></iframe>
         </div>');
     }
 
