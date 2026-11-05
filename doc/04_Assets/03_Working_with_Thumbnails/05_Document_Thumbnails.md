@@ -47,6 +47,23 @@ This feature requires Ghostscript and at least [Gotenberg](../../23_Installation
    }
 ```
 
+## Render only the visible page area (CropBox)
+Ghostscript renders a PDF page inside its MediaBox, the whole sheet. When a page also defines a smaller CropBox, the area 
+a PDF viewer shows, the thumbnail includes the margins, bleed or crop marks around it, and the content looks small.
+
+Enable **Use CropBox (PDF, Ghostscript)** in the advanced settings of the thumbnail configuration to render only the CropBox. In a 
+configuration file, set `useCropBox`:
+```yaml
+opendxp:
+    assets:
+        image:
+            thumbnails:
+                definitions:
+                    myThumbnail:
+                        useCropBox: true
+```
+A page without a CropBox looks the same either way, because Ghostscript then uses its MediaBox.
+
 ## Disable generating thumbnails for asset documents
 If you want to completely disable the thumbnail generation for asset documents, this can be done with following config:
 ```yaml

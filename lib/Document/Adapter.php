@@ -45,7 +45,10 @@ abstract class Adapter
 
     abstract public function load(Asset\Document $asset): static;
 
-    abstract public function saveImage(string $imageTargetPath, int $page = 1, int $resolution = 200): bool;
+    /**
+     * @param bool $useCropBox render the page inside its CropBox, the visible page area, instead of its MediaBox
+     */
+    abstract public function saveImage(string $imageTargetPath, int $page = 1, int $resolution = 200, bool $useCropBox = false): bool;
 
     /**
      * @return resource
