@@ -765,7 +765,7 @@ class Localizedfields extends Data implements CustomResourcePersistingInterface,
             foreach ($this->getFieldDefinitions() as $fd) {
                 $fieldname = $fd->getName();
 
-                $subdata = $fd->getDiffDataForEditmode($values[$fieldname], $object, $params);
+                $subdata = $fd->getDiffDataForEditmode($values[$fieldname] ?? null, $object, $params);
 
                 foreach ($subdata as $item) {
                     $diffdata['field'] = $this->getName();
