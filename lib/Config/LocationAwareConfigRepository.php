@@ -221,6 +221,10 @@ class LocationAwareConfigRepository
 
     private function getVarConfigFile(string $key): string
     {
+        if ($key === '' || $key === '.' || $key === '..' || strpbrk($key, '/\\') !== false) {
+            throw new Exception(sprintf('"%s" is not a valid configuration key.', $key));
+        }
+
         $directory = rtrim($this->storageConfig[self::WRITE_TARGET][self::OPTIONS][self::DIRECTORY], '/\\');
 
         return $directory . '/' . $key . '.yaml';

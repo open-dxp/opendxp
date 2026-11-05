@@ -1,0 +1,26 @@
+name: Security
+
+on:
+    workflow_dispatch:
+    schedule:
+        -   cron: '0 5 * * *'
+    push:
+        branches:
+            - "[0-9]+.[0-9]+"
+            - "[0-9]+.x"
+    pull_request:
+        types: [ opened, synchronize, reopened ]
+
+jobs:
+    taint-analysis:
+        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-taint-analysis.yaml@main
+        with:
+            sources: 'bundles lib models'
+        permissions:
+            contents: read
+            security-events: write
+        secrets:
+            COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+
+    secret-scan:
+        uses: open-dxp/workflows-collection-public/.github/workflows/reusable-secret-scan.yaml@main

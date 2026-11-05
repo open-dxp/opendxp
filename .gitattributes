@@ -11,6 +11,7 @@
 /CLA.md export-ignore
 /phpstan* export-ignore
 /phpunit.xml.dist export-ignore
+/psalm-taint-baseline.xml export-ignore
 /tests/** export-ignore
 /tests/Support -export-ignore
 /tests/Support/** -export-ignore

@@ -1,8 +1,10 @@
 # Changelog
 
 ## 1.5.4
+- [SECURITY] A configuration that is stored as a file is only written into its own directory
 - [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
 - [BUGFIX] The diff data of localized fields, used by the object merger, handles a language that holds only some of the fields, such as a new object with only its title set
+- [CHORE] Check code and commits for security issues
 
 ## 1.5.3
 - [NEW FEATURE] `OpenDxp\Test` ships the classes `TestArticle`, `TestCategory`, `TestGuide` and `TestProduct` with their factories, the brick `TestDimensions`, the field collection `TestFeature` and the store `TestSpecifications`, see [Test API](doc/19_Development_Tools_and_Details/29_Testing/07_Test_API.md#definitions-for-tests)
