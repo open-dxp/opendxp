@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Document\Editable;
 
 use OpenDxp\Model;
+use OpenDxp\Security\SecurityHelper;
 use Override;
 
 /**
@@ -56,7 +57,7 @@ class Embed extends Model\Document\Editable
 
     public function frontend()
     {
-        if ($this->url) {
+        if ($this->hasValidUrl()) {
             $config = $this->getConfig();
             if (!isset($config['params'])) {
                 $config['params'] = [];
@@ -72,7 +73,8 @@ class Embed extends Model\Document\Editable
 
             if (!$html = \OpenDxp\Cache::load($cacheKey)) {
                 $embera = new \Embera\Embera($config);
-                $html = $embera->autoEmbed($this->url);
+                $html = array_column($embera->getUrlData($this->url), 'html')[0]
+                    ?? SecurityHelper::convertHtmlSpecialChars($this->url);
 
                 \OpenDxp\Cache::save($html, $cacheKey, ['embed'], 86400, 1, true);
             }
@@ -115,5 +117,12 @@ class Embed extends Model\Document\Editable
     public function isEmpty(): bool
     {
         return !$this->url;
+    }
+
+    private function hasValidUrl(): bool
+    {
+        return is_string($this->url)
+            && filter_var($this->url, FILTER_VALIDATE_URL) !== false
+            && in_array(strtolower((string) parse_url($this->url, PHP_URL_SCHEME)), ['http', 'https'], true);
     }
 }

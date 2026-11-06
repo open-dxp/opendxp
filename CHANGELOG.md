@@ -3,6 +3,8 @@
 ## 1.5.4
 - [SECURITY] [OPENDXP-SA-2026-024] A configuration that is stored as a file is only written into its own directory
 - [SECURITY] [OPENDXP-SA-2026-025] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler
+- [SECURITY] [FOLLOW-UP] [OPENDXP-SA-2026-026] An embed renders only a single web URL and only the HTML of its provider. A URL without a provider is shown as text
+  1. Run `bin/console opendxp:cache:clear`.
 - [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
 - [BUGFIX] The diff data of localized fields, used by the object merger, handles a language that holds only some of the fields, such as a new object with only its title set
 - [BUGFIX] A WYSIWYG field keeps the alignment of a heading and the size of an image after saving
