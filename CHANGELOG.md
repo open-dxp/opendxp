@@ -2,9 +2,12 @@
 
 ## 1.5.4
 - [SECURITY] A configuration that is stored as a file is only written into its own directory
+- [SECURITY] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler
 - [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
 - [BUGFIX] The diff data of localized fields, used by the object merger, handles a language that holds only some of the fields, such as a new object with only its title set
 - [BUGFIX] A WYSIWYG field keeps the alignment of a heading and the size of an image after saving
+- [BUGFIX] The link editable renders only the attributes of the template and of the link dialog, no longer its internal data such as `path` or `linktype`
+- [BUGFIX] An object link without a URL renders nothing instead of an empty `<a>` tag
 - [CHORE] Check code and commits for security issues
 
 ## 1.5.3

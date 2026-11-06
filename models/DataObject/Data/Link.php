@@ -25,6 +25,7 @@ use OpenDxp\Model\DataObject\Traits\OwnerAwareFieldTrait;
 use OpenDxp\Model\Document;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Element\Service;
+use OpenDxp\Security\SecurityHelper;
 use Stringable;
 
 class Link implements OwnerAwareFieldInterface, Stringable
@@ -366,6 +367,10 @@ class Link implements OwnerAwareFieldInterface, Stringable
             $path .= '#' . str_replace('#', '', $this->getAnchor());
         }
 
+        if (SecurityHelper::isScriptUrl($path)) {
+            return '';
+        }
+
         return $path;
     }
 
@@ -404,21 +409,27 @@ class Link implements OwnerAwareFieldInterface, Stringable
         $attribs = [];
         foreach ($attributes as $a) {
             if ($this->$a) {
-                $attribs[] = $a . '="' . $this->$a . '"';
+                $attribs[] = $a . '="' . htmlspecialchars($this->$a) . '"';
             }
         }
 
         if ($this->getAttributes()) {
-            $attribs[] = $this->getAttributes();
+            $attribs[] = SecurityHelper::filterHtmlAttributes($this->getAttributes());
         }
 
         $text = $this->getText();
+        $href = $this->getHref();
 
-        if (empty($text)) {
+        if (empty($text) || $href === '') {
             return '';
         }
 
-        return '<a href="' . $this->getHref() . '" ' . implode(' ', $attribs) . '>' . htmlspecialchars($text) . '</a>';
+        return sprintf(
+            '<a href="%s" %s>%s</a>',
+            htmlspecialchars($href),
+            implode(' ', $attribs),
+            htmlspecialchars($text)
+        );
     }
 
     public function isEmpty(): bool
