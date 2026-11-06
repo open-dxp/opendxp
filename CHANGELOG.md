@@ -9,6 +9,7 @@
 - [BUGFIX] The link editable renders only the attributes of the template and of the link dialog, no longer its internal data such as `path` or `linktype`
 - [BUGFIX] An object link without a URL renders nothing instead of an empty `<a>` tag
 - [BUGFIX] Saving an element that fails validation, such as a mandatory field left empty, logs the failure at warning level, no longer as a critical uncaught exception
+- [BUGFIX] Saving a setting whose configuration isn't writeable, such as a thumbnail or a static route, logs the failure at warning level, no longer as a critical uncaught exception
 - [CHORE] Check code and commits for security issues
 
 ## 1.5.3
