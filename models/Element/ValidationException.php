@@ -17,7 +17,15 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Element;
 
 use Exception;
+use Psr\Log\LogLevel;
+use Symfony\Component\HttpKernel\Attribute\WithLogLevel;
 
+/**
+ * Signals that an element failed validation, such as a mandatory field left empty.
+ * The admin's AdminExceptionListener turns it into a 422 response that shows the message to the user.
+ * Symfony's ErrorListener logs every exception, this one at warning level, not info, since outside the admin an uncaught one still ends in a 500 response.
+ */
+#[WithLogLevel(LogLevel::WARNING)]
 class ValidationException extends Exception
 {
     protected array $contextStack = [];
