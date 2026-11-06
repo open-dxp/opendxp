@@ -14,6 +14,7 @@
   <file src="lib/Config/LocationAwareConfigRepository.php">
     <TaintedFile>
       <code>unlink($this-&gt;getVarConfigFile($key))</code>
+      <code>unlink($this-&gt;getVarConfigFile($key))</code>
     </TaintedFile>
   </file>
   <file src="lib/Document/Adapter/LibreOffice.php">
@@ -51,6 +52,7 @@
     </TaintedCallable>
     <TaintedFile>
       <code>file_get_contents($this-&gt;path)</code>
+      <code>$functionName($this-&gt;resource, $path, $quality)</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>file_get_contents($this-&gt;path)</code>
@@ -132,6 +134,7 @@
   </file>
   <file src="models/Asset/Image/Thumbnail/Processor.php">
     <TaintedCallable>
+      <code>[$image, $transformation['method']]</code>
       <code>[$image, $transformation['method']]</code>
     </TaintedCallable>
     <TaintedFile>
@@ -229,8 +232,14 @@
       <code>echo $value . "\n";</code>
       <code>echo $value . "\n";</code>
       <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
     </TaintedHtml>
     <TaintedTextWithQuotes>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
       <code>echo $value . "\n";</code>
       <code>echo $value . "\n";</code>
       <code>echo $value . "\n";</code>
