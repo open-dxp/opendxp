@@ -35,6 +35,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/Asset',
     'Feature/ClassDefinition',
     'Feature/ClassificationStore',
+    'Feature/Config',
     'Feature/Console',
     'Feature/CustomReports',
     'Feature/DataObject',

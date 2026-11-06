@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="7.0.3@8f2ac04d0ab5ed1d3cbe6e252b0f7232bc031aaf">
+  <file src="bundles/CoreBundle/src/EventListener/Frontend/EditmodeListener.php">
+    <TaintedFile>
+      <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
+    </TaintedSSRF>
+    <TaintedUrlComponent>
+      <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
+    </TaintedUrlComponent>
+  </file>
+  <file src="lib/Config/LocationAwareConfigRepository.php">
+    <TaintedFile>
+      <code>unlink($this-&gt;getVarConfigFile($key))</code>
+    </TaintedFile>
+  </file>
+  <file src="lib/Document/Adapter/LibreOffice.php">
+    <TaintedFile>
+      <code>file_get_contents($tmpName)</code>
+      <code>unlink($tmpName)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($tmpName)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="lib/File.php">
+    <TaintedFile>
+      <code>unlink($filePath)</code>
+    </TaintedFile>
+  </file>
+  <file src="lib/Helper/LongRunningHelper.php">
+    <TaintedFile>
+      <code>unlink($tmpFilePath)</code>
+    </TaintedFile>
+  </file>
+  <file src="lib/Helper/TemporaryFileHelperTrait.php">
+    <TaintedFile>
+      <code>fopen($stream, 'rb')</code>
+      <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>fopen($stream, 'rb')</code>
+      <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
+    </TaintedSSRF>
+  </file>
+  <file src="lib/Image/Adapter/GD.php">
+    <TaintedCallable>
+      <code>$functionName</code>
+    </TaintedCallable>
+    <TaintedFile>
+      <code>file_get_contents($this-&gt;path)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($this-&gt;path)</code>
+      <code>getimagesize($this-&gt;path)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="lib/Image/Adapter/Imagick.php">
+    <TaintedFile>
+      <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'rb')</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'rb')</code>
+    </TaintedSSRF>
+  </file>
+  <file src="lib/Image/Optimizer.php">
+    <TaintedFile>
+      <code>file_get_contents($optimizedImages[0]['path'])</code>
+      <code>file_put_contents($workingPath, $storage-&gt;read($path))</code>
+      <code>unlink($tmpFile['path'])</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($optimizedImages[0]['path'])</code>
+    </TaintedSSRF>
+  </file>
+  <file src="lib/Loader/ImplementationLoader/AbstractClassNameLoader.php">
+    <TaintedCallable>
+      <code>$className</code>
+    </TaintedCallable>
+  </file>
+  <file src="lib/Tool/Serialize.php">
+    <TaintedUnserialize>
+      <code>unserialize($data, $options)</code>
+    </TaintedUnserialize>
+  </file>
+  <file src="lib/Video/Adapter/Ffmpeg.php">
+    <TaintedFile>
+      <code>unlink($this-&gt;getDestinationFile())</code>
+    </TaintedFile>
+  </file>
+  <file src="models/Asset.php">
+    <TaintedFile>
+      <code>fopen($tempFile, 'rb', false, File::getContext())</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>fopen($tempFile, 'rb', false, File::getContext())</code>
+      <code>getimagesize($localFile)</code>
+      <code>getimagesize($localFile)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Document/ImageThumbnail.php">
+    <TaintedFile>
+      <code>file_get_contents($tempFile)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($tempFile)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Folder.php">
+    <TaintedFile>
+      <code>file_get_contents($localFile)</code>
+      <code>imagejpeg($collage, $localFile, 60)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($localFile)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Image.php">
+    <TaintedFile>
+      <code>exif_read_data($path)</code>
+      <code>file_get_contents($tmpFile)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>exif_read_data($path)</code>
+      <code>file_get_contents($tmpFile)</code>
+      <code>getimagesize($path)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Image/Thumbnail/Processor.php">
+    <TaintedCallable>
+      <code>[$image, $transformation['method']]</code>
+    </TaintedCallable>
+    <TaintedFile>
+      <code>exif_read_data($fileSystemPath)</code>
+      <code>fopen($tmpFsPath, 'rb')</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>exif_read_data($fileSystemPath)</code>
+      <code>fopen($tmpFsPath, 'rb')</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/MetaData/EmbeddedMetaDataTrait.php">
+    <TaintedFile>
+      <code>exif_read_data($filePath)</code>
+      <code>fopen($filePath, 'rb')</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>exif_read_data($filePath)</code>
+      <code>fopen($filePath, 'rb')</code>
+      <code>getimagesize($filePath, $info)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Video/ImageThumbnail.php">
+    <TaintedFile>
+      <code>file_get_contents($tempFile)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($tempFile)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Video/Thumbnail/Processor.php">
+    <TaintedFile>
+      <code>$streamFilesPath</code>
+      <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
+      <code>unlink($converter-&gt;getDestinationFile())</code>
+      <code>unlink($workerSourceFile)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
+    </TaintedSSRF>
+  </file>
+  <file src="models/DataObject/ClassDefinition.php">
+    <TaintedFile>
+      <code>$directory . '/*'</code>
+      <code>rmdir($directory)</code>
+      <code>unlink($this-&gt;getDefinitionFile())</code>
+      <code>unlink($this-&gt;getPhpClassFile())</code>
+      <code>unlink($this-&gt;getPhpListingClassFile())</code>
+    </TaintedFile>
+    <TaintedInclude>
+      <code>$definitionFile</code>
+      <code>$definitionFile</code>
+    </TaintedInclude>
+  </file>
+  <file src="models/DataObject/Concrete/Dao/InheritanceHelper.php">
+    <TaintedSql>
+      <code>sprintf('DELETE FROM %s WHERE %s IN (?)', $this-&gt;querytable, $this-&gt;idField)</code>
+      <code>sprintf('UPDATE %s SET %s = ? WHERE %s IN (?)', $this-&gt;querytable, $this-&gt;db-&gt;quoteIdentifier($fieldname), $this-&gt;db-&gt;quoteIdentifier($this-&gt;idField))</code>
+      <code>sprintf('UPDATE %s SET %s = ? WHERE %s IN (?)', $this-&gt;querytable, $this-&gt;db-&gt;quoteIdentifier($fieldname), $this-&gt;db-&gt;quoteIdentifier($this-&gt;idField))</code>
+    </TaintedSql>
+  </file>
+  <file src="models/DataObject/Fieldcollection/Definition.php">
+    <TaintedFile>
+      <code>unlink($this-&gt;getDefinitionFile())</code>
+      <code>unlink($this-&gt;getPhpClassFile())</code>
+    </TaintedFile>
+    <TaintedInclude>
+      <code>$fieldFile</code>
+    </TaintedInclude>
+  </file>
+  <file src="models/DataObject/Objectbrick/Dao.php">
+    <TaintedCallable>
+      <code>$brickClass</code>
+    </TaintedCallable>
+  </file>
+  <file src="models/DataObject/Objectbrick/Definition.php">
+    <TaintedFile>
+      <code>unlink($this-&gt;getDefinitionFile())</code>
+      <code>unlink($this-&gt;getPhpClassFile())</code>
+    </TaintedFile>
+    <TaintedInclude>
+      <code>$fieldFile</code>
+      <code>$serializedFilename</code>
+    </TaintedInclude>
+  </file>
+  <file src="models/DataObject/SelectOptions/Config/Dao.php">
+    <TaintedFile>
+      <code>unlink($this-&gt;model-&gt;getPhpClassFile())</code>
+    </TaintedFile>
+  </file>
+  <file src="models/Document/Editable.php">
+    <TaintedHtml>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+    </TaintedHtml>
+    <TaintedTextWithQuotes>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+      <code>echo $value . "\n";</code>
+    </TaintedTextWithQuotes>
+  </file>
+  <file src="models/User.php">
+    <TaintedFile>
+      <code>file_get_contents($targetFile)</code>
+    </TaintedFile>
+    <TaintedSSRF>
+      <code>file_get_contents($targetFile)</code>
+    </TaintedSSRF>
+  </file>
+</files>
