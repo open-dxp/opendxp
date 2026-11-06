@@ -69,12 +69,12 @@ framework:
                     p: [ 'class', 'style', 'id' ]
                     strong: 'class'
                     em: 'class'
-                    h1: [ 'class', 'id' ]
-                    h2: [ 'class', 'id' ]
-                    h3: [ 'class', 'id' ]
-                    h4: [ 'class', 'id' ]
-                    h5: [ 'class', 'id' ]
-                    h6: [ 'class', 'id' ]
+                    h1: [ 'class', 'style', 'id' ]
+                    h2: [ 'class', 'style', 'id' ]
+                    h3: [ 'class', 'style', 'id' ]
+                    h4: [ 'class', 'style', 'id' ]
+                    h5: [ 'class', 'style', 'id' ]
+                    h6: [ 'class', 'style', 'id' ]
                     a: [ 'class', 'id', 'href', 'target', 'title', 'rel', 'style' ]
                     table: [ 'class', 'style', 'cellspacing', 'cellpadding', 'border', 'width', 'height', 'id' ]
                     colgroup: 'class'
@@ -97,7 +97,7 @@ framework:
                     s: [ 'class', 'id' ]
                     iframe: [ 'frameborder', 'height', 'longdesc', 'name', 'sandbox', 'scrolling', 'src', 'title', 'width' ]
                     br: ''
-                    img: [ 'class', 'id', 'alt', 'style', 'src' ]
+                    img: [ 'class', 'id', 'alt', 'style', 'src', 'width', 'height' ]
                     hr: ''
 ```
 If you want to adapt this configuration please have a look at the [symfony documentation](https://symfony.com/doc/current/html_sanitizer.html). Add your custom configuration to you project, e.g. to `config/packages/html_sanitizer.yaml`
