@@ -18,7 +18,10 @@ such as: `class`, `target`, `id`, `style`, `accesskey`, `name`, `title`, `data-*
 | `required`       | boolean/string | (default: `false`) set to true to make link and text required for publish, set to `linkonly` to make only the link required for publish.                                                                                                                                        |
 | `allowedTypes`   | array          | You can limit the available types for this editable by passing the allowed types explicitly. If this option is not used, all types are available. Valid types are: `asset`, `document`, `object`                                                                                |
 | `allowedTargets` | array          | You can limit the available targets for this editable by passing the allowed targets explicitly. If this option is not used, all targets are available. Valid targets are: ` ` (empty string), `_blank`, `_self`, `_top`, `_parent`                                             |
-| `disabledFields` | array          | You can limit the available fields for this editable by passing the allowed fields explicitly. If this option is not used, all fields are available. Valid Fields are: `text`, `target`, `parameters`, `anchor`, `title`, `accesskey`, `rel`, `tabindex`, `class`, `attributes` |
+| `disabledFields` | array          | You can limit the available fields for this editable by passing the allowed fields explicitly. If this option is not used, all fields are available. Valid Fields are: `text`, `target`, `parameters`, `anchor`, `title`, `accesskey`, `rel`, `tabindex`, `class`                |
+
+The `<a>` tag carries the attributes of the template and the fields an editor fills in the link dialog: `target`,
+`title`, `accesskey`, `rel`, `tabindex` and `class`. A URL that runs a script, such as `javascript:`, renders no link.
 
 ## Methods
 

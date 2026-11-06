@@ -21,6 +21,7 @@ use OpenDxp\Model;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\Document;
+use OpenDxp\Security\SecurityHelper;
 use Override;
 
 /**
@@ -28,6 +29,11 @@ use Override;
  */
 class Link extends Model\Document\Editable implements IdRewriterInterface, EditmodeDataInterface
 {
+    /**
+     * The fields of the link dialog that are HTML attributes. The other data, such as the path, is no attribute.
+     */
+    private const array HTML_ATTRIBUTES = ['target', 'title', 'accesskey', 'rel', 'tabindex', 'class'];
+
     /**
      * Contains the data for the link
      *
@@ -100,14 +106,16 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
             }
 
             $this->data = is_array($this->data) ? $this->data : [];
-            $availableAttribs = [...$this->data, ...$this->config];
+            $data = array_intersect_key($this->data, array_flip(self::HTML_ATTRIBUTES));
+            $availableAttribs = [...$data, ...$this->config];
 
             // add attributes to link
             $attribs = [];
             foreach ($availableAttribs as $key => $value) {
                 if (is_string($value) || is_numeric($value)) {
-                    if (!empty($this->data[$key]) && !empty($this->config[$key])) {
-                        $attribs[] = $key.'="'. htmlspecialchars($this->data[$key]) .' '. htmlspecialchars($this->config[$key]) .'"';
+                    if (!empty($data[$key]) && !empty($this->config[$key])) {
+                        $value = htmlspecialchars($data[$key]) . ' ' . htmlspecialchars($this->config[$key]);
+                        $attribs[] = $key . '="' . $value . '"';
                     } elseif ($value) {
                         $attribs[] = (is_string($value)) ?
                             $key . '="' . htmlspecialchars($value) . '"' :
@@ -122,7 +130,10 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
                 $text = htmlspecialchars($disabledText ? $url : ($this->data['text'] ?? $url));
             }
 
-            return '<a href="'.$url.'" '.implode(' ', $attribs).'>' . $prefix . $text . $suffix . '</a>';
+            // getHref() escapes parameters and anchor already, so their entities are not encoded twice.
+            $href = SecurityHelper::convertHtmlSpecialChars($url);
+
+            return '<a href="'.$href.'" '.implode(' ', $attribs).'>' . $prefix . $text . $suffix . '</a>';
         }
 
         return '';
@@ -182,6 +193,10 @@ class Link extends Model\Document\Editable implements IdRewriterInterface, Editm
         if ((string) ($this->data['anchor'] ?? '') !== '') {
             $anchor = str_replace('"', urlencode('"'), htmlspecialchars($this->getAnchor()));
             $url .= '#' . str_replace('#', '', $anchor);
+        }
+
+        if (SecurityHelper::isScriptUrl($url)) {
+            return '';
         }
 
         return $url;

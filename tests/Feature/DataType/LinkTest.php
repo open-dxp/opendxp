@@ -93,3 +93,37 @@ it('refuses a plain url where a link belongs', function () {
         ->and(fn () => $object->setLtestlink('https://www.opendxp.io/'))
         ->toThrow(TypeError::class, 'must be of type ?OpenDxp\\Model\\DataObject\\Data\\Link, string given');
 });
+
+it('escapes the url and the attributes of a link', function () {
+    $link = new Link();
+    $link->setDirect('https://example.com/" data-x="1');
+    $link->setTitle('Say "hello"');
+    $link->setText('Example');
+
+    $html = $link->getHtml();
+
+    expect($html)->toBe(
+        '<a href="https://example.com/&quot; data-x=&quot;1" title="Say &quot;hello&quot;">Example</a>',
+    );
+});
+
+it('drops an event handler from the free attributes of a link', function () {
+    $link = new Link();
+    $link->setDirect('https://example.com/');
+    $link->setAttributes('data-id="1" onclick="track()" download @click=\'open\' ONMOUSEOVER=x');
+    $link->setText('Example');
+
+    $html = $link->getHtml();
+
+    expect($html)->toBe('<a href="https://example.com/" data-id="1" download @click="open">Example</a>');
+});
+
+it('renders no link for a url that runs a script', function () {
+    $link = new Link();
+    $link->setDirect('javascript:alert(1)');
+    $link->setText('Click');
+
+    $html = $link->getHtml();
+
+    expect($html)->toBe('');
+});

@@ -47,17 +47,18 @@ $object->setLink($l);
 
 In the database the link is stored in a TEXT column which holds the serialized data of an `OpenDxp\Model\DataObject\Data\Link`.
 
-In the frontend (template) you can use the following code to the the html for the link. 
+In a template, `getHtml()` renders the link as an `<a>` tag:
 
-```php
-<?php
-$object = DataObject::getById(234);
-?>
-
+```twig
 <ul>
-  <li><?= $object->getMyLink()->getHtml(); ?></li>
+  <li>{{ object.myLink.html|raw }}</li>
 </ul>
 ```
+
+`getHtml()` escapes the URL and every attribute. The free attributes of a link keep every attribute except an event
+handler, such as `onclick`. A link without a URL renders nothing. So does a URL that runs a script, such as
+`javascript:`.
+
 #### Link Generators
 
 Please also see the section about [Link Generators](../05_Class_Settings/30_Link_Generator.md)
