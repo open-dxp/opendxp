@@ -30,7 +30,7 @@ A pull request that changes nothing a user notices, such as a change to the test
 ## An Entry
 
 ```markdown
-- [TYPE] [MARKER] Text
+- [TYPE] [MARKER] [ADVISORY] Text
   > Announcement
   1. Step
   2. Step
@@ -70,6 +70,17 @@ Markers follow the type. An entry has none, one or several.
 A `[BC BREAK]` always has numbered steps.
 
 A migration is never a step. `[MIGRATION]` says that the package brings one, and the command follows from the package.
+
+### Advisory
+
+A `[SECURITY]` entry names the advisory of the vulnerability after the type and the markers. The advisory is listed
+on [docs.opendxp.io/security/advisories](https://docs.opendxp.io/security/advisories/).
+
+```markdown
+- [SECURITY] [FOLLOW-UP] [OPENDXP-SA-2026-006] Mail placeholders and dynamic layout texts may only read objects
+```
+
+An entry that closes two vulnerabilities names both advisories. Only a `[SECURITY]` entry names an advisory.
 
 ### Announcement
 
