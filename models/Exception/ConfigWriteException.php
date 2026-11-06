@@ -17,7 +17,15 @@ declare(strict_types=1);
 namespace OpenDxp\Model\Exception;
 
 use Exception;
+use Psr\Log\LogLevel;
+use Symfony\Component\HttpKernel\Attribute\WithLogLevel;
 
+/**
+ * Signals that a configuration can't be saved because its storage isn't writeable, such as a thumbnail or a static route.
+ * The admin's AdminExceptionListener turns it into a 422 response that shows the message to the user.
+ * Symfony's ErrorListener logs every exception, this one at warning level, since the environment keeps that configuration read-only.
+ */
+#[WithLogLevel(LogLevel::WARNING)]
 class ConfigWriteException extends Exception
 {
 }
