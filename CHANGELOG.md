@@ -1,8 +1,8 @@
 # Changelog
 
 ## 1.5.4
-- [SECURITY] A configuration that is stored as a file is only written into its own directory. See [OPENDXP-SA-2026-024](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-024)
-- [SECURITY] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler. See [OPENDXP-SA-2026-025](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-025)
+- [SECURITY] A configuration that is stored as a file is only written into its own directory (OPENDXP-SA-2026-024)
+- [SECURITY] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler (OPENDXP-SA-2026-025)
 - [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
 - [BUGFIX] The diff data of localized fields, used by the object merger, handles a language that holds only some of the fields, such as a new object with only its title set
 - [BUGFIX] A WYSIWYG field keeps the alignment of a heading and the size of an image after saving
@@ -22,7 +22,7 @@
 - [BUGFIX] `Input::setDefaultValue()` accepts null
 
 ## 1.5.1
-- [SECURITY] A field collection or an object brick loads its definition only for a valid key. See [OPENDXP-SA-2026-008](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-008)
+- [SECURITY] A field collection or an object brick loads its definition only for a valid key (OPENDXP-SA-2026-008)
 - [ENHANCEMENT] `UrlSlugEvents::AVAILABLE_SITES` narrows the sites of a slug field for each language, or takes a language out of the field
 - [ENHANCEMENT] "Fill an empty slug" also fills the empty slug of a site, with the prefix of that site. A site whose prefix differs from the prefix of the fallback slug gets a slug of its own
 - [BUGFIX] The object editor opens when a slug generator throws an exception, and shows its message at the slug field
@@ -31,12 +31,12 @@
 - [BUGFIX] Hide empty job run menu in sidebar
 
 ## 1.5.0
-- [SECURITY] The drill-down filter of a custom report reads its field only as the name of a column. See [OPENDXP-SA-2026-004](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-004)
-- [SECURITY] Mail placeholders and dynamic layout texts no longer read the file of an asset or a password. See [OPENDXP-SA-2026-006](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-006)
+- [SECURITY] The drill-down filter of a custom report reads its field only as the name of a column (OPENDXP-SA-2026-004)
+- [SECURITY] Mail placeholders and dynamic layout texts no longer read the file of an asset or a password (OPENDXP-SA-2026-006)
 - [ENHANCEMENT] A data object listing reads the field name of a field collection only as a value
-- [SECURITY] The deprecated `NotificationServiceFilterParser` filters only by title and date. See [OPENDXP-SA-2026-005](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-005)
+- [SECURITY] The deprecated `NotificationServiceFilterParser` filters only by title and date (OPENDXP-SA-2026-005)
 - [BUGFIX] The "Edit Site" dialog opens for a site with an empty entry in its domains [#265](https://github.com/open-dxp/opendxp/issues/265)
-- [SECURITY] The simple backend search opens a workspace only for its own path and the paths below it. A workspace on `/shop` does not open `/shopping`, and a workspace on `/shop_de` does not open `/shopXde` [#261](https://github.com/open-dxp/opendxp/pull/261). See [OPENDXP-SA-2026-007](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-007)
+- [SECURITY] The simple backend search opens a workspace only for its own path and the paths below it. A workspace on `/shop` does not open `/shopping`, and a workspace on `/shop_de` does not open `/shopXde` [#261](https://github.com/open-dxp/opendxp/pull/261) (OPENDXP-SA-2026-007)
 - [NEW FEATURE] `GeneralHostProviderInterface::CONTEXT_SOURCE` names the `source` key of the general host context, which holds the request. See [Domain and Host Handling](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md)
 - [NEW FEATURE] `TrustedHosts` knows the general domain, the site domains and `opendxp.security.trusted_hosts`. `opendxp.security.enforce_trusted_hosts: true` answers every request to another host with 400. See [Domain and Host Handling](doc/02_MVC/04_Routing_and_URLs/06_Domain_and_Host_Handling.md#trusted-hosts) [#234](https://github.com/open-dxp/opendxp/pull/234)
 - [NEW FEATURE] [HIGHLIGHT] [OPT-IN] Site declarations serve robots.txt, security.txt, ads.txt, app-ads.txt and llms.txt per site. Only robots.txt is enabled after the update. See [Site Declarations](doc/18_Tools_and_Features/38_Site_Declarations.md) [#84](https://github.com/open-dxp/opendxp/issues/84)
@@ -89,10 +89,10 @@
 - [BUGFIX] Deleting an element removes the dependencies on it [#116](https://github.com/open-dxp/opendxp/issues/116)
 - [BUGFIX] The dependency views list existing elements only [#116](https://github.com/open-dxp/opendxp/issues/116)
 - [BUGFIX] Filtering "Required By" by path finds elements of every type [#116](https://github.com/open-dxp/opendxp/issues/116)
-- [SECURITY] [FOLLOW-UP] Mail placeholders and dynamic layout texts may only read objects. See [OPENDXP-SA-2026-006](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-006)
+- [SECURITY] [FOLLOW-UP] Mail placeholders and dynamic layout texts may only read objects (OPENDXP-SA-2026-006)
   1. Only if a placeholder or a layout text of your project reads anything else: allow it with `readable_classes` and `methods` in `opendxp.templating_engine.twig.sandbox_security_policy`.
   2. Only if a placeholder or a layout text of your project calls a function that is not listed in [Sandbox Restrictions](doc/19_Development_Tools_and_Details/25_Email_Framework/README.md#sandbox-restrictions): allow it with `functions` in the same policy.
-- [SECURITY] Mail placeholders and dynamic layout texts can no longer call `opendxp_dump`. See [OPENDXP-SA-2026-006](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-006)
+- [SECURITY] Mail placeholders and dynamic layout texts can no longer call `opendxp_dump` (OPENDXP-SA-2026-006).
 - [CHORE] Require `twig/twig` ^3.29
 - [BUGFIX] A mail placeholder that breaks the sandbox policy names what is not allowed.
 - [BUGFIX] Saving a classification store key checks its definition. A key whose definition names an invalid field is not saved.
@@ -129,8 +129,8 @@
 - [CHORE] Remove the abandoned `doctrine/annotations` dependency. If your project uses it directly, add it to your own composer.json [#196](https://github.com/open-dxp/opendxp/issues/196)
 
 ## 1.4.2
-- [SECURITY] Validate DataObject field names against a strict identifier pattern and quote identifiers when building DDL, closing a SQL injection path via crafted class definition field names. See [OPENDXP-SA-2026-001](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-001)
-- [SECURITY] Anchor the class definition name/ID validation and quote table names built from a class ID, closing a SQL injection path in `Block` field loading. See [OPENDXP-SA-2026-001](https://docs.opendxp.io/security/advisories/opendxp-sa-2026-001)
+- [SECURITY] Validate DataObject field names against a strict identifier pattern and quote identifiers when building DDL, closing a SQL injection path via crafted class definition field names (OPENDXP-SA-2026-001).
+- [SECURITY] Anchor the class definition name/ID validation and quote table names built from a class ID, closing a SQL injection path in `Block` field loading (OPENDXP-SA-2026-001).
 - [ENHANCEMENT] `Asset\WebDAV\Tree::move()` and `Element\Service::getElementFromSession()` now verify what a deserialized element actually is before using it, instead of trusting it implicitly.
 - [ENHANCEMENT] Restrict which classes the admin session token and `TmpStore` may deserialize into. Custom authenticators and objects stored via `TmpStore` may need a config entry after this update, see [Restrict Deserialization Classes](doc/19_Development_Tools_and_Details/10_Security_Authentication/06_Restrict_Deserialization_Classes.md).
 - [BUGFIX] [MIGRATION] `JobRun#context` is now mapped as `json` instead of `text`, matching its `array` property type [#182](https://github.com/open-dxp/opendxp/issues/182)
