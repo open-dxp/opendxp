@@ -4,6 +4,7 @@
 - [SECURITY] A configuration that is stored as a file is only written into its own directory
 - [BUGFIX] A YouTube video in the video editable also plays when the page sends a strict `Referrer-Policy`, such as `same-origin`
 - [BUGFIX] The diff data of localized fields, used by the object merger, handles a language that holds only some of the fields, such as a new object with only its title set
+- [BUGFIX] A WYSIWYG field keeps the alignment of a heading and the size of an image after saving
 - [CHORE] Check code and commits for security issues
 
 ## 1.5.3

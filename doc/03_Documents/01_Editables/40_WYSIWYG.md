@@ -66,24 +66,24 @@ framework:
                 allow_elements:
                     span: [ 'class', 'style', 'id' ]
                     div: [ 'class', 'style', 'id' ]
-                    p: [ 'class', 'style', 'id' ]
+                    p: [ 'class', 'style', 'id', 'dir', 'data-cell' ]
                     strong: 'class'
                     em: 'class'
-                    h1: [ 'class', 'id' ]
-                    h2: [ 'class', 'id' ]
-                    h3: [ 'class', 'id' ]
-                    h4: [ 'class', 'id' ]
-                    h5: [ 'class', 'id' ]
-                    h6: [ 'class', 'id' ]
+                    h1: [ 'class', 'style', 'id' ]
+                    h2: [ 'class', 'style', 'id' ]
+                    h3: [ 'class', 'style', 'id' ]
+                    h4: [ 'class', 'style', 'id' ]
+                    h5: [ 'class', 'style', 'id' ]
+                    h6: [ 'class', 'style', 'id' ]
                     a: [ 'class', 'id', 'href', 'target', 'title', 'rel', 'style' ]
                     table: [ 'class', 'style', 'cellspacing', 'cellpadding', 'border', 'width', 'height', 'id' ]
                     colgroup: 'class'
                     col: [ 'class', 'style', 'id' ]
-                    thead: [ 'class', 'id' ]
-                    tbody: [ 'class', 'id' ]
-                    tr: [ 'class', 'id' ]
-                    td: [ 'class', 'id' ]
-                    th: [ 'class', 'id', 'scope' ]
+                    thead: [ 'class', 'id', 'style' ]
+                    tbody: [ 'class', 'id', 'style' ]
+                    tr: [ 'class', 'id', 'style', 'colspan', 'rowspan' ]
+                    td: [ 'class', 'id', 'style', 'colspan', 'rowspan', 'data-row', 'width', 'height' ]
+                    th: [ 'class', 'id', 'scope', 'style', 'colspan', 'rowspan', 'width', 'height' ]
                     ul: [ 'class', 'style', 'id' ]
                     li: [ 'class', 'style', 'id' ]
                     ol: [ 'class', 'style', 'id' ]
@@ -97,10 +97,10 @@ framework:
                     s: [ 'class', 'id' ]
                     iframe: [ 'frameborder', 'height', 'longdesc', 'name', 'sandbox', 'scrolling', 'src', 'title', 'width' ]
                     br: ''
-                    img: [ 'class', 'id', 'alt', 'style', 'src' ]
+                    img: [ 'class', 'id', 'alt', 'style', 'src', 'width', 'height' ]
                     hr: ''
 ```
-If you want to adapt this configuration please have a look at the [symfony documentation](https://symfony.com/doc/current/html_sanitizer.html). Add your custom configuration to you project, e.g. to `config/packages/html_sanitizer.yaml`
+If you want to adapt this configuration please have a look at the [symfony documentation](https://symfony.com/doc/current/html_sanitizer.html). Add your custom configuration to your project, e.g. to `config/packages/html_sanitizer.yaml`.
 
 > Note: When using API to set WYSIWYG data, please pass encoded characters for html entities e.g. `<`,`>`, `&` etc.
 > The data is encoded by the sanitizer before persisting into db and the same encoded data will be returned by the API.
