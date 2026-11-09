@@ -41,8 +41,11 @@ class UserProvider implements UserProviderInterface
             throw new UnsupportedUserException();
         }
 
-        /** @var OpenDxpUser $refreshedOpenDxpUser */
         $refreshedOpenDxpUser = OpenDxpUser::getById($user->getId());
+
+        if (!$refreshedOpenDxpUser instanceof OpenDxpUser) {
+            throw new UserNotFoundException(sprintf('User %d was not found', $user->getId()));
+        }
 
         return $this->buildUser($refreshedOpenDxpUser);
     }

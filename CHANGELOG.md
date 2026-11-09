@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.5
+- [ENHANCEMENT] An admin user who is deactivated or changes the password is logged out of every other session. A deleted user is logged out instead of causing an error
+
 ## 1.5.4
 - [SECURITY] [OPENDXP-SA-2026-024] A configuration that is stored as a file is only written into its own directory
 - [SECURITY] [OPENDXP-SA-2026-025] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler
