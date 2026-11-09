@@ -15,7 +15,7 @@ You don't need to have a PHP environment with composer installed.
 
 ```bash 
 # empty skeleton package for experienced developers (`open-dxp/skeleton`).
-docker run -u `id -u`:`id -g` --rm -v `pwd`:/var/www/html opendxp/opendxp:php8.3-latest composer create-project open-dxp/skeleton my-project
+docker run -u `id -u`:`id -g` --rm -v `pwd`:/var/www/html opendxp/opendxp:php8.5-v1 composer create-project open-dxp/skeleton my-project
 ```
 
 2. Go to your new project
