@@ -1,6 +1,8 @@
 # Changelog
 
 ## 1.5.5
+- [SECURITY] The TinymceBundle ships TinyMCE 8.10.1 instead of 6.8.4, which has known vulnerabilities (CVE-2026-47759, CVE-2026-47760, CVE-2026-47761, CVE-2026-47762)
+  1. A project that configures TinyMCE with its own plugins or options checks them against the [TinyMCE migration guide](https://www.tiny.cloud/docs/tinymce/latest/migration-from-6x-to-8x/).
 - [SECURITY] [OPENDXP-SA-2026-032] A mail renders its params only once. Sending no longer runs a param value as a template in the text part, the logged subject or a second send
 - [ENHANCEMENT] An admin user who is deactivated or changes the password is logged out of every other session. A deleted user is logged out instead of causing an error
 
