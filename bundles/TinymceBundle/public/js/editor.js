@@ -242,10 +242,10 @@ opendxp.bundle.tinymce.editor = Class.create({
                     opendxp_id: id,
                     opendxp_type: 'asset'
                 });
-                tinymce.activeEditor.selection.setContent(tinymce.activeEditor.dom.createHTML('img', additionalAttributes));
+                tinymce.activeEditor.insertContent(tinymce.activeEditor.dom.createHTML('img', additionalAttributes));
                 return true;
             } else {
-                tinymce.activeEditor.selection.setContent(tinymce.activeEditor.dom.createHTML('a', {
+                tinymce.activeEditor.insertContent(tinymce.activeEditor.dom.createHTML('a', {
                     href: uri,
                     target: '_blank',
                     opendxp_id: id,
@@ -257,7 +257,7 @@ opendxp.bundle.tinymce.editor = Class.create({
 
         if (data.elementType === "document" && (data.type === "page"
             || data.type === "hardlink" || data.type === "link")) {
-            tinymce.activeEditor.selection.setContent(tinymce.activeEditor.dom.createHTML('a', {
+            tinymce.activeEditor.insertContent(tinymce.activeEditor.dom.createHTML('a', {
                 href: uri,
                 opendxp_id: id,
                 opendxp_type: 'document'
@@ -266,7 +266,7 @@ opendxp.bundle.tinymce.editor = Class.create({
         }
 
         if (data.elementType === "object") {
-            tinymce.activeEditor.selection.setContent(tinymce.activeEditor.dom.createHTML('a', {
+            tinymce.activeEditor.insertContent(tinymce.activeEditor.dom.createHTML('a', {
                 href: uri,
                 opendxp_id: id,
                 opendxp_type: 'object'

@@ -15,7 +15,8 @@ const standardConfigs = [
         copyFiles: [
             {
                 from: "node_modules/tinymce/skins",
-                to: "skins/[path]/[name].[ext]"
+                to: "skins/[path]/[name].[ext]",
+                pattern: /\.(css|js)$/
             },
             {
                 from: "node_modules/tinymce/plugins/help/js",

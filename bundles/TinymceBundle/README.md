@@ -27,13 +27,19 @@ bin/console opendxp:bundle:install OpenDxpTinymceBundle
 
 ## Configuration
 
-Available configuration options can be found here: [config options](https://www.tiny.cloud/docs/configure/)
+Available configuration options can be found here: [config options](https://www.tiny.cloud/docs/tinymce/latest/initial-configuration/)
 
 ## Default Configuration
 
-`convert_unsafe_embeds` is set to `true` by default.
+Every TinyMCE editor in the admin, also the editors of other bundles, starts with these options:
+
+- `license_key: 'gpl'`, because OpenDXP uses TinyMCE under the GPL.
+- `sandbox_iframes: false`, so the iframes of existing content keep working.
+- `cache_suffix` with the TinyMCE version, so a browser loads the skins and plugins of a new version.
+
+The WYSIWYG editors of documents and data objects also set `convert_unsafe_embeds` to `true`.
 This means that unsafe elements like `<embed>` or `<object>` will be converted to more restrictive alternatives.
-For more details please take a look at the [TinyMCE documentation](https://www.tiny.cloud/docs/configure/content-filtering/#convert_unsafe_embeds).
+For more details please take a look at the [TinyMCE documentation](https://www.tiny.cloud/docs/tinymce/latest/content-filtering/#convert_unsafe_embeds).
 
 ## Examples
 
@@ -54,7 +60,7 @@ The following code add a second toolbar.
 
 ### Custom configuration for TinyMCE
 
-The complete list of configuration options you can find in the [TinyMCE toolbar documentation](https://www.tiny.cloud/docs/advanced/available-toolbar-buttons/).
+The complete list of configuration options you can find in the [TinyMCE toolbar documentation](https://www.tiny.cloud/docs/tinymce/latest/available-toolbar-buttons/).
 
 The WYSIWYG editable allows us to specify the toolbar.
 If you have to limit styling options (for example only basic styles like `<b>` tag and lists would be allowed), just use `toolbar1` option.

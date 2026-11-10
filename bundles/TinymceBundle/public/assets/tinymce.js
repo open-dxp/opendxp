@@ -20,3 +20,9 @@ import 'tinymce/plugins/searchreplace';
 import 'tinymce/plugins/table';
 import 'tinymce/plugins/visualblocks';
 import 'tinymce/plugins/wordcount';
+
+window.tinymce.overrideDefaults({
+    license_key: 'gpl',
+    sandbox_iframes: false,
+    cache_suffix: `?v=${window.tinymce.majorVersion}.${window.tinymce.minorVersion}`,
+});
