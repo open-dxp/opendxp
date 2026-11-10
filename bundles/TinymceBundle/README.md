@@ -35,6 +35,7 @@ Every TinyMCE editor in the admin, also the editors of other bundles, starts wit
 
 - `license_key: 'gpl'`, because OpenDXP uses TinyMCE under the GPL.
 - `sandbox_iframes: false`, so the iframes of existing content keep working.
+- `cache_suffix` with the TinyMCE version, so a browser loads the skins and plugins of a new version.
 
 The WYSIWYG editors of documents and data objects also set `convert_unsafe_embeds` to `true`.
 This means that unsafe elements like `<embed>` or `<object>` will be converted to more restrictive alternatives.
