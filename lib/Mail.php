@@ -100,7 +100,7 @@ class Mail extends Email
     private Model\Tool\Email\Log $lastLogEntry;
 
     /**
-     * send() keeps the rendered content. It holds the param values and is never rendered again.
+     * The content a mail was sent with holds the param values. It is never rendered again.
      */
     private ?string $renderedSubject = null;
 
@@ -458,6 +458,8 @@ class Mail extends Email
      */
     public function sendWithoutRendering(?MailerInterface $mailer = null): static
     {
+        $this->renderedSubject = $this->getSubject();
+
         // filter email addresses
 
         // ... Remove headers that would otherwise be duplicated

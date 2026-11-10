@@ -78,3 +78,14 @@ it('does not run a parameter as a template when the mail is sent again', functio
 
     expect($mail->getHtmlBody())->toContain('Hi {{ 7*191 }}');
 });
+
+it('logs the subject of a mail sent without rendering as it was sent', function () {
+    $mail = new Mail();
+    $mail->addTo('john@doe.com');
+    $mail->subject('Hi {{ 7*191 }}');
+    $mail->text('Hi');
+
+    $mail->sendWithoutRendering(new Mailer(Transport::fromDsn('null://null')));
+
+    expect($mail->getLastLogEntry()->getSubject())->toBe('Hi {{ 7*191 }}');
+});
