@@ -100,6 +100,15 @@ class Mail extends Email
     private Model\Tool\Email\Log $lastLogEntry;
 
     /**
+     * send() keeps the rendered content. It holds the param values and is never rendered again.
+     */
+    private ?string $renderedSubject = null;
+
+    private ?string $renderedHtmlBody = null;
+
+    private ?string $renderedTextBody = null;
+
+    /**
      * @return $this
      */
     public function setHostUrl(string $url): static
@@ -414,15 +423,18 @@ class Mail extends Email
         $bodyHtmlRendered = $this->getBodyHtmlRendered();
         if ($bodyHtmlRendered) {
             $this->html($bodyHtmlRendered);
+            $this->renderedHtmlBody = $bodyHtmlRendered;
         }
 
         $bodyTextRendered = $this->getBodyTextRendered();
         if ($bodyTextRendered) {
             //add mime part for plain text body
             $this->text($bodyTextRendered);
+            $this->renderedTextBody = $bodyTextRendered;
         }
 
-        $this->subject($this->getSubjectRendered());
+        $this->renderedSubject = $this->getSubjectRendered();
+        $this->subject($this->renderedSubject);
 
         // Remove the document property because it is no longer needed and makes it difficult
         // to serialize the Mail object when using the Symfony Messenger component
@@ -608,6 +620,10 @@ class Mail extends Email
     {
         $subject = $this->getSubject();
 
+        if ($subject !== null && $subject === $this->renderedSubject) {
+            return $subject;
+        }
+
         if (!$subject && $this->getDocument()) {
             $subject = $this->getDocument()->getSubject();
         }
@@ -627,6 +643,10 @@ class Mail extends Email
     public function getBodyHtmlRendered(): ?string
     {
         $html = $this->getHtmlBody();
+
+        if ($html !== null && $html === $this->renderedHtmlBody) {
+            return $html;
+        }
 
         // if the content was manually set with $obj->setBody(); this content will be used
         // and not the content of the Document!
@@ -657,6 +677,10 @@ class Mail extends Email
     public function getBodyTextRendered(): string
     {
         $text = $this->getTextBody();
+
+        if ($text !== null && $text === $this->renderedTextBody) {
+            return $text;
+        }
 
         //if the content was manually set with $obj->text(); this content will be used
         if ($text) {
