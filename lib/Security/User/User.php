@@ -75,7 +75,10 @@ class User implements UserInterface, EquatableInterface, GoogleTwoFactorInterfac
 
     public function isEqualTo(UserInterface $user): bool
     {
-        return $user instanceof self && $user->getId() === $this->getId();
+        return $user instanceof self
+            && $user->getId() === $this->getId()
+            && $user->getPassword() === $this->getPassword()
+            && $user->getUser()->isActive() === $this->user->isActive();
     }
 
     /**

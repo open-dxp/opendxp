@@ -2,6 +2,7 @@
 
 ## 1.5.5
 - [SECURITY] [OPENDXP-SA-2026-032] A mail renders its params only once. Sending no longer runs a param value as a template in the text part, the logged subject or a second send
+- [ENHANCEMENT] An admin user who is deactivated or changes the password is logged out of every other session. A deleted user is logged out instead of causing an error
 
 ## 1.5.4
 - [SECURITY] [OPENDXP-SA-2026-024] A configuration that is stored as a file is only written into its own directory
