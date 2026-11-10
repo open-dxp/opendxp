@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.5
+- [SECURITY] [OPENDXP-SA-2026-032] A mail renders its params only once. Sending no longer runs a param value as a template in the text part, the logged subject or a second send
+
 ## 1.5.4
 - [SECURITY] [OPENDXP-SA-2026-024] A configuration that is stored as a file is only written into its own directory
 - [SECURITY] [OPENDXP-SA-2026-025] A link escapes its URL and its attributes, and renders nothing for a URL that runs a script. The free attributes of an object link drop every event handler
