@@ -17,5 +17,6 @@ jobs:
         with:
             enable_redis_service: true
             install_ffmpeg: true
+            install_ghostscript_and_pdfinfo: true
             taint_sources: 'bundles lib models'
         secrets: inherit

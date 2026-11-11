@@ -93,7 +93,7 @@ class Dao extends Model\Dao\OpenDxpLocationAwareConfigDao
         $data = [];
         $allowedProperties = ['name', 'description', 'group', 'items', 'medias', 'format',
             'quality', 'highResolution', 'creationDate', 'modificationDate', 'preserveColor', 'forceProcessICCProfiles',
-            'preserveMetaData', 'rasterizeSVG', 'downloadable', 'preserveAnimation', ];
+            'preserveMetaData', 'rasterizeSVG', 'useCropBox', 'downloadable', 'preserveAnimation', ];
 
         foreach ($dataRaw as $key => $value) {
             if (in_array($key, $allowedProperties)) {

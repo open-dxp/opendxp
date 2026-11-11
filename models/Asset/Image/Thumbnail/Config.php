@@ -111,6 +111,13 @@ final class Config extends Model\AbstractModel
     protected bool $rasterizeSVG = false;
 
     /**
+     * Renders the pages of a document inside their CropBox, the visible page area, instead of their MediaBox
+     *
+     * @internal
+     */
+    protected bool $useCropBox = false;
+
+    /**
      * @internal
      */
     protected bool $downloadable = false;
@@ -699,6 +706,16 @@ final class Config extends Model\AbstractModel
         $this->rasterizeSVG = $rasterizeSVG;
     }
 
+    public function isUseCropBox(): bool
+    {
+        return $this->useCropBox;
+    }
+
+    public function setUseCropBox(bool $useCropBox): void
+    {
+        $this->useCropBox = $useCropBox;
+    }
+
     public function isSvgTargetFormatPossible(): bool
     {
         $supportedTransformations = ['resize', 'scaleByWidth', 'scaleByHeight'];
@@ -811,13 +828,20 @@ final class Config extends Model\AbstractModel
      */
     public function getHash(array $params = []): string
     {
-        return hash('xxh32', serialize([
+        $values = [
             $this->getPreserveAnimation(),
             $this->getQuality(),
             $this->isPreserveColor(),
             $this->isPreserveMetaData(),
             $this->getItems(),
             $params,
-        ]));
+        ];
+
+        // only when enabled, so the hash, and the file name, of every existing thumbnail stays the same
+        if ($this->isUseCropBox()) {
+            $values[] = 'useCropBox';
+        }
+
+        return hash('xxh32', serialize($values));
     }
 }

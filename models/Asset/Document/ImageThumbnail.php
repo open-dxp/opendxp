@@ -92,7 +92,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
             $config->setFilenameSuffix('page-' . $this->page);
 
             try {
-                if (!$deferred && $cacheFileStream = $this->getCacheFileStream()) {
+                if (!$deferred && $cacheFileStream = $this->getCacheFileStream($config->isUseCropBox())) {
                     $generated = true;
                 }
 
@@ -122,7 +122,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
     /**
      * @return resource|null
      */
-    private function getCacheFileStream()
+    private function getCacheFileStream(bool $useCropBox)
     {
         if (!$this->asset instanceof Model\Asset\Document) {
             Logger::info('Cannot create cache file stream: asset is not of type document');
@@ -133,11 +133,12 @@ final class ImageThumbnail implements ImageThumbnailInterface
         $storage = Storage::get('asset_cache');
 
         $cacheFilePath = sprintf(
-            '%s/%s/image-thumb__%s__document_original_image/page_%s.png',
+            '%s/%s/image-thumb__%s__document_original_image/page_%s%s.png',
             rtrim($this->asset->getRealPath(), '/'),
             $this->asset->getId(),
             $this->asset->getId(),
-            $this->page
+            $this->page,
+            $useCropBox ? '_cropbox' : ''
         );
 
         if (!$storage->fileExists($cacheFilePath)) {
@@ -149,7 +150,7 @@ final class ImageThumbnail implements ImageThumbnailInterface
                     $converter = Document::getInstance();
                     $converter->load($this->asset);
 
-                    if (false === $converter->saveImage($tempFile, $this->page)) {
+                    if (false === $converter->saveImage($tempFile, $this->page, useCropBox: $useCropBox)) {
                         Logger::info('Creation of cache file stream of document ' . $this->asset->getRealFullPath() . ' is failed.');
 
                         return null;

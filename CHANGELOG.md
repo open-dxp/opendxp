@@ -4,6 +4,8 @@
 - [SECURITY] The TinymceBundle ships TinyMCE 8.10.1 instead of 6.8.4, which has known vulnerabilities (CVE-2026-47759, CVE-2026-47760, CVE-2026-47761, CVE-2026-47762). A project with its own TinyMCE plugins or options checks them against the [TinyMCE migration guide](https://www.tiny.cloud/docs/tinymce/latest/migration-from-6x-to-8x/)
 - [SECURITY] [OPENDXP-SA-2026-032] A mail renders its params only once. Sending no longer runs a param value as a template in the text part, the logged subject or a second send
 - [ENHANCEMENT] An admin user who is deactivated or changes the password is logged out of every other session. A deleted user is logged out instead of causing an error
+- [ENHANCEMENT] [OPT-IN] A thumbnail configuration can render the pages of a PDF inside their CropBox, the visible page area, instead of their MediaBox, see [Document Thumbnails](doc/04_Assets/03_Working_with_Thumbnails/05_Document_Thumbnails.md#render-only-the-visible-page-area-cropbox)
+  1. Only if the PDF thumbnails of your project should leave out the margins, bleed or crop marks around the CropBox: add `useCropBox: true` to their thumbnail configuration.
 
 ## 1.5.4
 - [SECURITY] [OPENDXP-SA-2026-024] A configuration that is stored as a file is only written into its own directory
