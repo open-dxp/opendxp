@@ -132,7 +132,6 @@ final class ImageThumbnail implements ImageThumbnailInterface
 
         $storage = Storage::get('asset_cache');
 
-        // the page rendered inside its CropBox is cached apart from the page rendered inside its MediaBox
         $cacheFilePath = sprintf(
             '%s/%s/image-thumb__%s__document_original_image/page_%s%s.png',
             rtrim($this->asset->getRealPath(), '/'),
