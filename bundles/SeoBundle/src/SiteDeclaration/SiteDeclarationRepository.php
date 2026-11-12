@@ -20,6 +20,13 @@ use OpenDxp\Model\Tool\SettingsStore;
 
 final class SiteDeclarationRepository
 {
+    /**
+     * @param iterable<SiteDeclarationInterface> $declarations all tagged declarations, enabled or not
+     */
+    public function __construct(private readonly iterable $declarations)
+    {
+    }
+
     public function loadContent(SiteDeclarationInterface $declaration, int $siteId): string
     {
         $setting = SettingsStore::get($this->getId($declaration, $siteId), $this->getScope($declaration));
@@ -51,6 +58,16 @@ final class SiteDeclarationRepository
             SettingsStore::TYPE_STRING,
             $this->getScope($declaration),
         );
+    }
+
+    /**
+     * It includes disabled declarations. Otherwise enabling one again would bring the content back.
+     */
+    public function deleteContents(int $siteId): void
+    {
+        foreach ($this->declarations as $declaration) {
+            SettingsStore::delete($this->getId($declaration, $siteId), $this->getScope($declaration));
+        }
     }
 
     private function getScope(SiteDeclarationInterface $declaration): string
