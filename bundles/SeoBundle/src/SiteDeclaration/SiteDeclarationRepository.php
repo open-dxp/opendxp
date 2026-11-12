@@ -61,8 +61,7 @@ final class SiteDeclarationRepository
     }
 
     /**
-     * Removes the content of the site for every declaration, including disabled ones,
-     * so that a disabled declaration does not bring back the content when it is enabled again.
+     * It includes disabled declarations. Otherwise enabling one again would bring the content back.
      */
     public function deleteContents(int $siteId): void
     {
