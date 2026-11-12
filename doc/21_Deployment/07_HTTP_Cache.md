@@ -603,3 +603,23 @@ fos_http_cache:
 
 `use_kernel_dispatcher: true` routes invalidation calls directly to `AppCache` in-process. 
 No HTTP server setup is needed.
+
+### Streamed Responses
+`Psr6Store` cannot store a `StreamedResponse`, like a thumbnail that OpenDXP generates on the first request.
+The request fails with `hash(): Argument #2 ($data) must be of type string, false given`.
+Until the store skips such a response itself, `AppCache` skips it:
+
+```php
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+protected function store(Request $request, Response $response): void
+{
+    if ($response instanceof StreamedResponse) {
+        $this->getStore()->unlock($request);
+
+        return;
+    }
+
+    parent::store($request, $response);
+}
+```
