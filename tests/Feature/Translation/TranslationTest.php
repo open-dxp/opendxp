@@ -81,6 +81,17 @@ it('falls back to english when the german translation is blank', function () {
     expect($translated)->toBe('EN Fallback');
 });
 
+it('falls back to english when the german translation is missing', function () {
+    TranslationFactory::new()
+        ->withTranslations(['en' => 'EN Only'])
+        ->create(['key' => 'english_only_key']);
+    $this->translator->setLocale('de');
+
+    $translated = $this->translator->trans('english_only_key');
+
+    expect($translated)->toBe('EN Only');
+});
+
 it('translates a key that is a text itself', function (string $language) {
     $this->translator->setLocale($language);
 

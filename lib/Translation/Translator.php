@@ -233,6 +233,8 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
                     return $translated;
                 }
             } elseif (Translation::isAValidDomain($domain)) {
+                $lookForFallback = true;
+
                 if (strlen($id) > 190) {
                     throw new Exception("Message ID's longer than 190 characters are invalid!");
                 }
