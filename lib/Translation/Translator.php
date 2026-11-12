@@ -31,6 +31,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleAwareInterface, WarmableInterface
 {
+    private const string CATALOGUE_MARKER = '__opendxp_dummy';
+
     protected TranslatorInterface|WarmableInterface|TranslatorBagInterface $translator;
 
     protected array $initializedCatalogues = [];
@@ -135,16 +137,27 @@ class Translator implements TranslatorInterface, TranslatorBagInterface, LocaleA
     {
         $cacheKey = $this->getCacheKey($domain, $locale);
 
-        if (isset($this->initializedCatalogues[$cacheKey])) {
+        $hasDatabaseTranslations = $this->initializedCatalogues[$cacheKey] ?? null;
+
+        if ($hasDatabaseTranslations === false) {
             return;
         }
 
-        $this->initializedCatalogues[$cacheKey] = true;
+        // Symfony discards its catalogues when it builds a catalogue without a cache file.
+        // Then the marker of the database translations is missing, and they are added again.
+        if (
+            $hasDatabaseTranslations === true &&
+            $this->getCatalogue($locale)->defines(self::CATALOGUE_MARKER, $domain)
+        ) {
+            return;
+        }
 
-        if (Translation::isAValidDomain($domain)) {
+        $this->initializedCatalogues[$cacheKey] = Translation::isAValidDomain($domain);
+
+        if ($this->initializedCatalogues[$cacheKey]) {
             if (!$catalogue = Cache::load($cacheKey)) {
-                $data = ['__opendxp_dummy' => 'only_a_dummy'];
-                $dataIntl = ['__opendxp_dummy' => 'only_a_dummy'];
+                $data = [self::CATALOGUE_MARKER => 'only_a_dummy'];
+                $dataIntl = [self::CATALOGUE_MARKER => 'only_a_dummy'];
 
                 $list = new Translation\Listing();
                 $list->setDomain($domain);
