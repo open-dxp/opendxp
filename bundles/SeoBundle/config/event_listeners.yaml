@@ -6,6 +6,7 @@ services:
     OpenDxp\Bundle\SeoBundle\EventListener\ResponseExceptionListener: ~
     OpenDxp\Bundle\SeoBundle\EventListener\UrlSlugUpdateListener: ~
     OpenDxp\Bundle\SeoBundle\EventListener\DocumentListener: ~
+    OpenDxp\Bundle\SeoBundle\EventListener\SiteListener: ~
     # Sitemap listener delegating work to configured generators
     OpenDxp\Bundle\SeoBundle\EventListener\SitemapGeneratorListener: ~
     OpenDxp\Bundle\SeoBundle\EventListener\RoutingListener: ~

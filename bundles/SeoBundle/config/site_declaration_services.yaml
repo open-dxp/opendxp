@@ -8,7 +8,9 @@ services:
             $declarations: !tagged_iterator opendxp_seo.site_declaration
             $enabledNames: '%opendxp_seo.site_declarations%'
 
-    OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRepository: ~
+    OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRepository:
+        arguments:
+            $declarations: !tagged_iterator opendxp_seo.site_declaration
 
     OpenDxp\Bundle\SeoBundle\SiteDeclaration\SiteDeclarationRouteLoader: ~
 
