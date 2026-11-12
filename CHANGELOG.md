@@ -2,6 +2,7 @@
 
 ## 1.5.6
 - [BUGFIX] A translation that is missing in a language falls back to the fallback language on the first call. It returned the key until the next request before
+- [BUGFIX] The first request after a cache clear shows the translations of the database. It showed some of their keys before
 
 ## 1.5.5
 - [SECURITY] The TinymceBundle ships TinyMCE 8.10.1 instead of 6.8.4, which has known vulnerabilities (CVE-2026-47759, CVE-2026-47760, CVE-2026-47761, CVE-2026-47762). A project with its own TinyMCE plugins or options checks them against the [TinyMCE migration guide](https://www.tiny.cloud/docs/tinymce/latest/migration-from-6x-to-8x/)

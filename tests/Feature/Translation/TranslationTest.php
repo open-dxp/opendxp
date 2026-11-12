@@ -92,6 +92,16 @@ it('falls back to english when the german translation is missing', function () {
     expect($translated)->toBe('EN Only');
 });
 
+it('keeps the translations of the database when Symfony discards its catalogues', function () {
+    $this->translator->setLocale('de');
+    $this->translator->trans('simple_key');
+
+    $symfonyTranslator = Container::get('translator.default');
+    $symfonyTranslator->setFallbackLocales($symfonyTranslator->getFallbackLocales());
+
+    expect($this->translator->trans('simple_key'))->toBe('DE Text');
+});
+
 it('translates a key that is a text itself', function (string $language) {
     $this->translator->setLocale($language);
 
