@@ -504,6 +504,9 @@ composer require toflar/psr6-symfony-http-cache-store
 
 ### 2. Create `src/AppCache.php`
 
+`AppCache` passes a `StreamedResponse` on without storing it, like a thumbnail that OpenDXP generates on the first
+request. `Psr6Store` can only store a response with its content.
+
 ```php
 namespace App;
 
@@ -514,6 +517,7 @@ use FOS\HttpCache\SymfonyCache\PurgeListener;
 use FOS\HttpCache\SymfonyCache\PurgeTagsListener;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\HttpCache\HttpCache;
 use Symfony\Component\HttpKernel\HttpCache\SurrogateInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -543,6 +547,17 @@ class AppCache extends HttpCache implements CacheInvalidation
     public function fetch(Request $request, bool $catch = false): Response
     {
         return parent::fetch($request, $catch);
+    }
+
+    protected function store(Request $request, Response $response): void
+    {
+        if ($response instanceof StreamedResponse) {
+            $this->getStore()->unlock($request);
+
+            return;
+        }
+
+        parent::store($request, $response);
     }
 }
 ```
