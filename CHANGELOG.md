@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.6.0
-- [ENHANCEMENT] Setting the tags of an element and assigning tags to many elements dispatch the add and remove events of the tags, once for every assignment that changes. Deleting an asset dispatches the remove events of its tags after the asset is gone
+- [ENHANCEMENT] `Tag::setTagsForElement()` and `Tag::batchAssignTagsToElement()` dispatch the tag events for every assignment that changes. Deleting an asset dispatches the remove events of its tags after the asset is deleted
 
 ## 1.5.6
 - [BUGFIX] A translation that is missing in a language falls back to the fallback language on the first call. It returned the key until the next request before
