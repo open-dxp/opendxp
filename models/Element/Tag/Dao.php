@@ -147,6 +147,31 @@ class Dao extends Model\Dao\AbstractDao
         return $tags;
     }
 
+    /**
+     * @param int[] $cIds
+     *
+     * @return array<int, int[]> the tag IDs, keyed by element ID
+     */
+    public function getTagIdsForElements(string $cType, array $cIds): array
+    {
+        if ($cIds === []) {
+            return [];
+        }
+
+        $rows = $this->db->fetchAllAssociative(
+            'SELECT cid, tagid FROM tags_assignment WHERE ctype = ? AND cid IN (?)',
+            [$cType, $cIds],
+            [ParameterType::STRING, ArrayParameterType::INTEGER]
+        );
+
+        $tagIds = [];
+        foreach ($rows as $row) {
+            $tagIds[(int) $row['cid']][] = (int) $row['tagid'];
+        }
+
+        return $tagIds;
+    }
+
     public function addTagToElement(string $cType, int $cId): void
     {
         $this->doAddTagToElement($this->model->getId(), $cType, $cId);

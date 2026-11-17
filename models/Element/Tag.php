@@ -22,6 +22,7 @@ use OpenDxp\Event\Model\TagEvent;
 use OpenDxp\Event\TagEvents;
 use OpenDxp\Event\Traits\RecursionBlockingEventDispatchHelperTrait;
 use OpenDxp\Model;
+use OpenDxp\Model\Element\Tag\Dao;
 use OpenDxp\Model\Exception\NotFoundException;
 use Stringable;
 
@@ -135,14 +136,87 @@ final class Tag extends Model\AbstractModel implements Stringable
      */
     public static function setTagsForElement(string $cType, int $cId, array $tags): void
     {
-        $tag = new Tag();
-        $tag->getDao()->setTagsForElement($cType, $cId, $tags);
+        $tagIds = array_map(static fn (Tag $tag): int => $tag->getId(), $tags);
+
+        self::changeAssignments(
+            $cType,
+            [$cId],
+            $tagIds,
+            true,
+            static fn (Dao $dao) => $dao->setTagsForElement($cType, $cId, $tags),
+        );
     }
 
     public static function batchAssignTagsToElement(string $cType, array $cIds, array $tagIds, bool $replace = false): void
     {
-        $tag = new Tag();
-        $tag->getDao()->batchAssignTagsToElement($cType, $cIds, $tagIds, $replace);
+        self::changeAssignments(
+            $cType,
+            $cIds,
+            $tagIds,
+            $replace,
+            static fn (Dao $dao) => $dao->batchAssignTagsToElement($cType, $cIds, $tagIds, $replace),
+        );
+    }
+
+    /**
+     * Dispatches the add and remove events only for the assignments that change.
+     * The events of one element follow each other.
+     *
+     * @param int[] $cIds
+     * @param int[] $tagIds
+     * @param callable(Dao): void $write
+     */
+    private static function changeAssignments(string $cType, array $cIds, array $tagIds, bool $replace, callable $write): void
+    {
+        $dao = (new Tag())->getDao();
+        $cIds = array_unique(array_map(intval(...), $cIds));
+        $tagIds = array_unique(array_map(intval(...), $tagIds));
+        $assignedTagIds = $dao->getTagIdsForElements($cType, $cIds);
+
+        /** @var list<array{TagEvent, bool}> $changes the event and whether the tag is added */
+        $changes = [];
+        foreach ($cIds as $cId) {
+            $currentTagIds = $assignedTagIds[$cId] ?? [];
+            $removedTagIds = $replace ? array_diff($currentTagIds, $tagIds) : [];
+            $addedTagIds = array_diff($tagIds, $currentTagIds);
+
+            foreach ($removedTagIds as $tagId) {
+                $event = self::createAssignmentEvent($cType, $cId, $tagId);
+                if ($event) {
+                    $changes[] = [$event, false];
+                }
+            }
+
+            foreach ($addedTagIds as $tagId) {
+                $event = self::createAssignmentEvent($cType, $cId, $tagId);
+                if ($event) {
+                    $changes[] = [$event, true];
+                }
+            }
+        }
+
+        foreach ($changes as [$event, $added]) {
+            $event->getTag()->dispatchEvent($event, $added ? TagEvents::PRE_ADD_TO_ELEMENT : TagEvents::PRE_REMOVE_FROM_ELEMENT);
+        }
+
+        $write($dao);
+
+        foreach ($changes as [$event, $added]) {
+            $event->getTag()->dispatchEvent($event, $added ? TagEvents::POST_ADD_TO_ELEMENT : TagEvents::POST_REMOVE_FROM_ELEMENT);
+        }
+    }
+
+    private static function createAssignmentEvent(string $cType, int $cId, int $tagId): ?TagEvent
+    {
+        $tag = self::getById($tagId);
+        if (!$tag) {
+            return null;
+        }
+
+        return new TagEvent($tag, [
+            'elementType' => $cType,
+            'elementId' => $cId,
+        ]);
     }
 
     /**
