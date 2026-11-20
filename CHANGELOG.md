@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.6.0
+- [ENHANCEMENT] `Tag::setTagsForElement()` and `Tag::batchAssignTagsToElement()` dispatch the tag events for every assignment that changes. Deleting an asset dispatches the remove events of its tags after the asset is deleted
+
 ## 1.5.6
 - [BUGFIX] A translation that is missing in a language falls back to the fallback language on the first call. It returned the key until the next request before
 - [BUGFIX] The first request after a cache clear shows the translations of the database. It showed some of their keys before
