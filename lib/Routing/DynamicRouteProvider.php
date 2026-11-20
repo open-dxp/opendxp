@@ -25,9 +25,6 @@ use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Route as SymfonyRoute;
 use Symfony\Component\Routing\RouteCollection;
 
-/**
- * @internal
- */
 final class DynamicRouteProvider implements RouteProviderInterface
 {
     /**
@@ -91,10 +88,9 @@ final class DynamicRouteProvider implements RouteProviderInterface
 
     public function getRoutesByNames(?array $names = null): array
     {
-        // TODO needs performance optimizations
-        // TODO really return all routes here as documentation states? where is this used?
         $routes = [];
 
+        // A call without names gets no route. Building one for every page and every slug would load all of them.
         if (is_array($names)) {
             foreach ($names as $name) {
                 try {

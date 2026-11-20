@@ -53,6 +53,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/Notification',
     'Feature/Permissions',
     'Feature/Relation',
+    'Feature/Routing',
     'Feature/Seo',
     'Feature/Site',
     'Feature/StaticRoute',

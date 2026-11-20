@@ -44,7 +44,7 @@ final readonly class DataObjectRouteHandler implements DynamicRouteHandlerInterf
             if ($slug && $slug->getObjectId() == $match[1]) {
                 $object = DataObject::getById((int) $match[1]);
                 if ($object instanceof DataObject\Concrete && $object->isPublished()) {
-                    return $this->buildRouteForFromSlug($slug, $object);
+                    return $this->buildRouteForFromSlug($slug, $object, Site::getById((int) $match[2]));
                 }
             }
         }
@@ -63,7 +63,7 @@ final readonly class DataObjectRouteHandler implements DynamicRouteHandlerInterf
                 $doBuildRoute = $object->isPublished() || $this->requestHelper->isObjectPreviewRequestByAdmin($context->getRequest());
 
                 if ($doBuildRoute) {
-                    $route = $this->buildRouteForFromSlug($slug, $object);
+                    $route = $this->buildRouteForFromSlug($slug, $object, $site);
                     $collection->add($route->getRouteKey(), $route);
                 }
             }
@@ -83,9 +83,11 @@ final readonly class DataObjectRouteHandler implements DynamicRouteHandlerInterf
     /**
      * @throws Exception
      */
-    private function buildRouteForFromSlug(DataObject\Data\UrlSlug $slug, DataObject\Concrete $object): DataObjectRoute
-    {
-        $site = $this->siteResolver->getSite();
+    private function buildRouteForFromSlug(
+        DataObject\Data\UrlSlug $slug,
+        DataObject\Concrete $object,
+        ?Site $site
+    ): DataObjectRoute {
         $route = new DataObjectRoute($slug->getSlug());
         $route->setOption('utf8', true);
         $route->setObject($object);
