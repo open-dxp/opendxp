@@ -94,7 +94,10 @@ opendxp.bundle.seo.httpErrorLog = Class.create({
 
         var typesColumns = [
             {text: "Code", width: 60, sortable: true, dataIndex: 'code'},
-            {text: t("path"), flex: 1, minWidth: 300, sortable: true, dataIndex: 'uri'},
+            {text: t("path"), flex: 1, minWidth: 300, sortable: true, dataIndex: 'uri',
+                renderer: function (s) {
+                    return Ext.util.Format.htmlEncode(s);
+                }},
             {text: t("amount"), width: 60, sortable: true, dataIndex: 'count'},
             {text: t("date"), width: 200, sortable: true, dataIndex: 'date',
                                                                     renderer: function(d) {

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.7
+- [BUGFIX] The HTTP error log shows the path of an error as text
+
 ## 1.5.6
 - [BUGFIX] A translation that is missing in a language falls back to the fallback language on the first call. It returned the key until the next request before
 - [BUGFIX] The first request after a cache clear shows the translations of the database. It showed some of their keys before
