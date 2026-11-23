@@ -1,12 +1,6 @@
 imports:
     - { resource: test.yaml }
 
-services:
-    # Nothing in the test application uses the service, so a test reaches it only as a public service.
-    OpenDxp\Test\Workflows:
-        autowire: true
-        public: true
-
 framework:
     workflows:
         test_ticket:

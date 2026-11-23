@@ -242,16 +242,6 @@ use OpenDxp\TestFoundation\Container;
 Container::get(Workflows::class)->apply($order, 'opendxp_ecommerce_order', 'create');
 ```
 
-Symfony removes a private service that nothing uses. A test application that uses the service only in tests makes it
-public in its configuration:
-
-```yaml
-services:
-    OpenDxp\Test\Workflows:
-        autowire: true
-        public: true
-```
-
 `apply()` changes the marking of the subject. A marking store that keeps the place in a field of the subject leaves the
 saving to the test.
 

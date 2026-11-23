@@ -72,4 +72,5 @@ services:
     OpenDxp\Workflow\Dumper\StateMachineGraphvizDumper:
         public: true
 
-    OpenDxp\Test\Workflows: ~
+    OpenDxp\Test\Workflows:
+        tags: ['opendxp.test_api']
