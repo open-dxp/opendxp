@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
+use OpenDxp\Db\Helper;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
@@ -255,7 +256,7 @@ class RgbaColor extends Data implements
                 $operator = 'IS NOT';
             }
         } elseif (!is_array($value) && !is_object($value)) {
-            $value = $operator === 'LIKE' ? $db->quote('%' . $value . '%') : $db->quote($value);
+            $value = $operator === 'LIKE' ? $db->quote('%' . Helper::escapeLike($value) . '%') : $db->quote($value);
         }
 
         return $key . ' ' . $operator . ' ' . $value . ' ';
