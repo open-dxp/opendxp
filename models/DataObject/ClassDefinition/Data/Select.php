@@ -18,6 +18,7 @@ namespace OpenDxp\Model\DataObject\ClassDefinition\Data;
 
 use InvalidArgumentException;
 use JsonSerializable;
+use OpenDxp\Db\Helper;
 use OpenDxp\Model;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition\Data;
@@ -313,7 +314,7 @@ class Select extends Data implements
             return $key . ' = ' . $quotedValue . ' ';
         }
         if ($operator === 'LIKE') {
-            $quotedValue = $db->quote('%' . $value . '%');
+            $quotedValue = $db->quote('%' . Helper::escapeLike($value) . '%');
 
             return $key . ' LIKE ' . $quotedValue . ' ';
         }

@@ -443,7 +443,7 @@ abstract class Data implements DataObject\ClassDefinition\Data\TypeDeclarationSu
                     $operator = 'IS NOT';
                 }
             } elseif (!is_array($value) && !is_object($value)) {
-                $value = $operator === 'LIKE' ? $db->quote('%' . $value . '%') : $db->quote($value);
+                $value = $operator === 'LIKE' ? $db->quote('%' . Helper::escapeLike($value) . '%') : $db->quote($value);
             }
         }
 
