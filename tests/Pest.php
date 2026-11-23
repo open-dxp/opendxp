@@ -25,6 +25,7 @@ use OpenDxp\Tests\TestCase\InstallerTestCase;
 use OpenDxp\Tests\TestCase\SchemaTestCase;
 use OpenDxp\Tests\TestCase\SearchTestCase;
 use OpenDxp\Tests\TestCase\SiteDeclarationTestCase;
+use OpenDxp\Tests\TestCase\WorkflowTestCase;
 
 Fields::register();
 Redirects::register();
@@ -70,4 +71,5 @@ pest()->extend(InstallerTestCase::class)->in('Feature/Installer');
 pest()->extend(SchemaTestCase::class)->in('Feature/Schema');
 pest()->extend(SearchTestCase::class)->in('Feature/Search');
 pest()->extend(SiteDeclarationTestCase::class)->in('Feature/SiteDeclaration');
+pest()->extend(WorkflowTestCase::class)->in('Feature/Workflow');
 pest()->extend(AuthenticationTestCase::class)->in('Feature/Authentication');

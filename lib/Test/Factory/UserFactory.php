@@ -49,6 +49,15 @@ final class UserFactory extends AbstractUserRoleFactory
         return $this->with(['password' => $password]);
     }
 
+    public function withImage(string $path): static
+    {
+        return $this->afterWriting(
+            static function (User $user) use ($path): void {
+                $user->setImage($path);
+            },
+        );
+    }
+
     protected function defaults(): array
     {
         return [

@@ -1,0 +1,55 @@
+imports:
+    - { resource: test.yaml }
+
+services:
+    # Nothing in the test application uses the service, so a test reaches it only as a public service.
+    OpenDxp\Test\Workflows:
+        autowire: true
+        public: true
+
+framework:
+    workflows:
+        test_ticket:
+            type: state_machine
+            marking_store:
+                type: method
+                property: state
+            supports:
+                - OpenDxp\Tests\Application\Workflow\Ticket
+            initial_marking: open
+            places:
+                - open
+                - closed
+            transitions:
+                close:
+                    from: open
+                    to: closed
+
+opendxp:
+    workflows:
+        test_review:
+            label: Review
+            type: state_machine
+            supports:
+                - OpenDxp\Model\Document\Page
+            initial_markings: [draft]
+            places:
+                draft:
+                    label: Draft
+                review:
+                    label: Review
+                published:
+                    label: Published
+            transitions:
+                submit:
+                    from: [draft]
+                    to: [review]
+                    options:
+                        label: Submit
+                        changePublishedState: no_change
+                publish:
+                    from: [review]
+                    to: [published]
+                    options:
+                        label: Publish
+                        changePublishedState: no_change
