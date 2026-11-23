@@ -18,6 +18,7 @@ namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\Document\Editable\Areablock;
 use OpenDxp\Model\Document\Editable\Input;
+use OpenDxp\Test\Document\Areablocks;
 use OpenDxp\Test\Elements;
 use OpenDxp\Test\Factory\DocumentPageFactory;
 use OpenDxp\Test\Factory\DocumentSnippetFactory;
@@ -44,6 +45,17 @@ it('places bricks in an areablock in the order they are given', function () {
         'Hello',
         'Goodbye',
     ]);
+});
+
+it('places bricks in an areablock of a document that is already saved', function () {
+    $page = DocumentPageFactory::createOne();
+
+    Areablocks::addTo($page, 'content', GreetingBrick::saying('Hello'));
+
+    expect(Elements::refresh($page)->getEditable('content'))
+        ->toBeInstanceOf(Areablock::class)
+        ->getIndices()
+        ->toHaveCount(1);
 });
 
 it('stores the bricks with the document', function () {

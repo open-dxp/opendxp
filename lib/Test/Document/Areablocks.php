@@ -18,6 +18,7 @@ namespace OpenDxp\Test\Document;
 
 use OpenDxp\Model\Document\Editable;
 use OpenDxp\Model\Document\Editable\Areablock;
+use OpenDxp\Model\Document\PageSnippet;
 
 final class Areablocks
 {
@@ -53,5 +54,15 @@ final class Areablocks
             $areablock => $block,
             ...$editables,
         ];
+    }
+
+    /**
+     * Fills an areablock of a saved document, for bricks that point at documents created after it, like the pages
+     * below it.
+     */
+    public static function addTo(PageSnippet $document, string $areablock, Brick ...$bricks): void
+    {
+        Editables::copyInto($document, self::filledWith($areablock, ...$bricks));
+        $document->save();
     }
 }

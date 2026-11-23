@@ -20,6 +20,7 @@ use OpenDxp\Model\Document\Editable;
 use OpenDxp\Model\Document\PageSnippet;
 use OpenDxp\Test\Document\Areablocks;
 use OpenDxp\Test\Document\Brick;
+use OpenDxp\Test\Document\Editables;
 
 /**
  * @template T of PageSnippet
@@ -47,14 +48,7 @@ abstract class AbstractPageSnippetFactory extends AbstractDocumentFactory
     public function withEditables(array $editables): static
     {
         return $this->afterInstantiate(
-            static function (PageSnippet $document) use ($editables): void {
-                foreach ($editables as $name => $editable) {
-                    // Every document a factory creates needs editables of its own.
-                    $copy = clone $editable;
-                    $copy->setName($name);
-                    $document->setEditable($copy);
-                }
-            },
+            static fn (PageSnippet $document) => Editables::copyInto($document, $editables),
         );
     }
 
