@@ -57,8 +57,8 @@ final class Areablocks
     }
 
     /**
-     * Fills an areablock of a saved document, for bricks that point at documents created after it, like the pages
-     * below it.
+     * Fills an areablock of a saved document with the bricks and replaces what it held. It serves bricks that point at
+     * documents created after it, like the pages below it.
      */
     public static function addTo(PageSnippet $document, string $areablock, Brick ...$bricks): void
     {
