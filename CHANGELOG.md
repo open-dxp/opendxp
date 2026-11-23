@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [BUGFIX] A data object folder in a many-to-many relation inside a block opens as a folder. It failed with `element_not_found` before
 - [BUGFIX] The HTTP error log shows the path of an error as text
 - [ENHANCEMENT] The test API creates every kind of data OpenDXP stores and applies workflow transitions. See [Test API](doc/19_Development_Tools_and_Details/29_Testing/07_Test_API.md)
 
