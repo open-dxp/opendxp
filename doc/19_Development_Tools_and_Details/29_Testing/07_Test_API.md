@@ -221,7 +221,7 @@ The test foundation installs the definitions in `tests/Fixtures` with these inst
 | `Settings::override($settings)`               | Replaces system settings until the test ends.                                              |
 | `Document\Brick`                              | The interface of a brick. `id()` names the areabrick, `editables()` returns its editables. |
 | `Document\Areablocks::filledWith($name, ...)` | Returns the editables of an areablock that holds the given bricks.                         |
-| `Document\Areablocks::addTo($document, $name, ...)` | Fills an areablock of a saved document, for bricks that point at documents created after it. |
+| `Document\Areablocks::addTo($document, $name, ...)` | Fills an areablock of a saved document and replaces what it held, for bricks that point at documents created after it. |
 
 ## Workflows
 
