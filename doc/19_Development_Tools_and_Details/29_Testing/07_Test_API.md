@@ -23,33 +23,41 @@ Redirects::register();
 Every factory is in `OpenDxp\Test\Factory`. A factory fills every value a test leaves out with random
 data.
 
-| Factory                       | Builds                            |
-|-------------------------------|-----------------------------------|
-| `AssetDocumentFactory`        | `Asset\Document`                  |
-| `AssetFolderFactory`          | `Asset\Folder`                    |
-| `AssetImageFactory`           | `Asset\Image`                     |
-| `AssetVideoFactory`           | `Asset\Video`                     |
-| `CustomReportFactory`         | `CustomReportsBundle\Tool\Config` |
-| `DataObjectFolderFactory`     | `DataObject\Folder`               |
-| `DocumentEmailFactory`        | `Document\Email`                  |
-| `DocumentFolderFactory`       | `Document\Folder`                 |
-| `DocumentHardlinkFactory`     | `Document\Hardlink`               |
-| `DocumentLinkFactory`         | `Document\Link`                   |
-| `DocumentPageFactory`         | `Document\Page`                   |
-| `DocumentSnippetFactory`      | `Document\Snippet`                |
-| `EmailLogFactory`             | `Tool\Email\Log`                  |
-| `GlossaryFactory`             | `Glossary`                        |
-| `QuantityValueUnitFactory`    | `QuantityValue\Unit`              |
-| `RedirectFactory`             | `Redirect`                        |
-| `SiteFactory`                 | `Site`                            |
-| `StaticRouteFactory`          | `Staticroute`                     |
-| `TagFactory`                  | `Element\Tag`                     |
-| `ThumbnailConfigFactory`      | `Asset\Image\Thumbnail\Config`    |
-| `TranslationFactory`          | `Translation`                     |
-| `UserFactory`                 | `User`                            |
-| `UserRoleFactory`             | `User\Role`                       |
-| `VideoThumbnailConfigFactory` | `Asset\Video\Thumbnail\Config`    |
-| `WebsiteSettingFactory`       | `WebsiteSetting`                  |
+| Factory                          | Builds                            |
+|----------------------------------|-----------------------------------|
+| `AssetArchiveFactory`            | `Asset\Archive`                   |
+| `AssetAudioFactory`              | `Asset\Audio`                     |
+| `AssetDocumentFactory`           | `Asset\Document`                  |
+| `AssetFolderFactory`             | `Asset\Folder`                    |
+| `AssetImageFactory`              | `Asset\Image`                     |
+| `AssetTextFactory`               | `Asset\Text`                      |
+| `AssetUnknownFactory`            | `Asset\Unknown`                   |
+| `AssetVideoFactory`              | `Asset\Video`                     |
+| `CustomReportFactory`            | `CustomReportsBundle\Tool\Config` |
+| `DataObjectFolderFactory`        | `DataObject\Folder`               |
+| `DocTypeFactory`                 | `Document\DocType`                |
+| `DocumentEmailFactory`           | `Document\Email`                  |
+| `DocumentFolderFactory`          | `Document\Folder`                 |
+| `DocumentHardlinkFactory`        | `Document\Hardlink`               |
+| `DocumentLinkFactory`            | `Document\Link`                   |
+| `DocumentPageFactory`            | `Document\Page`                   |
+| `DocumentSnippetFactory`         | `Document\Snippet`                |
+| `EmailLogFactory`                | `Tool\Email\Log`                  |
+| `GlossaryFactory`                | `Glossary`                        |
+| `NotificationFactory`            | `Notification`                    |
+| `PredefinedAssetMetadataFactory` | `Metadata\Predefined`             |
+| `PredefinedPropertyFactory`      | `Property\Predefined`             |
+| `QuantityValueUnitFactory`       | `QuantityValue\Unit`              |
+| `RedirectFactory`                | `Redirect`                        |
+| `SiteFactory`                    | `Site`                            |
+| `StaticRouteFactory`             | `Staticroute`                     |
+| `TagFactory`                     | `Element\Tag`                     |
+| `ThumbnailConfigFactory`         | `Asset\Image\Thumbnail\Config`    |
+| `TranslationFactory`             | `Translation`                     |
+| `UserFactory`                    | `User`                            |
+| `UserRoleFactory`                | `User\Role`                       |
+| `VideoThumbnailConfigFactory`    | `Asset\Video\Thumbnail\Config`    |
+| `WebsiteSettingFactory`          | `WebsiteSetting`                  |
 
 `CustomReportFactory`, `GlossaryFactory`, `RedirectFactory` and `StaticRouteFactory` build models of the custom
 reports, glossary, SEO and static routes bundles. They need that bundle in the kernel of your test application.
@@ -107,16 +115,23 @@ returns its path:
 
 | Factory                | File           |
 |------------------------|----------------|
+| `AssetArchiveFactory`  | `archive.zip`  |
+| `AssetAudioFactory`    | `audio.mp3`    |
 | `AssetDocumentFactory` | `document.pdf` |
 | `AssetImageFactory`    | `image.jpg`    |
+| `AssetTextFactory`     | `text.csv`     |
+| `AssetUnknownFactory`  | `unknown.stp`  |
 | `AssetVideoFactory`    | `video.mp4`    |
+
+A file with the extension `stp` is an unknown asset to OpenDXP, whatever its content.
 
 ## States
 
 A state returns the factory, so states chain. These states belong to a kind of model:
 
 - Every factory: `unsaved()` builds the model without writing it.
-- Assets, documents and data objects: `withParent()`, `withProperty()`, `withInheritableProperty()`.
+- Assets, documents and data objects: `withParent()`, `withProperty()`, `withInheritableProperty()`, `withTags()`,
+  `withNote()`, `withScheduledTask()`.
 - Documents: `unpublished()`, `withLocale()`, `withTranslationOf()`, `withNavigationName()`.
 - Pages, snippets and emails: `withController()`, `withContentMainDocument()`, `withEditables()`,
   `withBricks()`.
@@ -130,9 +145,11 @@ These states belong to one factory:
 - `AssetImageFactory`: `withMetadata()`.
 - `AssetVideoFactory`: `convertedTo()`.
 - `CustomReportFactory`: `withSqlDataSource()`.
+- `DocTypeFactory`: `withController()`.
 - `DocumentHardlinkFactory`: `withSource()`.
 - `DocumentLinkFactory`: `withTarget()`.
 - `EmailLogFactory`: `forDocument()`, `sentAt()`.
+- `NotificationFactory`: `forRecipient()`, `withLinkedElement()`.
 - `RedirectFactory`: `forDomain()`, `matching()`, `forSite()`, `toSite()`, `toDocument()`,
   `withStatusCode()`, `withPriority()`, `passingThroughPath()`, `passingThroughParameters()`,
   `protected()`, `inactive()`, `started()`, `scheduled()`, `expiring()`, `expired()`.
@@ -145,7 +162,7 @@ These states belong to one factory:
 - `TestGuideFactory`: `withSections()`.
 - `ThumbnailConfigFactory`: `scalingByWidth()`, `enlargingToWidth()`, `covering()`, `rotating()`.
 - `TranslationFactory`: `withTranslations()`, `inAdminDomain()`.
-- `UserFactory`: `admin()`, `withRoles()`, `withPassword()`.
+- `UserFactory`: `admin()`, `withRoles()`, `withPassword()`, `withImage()`.
 - `VideoThumbnailConfigFactory`: `scalingByWidth()`.
 - `WebsiteSettingFactory`: `forSite()`, `inLanguage()`.
 
@@ -204,6 +221,39 @@ The test foundation installs the definitions in `tests/Fixtures` with these inst
 | `Settings::override($settings)`               | Replaces system settings until the test ends.                                              |
 | `Document\Brick`                              | The interface of a brick. `id()` names the areabrick, `editables()` returns its editables. |
 | `Document\Areablocks::filledWith($name, ...)` | Returns the editables of an areablock that holds the given bricks.                         |
+
+## Workflows
+
+The service `OpenDxp\Test\Workflows` applies a transition of any workflow in the workflow registry. This covers the
+workflows of OpenDXP elements and the Symfony workflows of bundles, such as the state machines of an order:
+
+```php
+use OpenDxp\Test\Workflows;
+
+$workflows->apply($page, 'review', 'submit');
+$workflows->can($page, 'review', 'publish');
+```
+
+A story gets the service through its constructor. A test reaches it through the container of the test case:
+
+```php
+use OpenDxp\TestFoundation\Container;
+
+Container::get(Workflows::class)->apply($order, 'opendxp_ecommerce_order', 'create');
+```
+
+Symfony removes a private service that nothing uses. A test application that uses the service only in tests makes it
+public in its configuration:
+
+```yaml
+services:
+    OpenDxp\Test\Workflows:
+        autowire: true
+        public: true
+```
+
+`apply()` changes the marking of the subject. A marking store that keeps the place in a field of the subject leaves the
+saving to the test.
 
 ## Deprecated
 

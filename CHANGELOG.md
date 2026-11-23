@@ -2,6 +2,7 @@
 
 ## 1.5.7
 - [BUGFIX] The HTTP error log shows the path of an error as text
+- [ENHANCEMENT] The test API creates every kind of data OpenDXP stores and applies workflow transitions. See [Test API](doc/19_Development_Tools_and_Details/29_Testing/07_Test_API.md)
 
 ## 1.5.6
 - [BUGFIX] A translation that is missing in a language falls back to the fallback language on the first call. It returned the key until the next request before

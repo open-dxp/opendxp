@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\User;
+use OpenDxp\Test\Factory\AssetImageFactory;
 use OpenDxp\Test\Factory\UserFactory;
 use OpenDxp\Tool\Authentication;
 
@@ -45,4 +46,12 @@ it('writes a user who signs in with the password a test gives', function () {
     $verified = Authentication::verifyPassword($user, 'correct horse battery staple');
 
     expect($verified)->toBeTrue();
+});
+
+it('writes a user with a profile picture', function () {
+    $user = UserFactory::new()
+        ->withImage(AssetImageFactory::fixture())
+        ->create();
+
+    expect(User::getById($user->getId()))->hasImage()->toBeTrue();
 });

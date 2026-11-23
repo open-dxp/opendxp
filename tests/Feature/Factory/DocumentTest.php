@@ -17,10 +17,12 @@ declare(strict_types=1);
 namespace OpenDxp\Tests\Feature\Factory;
 
 use OpenDxp\Model\Document;
+use OpenDxp\Model\Document\DocType;
 use OpenDxp\Model\Document\Hardlink;
 use OpenDxp\Model\Document\Link;
 use OpenDxp\Model\Document\Page;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\DocTypeFactory;
 use OpenDxp\Test\Factory\DocumentHardlinkFactory;
 use OpenDxp\Test\Factory\DocumentLinkFactory;
 use OpenDxp\Test\Factory\DocumentPageFactory;
@@ -209,4 +211,18 @@ it('names a document in the navigation as a test asks', function () {
         ->create();
 
     expect($link->getProperty('navigation_name'))->toBe('Get in touch');
+});
+
+it('writes a document type with its controller', function () {
+    $docType = DocTypeFactory::new()
+        ->withController(DefaultController::class, 'javascriptAction')
+        ->create(['name' => 'Teaser']);
+
+    expect(DocType::getById($docType->getId()))
+        ->getName()
+        ->toBe('Teaser')
+        ->getType()
+        ->toBe('page')
+        ->getController()
+        ->toBe(sprintf('%s::javascriptAction', DefaultController::class));
 });
