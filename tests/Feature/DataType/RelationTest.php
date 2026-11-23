@@ -16,9 +16,11 @@ declare(strict_types=1);
 
 namespace OpenDxp\Tests\Feature\DataType;
 
+use OpenDxp\Model\DataObject\ClassDefinition\Data\ManyToManyRelation;
 use OpenDxp\Model\DataObject\Data\ObjectMetadata;
 use OpenDxp\Model\DataObject\TestFieldTypes;
 use OpenDxp\Test\Elements;
+use OpenDxp\Test\Factory\DataObjectFolderFactory;
 use OpenDxp\Tests\Factory\TestFieldTypesFactory;
 
 it('keeps the metadata a relation carries', function () {
@@ -62,4 +64,10 @@ it('lists the objects that point at it without a reload', function () {
         ->and($pointing[0])
         ->getId()
         ->toBe($object->getId());
+});
+
+it('describes a folder in a many-to-many relation as a folder for the editor', function () {
+    $folder = DataObjectFolderFactory::createOne();
+
+    expect((new ManyToManyRelation())->getDataForEditmode([$folder]))->toBe([[$folder->getId(), $folder->getRealFullPath(), 'object', 'folder', true]]);
 });
