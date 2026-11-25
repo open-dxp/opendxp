@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [ENHANCEMENT] Users and roles declare `hasChildren()`. The Symfony property accessor and PHPStan see it
 - [BUGFIX] Grid filters on input, select, multiselect and color fields match `_` and `%` literally
 - [BUGFIX] A data object folder in a many-to-many relation inside a block opens as a folder. It failed with `element_not_found` before
 - [ENHANCEMENT] The test API fills an areablock of a saved document, for bricks that point at pages created after it. See [Test API](doc/19_Development_Tools_and_Details/29_Testing/07_Test_API.md)
