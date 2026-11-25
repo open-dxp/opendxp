@@ -61,6 +61,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/Tool',
     'Feature/Translation',
     'Feature/Twig',
+    'Feature/User',
     'Feature/Version',
     'Feature/WebsiteSetting',
 );

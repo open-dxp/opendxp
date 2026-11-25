@@ -106,6 +106,11 @@ abstract class AbstractUser extends Model\AbstractModel implements AbstractUserI
         $this->getDao()->setLastLoginDate();
     }
 
+    public function hasChildren(): bool
+    {
+        return $this->getDao()->hasChildren();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
