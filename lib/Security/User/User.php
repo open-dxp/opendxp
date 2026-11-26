@@ -15,6 +15,7 @@
 
 namespace OpenDxp\Security\User;
 
+use Deprecated;
 use OpenDxp;
 use OpenDxp\Model\User as OpenDxpUser;
 use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface as GoogleTwoFactorInterface;
@@ -67,10 +68,12 @@ class User implements UserInterface, EquatableInterface, GoogleTwoFactorInterfac
         return $this->user->getPassword();
     }
 
+    /**
+     * @deprecated since 1.5.7 and will be removed in 2.0, no replacement
+     */
+    #[Deprecated(since: '1.5.7')]
     public function eraseCredentials(): void
     {
-        // TODO: Implement eraseCredentials() method.
-        // TODO: anything to do here?
     }
 
     public function isEqualTo(UserInterface $user): bool

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [DEPRECATION] `OpenDxp\Security\User\User::eraseCredentials()` is deprecated and will be removed in 2.0
 - [BUGFIX] Object dependencies of a user include objects that name the user in only one of several user fields
 - [ENHANCEMENT] Users and roles declare `hasChildren()`. The Symfony property accessor and PHPStan see it
 - [BUGFIX] Grid filters on input, select, multiselect and color fields match `_` and `%` literally
