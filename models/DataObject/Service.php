@@ -101,9 +101,9 @@ class Service extends Model\Element\Service
             $list = new $listName();
             $conditionParts = [];
             foreach ($fields as $field) {
-                $conditionParts[] = $field . ' = ?';
+                $conditionParts[] = sprintf('%s = ?', $list->quoteIdentifier($field));
             }
-            $list->setCondition(implode(' AND ', $conditionParts), array_fill(0, count($conditionParts), $userId));
+            $list->setCondition(implode(' OR ', $conditionParts), array_fill(0, count($conditionParts), $userId));
             $objects = $list->load();
             $userObjects[] = $objects;
         }

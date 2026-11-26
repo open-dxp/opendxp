@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [BUGFIX] Object dependencies of a user include objects that name the user in only one of several user fields
 - [ENHANCEMENT] Users and roles declare `hasChildren()`. The Symfony property accessor and PHPStan see it
 - [BUGFIX] Grid filters on input, select, multiselect and color fields match `_` and `%` literally
 - [BUGFIX] A data object folder in a many-to-many relation inside a block opens as a folder. It failed with `element_not_found` before
