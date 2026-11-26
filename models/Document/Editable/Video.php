@@ -670,7 +670,7 @@ class Video extends Model\Document\Editable implements IdRewriterInterface
             $vimeoId = $this->id;
         }
 
-        if (ctype_digit($vimeoId)) {
+        if (ctype_digit((string) $vimeoId)) {
             if ($inAdmin && isset($config['editmodeImagePreview']) && $config['editmodeImagePreview'] === true) {
                 return '<div id="opendxp_video_' . $this->getName() . '" class="opendxp_editable_video '. ($config['class'] ?? '') .'">
                     <img src="https://vumbnail.com/' . $vimeoId . '.jpg">
