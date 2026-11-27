@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [BUGFIX] Alt+R opens redirects. The SeoBundle registers the key binding. It failed with an error before
 - [BUGFIX] A Vimeo video whose id is a number renders without a deprecation
 - [BUGFIX] Grid filter on checkbox keys of classification stores
 - [BUGFIX] Xliff import writes translations into elements again. It skipped every element since 1.2.0
