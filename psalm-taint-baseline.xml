@@ -1,23 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="7.13.2">
+<files psalm-version="7.22.1">
   <file src="bundles/CoreBundle/src/EventListener/Frontend/EditmodeListener.php">
     <TaintedFile>
       <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
+      <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
       <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
     </TaintedSSRF>
     <TaintedUrlComponent>
       <code>file_get_contents(OPENDXP_WEB_ROOT . $scriptUrl)</code>
     </TaintedUrlComponent>
   </file>
+  <file src="bundles/CoreBundle/src/EventListener/Frontend/HardlinkCanonicalListener.php">
+    <TaintedHeader>
+      <code>'&lt;' . $canonical . '&gt;; rel="canonical"'</code>
+      <code>'&lt;' . $canonical . '&gt;; rel="canonical"'</code>
+      <code>'&lt;' . $canonical . '&gt;; rel="canonical"'</code>
+      <code>'&lt;' . $canonical . '&gt;; rel="canonical"'</code>
+    </TaintedHeader>
+  </file>
   <file src="bundles/CoreBundle/src/EventListener/Frontend/RoutingListener.php">
     <TaintedRedirect>
       <code>$url</code>
+      <code>$url</code>
     </TaintedRedirect>
+  </file>
+  <file src="bundles/CustomReportsBundle/src/Tool/Adapter/Sql.php">
+    <TaintedSql>
+      <code>$baseQuery['count']</code>
+      <code>$sql</code>
+      <code>$sql</code>
+      <code>$sql</code>
+    </TaintedSql>
   </file>
   <file src="bundles/GlossaryBundle/src/Tool/Processor.php">
     <TaintedUrlScheme>
+      <code>$d['link']</code>
       <code>$d['link']</code>
       <code>$d['link']</code>
     </TaintedUrlScheme>
@@ -41,20 +61,68 @@
   <file src="bundles/SeoBundle/src/Redirect/RedirectHandler.php">
     <TaintedRedirect>
       <code>$url</code>
+      <code>$url</code>
     </TaintedRedirect>
+  </file>
+  <file src="bundles/SimpleBackendSearchBundle/src/Controller/DataObjectController.php">
+    <TaintedCallable>
+      <code>$getter</code>
+    </TaintedCallable>
   </file>
   <file src="bundles/SimpleBackendSearchBundle/src/Model/Search/Backend/Data/Listing/Dao.php">
     <TaintedSql>
       <code>'SELECT * FROM search_backend_data' .  $this-&gt;getCondition() . $this-&gt;getGroupBy() . $this-&gt;getOrder() . $this-&gt;getOffsetLimit()</code>
-      <code>'SELECT * FROM search_backend_data' .  $this-&gt;getCondition() . $this-&gt;getGroupBy() . $this-&gt;getOrder() . $this-&gt;getOffsetLimit()</code>
       <code>'SELECT COUNT(*) FROM search_backend_data' . $this-&gt;getCondition() . $this-&gt;getGroupBy()</code>
-      <code>'SELECT COUNT(*) FROM search_backend_data' . $this-&gt;getCondition() . $this-&gt;getGroupBy()</code>
-      <code>'SELECT COUNT(*) as amount FROM search_backend_data '  . $this-&gt;getCondition() . $this-&gt;getGroupBy() . $this-&gt;getOrder() . $this-&gt;getOffsetLimit()</code>
       <code>'SELECT COUNT(*) as amount FROM search_backend_data '  . $this-&gt;getCondition() . $this-&gt;getGroupBy() . $this-&gt;getOrder() . $this-&gt;getOffsetLimit()</code>
     </TaintedSql>
   </file>
+  <file src="bundles/WordExportBundle/src/Controller/TranslationController.php">
+    <TaintedSSRF>
+      <code>file_get_contents($exportFile)</code>
+      <code>fopen($exportFile, 'a+')</code>
+    </TaintedSSRF>
+  </file>
+  <file src="bundles/XliffBundle/src/ExportService/Exporter/Xliff12Exporter.php">
+    <TaintedSSRF>
+      <code>file_get_contents($exportFilePath)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="bundles/XliffBundle/src/ImportDataExtractor/Xliff12DataExtractor.php">
+    <TaintedSSRF>
+      <code>$this-&gt;getImportFilePath($importId)</code>
+    </TaintedSSRF>
+  </file>
+  <file src="bundles/XliffBundle/src/ImporterService/Importer/DataObjectImporter.php">
+    <TaintedCallable>
+      <code>$brickContainerGetter</code>
+      <code>$brickContainerGetter</code>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $blockName</code>
+      <code>'get' . $fieldCollectionField</code>
+      <code>'get' . $fieldCollectionField</code>
+      <code>'get' . $fieldCollectionName</code>
+      <code>'get' . $fieldCollectionName</code>
+      <code>'set' . $blockName</code>
+      <code>'set' . $blockName</code>
+      <code>'set' . $blockName</code>
+      <code>'set' . $blockName</code>
+      <code>'set' . ucfirst($attribute-&gt;getName())</code>
+      <code>'set' . ucfirst($attribute-&gt;getName())</code>
+    </TaintedCallable>
+  </file>
   <file src="lib/Config/LocationAwareConfigRepository.php">
     <TaintedFile>
+      <code>unlink($this-&gt;getVarConfigFile($key))</code>
       <code>unlink($this-&gt;getVarConfigFile($key))</code>
       <code>unlink($this-&gt;getVarConfigFile($key))</code>
     </TaintedFile>
@@ -65,14 +133,24 @@
       <code>$sql</code>
     </TaintedSql>
   </file>
+  <file src="lib/Document/Adapter/Ghostscript.php">
+    <TaintedShell>
+      <code>$this-&gt;buildPageCountCommand()</code>
+      <code>$this-&gt;buildPageCountCommand()</code>
+      <code>$this-&gt;buildPageCountCommand()</code>
+    </TaintedShell>
+  </file>
   <file src="lib/Document/Adapter/LibreOffice.php">
     <TaintedFile>
       <code>file_get_contents($tmpName)</code>
       <code>file_get_contents($tmpName)</code>
+      <code>file_get_contents($tmpName)</code>
+      <code>unlink($tmpName)</code>
       <code>unlink($tmpName)</code>
       <code>unlink($tmpName)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($tmpName)</code>
       <code>file_get_contents($tmpName)</code>
       <code>file_get_contents($tmpName)</code>
     </TaintedSSRF>
@@ -81,10 +159,12 @@
     <TaintedFile>
       <code>unlink($filePath)</code>
       <code>unlink($filePath)</code>
+      <code>unlink($filePath)</code>
     </TaintedFile>
   </file>
   <file src="lib/Helper/LongRunningHelper.php">
     <TaintedFile>
+      <code>unlink($tmpFilePath)</code>
       <code>unlink($tmpFilePath)</code>
       <code>unlink($tmpFilePath)</code>
     </TaintedFile>
@@ -93,12 +173,16 @@
     <TaintedFile>
       <code>fopen($stream, 'rb')</code>
       <code>fopen($stream, 'rb')</code>
+      <code>fopen($stream, 'rb')</code>
+      <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
       <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
       <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>fopen($stream, 'rb')</code>
       <code>fopen($stream, 'rb')</code>
+      <code>fopen($stream, 'rb')</code>
+      <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
       <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
       <code>fopen($tmpFilePath, 'wb', false, File::getContext())</code>
     </TaintedSSRF>
@@ -107,16 +191,18 @@
     <TaintedCallable>
       <code>$functionName</code>
       <code>$functionName</code>
+      <code>$functionName</code>
     </TaintedCallable>
     <TaintedFile>
-      <code>$functionName($this-&gt;resource, $path, $quality)</code>
-      <code>$functionName($this-&gt;resource, $path, $quality)</code>
+      <code>file_get_contents($this-&gt;path)</code>
       <code>file_get_contents($this-&gt;path)</code>
       <code>file_get_contents($this-&gt;path)</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>file_get_contents($this-&gt;path)</code>
       <code>file_get_contents($this-&gt;path)</code>
+      <code>file_get_contents($this-&gt;path)</code>
+      <code>getimagesize($this-&gt;path)</code>
       <code>getimagesize($this-&gt;path)</code>
       <code>getimagesize($this-&gt;path)</code>
     </TaintedSSRF>
@@ -125,12 +211,16 @@
     <TaintedFile>
       <code>fopen($this-&gt;imagePath, 'r')</code>
       <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'rb')</code>
       <code>fopen($this-&gt;imagePath, 'rb')</code>
       <code>fopen($this-&gt;imagePath, 'rb')</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>fopen($this-&gt;imagePath, 'r')</code>
       <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'r')</code>
+      <code>fopen($this-&gt;imagePath, 'rb')</code>
       <code>fopen($this-&gt;imagePath, 'rb')</code>
       <code>fopen($this-&gt;imagePath, 'rb')</code>
     </TaintedSSRF>
@@ -139,12 +229,16 @@
     <TaintedFile>
       <code>file_get_contents($optimizedImages[0]['path'])</code>
       <code>file_get_contents($optimizedImages[0]['path'])</code>
+      <code>file_get_contents($optimizedImages[0]['path'])</code>
       <code>file_put_contents($workingPath, $storage-&gt;read($path))</code>
       <code>file_put_contents($workingPath, $storage-&gt;read($path))</code>
+      <code>file_put_contents($workingPath, $storage-&gt;read($path))</code>
+      <code>unlink($tmpFile['path'])</code>
       <code>unlink($tmpFile['path'])</code>
       <code>unlink($tmpFile['path'])</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($optimizedImages[0]['path'])</code>
       <code>file_get_contents($optimizedImages[0]['path'])</code>
       <code>file_get_contents($optimizedImages[0]['path'])</code>
     </TaintedSSRF>
@@ -158,24 +252,61 @@
   <file src="lib/Localization/LocaleService.php">
     <TaintedInclude>
       <code>$dataPath . $locale . '/country.php'</code>
+      <code>$dataPath . $locale . '/country.php'</code>
     </TaintedInclude>
   </file>
-  <file src="lib/Maintenance/Tasks/CleanupClassificationstoreTablesTask.php">
-    <TaintedSql>
-      <code>sprintf('SELECT fieldname FROM %s GROUP BY fieldname', $tableName)</code>
-      <code>sprintf('SELECT fieldname FROM %s GROUP BY fieldname', $tableName)</code>
-    </TaintedSql>
-  </file>
-  <file src="lib/Maintenance/Tasks/DataObject/DataObjectTaskHelper.php">
-    <TaintedSql>
-      <code>$fieldsQuery</code>
-      <code>$fieldsQuery</code>
-    </TaintedSql>
+  <file src="lib/Model/AbstractModel.php">
+    <TaintedCallable>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+    </TaintedCallable>
   </file>
   <file src="lib/Model/Dao/AbstractDao.php">
     <TaintedSql>
-      <code>sprintf('SHOW COLUMNS FROM %s', $table)</code>
-      <code>sprintf('SHOW COLUMNS FROM %s', $table)</code>
       <code>sprintf('SHOW COLUMNS FROM %s', $table)</code>
       <code>sprintf('SHOW COLUMNS FROM %s', $table)</code>
       <code>sprintf('SHOW COLUMNS FROM %s', $table)</code>
@@ -193,22 +324,47 @@
   <file src="lib/Tool/Serialize.php">
     <TaintedUnserialize>
       <code>unserialize($data, $options)</code>
+      <code>unserialize($data, $options)</code>
     </TaintedUnserialize>
   </file>
   <file src="lib/Video/Adapter/Ffmpeg.php">
     <TaintedFile>
+      <code>copy(
+                    $this-&gt;getConversionLogFile(),
+                    str_replace('.log', '.error.log', $this-&gt;getConversionLogFile())
+                )</code>
+      <code>copy(
+                    $this-&gt;getConversionLogFile(),
+                    str_replace('.log', '.error.log', $this-&gt;getConversionLogFile())
+                )</code>
+      <code>file_get_contents($this-&gt;getConversionLogFile())</code>
+      <code>fopen($this-&gt;getConversionLogFile(), 'ab')</code>
+      <code>unlink($this-&gt;getConversionLogFile())</code>
+      <code>unlink($this-&gt;getDestinationFile())</code>
       <code>unlink($this-&gt;getDestinationFile())</code>
       <code>unlink($this-&gt;getDestinationFile())</code>
     </TaintedFile>
+    <TaintedSSRF>
+      <code>copy(
+                    $this-&gt;getConversionLogFile(),
+                    str_replace('.log', '.error.log', $this-&gt;getConversionLogFile())
+                )</code>
+      <code>file_get_contents($this-&gt;getConversionLogFile())</code>
+      <code>fopen($this-&gt;getConversionLogFile(), 'ab')</code>
+    </TaintedSSRF>
   </file>
   <file src="models/Asset.php">
     <TaintedFile>
+      <code>fopen($tempFile, 'rb', false, File::getContext())</code>
       <code>fopen($tempFile, 'rb', false, File::getContext())</code>
       <code>fopen($tempFile, 'rb', false, File::getContext())</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>fopen($tempFile, 'rb', false, File::getContext())</code>
       <code>fopen($tempFile, 'rb', false, File::getContext())</code>
+      <code>fopen($tempFile, 'rb', false, File::getContext())</code>
+      <code>getimagesize($localFile)</code>
+      <code>getimagesize($localFile)</code>
       <code>getimagesize($localFile)</code>
       <code>getimagesize($localFile)</code>
       <code>getimagesize($localFile)</code>
@@ -219,8 +375,10 @@
     <TaintedFile>
       <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
+      <code>file_get_contents($tempFile)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
     </TaintedSSRF>
@@ -229,10 +387,13 @@
     <TaintedFile>
       <code>file_get_contents($localFile)</code>
       <code>file_get_contents($localFile)</code>
+      <code>file_get_contents($localFile)</code>
+      <code>imagejpeg($collage, $localFile, 60)</code>
       <code>imagejpeg($collage, $localFile, 60)</code>
       <code>imagejpeg($collage, $localFile, 60)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($localFile)</code>
       <code>file_get_contents($localFile)</code>
       <code>file_get_contents($localFile)</code>
     </TaintedSSRF>
@@ -241,14 +402,19 @@
     <TaintedFile>
       <code>exif_read_data($path)</code>
       <code>exif_read_data($path)</code>
+      <code>exif_read_data($path)</code>
+      <code>file_get_contents($tmpFile)</code>
       <code>file_get_contents($tmpFile)</code>
       <code>file_get_contents($tmpFile)</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>exif_read_data($path)</code>
       <code>exif_read_data($path)</code>
+      <code>exif_read_data($path)</code>
       <code>file_get_contents($tmpFile)</code>
       <code>file_get_contents($tmpFile)</code>
+      <code>file_get_contents($tmpFile)</code>
+      <code>getimagesize($path)</code>
       <code>getimagesize($path)</code>
       <code>getimagesize($path)</code>
     </TaintedSSRF>
@@ -261,12 +427,16 @@
     <TaintedFile>
       <code>exif_read_data($fileSystemPath)</code>
       <code>exif_read_data($fileSystemPath)</code>
+      <code>exif_read_data($fileSystemPath)</code>
+      <code>fopen($tmpFsPath, 'rb')</code>
       <code>fopen($tmpFsPath, 'rb')</code>
       <code>fopen($tmpFsPath, 'rb')</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>exif_read_data($fileSystemPath)</code>
       <code>exif_read_data($fileSystemPath)</code>
+      <code>exif_read_data($fileSystemPath)</code>
+      <code>fopen($tmpFsPath, 'rb')</code>
       <code>fopen($tmpFsPath, 'rb')</code>
       <code>fopen($tmpFsPath, 'rb')</code>
     </TaintedSSRF>
@@ -275,24 +445,38 @@
     <TaintedFile>
       <code>exif_read_data($filePath)</code>
       <code>exif_read_data($filePath)</code>
+      <code>exif_read_data($filePath)</code>
+      <code>fopen($filePath, 'rb')</code>
       <code>fopen($filePath, 'rb')</code>
       <code>fopen($filePath, 'rb')</code>
     </TaintedFile>
     <TaintedSSRF>
       <code>exif_read_data($filePath)</code>
       <code>exif_read_data($filePath)</code>
+      <code>exif_read_data($filePath)</code>
       <code>fopen($filePath, 'rb')</code>
       <code>fopen($filePath, 'rb')</code>
+      <code>fopen($filePath, 'rb')</code>
+      <code>getimagesize($filePath, $info)</code>
       <code>getimagesize($filePath, $info)</code>
       <code>getimagesize($filePath, $info)</code>
     </TaintedSSRF>
+  </file>
+  <file src="models/Asset/Service.php">
+    <TaintedHeader>
+      <code>$headers</code>
+      <code>$headers</code>
+      <code>$headers</code>
+    </TaintedHeader>
   </file>
   <file src="models/Asset/Video/ImageThumbnail.php">
     <TaintedFile>
       <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
+      <code>file_get_contents($tempFile)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
       <code>file_get_contents($tempFile)</code>
     </TaintedSSRF>
@@ -301,14 +485,19 @@
     <TaintedFile>
       <code>$streamFilesPath</code>
       <code>$streamFilesPath</code>
+      <code>$streamFilesPath</code>
+      <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
       <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
       <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
       <code>unlink($converter-&gt;getDestinationFile())</code>
       <code>unlink($converter-&gt;getDestinationFile())</code>
+      <code>unlink($converter-&gt;getDestinationFile())</code>
+      <code>unlink($workerSourceFile)</code>
       <code>unlink($workerSourceFile)</code>
       <code>unlink($workerSourceFile)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
       <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
       <code>fopen($converter-&gt;getDestinationFile(), 'rb')</code>
     </TaintedSSRF>
@@ -346,6 +535,16 @@
             $this-&gt;model-&gt;getName()
         )</code>
       <code>sprintf(
+            "ALTER TABLE `%s` ALTER COLUMN `oo_className` SET DEFAULT '%s';",
+            $objectTable,
+            $this-&gt;model-&gt;getName()
+        )</code>
+      <code>sprintf(
+            "ALTER TABLE `%s` ALTER COLUMN `oo_className` SET DEFAULT '%s';",
+            $objectTable,
+            $this-&gt;model-&gt;getName()
+        )</code>
+      <code>sprintf(
             "CREATE TABLE IF NOT EXISTS `%s` (
 			  `oo_id` int(11) UNSIGNED NOT NULL default '0',
 			  PRIMARY KEY  (`oo_id`),
@@ -463,10 +662,6 @@
       <code>sprintf("SHOW TABLES LIKE 'object\_localized\_query\_%s\_%%'", $this-&gt;model-&gt;getId())</code>
       <code>sprintf('CREATE OR REPLACE VIEW `%s` AS SELECT * FROM `%s` JOIN `objects` ON `objects`.`id` = `%s`.`oo_id`;', $objectView, $objectTable, $objectTable)</code>
       <code>sprintf('CREATE OR REPLACE VIEW `%s` AS SELECT * FROM `%s` JOIN `objects` ON `objects`.`id` = `%s`.`oo_id`;', $objectView, $objectTable, $objectTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $brickTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $brickTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $collectionTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $collectionTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectDatastoreTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectDatastoreTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectDatastoreTableRelation)</code>
@@ -475,22 +670,59 @@
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectMetadataTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $objectTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $queryTable)</code>
-      <code>sprintf('DROP TABLE IF EXISTS `%s`', $queryTable)</code>
       <code>sprintf('DROP TABLE IF EXISTS object_classificationstore_data_%s', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP TABLE IF EXISTS object_classificationstore_data_%s', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP TABLE IF EXISTS object_classificationstore_groups_%s', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP TABLE IF EXISTS object_classificationstore_groups_%s', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP TABLE IF EXISTS object_localized_data_%s', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP TABLE IF EXISTS object_localized_data_%s', $this-&gt;model-&gt;getId())</code>
-      <code>sprintf('DROP VIEW IF EXISTS `%s`', $localizedView)</code>
-      <code>sprintf('DROP VIEW IF EXISTS `%s`', $localizedView)</code>
       <code>sprintf('DROP VIEW IF EXISTS `object_%s`', $this-&gt;model-&gt;getId())</code>
       <code>sprintf('DROP VIEW IF EXISTS `object_%s`', $this-&gt;model-&gt;getId())</code>
     </TaintedSql>
   </file>
+  <file src="models/DataObject/ClassDefinition/Data.php">
+    <TaintedCallable>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$containerGetter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+      <code>$method</code>
+    </TaintedCallable>
+  </file>
   <file src="models/DataObject/ClassDefinition/Data/Block.php">
     <TaintedSql>
+      <code>$query</code>
+      <code>$query</code>
       <code>$query</code>
       <code>$query</code>
     </TaintedSql>
@@ -501,12 +733,26 @@
       <code>$data-&gt;getUrl()</code>
     </TaintedUrlScheme>
   </file>
+  <file src="models/DataObject/ClassDefinition/Data/Localizedfields.php">
+    <TaintedCallable>
+      <code>$brickContainerGetter</code>
+      <code>$brickContainerGetter</code>
+      <code>$brickContainerGetter</code>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+      <code>'get' . ucfirst($context['containerKey'])</code>
+      <code>'get' . ucfirst($context['fieldname'])</code>
+    </TaintedCallable>
+  </file>
   <file src="models/DataObject/ClassDefinition/Data/Objectbricks.php">
     <TaintedCallable>
       <code>$classname</code>
       <code>$classname</code>
       <code>$containerClass</code>
       <code>$containerClass</code>
+      <code>$getter</code>
+      <code>$getter</code>
     </TaintedCallable>
   </file>
   <file src="models/DataObject/ClassDefinition/Data/ReverseObjectRelation.php">
@@ -519,6 +765,12 @@
     <TaintedSql>
       <code>sprintf('DELETE FROM %s WHERE %s', Model\DataObject\Data\UrlSlug::TABLE_NAME, implode(' AND ', $conditionParts))</code>
     </TaintedSql>
+  </file>
+  <file src="models/DataObject/ClassDefinition/Layout.php">
+    <TaintedCallable>
+      <code>$method</code>
+      <code>$method</code>
+    </TaintedCallable>
   </file>
   <file src="models/DataObject/ClassDefinition/Service.php">
     <TaintedSql>
@@ -610,6 +862,9 @@
     </TaintedSql>
   </file>
   <file src="models/DataObject/Concrete.php">
+    <TaintedCallable>
+      <code>$method</code>
+    </TaintedCallable>
     <TaintedSql>
       <code>sprintf('SELECT * FROM %s WHERE %s', $table, implode(' AND ', $conditionParts))</code>
     </TaintedSql>
@@ -620,8 +875,10 @@
       <code>$query</code>
       <code>$query</code>
       <code>$query</code>
+      <code>$query</code>
       <code>sprintf('DELETE FROM %s WHERE %s IN (?)', $this-&gt;querytable, $this-&gt;idField)</code>
       <code>sprintf('DELETE FROM %s WHERE %s IN (?)', $this-&gt;querytable, $this-&gt;idField)</code>
+      <code>sprintf('SELECT %s AS id%s FROM %s WHERE %s = ?', $this-&gt;idField, $fields, $this-&gt;storetable, $this-&gt;idField)</code>
       <code>sprintf('SELECT %s AS id%s FROM %s WHERE %s = ?', $this-&gt;idField, $fields, $this-&gt;storetable, $this-&gt;idField)</code>
       <code>sprintf('SELECT %s AS id%s FROM %s WHERE %s = ?', $this-&gt;idField, $fields, $this-&gt;storetable, $this-&gt;idField)</code>
       <code>sprintf('SELECT %s FROM %s WHERE %s = ?', $this-&gt;db-&gt;quoteIdentifier($fieldname), $this-&gt;querytable, $this-&gt;idField)</code>
@@ -822,11 +1079,41 @@
         )</code>
     </TaintedSql>
   </file>
+  <file src="models/DataObject/Data/ElementMetadata/Dao.php">
+    <TaintedCallable>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$setter</code>
+    </TaintedCallable>
+  </file>
   <file src="models/DataObject/Data/Link.php">
+    <TaintedCallable>
+      <code>$method</code>
+    </TaintedCallable>
     <TaintedUrlScheme>
       <code>htmlspecialchars($href)</code>
       <code>htmlspecialchars($href)</code>
+      <code>htmlspecialchars($href)</code>
     </TaintedUrlScheme>
+  </file>
+  <file src="models/DataObject/Data/ObjectMetadata/Dao.php">
+    <TaintedCallable>
+      <code>$getter</code>
+      <code>$getter</code>
+      <code>$setter</code>
+    </TaintedCallable>
+  </file>
+  <file src="models/DataObject/Data/UrlSlug.php">
+    <TaintedCallable>
+      <code>$getter</code>
+      <code>$getter</code>
+    </TaintedCallable>
+  </file>
+  <file src="models/DataObject/Fieldcollection/Data/AbstractData.php">
+    <TaintedCallable>
+      <code>'set'.ucfirst($fieldName)</code>
+      <code>'set'.ucfirst($fieldName)</code>
+    </TaintedCallable>
   </file>
   <file src="models/DataObject/Fieldcollection/Definition.php">
     <TaintedFile>
@@ -871,6 +1158,12 @@
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $table)</code>
       <code>sprintf('DROP TABLE IF EXISTS `%s`', $table)</code>
     </TaintedSql>
+  </file>
+  <file src="models/DataObject/Localizedfield.php">
+    <TaintedCallable>
+      <code>$brickContainerGetter</code>
+      <code>$brickGetter</code>
+    </TaintedCallable>
   </file>
   <file src="models/DataObject/Localizedfield/Dao.php">
     <TaintedSql>
@@ -970,6 +1263,8 @@
     <TaintedCallable>
       <code>$brickClass</code>
       <code>$brickClass</code>
+      <code>$setter</code>
+      <code>$setter</code>
     </TaintedCallable>
   </file>
   <file src="models/DataObject/Objectbrick/Definition.php">
@@ -1097,12 +1392,20 @@
       <code>$link</code>
     </TaintedUrlScheme>
   </file>
+  <file src="models/Element/Data/MarkerHotspotItem.php">
+    <TaintedCallable>
+      <code>$setter</code>
+      <code>$setter</code>
+    </TaintedCallable>
+  </file>
   <file src="models/User.php">
     <TaintedFile>
       <code>file_get_contents($targetFile)</code>
       <code>file_get_contents($targetFile)</code>
+      <code>file_get_contents($targetFile)</code>
     </TaintedFile>
     <TaintedSSRF>
+      <code>file_get_contents($targetFile)</code>
       <code>file_get_contents($targetFile)</code>
       <code>file_get_contents($targetFile)</code>
     </TaintedSSRF>

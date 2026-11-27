@@ -29,11 +29,11 @@ class DataObjectImporter extends AbstractElementImporter
     {
         parent::importAttribute($element, $targetLanguage, $attribute);
 
-        if ($attribute->getType() === Attribute::TYPE_LOCALIZED_FIELD) {
-            $setter = 'set' . ucfirst($attribute->getName());
-            if (method_exists($element, $setter)) {
-                $element->$setter($attribute->getContent(), $targetLanguage);
-            }
+        if (
+            $attribute->getType() === Attribute::TYPE_LOCALIZED_FIELD
+            && $this->isLocalizedField($element, $attribute->getName())
+        ) {
+            $element->{'set' . ucfirst($attribute->getName())}($attribute->getContent(), $targetLanguage);
         }
 
         if ($attribute->getType() === Attribute::TYPE_BRICK_LOCALIZED_FIELD) {
@@ -58,6 +58,10 @@ class DataObjectImporter extends AbstractElementImporter
 
         if ($attribute->getType() === Attribute::TYPE_BLOCK_IN_LOCALIZED_FIELD) {
             [$blockName, $blockIndex, $fieldname, $sourceLanguage] = explode(DataObjectDataExtractor::BLOCK_DELIMITER, $attribute->getName());
+            if (!$this->isLocalizedField($element, $blockName)) {
+                return;
+            }
+
             /** @var array $originalBlockData */
             $originalBlockData = $element->{'get' . $blockName}($sourceLanguage);
             $originalBlockItem = $originalBlockData[$blockIndex] ?? null;
@@ -163,6 +167,18 @@ class DataObjectImporter extends AbstractElementImporter
                 }
             }
         }
+    }
+
+    private function isLocalizedField(Element\ElementInterface $element, string $name): bool
+    {
+        if (!$element instanceof DataObject\Concrete) {
+            return false;
+        }
+
+        $localizedFields = $element->getClass()->getFieldDefinition('localizedfields');
+
+        return $localizedFields instanceof DataObject\ClassDefinition\Data\Localizedfields
+            && $localizedFields->getFieldDefinition($name) instanceof DataObject\ClassDefinition\Data;
     }
 
     #[Override]

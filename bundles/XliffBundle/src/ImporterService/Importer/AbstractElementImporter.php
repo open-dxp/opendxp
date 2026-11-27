@@ -36,7 +36,7 @@ class AbstractElementImporter implements ImporterInterface
 
         $attributeSet = $event->getAttributeSet();
 
-        if (!$attributeSet->isEmpty()) {
+        if ($attributeSet->isEmpty()) {
             return;
         }
 
