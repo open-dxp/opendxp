@@ -134,6 +134,12 @@ opendxp.bundle.seo.startup = Class.create({
             }
         }
 
+        if (user.isAllowed("redirects")) {
+            opendxp.helpers.keyBindingMapping.redirects = function() {
+                opendxpBundleSeo.editRedirects();
+            }
+        }
+
         if (user.isAllowed("http_errors")) {
             opendxp.helpers.keyBindingMapping.httpErrorLog = function() {
                 opendxpBundleSeo.showHttpErrorLog();
