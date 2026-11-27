@@ -57,3 +57,18 @@ it('matches an underscore literally in color filters', function () {
 
     expect(idsFilteredBy('rgbaColor', 'f_0', 'LIKE'))->toBe([]);
 });
+
+it('filters checkbox field with grid table prefix', function () {
+    $checked = TestFieldTypesFactory::createOne(['checkbox' => true]);
+    TestFieldTypesFactory::createOne(['checkbox' => false]);
+    $listing = new TestFieldTypes\Listing();
+
+    $condition = ClassDefinition::getByName('TestFieldTypes')->getFieldDefinition('checkbox')->getFilterCondition(
+        1,
+        '=',
+        ['brickPrefix' => sprintf('%s.', $listing->getDao()->getTableName())],
+    );
+    $listing->setCondition($condition);
+
+    expect($listing->loadIdList())->toBe([$checked->getId()]);
+});

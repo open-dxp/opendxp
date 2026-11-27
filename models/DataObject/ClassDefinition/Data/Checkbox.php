@@ -164,11 +164,13 @@ class Checkbox extends Data implements ResourcePersistenceAwareInterface, QueryR
     {
         $db = \OpenDxp\Db::get();
         $value = $db->quote($value);
-        $key = $db->quoteIdentifier($this->name);
+        $key = $db->quoteIdentifier($params['name'] ?? $this->name);
 
-        $brickPrefix = $params['brickPrefix'] ? $db->quoteIdentifier($params['brickPrefix']) . '.' : '';
+        if (!empty($params['brickPrefix'])) {
+            $key = $params['brickPrefix'] . $key;
+        }
 
-        return 'IFNULL(' . $brickPrefix . $key . ', 0) = ' . $value . ' ';
+        return 'IFNULL(' . $key . ', 0) = ' . $value . ' ';
     }
 
     #[Override]

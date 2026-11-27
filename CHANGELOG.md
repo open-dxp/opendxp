@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [BUGFIX] Grid filter on checkbox keys of classification stores
 - [BUGFIX] Xliff import writes translations into elements again. It skipped every element since 1.2.0
 - [BUGFIX] Xliff import and export reject file ids with path characters. Import sets only localized fields of objects and title, description and key of pages
 - [DEPRECATION] `OpenDxp\Security\User\User::eraseCredentials()` is deprecated and will be removed in 2.0
