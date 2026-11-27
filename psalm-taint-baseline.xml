@@ -82,6 +82,12 @@
       <code>fopen($exportFile, 'a+')</code>
     </TaintedSSRF>
   </file>
+  <file src="bundles/XliffBundle/src/ExportDataExtractorService/DataExtractor/DataObjectDataExtractor.php">
+    <TaintedCallable>
+      <code>$brickGetter</code>
+      <code>$brickGetter</code>
+    </TaintedCallable>
+  </file>
   <file src="bundles/XliffBundle/src/ExportService/Exporter/Xliff12Exporter.php">
     <TaintedSSRF>
       <code>file_get_contents($exportFilePath)</code>
@@ -194,6 +200,9 @@
       <code>$functionName</code>
     </TaintedCallable>
     <TaintedFile>
+      <code>$functionName($this-&gt;resource, $path, $quality)</code>
+      <code>$functionName($this-&gt;resource, $path, $quality)</code>
+      <code>$functionName($this-&gt;resource, $path, $quality)</code>
       <code>file_get_contents($this-&gt;path)</code>
       <code>file_get_contents($this-&gt;path)</code>
       <code>file_get_contents($this-&gt;path)</code>
