@@ -46,14 +46,20 @@ class DocumentImporter extends AbstractElementImporter
             }
         }
 
-        if ($element instanceof Document\Page && ($attribute->getType() === Attribute::TYPE_SETTINGS || $attribute->getType() === Attribute::TYPE_ELEMENT_KEY)) {
-            $setter = 'set' . ucfirst($attribute->getName());
-            if (method_exists($element, $setter)) {
-                $content = $attribute->getContent();
-                $content = $attribute->getType() === Attribute::TYPE_ELEMENT_KEY ? Element\Service::getValidKey($content, 'document') : $content;
+        if (!$element instanceof Document\Page) {
+            return;
+        }
 
-                $element->$setter($content);
-            }
+        if ($attribute->getType() === Attribute::TYPE_ELEMENT_KEY) {
+            $element->setKey(Element\Service::getValidKey($attribute->getContent(), 'document'));
+        }
+
+        if ($attribute->getType() === Attribute::TYPE_SETTINGS) {
+            match ($attribute->getName()) {
+                'title' => $element->setTitle($attribute->getContent()),
+                'description' => $element->setDescription($attribute->getContent()),
+                default => null,
+            };
         }
     }
 }

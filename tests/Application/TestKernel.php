@@ -24,6 +24,7 @@ use OpenDxp\Bundle\GlossaryBundle\OpenDxpGlossaryBundle;
 use OpenDxp\Bundle\SeoBundle\OpenDxpSeoBundle;
 use OpenDxp\Bundle\SimpleBackendSearchBundle\OpenDxpSimpleBackendSearchBundle;
 use OpenDxp\Bundle\StaticRoutesBundle\OpenDxpStaticRoutesBundle;
+use OpenDxp\Bundle\XliffBundle\OpenDxpXliffBundle;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
 use OpenDxp\TestFoundation\Kernel\TestKernel as Foundation;
 use Override;
@@ -42,6 +43,7 @@ final class TestKernel extends Foundation
         $collection->addBundle(new OpenDxpSeoBundle());
         $collection->addBundle(new OpenDxpSimpleBackendSearchBundle());
         $collection->addBundle(new OpenDxpStaticRoutesBundle());
+        $collection->addBundle(new OpenDxpXliffBundle());
 
         if ($this->getEnvironment() === 'http_cache') {
             $collection->addBundle(new FOSHttpCacheBundle());

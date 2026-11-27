@@ -64,6 +64,7 @@ pest()->extend(TestCase::class)->in(
     'Feature/User',
     'Feature/Version',
     'Feature/WebsiteSetting',
+    'Feature/Xliff',
 );
 pest()->extend(CacheTestCase::class)->in('Feature/Cache');
 pest()->extend(GenericExecutionEngineTestCase::class)->in('Feature/GenericExecutionEngine');

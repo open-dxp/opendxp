@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/translation')]
@@ -45,7 +46,7 @@ class XliffTranslationController extends UserAwareController
     {
         $this->checkPermission('xliff_import_export');
 
-        $id = $request->request->getString('id');
+        $id = $this->validateFileId($request->request->getString('id'));
         $data = $this->decodeJson($request->request->getString('data'));
         $source = $request->request->getString('source');
         $target = $request->request->getString('target');
@@ -69,7 +70,7 @@ class XliffTranslationController extends UserAwareController
     {
         $this->checkPermission('xliff_import_export');
 
-        $id = $request->query->getString('id');
+        $id = $this->validateFileId($request->query->getString('id'));
         $exportFile = $exportService->getTranslationExporter()->getExportFilePath($id);
 
         $response = new BinaryFileResponse($exportFile);
@@ -126,7 +127,7 @@ class XliffTranslationController extends UserAwareController
     {
         $this->checkPermission('xliff_import_export');
 
-        $id = $request->request->getString('id');
+        $id = $this->validateFileId($request->request->getString('id'));
         $step = $request->request->getInt('step');
 
         try {
@@ -148,5 +149,14 @@ class XliffTranslationController extends UserAwareController
         return $this->jsonResponse([
             'success' => true,
         ]);
+    }
+
+    private function validateFileId(string $id): string
+    {
+        if (!preg_match('/^[a-z0-9]+$/', $id)) {
+            throw new BadRequestHttpException('Invalid file id');
+        }
+
+        return $id;
     }
 }
