@@ -87,6 +87,15 @@ final class Tool
     }
 
     /**
+     * @internal
+     */
+    public static function forgetLanguages(): void
+    {
+        self::$validLanguages = [];
+        self::$requiredLanguages = [];
+    }
+
+    /**
      * Returns an array of language codes that configured for this system
      * in opendxp system settings at "Localization & Internationalization (i18n/l10n)".
      * An empty array is returned if no languages are configured.

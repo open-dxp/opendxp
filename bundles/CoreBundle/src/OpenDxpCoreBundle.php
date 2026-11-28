@@ -40,6 +40,7 @@ use OpenDxp\Bundle\CoreBundle\DependencyInjection\Compiler\WorkflowPass;
 use OpenDxp\Bundle\CoreBundle\DependencyInjection\OpenDxpCoreExtension;
 use OpenDxp\HttpKernel\Bundle\DependentBundleInterface;
 use OpenDxp\HttpKernel\BundleCollection\BundleCollection;
+use OpenDxp\SystemSettingsConfig;
 use Override;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -59,6 +60,14 @@ class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
         }
 
         return $this->extension;
+    }
+
+    #[Override]
+    public function boot(): void
+    {
+        // The settings live in statics, which outlast a kernel booted before this one in the same process.
+        // kernel.reset only reaches services that exist, so fetching it here also resets it in a worker.
+        $this->container?->get(SystemSettingsConfig::class)->reset();
     }
 
     public function build(ContainerBuilder $container): void
