@@ -1,0 +1,7 @@
+imports:
+    - { resource: test.yaml }
+
+opendxp:
+    general:
+        fallback_languages:
+            de: ''

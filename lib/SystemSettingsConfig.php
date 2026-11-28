@@ -18,6 +18,7 @@ namespace OpenDxp;
 use Exception;
 use InvalidArgumentException;
 use OpenDxp\Cache\RuntimeCache;
+use OpenDxp\Config;
 use OpenDxp\Config\LocationAwareConfigRepository;
 use OpenDxp\Event\SystemEvents;
 use OpenDxp\Helper\SystemConfig;
@@ -25,8 +26,9 @@ use OpenDxp\Localization\LocaleServiceInterface;
 use OpenDxp\Model\Exception\ConfigWriteException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
+use Symfony\Contracts\Service\ResetInterface;
 
-class SystemSettingsConfig
+class SystemSettingsConfig implements ResetInterface
 {
     private const string CONFIG_ID = 'system_settings';
 
@@ -56,6 +58,21 @@ class SystemSettingsConfig
         }
 
         return self::$locationAwareConfigRepository;
+    }
+
+    /**
+     * Forgets the settings and the languages read so far, so the next read takes those of the running kernel.
+     */
+    public function reset(): void
+    {
+        self::$locationAwareConfigRepository = null;
+        Config::setSystemConfiguration(null);
+
+        if (RuntimeCache::isRegistered('opendxp_system_settings_config')) {
+            RuntimeCache::getInstance()->offsetUnset('opendxp_system_settings_config');
+        }
+
+        Tool::forgetLanguages();
     }
 
     public static function get(): array

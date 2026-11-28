@@ -186,6 +186,8 @@ services:
 
     OpenDxp\SystemSettingsConfig:
         public: true
+        tags:
+            - { name: kernel.reset, method: reset }
 
     #
     # Notification Services

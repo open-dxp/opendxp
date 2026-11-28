@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.5.7
+- [BUGFIX] A kernel booted after another one in the same process reads its own system settings and languages. It read those of the first kernel before
 - [BUGFIX] Alt+R opens redirects. The SeoBundle registers the key binding. It failed with an error before
 - [BUGFIX] A Vimeo video whose id is a number renders without a deprecation
 - [BUGFIX] Grid filter on checkbox keys of classification stores
