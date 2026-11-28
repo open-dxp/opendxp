@@ -60,9 +60,6 @@ class SystemSettingsConfig implements ResetInterface
         return self::$locationAwareConfigRepository;
     }
 
-    /**
-     * Forgets the settings and the languages read so far, so the next read takes those of the running kernel.
-     */
     public function reset(): void
     {
         self::$locationAwareConfigRepository = null;

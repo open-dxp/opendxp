@@ -65,8 +65,7 @@ class OpenDxpCoreBundle extends Bundle implements DependentBundleInterface
     #[Override]
     public function boot(): void
     {
-        // The settings live in statics, so a kernel booted after another one in the same process would read those of
-        // the first one. Fetching the service also lets kernel.reset reach it between the requests of a worker.
+        // The settings live in statics, which outlast a kernel booted before this one in the same process.
         $this->container?->get(SystemSettingsConfig::class)->reset();
     }
 
